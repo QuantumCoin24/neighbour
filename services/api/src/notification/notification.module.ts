@@ -17,6 +17,7 @@ import { NotificationRetrySchedulerService } from './scheduler/notification-retr
 import { NotificationCollapseService } from './collapse/notification-collapse.service';
 import { NotificationExpirationService } from './expiry/notification-expiration.service';
 import { NotificationPriorityService } from './priority/notification-priority.service';
+import { NotificationTopicService } from './topic/notification-topic.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
