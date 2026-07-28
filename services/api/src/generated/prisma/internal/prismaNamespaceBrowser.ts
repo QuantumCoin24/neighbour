@@ -56,6 +56,8 @@ export const ModelName = {
   Connection: 'Connection',
   UserBlock: 'UserBlock',
   Post: 'Post',
+  Comment: 'Comment',
+  PostReaction: 'PostReaction',
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -182,6 +184,33 @@ export const PostScalarFieldEnum = {
 } as const;
 
 export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum];
+
+export const CommentScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  authorId: 'authorId',
+  parentId: 'parentId',
+  content: 'content',
+  editedAt: 'editedAt',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type CommentScalarFieldEnum =
+  (typeof CommentScalarFieldEnum)[keyof typeof CommentScalarFieldEnum];
+
+export const PostReactionScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  userId: 'userId',
+  type: 'type',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type PostReactionScalarFieldEnum =
+  (typeof PostReactionScalarFieldEnum)[keyof typeof PostReactionScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',

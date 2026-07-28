@@ -398,6 +398,8 @@ export const ModelName = {
   Connection: 'Connection',
   UserBlock: 'UserBlock',
   Post: 'Post',
+  Comment: 'Comment',
+  PostReaction: 'PostReaction',
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -425,7 +427,9 @@ export type TypeMap<
       | 'membership'
       | 'connection'
       | 'userBlock'
-      | 'post';
+      | 'post'
+      | 'comment'
+      | 'postReaction';
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -1022,6 +1026,155 @@ export type TypeMap<
         };
       };
     };
+    Comment: {
+      payload: Prisma.$CommentPayload<ExtArgs>;
+      fields: Prisma.CommentFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.CommentFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.CommentFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload>;
+        };
+        findFirst: {
+          args: Prisma.CommentFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.CommentFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload>;
+        };
+        findMany: {
+          args: Prisma.CommentFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload>[];
+        };
+        create: {
+          args: Prisma.CommentCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload>;
+        };
+        createMany: {
+          args: Prisma.CommentCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.CommentCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload>[];
+        };
+        delete: {
+          args: Prisma.CommentDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload>;
+        };
+        update: {
+          args: Prisma.CommentUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload>;
+        };
+        deleteMany: {
+          args: Prisma.CommentDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.CommentUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.CommentUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload>[];
+        };
+        upsert: {
+          args: Prisma.CommentUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommentPayload>;
+        };
+        aggregate: {
+          args: Prisma.CommentAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateComment>;
+        };
+        groupBy: {
+          args: Prisma.CommentGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.CommentGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.CommentCountArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.CommentCountAggregateOutputType> | number;
+        };
+      };
+    };
+    PostReaction: {
+      payload: Prisma.$PostReactionPayload<ExtArgs>;
+      fields: Prisma.PostReactionFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.PostReactionFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.PostReactionFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload>;
+        };
+        findFirst: {
+          args: Prisma.PostReactionFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.PostReactionFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload>;
+        };
+        findMany: {
+          args: Prisma.PostReactionFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload>[];
+        };
+        create: {
+          args: Prisma.PostReactionCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload>;
+        };
+        createMany: {
+          args: Prisma.PostReactionCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.PostReactionCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload>[];
+        };
+        delete: {
+          args: Prisma.PostReactionDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload>;
+        };
+        update: {
+          args: Prisma.PostReactionUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload>;
+        };
+        deleteMany: {
+          args: Prisma.PostReactionDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.PostReactionUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.PostReactionUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload>[];
+        };
+        upsert: {
+          args: Prisma.PostReactionUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostReactionPayload>;
+        };
+        aggregate: {
+          args: Prisma.PostReactionAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePostReaction>;
+        };
+        groupBy: {
+          args: Prisma.PostReactionGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.PostReactionGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.PostReactionCountArgs<ExtArgs>;
+          result:
+            runtime.Types.Utils.Optional<Prisma.PostReactionCountAggregateOutputType> | number;
+        };
+      };
+    };
   };
 } & {
   other: {
@@ -1169,6 +1322,33 @@ export const PostScalarFieldEnum = {
 } as const;
 
 export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum];
+
+export const CommentScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  authorId: 'authorId',
+  parentId: 'parentId',
+  content: 'content',
+  editedAt: 'editedAt',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type CommentScalarFieldEnum =
+  (typeof CommentScalarFieldEnum)[keyof typeof CommentScalarFieldEnum];
+
+export const PostReactionScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  userId: 'userId',
+  type: 'type',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type PostReactionScalarFieldEnum =
+  (typeof PostReactionScalarFieldEnum)[keyof typeof PostReactionScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',
@@ -1349,6 +1529,22 @@ export type ListEnumPostVisibilityFieldRefInput<$PrismaModel> = FieldRefInputTyp
 >;
 
 /**
+ * Reference to a field of type 'ReactionType'
+ */
+export type EnumReactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'ReactionType'
+>;
+
+/**
+ * Reference to a field of type 'ReactionType[]'
+ */
+export type ListEnumReactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'ReactionType[]'
+>;
+
+/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>;
@@ -1523,6 +1719,8 @@ export type GlobalOmitConfig = {
   connection?: Prisma.ConnectionOmit;
   userBlock?: Prisma.UserBlockOmit;
   post?: Prisma.PostOmit;
+  comment?: Prisma.CommentOmit;
+  postReaction?: Prisma.PostReactionOmit;
 };
 
 /* Types for Logging */

@@ -234,6 +234,8 @@ export type PostWhereInput = {
   deletedAt?: Prisma.DateTimeNullableFilter<'Post'> | Date | string | null;
   createdAt?: Prisma.DateTimeFilter<'Post'> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<'Post'> | Date | string;
+  comments?: Prisma.CommentListRelationFilter;
+  reactions?: Prisma.PostReactionListRelationFilter;
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
   community?: Prisma.XOR<
     Prisma.CommunityNullableScalarRelationFilter,
@@ -254,6 +256,8 @@ export type PostOrderByWithRelationInput = {
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
+  comments?: Prisma.CommentOrderByRelationAggregateInput;
+  reactions?: Prisma.PostReactionOrderByRelationAggregateInput;
   author?: Prisma.UserOrderByWithRelationInput;
   community?: Prisma.CommunityOrderByWithRelationInput;
 };
@@ -275,6 +279,8 @@ export type PostWhereUniqueInput = Prisma.AtLeast<
     deletedAt?: Prisma.DateTimeNullableFilter<'Post'> | Date | string | null;
     createdAt?: Prisma.DateTimeFilter<'Post'> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<'Post'> | Date | string;
+    comments?: Prisma.CommentListRelationFilter;
+    reactions?: Prisma.PostReactionListRelationFilter;
     author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
     community?: Prisma.XOR<
       Prisma.CommunityNullableScalarRelationFilter,
@@ -331,6 +337,8 @@ export type PostCreateInput = {
   deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput;
+  reactions?: Prisma.PostReactionCreateNestedManyWithoutPostInput;
   author: Prisma.UserCreateNestedOneWithoutPostsInput;
   community?: Prisma.CommunityCreateNestedOneWithoutPostsInput;
 };
@@ -348,6 +356,8 @@ export type PostUncheckedCreateInput = {
   deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput;
+  reactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutPostInput;
 };
 
 export type PostUpdateInput = {
@@ -361,6 +371,8 @@ export type PostUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput;
+  reactions?: Prisma.PostReactionUpdateManyWithoutPostNestedInput;
   author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput;
   community?: Prisma.CommunityUpdateOneWithoutPostsNestedInput;
 };
@@ -378,6 +390,8 @@ export type PostUncheckedUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput;
+  reactions?: Prisma.PostReactionUncheckedUpdateManyWithoutPostNestedInput;
 };
 
 export type PostCreateManyInput = {
@@ -476,6 +490,11 @@ export type PostMinOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
+};
+
+export type PostScalarRelationFilter = {
+  is?: Prisma.PostWhereInput;
+  isNot?: Prisma.PostWhereInput;
 };
 
 export type PostCreateNestedManyWithoutAuthorInput = {
@@ -642,6 +661,58 @@ export type EnumPostVisibilityFieldUpdateOperationsInput = {
   set?: $Enums.PostVisibility;
 };
 
+export type PostCreateNestedOneWithoutCommentsInput = {
+  create?: Prisma.XOR<
+    Prisma.PostCreateWithoutCommentsInput,
+    Prisma.PostUncheckedCreateWithoutCommentsInput
+  >;
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCommentsInput;
+  connect?: Prisma.PostWhereUniqueInput;
+};
+
+export type PostUpdateOneRequiredWithoutCommentsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.PostCreateWithoutCommentsInput,
+    Prisma.PostUncheckedCreateWithoutCommentsInput
+  >;
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutCommentsInput;
+  upsert?: Prisma.PostUpsertWithoutCommentsInput;
+  connect?: Prisma.PostWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.PostUpdateToOneWithWhereWithoutCommentsInput,
+      Prisma.PostUpdateWithoutCommentsInput
+    >,
+    Prisma.PostUncheckedUpdateWithoutCommentsInput
+  >;
+};
+
+export type PostCreateNestedOneWithoutReactionsInput = {
+  create?: Prisma.XOR<
+    Prisma.PostCreateWithoutReactionsInput,
+    Prisma.PostUncheckedCreateWithoutReactionsInput
+  >;
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutReactionsInput;
+  connect?: Prisma.PostWhereUniqueInput;
+};
+
+export type PostUpdateOneRequiredWithoutReactionsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.PostCreateWithoutReactionsInput,
+    Prisma.PostUncheckedCreateWithoutReactionsInput
+  >;
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutReactionsInput;
+  upsert?: Prisma.PostUpsertWithoutReactionsInput;
+  connect?: Prisma.PostWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.PostUpdateToOneWithWhereWithoutReactionsInput,
+      Prisma.PostUpdateWithoutReactionsInput
+    >,
+    Prisma.PostUncheckedUpdateWithoutReactionsInput
+  >;
+};
+
 export type PostCreateWithoutAuthorInput = {
   id?: string;
   title?: string | null;
@@ -653,6 +724,8 @@ export type PostCreateWithoutAuthorInput = {
   deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput;
+  reactions?: Prisma.PostReactionCreateNestedManyWithoutPostInput;
   community?: Prisma.CommunityCreateNestedOneWithoutPostsInput;
 };
 
@@ -668,6 +741,8 @@ export type PostUncheckedCreateWithoutAuthorInput = {
   deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput;
+  reactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutPostInput;
 };
 
 export type PostCreateOrConnectWithoutAuthorInput = {
@@ -740,6 +815,8 @@ export type PostCreateWithoutCommunityInput = {
   deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput;
+  reactions?: Prisma.PostReactionCreateNestedManyWithoutPostInput;
   author: Prisma.UserCreateNestedOneWithoutPostsInput;
 };
 
@@ -755,6 +832,8 @@ export type PostUncheckedCreateWithoutCommunityInput = {
   deletedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput;
+  reactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutPostInput;
 };
 
 export type PostCreateOrConnectWithoutCommunityInput = {
@@ -798,6 +877,190 @@ export type PostUpdateManyWithWhereWithoutCommunityInput = {
   >;
 };
 
+export type PostCreateWithoutCommentsInput = {
+  id?: string;
+  title?: string | null;
+  content: string;
+  status?: $Enums.PostStatus;
+  visibility?: $Enums.PostVisibility;
+  publishedAt?: Date | string | null;
+  editedAt?: Date | string | null;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  reactions?: Prisma.PostReactionCreateNestedManyWithoutPostInput;
+  author: Prisma.UserCreateNestedOneWithoutPostsInput;
+  community?: Prisma.CommunityCreateNestedOneWithoutPostsInput;
+};
+
+export type PostUncheckedCreateWithoutCommentsInput = {
+  id?: string;
+  authorId: string;
+  communityId?: string | null;
+  title?: string | null;
+  content: string;
+  status?: $Enums.PostStatus;
+  visibility?: $Enums.PostVisibility;
+  publishedAt?: Date | string | null;
+  editedAt?: Date | string | null;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  reactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutPostInput;
+};
+
+export type PostCreateOrConnectWithoutCommentsInput = {
+  where: Prisma.PostWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.PostCreateWithoutCommentsInput,
+    Prisma.PostUncheckedCreateWithoutCommentsInput
+  >;
+};
+
+export type PostUpsertWithoutCommentsInput = {
+  update: Prisma.XOR<
+    Prisma.PostUpdateWithoutCommentsInput,
+    Prisma.PostUncheckedUpdateWithoutCommentsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.PostCreateWithoutCommentsInput,
+    Prisma.PostUncheckedCreateWithoutCommentsInput
+  >;
+  where?: Prisma.PostWhereInput;
+};
+
+export type PostUpdateToOneWithWhereWithoutCommentsInput = {
+  where?: Prisma.PostWhereInput;
+  data: Prisma.XOR<
+    Prisma.PostUpdateWithoutCommentsInput,
+    Prisma.PostUncheckedUpdateWithoutCommentsInput
+  >;
+};
+
+export type PostUpdateWithoutCommentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus;
+  visibility?: Prisma.EnumPostVisibilityFieldUpdateOperationsInput | $Enums.PostVisibility;
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  editedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  reactions?: Prisma.PostReactionUpdateManyWithoutPostNestedInput;
+  author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput;
+  community?: Prisma.CommunityUpdateOneWithoutPostsNestedInput;
+};
+
+export type PostUncheckedUpdateWithoutCommentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  authorId?: Prisma.StringFieldUpdateOperationsInput | string;
+  communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus;
+  visibility?: Prisma.EnumPostVisibilityFieldUpdateOperationsInput | $Enums.PostVisibility;
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  editedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  reactions?: Prisma.PostReactionUncheckedUpdateManyWithoutPostNestedInput;
+};
+
+export type PostCreateWithoutReactionsInput = {
+  id?: string;
+  title?: string | null;
+  content: string;
+  status?: $Enums.PostStatus;
+  visibility?: $Enums.PostVisibility;
+  publishedAt?: Date | string | null;
+  editedAt?: Date | string | null;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  comments?: Prisma.CommentCreateNestedManyWithoutPostInput;
+  author: Prisma.UserCreateNestedOneWithoutPostsInput;
+  community?: Prisma.CommunityCreateNestedOneWithoutPostsInput;
+};
+
+export type PostUncheckedCreateWithoutReactionsInput = {
+  id?: string;
+  authorId: string;
+  communityId?: string | null;
+  title?: string | null;
+  content: string;
+  status?: $Enums.PostStatus;
+  visibility?: $Enums.PostVisibility;
+  publishedAt?: Date | string | null;
+  editedAt?: Date | string | null;
+  deletedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutPostInput;
+};
+
+export type PostCreateOrConnectWithoutReactionsInput = {
+  where: Prisma.PostWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.PostCreateWithoutReactionsInput,
+    Prisma.PostUncheckedCreateWithoutReactionsInput
+  >;
+};
+
+export type PostUpsertWithoutReactionsInput = {
+  update: Prisma.XOR<
+    Prisma.PostUpdateWithoutReactionsInput,
+    Prisma.PostUncheckedUpdateWithoutReactionsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.PostCreateWithoutReactionsInput,
+    Prisma.PostUncheckedCreateWithoutReactionsInput
+  >;
+  where?: Prisma.PostWhereInput;
+};
+
+export type PostUpdateToOneWithWhereWithoutReactionsInput = {
+  where?: Prisma.PostWhereInput;
+  data: Prisma.XOR<
+    Prisma.PostUpdateWithoutReactionsInput,
+    Prisma.PostUncheckedUpdateWithoutReactionsInput
+  >;
+};
+
+export type PostUpdateWithoutReactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus;
+  visibility?: Prisma.EnumPostVisibilityFieldUpdateOperationsInput | $Enums.PostVisibility;
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  editedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput;
+  author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput;
+  community?: Prisma.CommunityUpdateOneWithoutPostsNestedInput;
+};
+
+export type PostUncheckedUpdateWithoutReactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  authorId?: Prisma.StringFieldUpdateOperationsInput | string;
+  communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  content?: Prisma.StringFieldUpdateOperationsInput | string;
+  status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus;
+  visibility?: Prisma.EnumPostVisibilityFieldUpdateOperationsInput | $Enums.PostVisibility;
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  editedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput;
+};
+
 export type PostCreateManyAuthorInput = {
   id?: string;
   communityId?: string | null;
@@ -823,6 +1086,8 @@ export type PostUpdateWithoutAuthorInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput;
+  reactions?: Prisma.PostReactionUpdateManyWithoutPostNestedInput;
   community?: Prisma.CommunityUpdateOneWithoutPostsNestedInput;
 };
 
@@ -838,6 +1103,8 @@ export type PostUncheckedUpdateWithoutAuthorInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput;
+  reactions?: Prisma.PostReactionUncheckedUpdateManyWithoutPostNestedInput;
 };
 
 export type PostUncheckedUpdateManyWithoutAuthorInput = {
@@ -879,6 +1146,8 @@ export type PostUpdateWithoutCommunityInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  comments?: Prisma.CommentUpdateManyWithoutPostNestedInput;
+  reactions?: Prisma.PostReactionUpdateManyWithoutPostNestedInput;
   author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput;
 };
 
@@ -894,6 +1163,8 @@ export type PostUncheckedUpdateWithoutCommunityInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutPostNestedInput;
+  reactions?: Prisma.PostReactionUncheckedUpdateManyWithoutPostNestedInput;
 };
 
 export type PostUncheckedUpdateManyWithoutCommunityInput = {
@@ -908,6 +1179,52 @@ export type PostUncheckedUpdateManyWithoutCommunityInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+/**
+ * Count Type PostCountOutputType
+ */
+
+export type PostCountOutputType = {
+  comments: number;
+  reactions: number;
+};
+
+export type PostCountOutputTypeSelect<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  comments?: boolean | PostCountOutputTypeCountCommentsArgs;
+  reactions?: boolean | PostCountOutputTypeCountReactionsArgs;
+};
+
+/**
+ * PostCountOutputType without action
+ */
+export type PostCountOutputTypeDefaultArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the PostCountOutputType
+   */
+  select?: Prisma.PostCountOutputTypeSelect<ExtArgs> | null;
+};
+
+/**
+ * PostCountOutputType without action
+ */
+export type PostCountOutputTypeCountCommentsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.CommentWhereInput;
+};
+
+/**
+ * PostCountOutputType without action
+ */
+export type PostCountOutputTypeCountReactionsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.PostReactionWhereInput;
 };
 
 export type PostSelect<
@@ -926,8 +1243,11 @@ export type PostSelect<
     deletedAt?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
+    comments?: boolean | Prisma.Post$commentsArgs<ExtArgs>;
+    reactions?: boolean | Prisma.Post$reactionsArgs<ExtArgs>;
     author?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
     community?: boolean | Prisma.Post$communityArgs<ExtArgs>;
+    _count?: boolean | Prisma.PostCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['post']
 >;
@@ -1011,8 +1331,11 @@ export type PostOmit<
 export type PostInclude<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
 > = {
+  comments?: boolean | Prisma.Post$commentsArgs<ExtArgs>;
+  reactions?: boolean | Prisma.Post$reactionsArgs<ExtArgs>;
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   community?: boolean | Prisma.Post$communityArgs<ExtArgs>;
+  _count?: boolean | Prisma.PostCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type PostIncludeCreateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
@@ -1032,6 +1355,8 @@ export type $PostPayload<
 > = {
   name: 'Post';
   objects: {
+    comments: Prisma.$CommentPayload<ExtArgs>[];
+    reactions: Prisma.$PostReactionPayload<ExtArgs>[];
     author: Prisma.$UserPayload<ExtArgs>;
     community: Prisma.$CommunityPayload<ExtArgs> | null;
   };
@@ -1559,6 +1884,28 @@ export interface Prisma__PostClient<
   GlobalOmitOptions = {},
 > extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: 'PrismaPromise';
+  comments<T extends Prisma.Post$commentsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Post$commentsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$CommentPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  reactions<T extends Prisma.Post$reactionsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Post$reactionsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$PostReactionPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   author<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>,
   ): Prisma.Prisma__UserClient<
@@ -2054,6 +2401,59 @@ export type PostDeleteManyArgs<
    * Limit how many Posts to delete.
    */
   limit?: number;
+};
+
+/**
+ * Post.comments
+ */
+export type Post$commentsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Comment
+   */
+  select?: Prisma.CommentSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Comment
+   */
+  omit?: Prisma.CommentOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CommentInclude<ExtArgs> | null;
+  where?: Prisma.CommentWhereInput;
+  orderBy?: Prisma.CommentOrderByWithRelationInput | Prisma.CommentOrderByWithRelationInput[];
+  cursor?: Prisma.CommentWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.CommentScalarFieldEnum | Prisma.CommentScalarFieldEnum[];
+};
+
+/**
+ * Post.reactions
+ */
+export type Post$reactionsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the PostReaction
+   */
+  select?: Prisma.PostReactionSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the PostReaction
+   */
+  omit?: Prisma.PostReactionOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PostReactionInclude<ExtArgs> | null;
+  where?: Prisma.PostReactionWhereInput;
+  orderBy?:
+    Prisma.PostReactionOrderByWithRelationInput | Prisma.PostReactionOrderByWithRelationInput[];
+  cursor?: Prisma.PostReactionWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.PostReactionScalarFieldEnum | Prisma.PostReactionScalarFieldEnum[];
 };
 
 /**

@@ -58,6 +58,14 @@ enum PostVisibility {
   PRIVATE
 }
 
+enum ReactionType {
+  LIKE
+  LOVE
+  SUPPORT
+  CELEBRATE
+  INSIGHTFUL
+}
+
 model User {
   id                   String         @id @default(uuid()) @db.Uuid
   email                String         @unique
@@ -75,6 +83,8 @@ model User {
   blocksCreated        UserBlock[]    @relation("Blocker")
   blocksReceived       UserBlock[]    @relation("Blocked")
   posts                Post[]
+  comments             Comment[]
+  postReactions        PostReaction[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -185,6 +195,8 @@ model Post {
   id          String         @id @default(uuid()) @db.Uuid
   authorId    String         @db.Uuid
   communityId String?        @db.Uuid
+  comments    Comment[]
+  reactions   PostReaction[]
   title       String?
   content     String
   status      PostStatus     @default(DRAFT)
@@ -202,4 +214,42 @@ model Post {
   @@index([status, visibility, publishedAt])
   @@index([deletedAt])
   @@map("posts")
+}
+
+model Comment {
+  id        String    @id @default(uuid()) @db.Uuid
+  postId    String    @db.Uuid
+  authorId  String    @db.Uuid
+  parentId  String?   @db.Uuid
+  content   String
+  editedAt  DateTime?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  @@index([postId, createdAt])
+  @@index([authorId, createdAt])
+  @@index([parentId, createdAt])
+  @@index([deletedAt])
+  @@map("comments")
+}
+
+model PostReaction {
+  id        String       @id @default(uuid()) @db.Uuid
+  postId    String       @db.Uuid
+  userId    String       @db.Uuid
+  type      ReactionType
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId, type])
+  @@index([userId, createdAt])
+  @@map("post_reactions")
 }

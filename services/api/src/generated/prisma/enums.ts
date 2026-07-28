@@ -74,3 +74,13 @@ export const PostVisibility = {
 } as const;
 
 export type PostVisibility = (typeof PostVisibility)[keyof typeof PostVisibility];
+
+export const ReactionType = {
+  LIKE: 'LIKE',
+  LOVE: 'LOVE',
+  SUPPORT: 'SUPPORT',
+  CELEBRATE: 'CELEBRATE',
+  INSIGHTFUL: 'INSIGHTFUL',
+} as const;
+
+export type ReactionType = (typeof ReactionType)[keyof typeof ReactionType];

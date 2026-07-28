@@ -56,3 +56,13 @@ export type UserBlock = Prisma.UserBlockModel;
  *
  */
 export type Post = Prisma.PostModel;
+/**
+ * Model Comment
+ *
+ */
+export type Comment = Prisma.CommentModel;
+/**
+ * Model PostReaction
+ *
+ */
+export type PostReaction = Prisma.PostReactionModel;
