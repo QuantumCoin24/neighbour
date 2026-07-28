@@ -19,6 +19,7 @@ import { NotificationExpirationService } from './expiry/notification-expiration.
 import { NotificationPriorityService } from './priority/notification-priority.service';
 import { NotificationTopicService } from './topic/notification-topic.service';
 import { ApnsHeaderBuilderService } from './headers/apns-header-builder.service';
+import { ApnsRequestBuilderService } from './request/apns-request-builder.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
