@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module';
+import { CommunityModule } from './community/community.module';
 import { environment } from './config/environment';
 import { environmentValidationSchema } from './config/environment.validation';
 import { DatabaseHealthModule } from './database/database-health.module';
@@ -20,6 +21,7 @@ import { HealthModule } from './health/health.module';
       validationSchema: environmentValidationSchema,
     }),
     AuthModule,
+    CommunityModule,
     DatabaseModule,
     HealthModule,
     DatabaseHealthModule,
