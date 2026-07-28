@@ -1,35 +1,45 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { ApnsHeaderBuilderService } from '../src/notification/headers/apns-header-builder.service';
-import { NotificationExpirationService } from '../src/notification/expiry/notification-expiration.service';
-import { NotificationPriorityService } from '../src/notification/priority/notification-priority.service';
-import { NotificationTopicService } from '../src/notification/topic/notification-topic.service';
-import { ApnsRequestBuilderService } from '../src/notification/request/apns-request-builder.service';
+import { ApnsRequestBuilderService } from '../src/notification/transport/apns-request-builder.service';
+import { ApnsAuthorizationService } from '../src/notification/auth/apns-authorization.service';
+import { ApnsConfigurationService } from '../src/notification/config/apns-configuration.service';
+
+class Config extends ApnsConfigurationService {
+  override load() {
+    return {
+      teamId: 'TEAM',
+      keyId: 'KEY',
+      bundleId: 'com.neighbour.app',
+      privateKey: 'PRIVATE',
+      environment: 'development' as const,
+      host: 'api.sandbox.push.apple.com',
+      tokenLifetimeSeconds: 3600,
+      requestTimeoutMilliseconds: 10000,
+    };
+  }
+}
+
+class Auth extends ApnsAuthorizationService {
+  constructor() {
+    super({ createAuthorizationHeader: () => 'bearer token' } as never);
+  }
+
+  override createAuthorizationHeader() {
+    return 'bearer token';
+  }
+}
 
 describe('ApnsRequestBuilderService', () => {
-  it('builds a complete APNs request', () => {
-    const service = new ApnsRequestBuilderService(
-      new ApnsHeaderBuilderService(
-        new NotificationTopicService('com.neighbour.test'),
-        new NotificationPriorityService(),
-        new NotificationExpirationService(),
-      ),
-    );
+  it('builds APNs request metadata', () => {
+    const builder = new ApnsRequestBuilderService(new Config(), new Auth());
 
-    const payload = {
-      aps: {
-        alert: {
-          title: 'Neighbour',
-          body: 'Hello',
-        },
-      },
-    };
+    const request = builder.build('DEVICE123');
 
-    const request = service.build('device-token', payload);
-
-    assert.equal(request.deviceToken, 'device-token');
-    assert.equal(request.headers['apns-topic'], 'com.neighbour.test');
-    assert.deepEqual(request.payload, payload);
+    assert.equal(request.authority, 'api.sandbox.push.apple.com');
+    assert.equal(request.headers.authorization, 'bearer token');
+    assert.equal(request.headers['apns-topic'], 'com.neighbour.app');
+    assert.equal(request.headers[':path'], '/3/device/DEVICE123');
+    assert.equal(request.headers[':method'], 'POST');
   });
 });
