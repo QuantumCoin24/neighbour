@@ -11,6 +11,7 @@ import { DatabaseHealthModule } from './database/database-health.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { ProfileModule } from './profile/profile.module';
+import { SocialGraphModule } from './social-graph/social-graph.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ProfileModule } from './profile/profile.module';
     DatabaseModule,
     HealthModule,
     ProfileModule,
+    SocialGraphModule,
     DatabaseHealthModule,
   ],
 })

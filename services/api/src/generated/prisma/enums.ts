@@ -50,3 +50,11 @@ export const MembershipStatus = {
 } as const;
 
 export type MembershipStatus = (typeof MembershipStatus)[keyof typeof MembershipStatus];
+
+export const ConnectionStatus = {
+  PENDING: 'PENDING',
+  CONNECTED: 'CONNECTED',
+  DECLINED: 'DECLINED',
+} as const;
+
+export type ConnectionStatus = (typeof ConnectionStatus)[keyof typeof ConnectionStatus];

@@ -395,6 +395,8 @@ export const ModelName = {
   RefreshToken: 'RefreshToken',
   Community: 'Community',
   Membership: 'Membership',
+  Connection: 'Connection',
+  UserBlock: 'UserBlock',
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -414,7 +416,14 @@ export type TypeMap<
     omit: GlobalOmitOptions;
   };
   meta: {
-    modelProps: 'user' | 'userProfile' | 'refreshToken' | 'community' | 'membership';
+    modelProps:
+      | 'user'
+      | 'userProfile'
+      | 'refreshToken'
+      | 'community'
+      | 'membership'
+      | 'connection'
+      | 'userBlock';
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -789,6 +798,154 @@ export type TypeMap<
         };
       };
     };
+    Connection: {
+      payload: Prisma.$ConnectionPayload<ExtArgs>;
+      fields: Prisma.ConnectionFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.ConnectionFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.ConnectionFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload>;
+        };
+        findFirst: {
+          args: Prisma.ConnectionFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.ConnectionFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload>;
+        };
+        findMany: {
+          args: Prisma.ConnectionFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload>[];
+        };
+        create: {
+          args: Prisma.ConnectionCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload>;
+        };
+        createMany: {
+          args: Prisma.ConnectionCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.ConnectionCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload>[];
+        };
+        delete: {
+          args: Prisma.ConnectionDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload>;
+        };
+        update: {
+          args: Prisma.ConnectionUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload>;
+        };
+        deleteMany: {
+          args: Prisma.ConnectionDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.ConnectionUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.ConnectionUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload>[];
+        };
+        upsert: {
+          args: Prisma.ConnectionUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConnectionPayload>;
+        };
+        aggregate: {
+          args: Prisma.ConnectionAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateConnection>;
+        };
+        groupBy: {
+          args: Prisma.ConnectionGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.ConnectionGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.ConnectionCountArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.ConnectionCountAggregateOutputType> | number;
+        };
+      };
+    };
+    UserBlock: {
+      payload: Prisma.$UserBlockPayload<ExtArgs>;
+      fields: Prisma.UserBlockFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.UserBlockFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.UserBlockFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload>;
+        };
+        findFirst: {
+          args: Prisma.UserBlockFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.UserBlockFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload>;
+        };
+        findMany: {
+          args: Prisma.UserBlockFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload>[];
+        };
+        create: {
+          args: Prisma.UserBlockCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload>;
+        };
+        createMany: {
+          args: Prisma.UserBlockCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.UserBlockCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload>[];
+        };
+        delete: {
+          args: Prisma.UserBlockDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload>;
+        };
+        update: {
+          args: Prisma.UserBlockUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload>;
+        };
+        deleteMany: {
+          args: Prisma.UserBlockDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.UserBlockUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.UserBlockUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload>[];
+        };
+        upsert: {
+          args: Prisma.UserBlockUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserBlockPayload>;
+        };
+        aggregate: {
+          args: Prisma.UserBlockAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserBlock>;
+        };
+        groupBy: {
+          args: Prisma.UserBlockGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.UserBlockGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.UserBlockCountArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.UserBlockCountAggregateOutputType> | number;
+        };
+      };
+    };
   };
 } & {
   other: {
@@ -894,6 +1051,31 @@ export const MembershipScalarFieldEnum = {
 
 export type MembershipScalarFieldEnum =
   (typeof MembershipScalarFieldEnum)[keyof typeof MembershipScalarFieldEnum];
+
+export const ConnectionScalarFieldEnum = {
+  id: 'id',
+  userAId: 'userAId',
+  userBId: 'userBId',
+  requestedById: 'requestedById',
+  status: 'status',
+  respondedAt: 'respondedAt',
+  connectedAt: 'connectedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type ConnectionScalarFieldEnum =
+  (typeof ConnectionScalarFieldEnum)[keyof typeof ConnectionScalarFieldEnum];
+
+export const UserBlockScalarFieldEnum = {
+  id: 'id',
+  blockerId: 'blockerId',
+  blockedId: 'blockedId',
+  createdAt: 'createdAt',
+} as const;
+
+export type UserBlockScalarFieldEnum =
+  (typeof UserBlockScalarFieldEnum)[keyof typeof UserBlockScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',
@@ -1023,6 +1205,22 @@ export type EnumMembershipStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
 export type ListEnumMembershipStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
   $PrismaModel,
   'MembershipStatus[]'
+>;
+
+/**
+ * Reference to a field of type 'ConnectionStatus'
+ */
+export type EnumConnectionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'ConnectionStatus'
+>;
+
+/**
+ * Reference to a field of type 'ConnectionStatus[]'
+ */
+export type ListEnumConnectionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'ConnectionStatus[]'
 >;
 
 /**
@@ -1197,6 +1395,8 @@ export type GlobalOmitConfig = {
   refreshToken?: Prisma.RefreshTokenOmit;
   community?: Prisma.CommunityOmit;
   membership?: Prisma.MembershipOmit;
+  connection?: Prisma.ConnectionOmit;
+  userBlock?: Prisma.UserBlockOmit;
 };
 
 /* Types for Logging */

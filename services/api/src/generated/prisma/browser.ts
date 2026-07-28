@@ -41,3 +41,13 @@ export type Community = Prisma.CommunityModel;
  *
  */
 export type Membership = Prisma.MembershipModel;
+/**
+ * Model Connection
+ *
+ */
+export type Connection = Prisma.ConnectionModel;
+/**
+ * Model UserBlock
+ *
+ */
+export type UserBlock = Prisma.UserBlockModel;

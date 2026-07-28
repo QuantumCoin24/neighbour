@@ -53,6 +53,8 @@ export const ModelName = {
   RefreshToken: 'RefreshToken',
   Community: 'Community',
   Membership: 'Membership',
+  Connection: 'Connection',
+  UserBlock: 'UserBlock',
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -137,6 +139,31 @@ export const MembershipScalarFieldEnum = {
 
 export type MembershipScalarFieldEnum =
   (typeof MembershipScalarFieldEnum)[keyof typeof MembershipScalarFieldEnum];
+
+export const ConnectionScalarFieldEnum = {
+  id: 'id',
+  userAId: 'userAId',
+  userBId: 'userBId',
+  requestedById: 'requestedById',
+  status: 'status',
+  respondedAt: 'respondedAt',
+  connectedAt: 'connectedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type ConnectionScalarFieldEnum =
+  (typeof ConnectionScalarFieldEnum)[keyof typeof ConnectionScalarFieldEnum];
+
+export const UserBlockScalarFieldEnum = {
+  id: 'id',
+  blockerId: 'blockerId',
+  blockedId: 'blockedId',
+  createdAt: 'createdAt',
+} as const;
+
+export type UserBlockScalarFieldEnum =
+  (typeof UserBlockScalarFieldEnum)[keyof typeof UserBlockScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',

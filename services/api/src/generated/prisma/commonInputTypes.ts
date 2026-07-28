@@ -263,6 +263,24 @@ export type EnumMembershipStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumMembershipStatusFilter<$PrismaModel>;
 };
 
+export type EnumConnectionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ConnectionStatus | Prisma.EnumConnectionStatusFieldRefInput<$PrismaModel>;
+  in?: $Enums.ConnectionStatus[] | Prisma.ListEnumConnectionStatusFieldRefInput<$PrismaModel>;
+  notIn?: $Enums.ConnectionStatus[] | Prisma.ListEnumConnectionStatusFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedEnumConnectionStatusFilter<$PrismaModel> | $Enums.ConnectionStatus;
+};
+
+export type EnumConnectionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ConnectionStatus | Prisma.EnumConnectionStatusFieldRefInput<$PrismaModel>;
+  in?: $Enums.ConnectionStatus[] | Prisma.ListEnumConnectionStatusFieldRefInput<$PrismaModel>;
+  notIn?: $Enums.ConnectionStatus[] | Prisma.ListEnumConnectionStatusFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedEnumConnectionStatusWithAggregatesFilter<$PrismaModel> | $Enums.ConnectionStatus;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumConnectionStatusFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumConnectionStatusFilter<$PrismaModel>;
+};
+
 export type NestedUuidFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>;
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>;
@@ -523,4 +541,22 @@ export type NestedEnumMembershipStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>;
   _min?: Prisma.NestedEnumMembershipStatusFilter<$PrismaModel>;
   _max?: Prisma.NestedEnumMembershipStatusFilter<$PrismaModel>;
+};
+
+export type NestedEnumConnectionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ConnectionStatus | Prisma.EnumConnectionStatusFieldRefInput<$PrismaModel>;
+  in?: $Enums.ConnectionStatus[] | Prisma.ListEnumConnectionStatusFieldRefInput<$PrismaModel>;
+  notIn?: $Enums.ConnectionStatus[] | Prisma.ListEnumConnectionStatusFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedEnumConnectionStatusFilter<$PrismaModel> | $Enums.ConnectionStatus;
+};
+
+export type NestedEnumConnectionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ConnectionStatus | Prisma.EnumConnectionStatusFieldRefInput<$PrismaModel>;
+  in?: $Enums.ConnectionStatus[] | Prisma.ListEnumConnectionStatusFieldRefInput<$PrismaModel>;
+  notIn?: $Enums.ConnectionStatus[] | Prisma.ListEnumConnectionStatusFieldRefInput<$PrismaModel>;
+  not?:
+    Prisma.NestedEnumConnectionStatusWithAggregatesFilter<$PrismaModel> | $Enums.ConnectionStatus;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedEnumConnectionStatusFilter<$PrismaModel>;
+  _max?: Prisma.NestedEnumConnectionStatusFilter<$PrismaModel>;
 };
