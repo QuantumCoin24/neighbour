@@ -63,6 +63,7 @@ export const ModelName = {
   Message: 'Message',
   MessageAttachment: 'MessageAttachment',
   MessageReadReceipt: 'MessageReadReceipt',
+  PushDevice: 'PushDevice',
   Notification: 'Notification',
 } as const;
 
@@ -297,6 +298,22 @@ export const MessageReadReceiptScalarFieldEnum = {
 
 export type MessageReadReceiptScalarFieldEnum =
   (typeof MessageReadReceiptScalarFieldEnum)[keyof typeof MessageReadReceiptScalarFieldEnum];
+
+export const PushDeviceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  platform: 'platform',
+  token: 'token',
+  deviceName: 'deviceName',
+  registeredAt: 'registeredAt',
+  lastSeenAt: 'lastSeenAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type PushDeviceScalarFieldEnum =
+  (typeof PushDeviceScalarFieldEnum)[keyof typeof PushDeviceScalarFieldEnum];
 
 export const NotificationScalarFieldEnum = {
   id: 'id',

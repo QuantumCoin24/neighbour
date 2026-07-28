@@ -1,35 +1,139 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
-import { DeviceRegistration } from './device-registration.interface';
+import { DatabaseService } from '../../database/database.service';
+import type { PushDevice } from '../../generated/prisma/client';
+import type { DeviceRegistration } from './device-registration.interface';
+import { DevicePlatform } from './device-platform.enum';
+import type { RegisterDeviceDto } from './register-device.dto';
 
 @Injectable()
 export class DeviceRegistryService {
-  private readonly devices = new Map<string, DeviceRegistration[]>();
+  constructor(
+    @Inject(DatabaseService)
+    private readonly database: DatabaseService,
+  ) {}
 
-  register(device: DeviceRegistration): void {
-    const existing = this.devices.get(device.userId) ?? [];
+  async register(userId: string, input: RegisterDeviceDto): Promise<DeviceRegistration> {
+    const now = new Date();
 
-    const filtered = existing.filter((entry) => entry.token !== device.token);
+    const device = await this.database.pushDevice.upsert({
+      where: {
+        token: input.token,
+      },
+      create: {
+        userId,
+        platform: input.platform,
+        token: input.token,
+        ...(input.deviceName
+          ? {
+              deviceName: input.deviceName,
+            }
+          : {}),
+        registeredAt: now,
+        lastSeenAt: now,
+      },
+      update: {
+        userId,
+        platform: input.platform,
+        ...(input.deviceName
+          ? {
+              deviceName: input.deviceName,
+            }
+          : {}),
+        registeredAt: now,
+        lastSeenAt: now,
+        revokedAt: null,
+      },
+    });
 
-    filtered.push(device);
-
-    this.devices.set(device.userId, filtered);
+    return this.toRegistration(device);
   }
 
-  getDevices(userId: string): DeviceRegistration[] {
-    return this.devices.get(userId) ?? [];
+  async getDevices(userId: string): Promise<DeviceRegistration[]> {
+    const devices = await this.database.pushDevice.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
+      orderBy: [
+        {
+          lastSeenAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+    });
+
+    return devices.map((device) => this.toRegistration(device));
   }
 
-  unregister(userId: string, token: string): void {
-    const existing = this.devices.get(userId) ?? [];
+  async unregister(userId: string, token: string): Promise<boolean> {
+    const result = await this.database.pushDevice.updateMany({
+      where: {
+        userId,
+        token,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
 
-    this.devices.set(
-      userId,
-      existing.filter((entry) => entry.token !== token),
-    );
+    return result.count > 0;
   }
 
-  clear(): void {
-    this.devices.clear();
+  async unregisterAll(userId: string): Promise<number> {
+    const result = await this.database.pushDevice.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+
+    return result.count;
+  }
+
+  async touch(userId: string, token: string): Promise<boolean> {
+    const result = await this.database.pushDevice.updateMany({
+      where: {
+        userId,
+        token,
+        revokedAt: null,
+      },
+      data: {
+        lastSeenAt: new Date(),
+      },
+    });
+
+    return result.count > 0;
+  }
+
+  private toRegistration(device: PushDevice): DeviceRegistration {
+    return {
+      id: device.id,
+      userId: device.userId,
+      platform: this.toDevicePlatform(device.platform),
+      token: device.token,
+      deviceName: device.deviceName,
+      registeredAt: device.registeredAt,
+      lastSeenAt: device.lastSeenAt,
+      revokedAt: device.revokedAt,
+    };
+  }
+
+  private toDevicePlatform(platform: string): DevicePlatform {
+    if (platform === DevicePlatform.IOS) {
+      return DevicePlatform.IOS;
+    }
+
+    if (platform === DevicePlatform.WEB) {
+      return DevicePlatform.WEB;
+    }
+
+    throw new Error(`Unsupported push device platform: ${platform}`);
   }
 }

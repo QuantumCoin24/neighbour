@@ -92,6 +92,11 @@ export type MessageAttachment = Prisma.MessageAttachmentModel;
  */
 export type MessageReadReceipt = Prisma.MessageReadReceiptModel;
 /**
+ * Model PushDevice
+ *
+ */
+export type PushDevice = Prisma.PushDeviceModel;
+/**
  * Model Notification
  *
  */

@@ -230,6 +230,7 @@ export type UserWhereInput = {
   conversationMembers?: Prisma.ConversationMemberListRelationFilter;
   messagesSent?: Prisma.MessageListRelationFilter;
   messageReadReceipts?: Prisma.MessageReadReceiptListRelationFilter;
+  pushDevices?: Prisma.PushDeviceListRelationFilter;
 };
 
 export type UserOrderByWithRelationInput = {
@@ -259,6 +260,7 @@ export type UserOrderByWithRelationInput = {
   conversationMembers?: Prisma.ConversationMemberOrderByRelationAggregateInput;
   messagesSent?: Prisma.MessageOrderByRelationAggregateInput;
   messageReadReceipts?: Prisma.MessageReadReceiptOrderByRelationAggregateInput;
+  pushDevices?: Prisma.PushDeviceOrderByRelationAggregateInput;
 };
 
 export type UserWhereUniqueInput = Prisma.AtLeast<
@@ -295,6 +297,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     conversationMembers?: Prisma.ConversationMemberListRelationFilter;
     messagesSent?: Prisma.MessageListRelationFilter;
     messageReadReceipts?: Prisma.MessageReadReceiptListRelationFilter;
+    pushDevices?: Prisma.PushDeviceListRelationFilter;
   },
   'id' | 'email'
 >;
@@ -356,6 +359,7 @@ export type UserCreateInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateInput = {
@@ -385,6 +389,7 @@ export type UserUncheckedCreateInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserUpdateInput = {
@@ -414,6 +419,7 @@ export type UserUpdateInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateInput = {
@@ -443,6 +449,7 @@ export type UserUncheckedUpdateInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateManyInput = {
@@ -937,6 +944,32 @@ export type UserUpdateOneRequiredWithoutMessageReadReceiptsNestedInput = {
   >;
 };
 
+export type UserCreateNestedOneWithoutPushDevicesInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutPushDevicesInput,
+    Prisma.UserUncheckedCreateWithoutPushDevicesInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPushDevicesInput;
+  connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserUpdateOneRequiredWithoutPushDevicesNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutPushDevicesInput,
+    Prisma.UserUncheckedCreateWithoutPushDevicesInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPushDevicesInput;
+  upsert?: Prisma.UserUpsertWithoutPushDevicesInput;
+  connect?: Prisma.UserWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.UserUpdateToOneWithWhereWithoutPushDevicesInput,
+      Prisma.UserUpdateWithoutPushDevicesInput
+    >,
+    Prisma.UserUncheckedUpdateWithoutPushDevicesInput
+  >;
+};
+
 export type UserCreateNestedOneWithoutNotificationsReceivedInput = {
   create?: Prisma.XOR<
     Prisma.UserCreateWithoutNotificationsReceivedInput,
@@ -1017,6 +1050,7 @@ export type UserCreateWithoutProfileInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutProfileInput = {
@@ -1045,6 +1079,7 @@ export type UserUncheckedCreateWithoutProfileInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutProfileInput = {
@@ -1101,6 +1136,7 @@ export type UserUpdateWithoutProfileInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutProfileInput = {
@@ -1129,6 +1165,7 @@ export type UserUncheckedUpdateWithoutProfileInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutRefreshTokensInput = {
@@ -1157,6 +1194,7 @@ export type UserCreateWithoutRefreshTokensInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutRefreshTokensInput = {
@@ -1185,6 +1223,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutRefreshTokensInput = {
@@ -1241,6 +1280,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutRefreshTokensInput = {
@@ -1269,6 +1309,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutMembershipsInput = {
@@ -1297,6 +1338,7 @@ export type UserCreateWithoutMembershipsInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -1325,6 +1367,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -1381,6 +1424,7 @@ export type UserUpdateWithoutMembershipsInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -1409,6 +1453,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutConnectionsAsUserAInput = {
@@ -1437,6 +1482,7 @@ export type UserCreateWithoutConnectionsAsUserAInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutConnectionsAsUserAInput = {
@@ -1465,6 +1511,7 @@ export type UserUncheckedCreateWithoutConnectionsAsUserAInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutConnectionsAsUserAInput = {
@@ -1501,6 +1548,7 @@ export type UserCreateWithoutConnectionsAsUserBInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutConnectionsAsUserBInput = {
@@ -1529,6 +1577,7 @@ export type UserUncheckedCreateWithoutConnectionsAsUserBInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutConnectionsAsUserBInput = {
@@ -1565,6 +1614,7 @@ export type UserCreateWithoutRequestedConnectionsInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutRequestedConnectionsInput = {
@@ -1593,6 +1643,7 @@ export type UserUncheckedCreateWithoutRequestedConnectionsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutRequestedConnectionsInput = {
@@ -1649,6 +1700,7 @@ export type UserUpdateWithoutConnectionsAsUserAInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutConnectionsAsUserAInput = {
@@ -1677,6 +1729,7 @@ export type UserUncheckedUpdateWithoutConnectionsAsUserAInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUpsertWithoutConnectionsAsUserBInput = {
@@ -1725,6 +1778,7 @@ export type UserUpdateWithoutConnectionsAsUserBInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutConnectionsAsUserBInput = {
@@ -1753,6 +1807,7 @@ export type UserUncheckedUpdateWithoutConnectionsAsUserBInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUpsertWithoutRequestedConnectionsInput = {
@@ -1801,6 +1856,7 @@ export type UserUpdateWithoutRequestedConnectionsInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutRequestedConnectionsInput = {
@@ -1829,6 +1885,7 @@ export type UserUncheckedUpdateWithoutRequestedConnectionsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutBlocksCreatedInput = {
@@ -1857,6 +1914,7 @@ export type UserCreateWithoutBlocksCreatedInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutBlocksCreatedInput = {
@@ -1885,6 +1943,7 @@ export type UserUncheckedCreateWithoutBlocksCreatedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutBlocksCreatedInput = {
@@ -1921,6 +1980,7 @@ export type UserCreateWithoutBlocksReceivedInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutBlocksReceivedInput = {
@@ -1949,6 +2009,7 @@ export type UserUncheckedCreateWithoutBlocksReceivedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutBlocksReceivedInput = {
@@ -2005,6 +2066,7 @@ export type UserUpdateWithoutBlocksCreatedInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutBlocksCreatedInput = {
@@ -2033,6 +2095,7 @@ export type UserUncheckedUpdateWithoutBlocksCreatedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUpsertWithoutBlocksReceivedInput = {
@@ -2081,6 +2144,7 @@ export type UserUpdateWithoutBlocksReceivedInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutBlocksReceivedInput = {
@@ -2109,6 +2173,7 @@ export type UserUncheckedUpdateWithoutBlocksReceivedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutPostsInput = {
@@ -2137,6 +2202,7 @@ export type UserCreateWithoutPostsInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutPostsInput = {
@@ -2165,6 +2231,7 @@ export type UserUncheckedCreateWithoutPostsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutPostsInput = {
@@ -2218,6 +2285,7 @@ export type UserUpdateWithoutPostsInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutPostsInput = {
@@ -2246,6 +2314,7 @@ export type UserUncheckedUpdateWithoutPostsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutCommentsInput = {
@@ -2274,6 +2343,7 @@ export type UserCreateWithoutCommentsInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutCommentsInput = {
@@ -2302,6 +2372,7 @@ export type UserUncheckedCreateWithoutCommentsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutCommentsInput = {
@@ -2358,6 +2429,7 @@ export type UserUpdateWithoutCommentsInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutCommentsInput = {
@@ -2386,6 +2458,7 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutPostReactionsInput = {
@@ -2414,6 +2487,7 @@ export type UserCreateWithoutPostReactionsInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutPostReactionsInput = {
@@ -2442,6 +2516,7 @@ export type UserUncheckedCreateWithoutPostReactionsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutPostReactionsInput = {
@@ -2498,6 +2573,7 @@ export type UserUpdateWithoutPostReactionsInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutPostReactionsInput = {
@@ -2526,6 +2602,7 @@ export type UserUncheckedUpdateWithoutPostReactionsInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutConversationsOwnedInput = {
@@ -2554,6 +2631,7 @@ export type UserCreateWithoutConversationsOwnedInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutConversationsOwnedInput = {
@@ -2582,6 +2660,7 @@ export type UserUncheckedCreateWithoutConversationsOwnedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutConversationsOwnedInput = {
@@ -2638,6 +2717,7 @@ export type UserUpdateWithoutConversationsOwnedInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutConversationsOwnedInput = {
@@ -2666,6 +2746,7 @@ export type UserUncheckedUpdateWithoutConversationsOwnedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutConversationMembersInput = {
@@ -2694,6 +2775,7 @@ export type UserCreateWithoutConversationMembersInput = {
   conversationsOwned?: Prisma.ConversationCreateNestedManyWithoutOwnerInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutConversationMembersInput = {
@@ -2722,6 +2804,7 @@ export type UserUncheckedCreateWithoutConversationMembersInput = {
   conversationsOwned?: Prisma.ConversationUncheckedCreateNestedManyWithoutOwnerInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutConversationMembersInput = {
@@ -2778,6 +2861,7 @@ export type UserUpdateWithoutConversationMembersInput = {
   conversationsOwned?: Prisma.ConversationUpdateManyWithoutOwnerNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutConversationMembersInput = {
@@ -2806,6 +2890,7 @@ export type UserUncheckedUpdateWithoutConversationMembersInput = {
   conversationsOwned?: Prisma.ConversationUncheckedUpdateManyWithoutOwnerNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutMessagesSentInput = {
@@ -2834,6 +2919,7 @@ export type UserCreateWithoutMessagesSentInput = {
   conversationsOwned?: Prisma.ConversationCreateNestedManyWithoutOwnerInput;
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutMessagesSentInput = {
@@ -2862,6 +2948,7 @@ export type UserUncheckedCreateWithoutMessagesSentInput = {
   conversationsOwned?: Prisma.ConversationUncheckedCreateNestedManyWithoutOwnerInput;
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutMessagesSentInput = {
@@ -2918,6 +3005,7 @@ export type UserUpdateWithoutMessagesSentInput = {
   conversationsOwned?: Prisma.ConversationUpdateManyWithoutOwnerNestedInput;
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutMessagesSentInput = {
@@ -2946,6 +3034,7 @@ export type UserUncheckedUpdateWithoutMessagesSentInput = {
   conversationsOwned?: Prisma.ConversationUncheckedUpdateManyWithoutOwnerNestedInput;
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutMessageReadReceiptsInput = {
@@ -2974,6 +3063,7 @@ export type UserCreateWithoutMessageReadReceiptsInput = {
   conversationsOwned?: Prisma.ConversationCreateNestedManyWithoutOwnerInput;
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutMessageReadReceiptsInput = {
@@ -3002,6 +3092,7 @@ export type UserUncheckedCreateWithoutMessageReadReceiptsInput = {
   conversationsOwned?: Prisma.ConversationUncheckedCreateNestedManyWithoutOwnerInput;
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutMessageReadReceiptsInput = {
@@ -3058,6 +3149,7 @@ export type UserUpdateWithoutMessageReadReceiptsInput = {
   conversationsOwned?: Prisma.ConversationUpdateManyWithoutOwnerNestedInput;
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutMessageReadReceiptsInput = {
@@ -3086,6 +3178,151 @@ export type UserUncheckedUpdateWithoutMessageReadReceiptsInput = {
   conversationsOwned?: Prisma.ConversationUncheckedUpdateManyWithoutOwnerNestedInput;
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
+};
+
+export type UserCreateWithoutPushDevicesInput = {
+  id?: string;
+  email: string;
+  displayName: string;
+  passwordHash: string;
+  role?: $Enums.PlatformRole;
+  status?: $Enums.UserStatus;
+  emailVerifiedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput;
+  profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput;
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput;
+  connectionsAsUserA?: Prisma.ConnectionCreateNestedManyWithoutUserAInput;
+  connectionsAsUserB?: Prisma.ConnectionCreateNestedManyWithoutUserBInput;
+  requestedConnections?: Prisma.ConnectionCreateNestedManyWithoutRequestedByInput;
+  blocksCreated?: Prisma.UserBlockCreateNestedManyWithoutBlockerInput;
+  blocksReceived?: Prisma.UserBlockCreateNestedManyWithoutBlockedInput;
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
+  comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
+  postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
+  conversationsOwned?: Prisma.ConversationCreateNestedManyWithoutOwnerInput;
+  conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
+  messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
+  messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+};
+
+export type UserUncheckedCreateWithoutPushDevicesInput = {
+  id?: string;
+  email: string;
+  displayName: string;
+  passwordHash: string;
+  role?: $Enums.PlatformRole;
+  status?: $Enums.UserStatus;
+  emailVerifiedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput;
+  profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput;
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput;
+  connectionsAsUserA?: Prisma.ConnectionUncheckedCreateNestedManyWithoutUserAInput;
+  connectionsAsUserB?: Prisma.ConnectionUncheckedCreateNestedManyWithoutUserBInput;
+  requestedConnections?: Prisma.ConnectionUncheckedCreateNestedManyWithoutRequestedByInput;
+  blocksCreated?: Prisma.UserBlockUncheckedCreateNestedManyWithoutBlockerInput;
+  blocksReceived?: Prisma.UserBlockUncheckedCreateNestedManyWithoutBlockedInput;
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
+  postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
+  conversationsOwned?: Prisma.ConversationUncheckedCreateNestedManyWithoutOwnerInput;
+  conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
+  messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
+  messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+};
+
+export type UserCreateOrConnectWithoutPushDevicesInput = {
+  where: Prisma.UserWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutPushDevicesInput,
+    Prisma.UserUncheckedCreateWithoutPushDevicesInput
+  >;
+};
+
+export type UserUpsertWithoutPushDevicesInput = {
+  update: Prisma.XOR<
+    Prisma.UserUpdateWithoutPushDevicesInput,
+    Prisma.UserUncheckedUpdateWithoutPushDevicesInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutPushDevicesInput,
+    Prisma.UserUncheckedCreateWithoutPushDevicesInput
+  >;
+  where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutPushDevicesInput = {
+  where?: Prisma.UserWhereInput;
+  data: Prisma.XOR<
+    Prisma.UserUpdateWithoutPushDevicesInput,
+    Prisma.UserUncheckedUpdateWithoutPushDevicesInput
+  >;
+};
+
+export type UserUpdateWithoutPushDevicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string;
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
+  role?: Prisma.EnumPlatformRoleFieldUpdateOperationsInput | $Enums.PlatformRole;
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus;
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput;
+  profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput;
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput;
+  connectionsAsUserA?: Prisma.ConnectionUpdateManyWithoutUserANestedInput;
+  connectionsAsUserB?: Prisma.ConnectionUpdateManyWithoutUserBNestedInput;
+  requestedConnections?: Prisma.ConnectionUpdateManyWithoutRequestedByNestedInput;
+  blocksCreated?: Prisma.UserBlockUpdateManyWithoutBlockerNestedInput;
+  blocksReceived?: Prisma.UserBlockUpdateManyWithoutBlockedNestedInput;
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
+  comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
+  postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
+  conversationsOwned?: Prisma.ConversationUpdateManyWithoutOwnerNestedInput;
+  conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
+  messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
+  messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutPushDevicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string;
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
+  role?: Prisma.EnumPlatformRoleFieldUpdateOperationsInput | $Enums.PlatformRole;
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus;
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput;
+  profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput;
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput;
+  connectionsAsUserA?: Prisma.ConnectionUncheckedUpdateManyWithoutUserANestedInput;
+  connectionsAsUserB?: Prisma.ConnectionUncheckedUpdateManyWithoutUserBNestedInput;
+  requestedConnections?: Prisma.ConnectionUncheckedUpdateManyWithoutRequestedByNestedInput;
+  blocksCreated?: Prisma.UserBlockUncheckedUpdateManyWithoutBlockerNestedInput;
+  blocksReceived?: Prisma.UserBlockUncheckedUpdateManyWithoutBlockedNestedInput;
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
+  postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
+  conversationsOwned?: Prisma.ConversationUncheckedUpdateManyWithoutOwnerNestedInput;
+  conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
+  messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
+  messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserCreateWithoutNotificationsReceivedInput = {
@@ -3114,6 +3351,7 @@ export type UserCreateWithoutNotificationsReceivedInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutNotificationsReceivedInput = {
@@ -3142,6 +3380,7 @@ export type UserUncheckedCreateWithoutNotificationsReceivedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutNotificationsReceivedInput = {
@@ -3178,6 +3417,7 @@ export type UserCreateWithoutNotificationsActedInput = {
   conversationMembers?: Prisma.ConversationMemberCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput;
 };
 
 export type UserUncheckedCreateWithoutNotificationsActedInput = {
@@ -3206,6 +3446,7 @@ export type UserUncheckedCreateWithoutNotificationsActedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedCreateNestedManyWithoutUserInput;
   messagesSent?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedCreateNestedManyWithoutUserInput;
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput;
 };
 
 export type UserCreateOrConnectWithoutNotificationsActedInput = {
@@ -3262,6 +3503,7 @@ export type UserUpdateWithoutNotificationsReceivedInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutNotificationsReceivedInput = {
@@ -3290,6 +3532,7 @@ export type UserUncheckedUpdateWithoutNotificationsReceivedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUpsertWithoutNotificationsActedInput = {
@@ -3338,6 +3581,7 @@ export type UserUpdateWithoutNotificationsActedInput = {
   conversationMembers?: Prisma.ConversationMemberUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutNotificationsActedInput = {
@@ -3366,6 +3610,7 @@ export type UserUncheckedUpdateWithoutNotificationsActedInput = {
   conversationMembers?: Prisma.ConversationMemberUncheckedUpdateManyWithoutUserNestedInput;
   messagesSent?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput;
   messageReadReceipts?: Prisma.MessageReadReceiptUncheckedUpdateManyWithoutUserNestedInput;
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput;
 };
 
 /**
@@ -3389,6 +3634,7 @@ export type UserCountOutputType = {
   conversationMembers: number;
   messagesSent: number;
   messageReadReceipts: number;
+  pushDevices: number;
 };
 
 export type UserCountOutputTypeSelect<
@@ -3410,6 +3656,7 @@ export type UserCountOutputTypeSelect<
   conversationMembers?: boolean | UserCountOutputTypeCountConversationMembersArgs;
   messagesSent?: boolean | UserCountOutputTypeCountMessagesSentArgs;
   messageReadReceipts?: boolean | UserCountOutputTypeCountMessageReadReceiptsArgs;
+  pushDevices?: boolean | UserCountOutputTypeCountPushDevicesArgs;
 };
 
 /**
@@ -3568,6 +3815,15 @@ export type UserCountOutputTypeCountMessageReadReceiptsArgs<
   where?: Prisma.MessageReadReceiptWhereInput;
 };
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPushDevicesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.PushDeviceWhereInput;
+};
+
 export type UserSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetSelect<
@@ -3598,6 +3854,7 @@ export type UserSelect<
     conversationMembers?: boolean | Prisma.User$conversationMembersArgs<ExtArgs>;
     messagesSent?: boolean | Prisma.User$messagesSentArgs<ExtArgs>;
     messageReadReceipts?: boolean | Prisma.User$messageReadReceiptsArgs<ExtArgs>;
+    pushDevices?: boolean | Prisma.User$pushDevicesArgs<ExtArgs>;
     _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['user']
@@ -3683,6 +3940,7 @@ export type UserInclude<
   conversationMembers?: boolean | Prisma.User$conversationMembersArgs<ExtArgs>;
   messagesSent?: boolean | Prisma.User$messagesSentArgs<ExtArgs>;
   messageReadReceipts?: boolean | Prisma.User$messageReadReceiptsArgs<ExtArgs>;
+  pushDevices?: boolean | Prisma.User$pushDevicesArgs<ExtArgs>;
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type UserIncludeCreateManyAndReturn<
@@ -3714,6 +3972,7 @@ export type $UserPayload<
     conversationMembers: Prisma.$ConversationMemberPayload<ExtArgs>[];
     messagesSent: Prisma.$MessagePayload<ExtArgs>[];
     messageReadReceipts: Prisma.$MessageReadReceiptPayload<ExtArgs>[];
+    pushDevices: Prisma.$PushDevicePayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -4414,6 +4673,17 @@ export interface Prisma__UserClient<
   ): Prisma.PrismaPromise<
     | runtime.Types.Result.GetResult<
         Prisma.$MessageReadReceiptPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  pushDevices<T extends Prisma.User$pushDevicesArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.User$pushDevicesArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$PushDevicePayload<ExtArgs>,
         T,
         'findMany',
         GlobalOmitOptions
@@ -5323,6 +5593,32 @@ export type User$messageReadReceiptsArgs<
   take?: number;
   skip?: number;
   distinct?: Prisma.MessageReadReceiptScalarFieldEnum | Prisma.MessageReadReceiptScalarFieldEnum[];
+};
+
+/**
+ * User.pushDevices
+ */
+export type User$pushDevicesArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the PushDevice
+   */
+  select?: Prisma.PushDeviceSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the PushDevice
+   */
+  omit?: Prisma.PushDeviceOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PushDeviceInclude<ExtArgs> | null;
+  where?: Prisma.PushDeviceWhereInput;
+  orderBy?: Prisma.PushDeviceOrderByWithRelationInput | Prisma.PushDeviceOrderByWithRelationInput[];
+  cursor?: Prisma.PushDeviceWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.PushDeviceScalarFieldEnum | Prisma.PushDeviceScalarFieldEnum[];
 };
 
 /**

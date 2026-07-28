@@ -22,5 +22,6 @@ export type * from './models/ConversationMember.js';
 export type * from './models/Message.js';
 export type * from './models/MessageAttachment.js';
 export type * from './models/MessageReadReceipt.js';
+export type * from './models/PushDevice.js';
 export type * from './models/Notification.js';
 export type * from './commonInputTypes.js';

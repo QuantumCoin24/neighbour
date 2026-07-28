@@ -405,6 +405,7 @@ export const ModelName = {
   Message: 'Message',
   MessageAttachment: 'MessageAttachment',
   MessageReadReceipt: 'MessageReadReceipt',
+  PushDevice: 'PushDevice',
   Notification: 'Notification',
 } as const;
 
@@ -441,6 +442,7 @@ export type TypeMap<
       | 'message'
       | 'messageAttachment'
       | 'messageReadReceipt'
+      | 'pushDevice'
       | 'notification';
     txIsolationLevel: TransactionIsolationLevel;
   };
@@ -1563,6 +1565,80 @@ export type TypeMap<
         };
       };
     };
+    PushDevice: {
+      payload: Prisma.$PushDevicePayload<ExtArgs>;
+      fields: Prisma.PushDeviceFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.PushDeviceFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.PushDeviceFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload>;
+        };
+        findFirst: {
+          args: Prisma.PushDeviceFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.PushDeviceFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload>;
+        };
+        findMany: {
+          args: Prisma.PushDeviceFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload>[];
+        };
+        create: {
+          args: Prisma.PushDeviceCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload>;
+        };
+        createMany: {
+          args: Prisma.PushDeviceCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.PushDeviceCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload>[];
+        };
+        delete: {
+          args: Prisma.PushDeviceDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload>;
+        };
+        update: {
+          args: Prisma.PushDeviceUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload>;
+        };
+        deleteMany: {
+          args: Prisma.PushDeviceDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.PushDeviceUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.PushDeviceUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload>[];
+        };
+        upsert: {
+          args: Prisma.PushDeviceUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PushDevicePayload>;
+        };
+        aggregate: {
+          args: Prisma.PushDeviceAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePushDevice>;
+        };
+        groupBy: {
+          args: Prisma.PushDeviceGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.PushDeviceGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.PushDeviceCountArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.PushDeviceCountAggregateOutputType> | number;
+        };
+      };
+    };
     Notification: {
       payload: Prisma.$NotificationPayload<ExtArgs>;
       fields: Prisma.NotificationFieldRefs;
@@ -1892,6 +1968,22 @@ export const MessageReadReceiptScalarFieldEnum = {
 
 export type MessageReadReceiptScalarFieldEnum =
   (typeof MessageReadReceiptScalarFieldEnum)[keyof typeof MessageReadReceiptScalarFieldEnum];
+
+export const PushDeviceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  platform: 'platform',
+  token: 'token',
+  deviceName: 'deviceName',
+  registeredAt: 'registeredAt',
+  lastSeenAt: 'lastSeenAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type PushDeviceScalarFieldEnum =
+  (typeof PushDeviceScalarFieldEnum)[keyof typeof PushDeviceScalarFieldEnum];
 
 export const NotificationScalarFieldEnum = {
   id: 'id',
@@ -2389,6 +2481,7 @@ export type GlobalOmitConfig = {
   message?: Prisma.MessageOmit;
   messageAttachment?: Prisma.MessageAttachmentOmit;
   messageReadReceipt?: Prisma.MessageReadReceiptOmit;
+  pushDevice?: Prisma.PushDeviceOmit;
   notification?: Prisma.NotificationOmit;
 };
 

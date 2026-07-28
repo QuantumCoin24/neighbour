@@ -126,6 +126,7 @@ model User {
   conversationMembers  ConversationMember[]
   messagesSent         Message[]      @relation("MessageSender")
   messageReadReceipts  MessageReadReceipt[]
+  pushDevices          PushDevice[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -408,6 +409,26 @@ model MessageReadReceipt {
   @@index([userId, readAt])
   @@index([messageId, readAt])
   @@map("message_read_receipts")
+}
+
+
+model PushDevice {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @db.Uuid
+  platform     String
+  token        String    @unique
+  deviceName   String?
+  registeredAt DateTime  @default(now())
+  lastSeenAt   DateTime  @default(now())
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([platform, revokedAt])
+  @@index([lastSeenAt])
+  @@map("push_devices")
 }
 
 model Notification {
