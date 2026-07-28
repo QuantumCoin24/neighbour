@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { DatabaseService } from '../database/database.service';
 import { Prisma, ReactionType } from '../generated/prisma/client';
+import { NotificationService } from '../notification/notification.service';
 import { PostService } from '../post/post.service';
 import type { CommentQueryDto } from './dto/comment-query.dto';
 import type { CreateCommentDto } from './dto/create-comment.dto';
@@ -31,6 +32,7 @@ export class InteractionService {
   constructor(
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
+    private readonly notificationService: NotificationService,
     private readonly postService: PostService,
   ) {}
 
@@ -39,7 +41,7 @@ export class InteractionService {
     postId: string,
     dto: CreateCommentDto,
   ): Promise<CommentResponse> {
-    await this.postService.findOne(currentUserId, postId);
+    const post = await this.postService.findOne(currentUserId, postId);
 
     if (dto.parentId) {
       const parent = await this.database.comment.findFirst({
@@ -70,6 +72,14 @@ export class InteractionService {
       select: {
         id: true,
       },
+    });
+
+    await this.notificationService.notifyComment({
+      recipientId: post.author.id,
+      actorId: currentUserId,
+      postId,
+      commentId: created.id,
+      isReply: dto.parentId !== undefined,
     });
 
     return this.requireCommentWithAuthor(created.id);
@@ -154,7 +164,7 @@ export class InteractionService {
     postId: string,
     dto: SetReactionDto,
   ): Promise<ReactionResponse> {
-    await this.postService.findOne(currentUserId, postId);
+    const post = await this.postService.findOne(currentUserId, postId);
 
     const reaction = await this.database.postReaction.upsert({
       where: {
@@ -171,6 +181,12 @@ export class InteractionService {
       update: {
         type: dto.type,
       },
+    });
+
+    await this.notificationService.notifyReaction({
+      recipientId: post.author.id,
+      actorId: currentUserId,
+      postId,
     });
 
     return {
@@ -190,6 +206,8 @@ export class InteractionService {
         userId: currentUserId,
       },
     });
+
+    await this.notificationService.removeReactionNotification(currentUserId, postId);
   }
 
   async getReactionSummary(

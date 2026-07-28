@@ -94,3 +94,8 @@ export type Comment = Prisma.CommentModel;
  *
  */
 export type PostReaction = Prisma.PostReactionModel;
+/**
+ * Model Notification
+ *
+ */
+export type Notification = Prisma.NotificationModel;

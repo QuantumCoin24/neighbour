@@ -224,6 +224,8 @@ export type UserWhereInput = {
   posts?: Prisma.PostListRelationFilter;
   comments?: Prisma.CommentListRelationFilter;
   postReactions?: Prisma.PostReactionListRelationFilter;
+  notificationsReceived?: Prisma.NotificationListRelationFilter;
+  notificationsActed?: Prisma.NotificationListRelationFilter;
 };
 
 export type UserOrderByWithRelationInput = {
@@ -247,6 +249,8 @@ export type UserOrderByWithRelationInput = {
   posts?: Prisma.PostOrderByRelationAggregateInput;
   comments?: Prisma.CommentOrderByRelationAggregateInput;
   postReactions?: Prisma.PostReactionOrderByRelationAggregateInput;
+  notificationsReceived?: Prisma.NotificationOrderByRelationAggregateInput;
+  notificationsActed?: Prisma.NotificationOrderByRelationAggregateInput;
 };
 
 export type UserWhereUniqueInput = Prisma.AtLeast<
@@ -277,6 +281,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     posts?: Prisma.PostListRelationFilter;
     comments?: Prisma.CommentListRelationFilter;
     postReactions?: Prisma.PostReactionListRelationFilter;
+    notificationsReceived?: Prisma.NotificationListRelationFilter;
+    notificationsActed?: Prisma.NotificationListRelationFilter;
   },
   'id' | 'email'
 >;
@@ -332,6 +338,8 @@ export type UserCreateInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateInput = {
@@ -355,6 +363,8 @@ export type UserUncheckedCreateInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserUpdateInput = {
@@ -378,6 +388,8 @@ export type UserUpdateInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateInput = {
@@ -401,6 +413,8 @@ export type UserUncheckedUpdateInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserCreateManyInput = {
@@ -478,6 +492,11 @@ export type UserMinOrderByAggregateInput = {
 export type UserScalarRelationFilter = {
   is?: Prisma.UserWhereInput;
   isNot?: Prisma.UserWhereInput;
+};
+
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null;
+  isNot?: Prisma.UserWhereInput | null;
 };
 
 export type StringFieldUpdateOperationsInput = {
@@ -786,6 +805,60 @@ export type UserUpdateOneRequiredWithoutPostReactionsNestedInput = {
   >;
 };
 
+export type UserCreateNestedOneWithoutNotificationsReceivedInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutNotificationsReceivedInput,
+    Prisma.UserUncheckedCreateWithoutNotificationsReceivedInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsReceivedInput;
+  connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserCreateNestedOneWithoutNotificationsActedInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutNotificationsActedInput,
+    Prisma.UserUncheckedCreateWithoutNotificationsActedInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsActedInput;
+  connect?: Prisma.UserWhereUniqueInput;
+};
+
+export type UserUpdateOneRequiredWithoutNotificationsReceivedNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutNotificationsReceivedInput,
+    Prisma.UserUncheckedCreateWithoutNotificationsReceivedInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsReceivedInput;
+  upsert?: Prisma.UserUpsertWithoutNotificationsReceivedInput;
+  connect?: Prisma.UserWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.UserUpdateToOneWithWhereWithoutNotificationsReceivedInput,
+      Prisma.UserUpdateWithoutNotificationsReceivedInput
+    >,
+    Prisma.UserUncheckedUpdateWithoutNotificationsReceivedInput
+  >;
+};
+
+export type UserUpdateOneWithoutNotificationsActedNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.UserCreateWithoutNotificationsActedInput,
+    Prisma.UserUncheckedCreateWithoutNotificationsActedInput
+  >;
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsActedInput;
+  upsert?: Prisma.UserUpsertWithoutNotificationsActedInput;
+  disconnect?: Prisma.UserWhereInput | boolean;
+  delete?: Prisma.UserWhereInput | boolean;
+  connect?: Prisma.UserWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.UserUpdateToOneWithWhereWithoutNotificationsActedInput,
+      Prisma.UserUpdateWithoutNotificationsActedInput
+    >,
+    Prisma.UserUncheckedUpdateWithoutNotificationsActedInput
+  >;
+};
+
 export type UserCreateWithoutProfileInput = {
   id?: string;
   email: string;
@@ -806,6 +879,8 @@ export type UserCreateWithoutProfileInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutProfileInput = {
@@ -828,6 +903,8 @@ export type UserUncheckedCreateWithoutProfileInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutProfileInput = {
@@ -878,6 +955,8 @@ export type UserUpdateWithoutProfileInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutProfileInput = {
@@ -900,6 +979,8 @@ export type UserUncheckedUpdateWithoutProfileInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserCreateWithoutRefreshTokensInput = {
@@ -922,6 +1003,8 @@ export type UserCreateWithoutRefreshTokensInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutRefreshTokensInput = {
@@ -944,6 +1027,8 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutRefreshTokensInput = {
@@ -994,6 +1079,8 @@ export type UserUpdateWithoutRefreshTokensInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutRefreshTokensInput = {
@@ -1016,6 +1103,8 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserCreateWithoutMembershipsInput = {
@@ -1038,6 +1127,8 @@ export type UserCreateWithoutMembershipsInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -1060,6 +1151,8 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -1110,6 +1203,8 @@ export type UserUpdateWithoutMembershipsInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -1132,6 +1227,8 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserCreateWithoutConnectionsAsUserAInput = {
@@ -1154,6 +1251,8 @@ export type UserCreateWithoutConnectionsAsUserAInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutConnectionsAsUserAInput = {
@@ -1176,6 +1275,8 @@ export type UserUncheckedCreateWithoutConnectionsAsUserAInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutConnectionsAsUserAInput = {
@@ -1206,6 +1307,8 @@ export type UserCreateWithoutConnectionsAsUserBInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutConnectionsAsUserBInput = {
@@ -1228,6 +1331,8 @@ export type UserUncheckedCreateWithoutConnectionsAsUserBInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutConnectionsAsUserBInput = {
@@ -1258,6 +1363,8 @@ export type UserCreateWithoutRequestedConnectionsInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutRequestedConnectionsInput = {
@@ -1280,6 +1387,8 @@ export type UserUncheckedCreateWithoutRequestedConnectionsInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutRequestedConnectionsInput = {
@@ -1330,6 +1439,8 @@ export type UserUpdateWithoutConnectionsAsUserAInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutConnectionsAsUserAInput = {
@@ -1352,6 +1463,8 @@ export type UserUncheckedUpdateWithoutConnectionsAsUserAInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUpsertWithoutConnectionsAsUserBInput = {
@@ -1394,6 +1507,8 @@ export type UserUpdateWithoutConnectionsAsUserBInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutConnectionsAsUserBInput = {
@@ -1416,6 +1531,8 @@ export type UserUncheckedUpdateWithoutConnectionsAsUserBInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUpsertWithoutRequestedConnectionsInput = {
@@ -1458,6 +1575,8 @@ export type UserUpdateWithoutRequestedConnectionsInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutRequestedConnectionsInput = {
@@ -1480,6 +1599,8 @@ export type UserUncheckedUpdateWithoutRequestedConnectionsInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserCreateWithoutBlocksCreatedInput = {
@@ -1502,6 +1623,8 @@ export type UserCreateWithoutBlocksCreatedInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutBlocksCreatedInput = {
@@ -1524,6 +1647,8 @@ export type UserUncheckedCreateWithoutBlocksCreatedInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutBlocksCreatedInput = {
@@ -1554,6 +1679,8 @@ export type UserCreateWithoutBlocksReceivedInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutBlocksReceivedInput = {
@@ -1576,6 +1703,8 @@ export type UserUncheckedCreateWithoutBlocksReceivedInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutBlocksReceivedInput = {
@@ -1626,6 +1755,8 @@ export type UserUpdateWithoutBlocksCreatedInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutBlocksCreatedInput = {
@@ -1648,6 +1779,8 @@ export type UserUncheckedUpdateWithoutBlocksCreatedInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUpsertWithoutBlocksReceivedInput = {
@@ -1690,6 +1823,8 @@ export type UserUpdateWithoutBlocksReceivedInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutBlocksReceivedInput = {
@@ -1712,6 +1847,8 @@ export type UserUncheckedUpdateWithoutBlocksReceivedInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserCreateWithoutPostsInput = {
@@ -1734,6 +1871,8 @@ export type UserCreateWithoutPostsInput = {
   blocksReceived?: Prisma.UserBlockCreateNestedManyWithoutBlockedInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutPostsInput = {
@@ -1756,6 +1895,8 @@ export type UserUncheckedCreateWithoutPostsInput = {
   blocksReceived?: Prisma.UserBlockUncheckedCreateNestedManyWithoutBlockedInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutPostsInput = {
@@ -1803,6 +1944,8 @@ export type UserUpdateWithoutPostsInput = {
   blocksReceived?: Prisma.UserBlockUpdateManyWithoutBlockedNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutPostsInput = {
@@ -1825,6 +1968,8 @@ export type UserUncheckedUpdateWithoutPostsInput = {
   blocksReceived?: Prisma.UserBlockUncheckedUpdateManyWithoutBlockedNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserCreateWithoutCommentsInput = {
@@ -1847,6 +1992,8 @@ export type UserCreateWithoutCommentsInput = {
   blocksReceived?: Prisma.UserBlockCreateNestedManyWithoutBlockedInput;
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutCommentsInput = {
@@ -1869,6 +2016,8 @@ export type UserUncheckedCreateWithoutCommentsInput = {
   blocksReceived?: Prisma.UserBlockUncheckedCreateNestedManyWithoutBlockedInput;
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutCommentsInput = {
@@ -1919,6 +2068,8 @@ export type UserUpdateWithoutCommentsInput = {
   blocksReceived?: Prisma.UserBlockUpdateManyWithoutBlockedNestedInput;
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutCommentsInput = {
@@ -1941,6 +2092,8 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
   blocksReceived?: Prisma.UserBlockUncheckedUpdateManyWithoutBlockedNestedInput;
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
 };
 
 export type UserCreateWithoutPostReactionsInput = {
@@ -1963,6 +2116,8 @@ export type UserCreateWithoutPostReactionsInput = {
   blocksReceived?: Prisma.UserBlockCreateNestedManyWithoutBlockedInput;
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
 };
 
 export type UserUncheckedCreateWithoutPostReactionsInput = {
@@ -1985,6 +2140,8 @@ export type UserUncheckedCreateWithoutPostReactionsInput = {
   blocksReceived?: Prisma.UserBlockUncheckedCreateNestedManyWithoutBlockedInput;
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
   comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
 };
 
 export type UserCreateOrConnectWithoutPostReactionsInput = {
@@ -2035,6 +2192,8 @@ export type UserUpdateWithoutPostReactionsInput = {
   blocksReceived?: Prisma.UserBlockUpdateManyWithoutBlockedNestedInput;
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
 };
 
 export type UserUncheckedUpdateWithoutPostReactionsInput = {
@@ -2057,6 +2216,256 @@ export type UserUncheckedUpdateWithoutPostReactionsInput = {
   blocksReceived?: Prisma.UserBlockUncheckedUpdateManyWithoutBlockedNestedInput;
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
   comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
+};
+
+export type UserCreateWithoutNotificationsReceivedInput = {
+  id?: string;
+  email: string;
+  displayName: string;
+  passwordHash: string;
+  role?: $Enums.PlatformRole;
+  status?: $Enums.UserStatus;
+  emailVerifiedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput;
+  profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput;
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput;
+  connectionsAsUserA?: Prisma.ConnectionCreateNestedManyWithoutUserAInput;
+  connectionsAsUserB?: Prisma.ConnectionCreateNestedManyWithoutUserBInput;
+  requestedConnections?: Prisma.ConnectionCreateNestedManyWithoutRequestedByInput;
+  blocksCreated?: Prisma.UserBlockCreateNestedManyWithoutBlockerInput;
+  blocksReceived?: Prisma.UserBlockCreateNestedManyWithoutBlockedInput;
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
+  comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
+  postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsActed?: Prisma.NotificationCreateNestedManyWithoutActorInput;
+};
+
+export type UserUncheckedCreateWithoutNotificationsReceivedInput = {
+  id?: string;
+  email: string;
+  displayName: string;
+  passwordHash: string;
+  role?: $Enums.PlatformRole;
+  status?: $Enums.UserStatus;
+  emailVerifiedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput;
+  profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput;
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput;
+  connectionsAsUserA?: Prisma.ConnectionUncheckedCreateNestedManyWithoutUserAInput;
+  connectionsAsUserB?: Prisma.ConnectionUncheckedCreateNestedManyWithoutUserBInput;
+  requestedConnections?: Prisma.ConnectionUncheckedCreateNestedManyWithoutRequestedByInput;
+  blocksCreated?: Prisma.UserBlockUncheckedCreateNestedManyWithoutBlockerInput;
+  blocksReceived?: Prisma.UserBlockUncheckedCreateNestedManyWithoutBlockedInput;
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
+  postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsActed?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput;
+};
+
+export type UserCreateOrConnectWithoutNotificationsReceivedInput = {
+  where: Prisma.UserWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutNotificationsReceivedInput,
+    Prisma.UserUncheckedCreateWithoutNotificationsReceivedInput
+  >;
+};
+
+export type UserCreateWithoutNotificationsActedInput = {
+  id?: string;
+  email: string;
+  displayName: string;
+  passwordHash: string;
+  role?: $Enums.PlatformRole;
+  status?: $Enums.UserStatus;
+  emailVerifiedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput;
+  profile?: Prisma.UserProfileCreateNestedOneWithoutUserInput;
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput;
+  connectionsAsUserA?: Prisma.ConnectionCreateNestedManyWithoutUserAInput;
+  connectionsAsUserB?: Prisma.ConnectionCreateNestedManyWithoutUserBInput;
+  requestedConnections?: Prisma.ConnectionCreateNestedManyWithoutRequestedByInput;
+  blocksCreated?: Prisma.UserBlockCreateNestedManyWithoutBlockerInput;
+  blocksReceived?: Prisma.UserBlockCreateNestedManyWithoutBlockedInput;
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput;
+  comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput;
+  postReactions?: Prisma.PostReactionCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationCreateNestedManyWithoutRecipientInput;
+};
+
+export type UserUncheckedCreateWithoutNotificationsActedInput = {
+  id?: string;
+  email: string;
+  displayName: string;
+  passwordHash: string;
+  role?: $Enums.PlatformRole;
+  status?: $Enums.UserStatus;
+  emailVerifiedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput;
+  profile?: Prisma.UserProfileUncheckedCreateNestedOneWithoutUserInput;
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput;
+  connectionsAsUserA?: Prisma.ConnectionUncheckedCreateNestedManyWithoutUserAInput;
+  connectionsAsUserB?: Prisma.ConnectionUncheckedCreateNestedManyWithoutUserBInput;
+  requestedConnections?: Prisma.ConnectionUncheckedCreateNestedManyWithoutRequestedByInput;
+  blocksCreated?: Prisma.UserBlockUncheckedCreateNestedManyWithoutBlockerInput;
+  blocksReceived?: Prisma.UserBlockUncheckedCreateNestedManyWithoutBlockedInput;
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput;
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput;
+  postReactions?: Prisma.PostReactionUncheckedCreateNestedManyWithoutUserInput;
+  notificationsReceived?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipientInput;
+};
+
+export type UserCreateOrConnectWithoutNotificationsActedInput = {
+  where: Prisma.UserWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutNotificationsActedInput,
+    Prisma.UserUncheckedCreateWithoutNotificationsActedInput
+  >;
+};
+
+export type UserUpsertWithoutNotificationsReceivedInput = {
+  update: Prisma.XOR<
+    Prisma.UserUpdateWithoutNotificationsReceivedInput,
+    Prisma.UserUncheckedUpdateWithoutNotificationsReceivedInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutNotificationsReceivedInput,
+    Prisma.UserUncheckedCreateWithoutNotificationsReceivedInput
+  >;
+  where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutNotificationsReceivedInput = {
+  where?: Prisma.UserWhereInput;
+  data: Prisma.XOR<
+    Prisma.UserUpdateWithoutNotificationsReceivedInput,
+    Prisma.UserUncheckedUpdateWithoutNotificationsReceivedInput
+  >;
+};
+
+export type UserUpdateWithoutNotificationsReceivedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string;
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
+  role?: Prisma.EnumPlatformRoleFieldUpdateOperationsInput | $Enums.PlatformRole;
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus;
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput;
+  profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput;
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput;
+  connectionsAsUserA?: Prisma.ConnectionUpdateManyWithoutUserANestedInput;
+  connectionsAsUserB?: Prisma.ConnectionUpdateManyWithoutUserBNestedInput;
+  requestedConnections?: Prisma.ConnectionUpdateManyWithoutRequestedByNestedInput;
+  blocksCreated?: Prisma.UserBlockUpdateManyWithoutBlockerNestedInput;
+  blocksReceived?: Prisma.UserBlockUpdateManyWithoutBlockedNestedInput;
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
+  comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
+  postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsActed?: Prisma.NotificationUpdateManyWithoutActorNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutNotificationsReceivedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string;
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
+  role?: Prisma.EnumPlatformRoleFieldUpdateOperationsInput | $Enums.PlatformRole;
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus;
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput;
+  profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput;
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput;
+  connectionsAsUserA?: Prisma.ConnectionUncheckedUpdateManyWithoutUserANestedInput;
+  connectionsAsUserB?: Prisma.ConnectionUncheckedUpdateManyWithoutUserBNestedInput;
+  requestedConnections?: Prisma.ConnectionUncheckedUpdateManyWithoutRequestedByNestedInput;
+  blocksCreated?: Prisma.UserBlockUncheckedUpdateManyWithoutBlockerNestedInput;
+  blocksReceived?: Prisma.UserBlockUncheckedUpdateManyWithoutBlockedNestedInput;
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
+  postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsActed?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput;
+};
+
+export type UserUpsertWithoutNotificationsActedInput = {
+  update: Prisma.XOR<
+    Prisma.UserUpdateWithoutNotificationsActedInput,
+    Prisma.UserUncheckedUpdateWithoutNotificationsActedInput
+  >;
+  create: Prisma.XOR<
+    Prisma.UserCreateWithoutNotificationsActedInput,
+    Prisma.UserUncheckedCreateWithoutNotificationsActedInput
+  >;
+  where?: Prisma.UserWhereInput;
+};
+
+export type UserUpdateToOneWithWhereWithoutNotificationsActedInput = {
+  where?: Prisma.UserWhereInput;
+  data: Prisma.XOR<
+    Prisma.UserUpdateWithoutNotificationsActedInput,
+    Prisma.UserUncheckedUpdateWithoutNotificationsActedInput
+  >;
+};
+
+export type UserUpdateWithoutNotificationsActedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string;
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
+  role?: Prisma.EnumPlatformRoleFieldUpdateOperationsInput | $Enums.PlatformRole;
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus;
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput;
+  profile?: Prisma.UserProfileUpdateOneWithoutUserNestedInput;
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput;
+  connectionsAsUserA?: Prisma.ConnectionUpdateManyWithoutUserANestedInput;
+  connectionsAsUserB?: Prisma.ConnectionUpdateManyWithoutUserBNestedInput;
+  requestedConnections?: Prisma.ConnectionUpdateManyWithoutRequestedByNestedInput;
+  blocksCreated?: Prisma.UserBlockUpdateManyWithoutBlockerNestedInput;
+  blocksReceived?: Prisma.UserBlockUpdateManyWithoutBlockedNestedInput;
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput;
+  comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput;
+  postReactions?: Prisma.PostReactionUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUpdateManyWithoutRecipientNestedInput;
+};
+
+export type UserUncheckedUpdateWithoutNotificationsActedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string;
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
+  role?: Prisma.EnumPlatformRoleFieldUpdateOperationsInput | $Enums.PlatformRole;
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus;
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput;
+  profile?: Prisma.UserProfileUncheckedUpdateOneWithoutUserNestedInput;
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput;
+  connectionsAsUserA?: Prisma.ConnectionUncheckedUpdateManyWithoutUserANestedInput;
+  connectionsAsUserB?: Prisma.ConnectionUncheckedUpdateManyWithoutUserBNestedInput;
+  requestedConnections?: Prisma.ConnectionUncheckedUpdateManyWithoutRequestedByNestedInput;
+  blocksCreated?: Prisma.UserBlockUncheckedUpdateManyWithoutBlockerNestedInput;
+  blocksReceived?: Prisma.UserBlockUncheckedUpdateManyWithoutBlockedNestedInput;
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput;
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput;
+  postReactions?: Prisma.PostReactionUncheckedUpdateManyWithoutUserNestedInput;
+  notificationsReceived?: Prisma.NotificationUncheckedUpdateManyWithoutRecipientNestedInput;
 };
 
 /**
@@ -2074,6 +2483,8 @@ export type UserCountOutputType = {
   posts: number;
   comments: number;
   postReactions: number;
+  notificationsReceived: number;
+  notificationsActed: number;
 };
 
 export type UserCountOutputTypeSelect<
@@ -2089,6 +2500,8 @@ export type UserCountOutputTypeSelect<
   posts?: boolean | UserCountOutputTypeCountPostsArgs;
   comments?: boolean | UserCountOutputTypeCountCommentsArgs;
   postReactions?: boolean | UserCountOutputTypeCountPostReactionsArgs;
+  notificationsReceived?: boolean | UserCountOutputTypeCountNotificationsReceivedArgs;
+  notificationsActed?: boolean | UserCountOutputTypeCountNotificationsActedArgs;
 };
 
 /**
@@ -2193,6 +2606,24 @@ export type UserCountOutputTypeCountPostReactionsArgs<
   where?: Prisma.PostReactionWhereInput;
 };
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationsReceivedArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.NotificationWhereInput;
+};
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationsActedArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.NotificationWhereInput;
+};
+
 export type UserSelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetSelect<
@@ -2217,6 +2648,8 @@ export type UserSelect<
     posts?: boolean | Prisma.User$postsArgs<ExtArgs>;
     comments?: boolean | Prisma.User$commentsArgs<ExtArgs>;
     postReactions?: boolean | Prisma.User$postReactionsArgs<ExtArgs>;
+    notificationsReceived?: boolean | Prisma.User$notificationsReceivedArgs<ExtArgs>;
+    notificationsActed?: boolean | Prisma.User$notificationsActedArgs<ExtArgs>;
     _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['user']
@@ -2296,6 +2729,8 @@ export type UserInclude<
   posts?: boolean | Prisma.User$postsArgs<ExtArgs>;
   comments?: boolean | Prisma.User$commentsArgs<ExtArgs>;
   postReactions?: boolean | Prisma.User$postReactionsArgs<ExtArgs>;
+  notificationsReceived?: boolean | Prisma.User$notificationsReceivedArgs<ExtArgs>;
+  notificationsActed?: boolean | Prisma.User$notificationsActedArgs<ExtArgs>;
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type UserIncludeCreateManyAndReturn<
@@ -2321,6 +2756,8 @@ export type $UserPayload<
     posts: Prisma.$PostPayload<ExtArgs>[];
     comments: Prisma.$CommentPayload<ExtArgs>[];
     postReactions: Prisma.$PostReactionPayload<ExtArgs>[];
+    notificationsReceived: Prisma.$NotificationPayload<ExtArgs>[];
+    notificationsActed: Prisma.$NotificationPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -2955,6 +3392,28 @@ export interface Prisma__UserClient<
   ): Prisma.PrismaPromise<
     | runtime.Types.Result.GetResult<
         Prisma.$PostReactionPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  notificationsReceived<T extends Prisma.User$notificationsReceivedArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.User$notificationsReceivedArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$NotificationPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
+  notificationsActed<T extends Prisma.User$notificationsActedArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.User$notificationsActedArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$NotificationPayload<ExtArgs>,
         T,
         'findMany',
         GlobalOmitOptions
@@ -3701,6 +4160,60 @@ export type User$postReactionsArgs<
   take?: number;
   skip?: number;
   distinct?: Prisma.PostReactionScalarFieldEnum | Prisma.PostReactionScalarFieldEnum[];
+};
+
+/**
+ * User.notificationsReceived
+ */
+export type User$notificationsReceivedArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null;
+  where?: Prisma.NotificationWhereInput;
+  orderBy?:
+    Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[];
+  cursor?: Prisma.NotificationWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[];
+};
+
+/**
+ * User.notificationsActed
+ */
+export type User$notificationsActedArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null;
+  where?: Prisma.NotificationWhereInput;
+  orderBy?:
+    Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[];
+  cursor?: Prisma.NotificationWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[];
 };
 
 /**

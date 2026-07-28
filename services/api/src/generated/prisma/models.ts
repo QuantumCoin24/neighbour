@@ -17,4 +17,5 @@ export type * from './models/UserBlock.js';
 export type * from './models/Post.js';
 export type * from './models/Comment.js';
 export type * from './models/PostReaction.js';
+export type * from './models/Notification.js';
 export type * from './commonInputTypes.js';

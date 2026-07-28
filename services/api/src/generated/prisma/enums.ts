@@ -84,3 +84,16 @@ export const ReactionType = {
 } as const;
 
 export type ReactionType = (typeof ReactionType)[keyof typeof ReactionType];
+
+export const NotificationType = {
+  COMMENT: 'COMMENT',
+  REPLY: 'REPLY',
+  REACTION: 'REACTION',
+  CONNECTION_REQUEST: 'CONNECTION_REQUEST',
+  CONNECTION_ACCEPTED: 'CONNECTION_ACCEPTED',
+  COMMUNITY_INVITE: 'COMMUNITY_INVITE',
+  COMMUNITY_ROLE_CHANGED: 'COMMUNITY_ROLE_CHANGED',
+  SYSTEM: 'SYSTEM',
+} as const;
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];

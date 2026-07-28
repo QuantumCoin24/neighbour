@@ -10,6 +10,7 @@ import { environmentValidationSchema } from './config/environment.validation';
 import { DatabaseHealthModule } from './database/database-health.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
+import { NotificationModule } from './notification/notification.module';
 import { InteractionModule } from './interaction/interaction.module';
 import { ProfileModule } from './profile/profile.module';
 import { PostModule } from './post/post.module';
@@ -28,6 +29,7 @@ import { SocialGraphModule } from './social-graph/social-graph.module';
     CommunityModule,
     DatabaseModule,
     HealthModule,
+    NotificationModule,
     InteractionModule,
     ProfileModule,
     PostModule,

@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 
 import { DatabaseModule } from '../database/database.module';
+import { NotificationModule } from '../notification/notification.module';
 import { PostModule } from '../post/post.module';
 import { InteractionController } from './interaction.controller';
 import { InteractionService } from './interaction.service';
 
 @Module({
-  imports: [DatabaseModule, PostModule],
+  imports: [DatabaseModule, NotificationModule, PostModule],
   controllers: [InteractionController],
   providers: [InteractionService],
   exports: [InteractionService],

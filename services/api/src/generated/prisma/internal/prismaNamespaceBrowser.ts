@@ -58,6 +58,7 @@ export const ModelName = {
   Post: 'Post',
   Comment: 'Comment',
   PostReaction: 'PostReaction',
+  Notification: 'Notification',
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -211,6 +212,24 @@ export const PostReactionScalarFieldEnum = {
 
 export type PostReactionScalarFieldEnum =
   (typeof PostReactionScalarFieldEnum)[keyof typeof PostReactionScalarFieldEnum];
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  recipientId: 'recipientId',
+  actorId: 'actorId',
+  postId: 'postId',
+  commentId: 'commentId',
+  communityId: 'communityId',
+  type: 'type',
+  idempotencyKey: 'idempotencyKey',
+  readAt: 'readAt',
+  dismissedAt: 'dismissedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type NotificationScalarFieldEnum =
+  (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',
