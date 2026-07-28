@@ -21,6 +21,7 @@ import type { CreateMessageDto } from './dto/create-message.dto';
 import type { MessageQueryDto } from './dto/message-query.dto';
 import type { UpdateConversationStateDto } from './dto/update-conversation-state.dto';
 import type { UpdateMessageDto } from './dto/update-message.dto';
+import { MessageRealtimePublisher } from './events/message-realtime.publisher';
 import type {
   ConversationFeedResponse,
   ConversationResponse,
@@ -52,7 +53,11 @@ type ConversationWithRelations = Prisma.ConversationGetPayload<{
 
 @Injectable()
 export class MessageService {
-  constructor(@Inject(DatabaseService) private readonly database: DatabaseService) {}
+  constructor(
+    @Inject(DatabaseService)
+    private readonly database: DatabaseService,
+    private readonly realtimePublisher: MessageRealtimePublisher,
+  ) {}
 
   async createConversation(
     userId: string,
@@ -280,7 +285,9 @@ export class MessageService {
         });
       return created;
     });
-    return this.toMessageResponse(message);
+    const response = this.toMessageResponse(message);
+    await this.realtimePublisher.messageCreated(conversationId, response);
+    return response;
   }
 
   async editMessage(
@@ -295,20 +302,30 @@ export class MessageService {
       data: { content: dto.content.trim(), editedAt: new Date() },
       include: messageInclude,
     });
-    return this.toMessageResponse(updated);
+    const response = this.toMessageResponse(updated);
+    await this.realtimePublisher.messageUpdated(updated.conversationId, response);
+    return response;
   }
 
   async deleteMessage(userId: string, messageId: string): Promise<void> {
     const message = await this.requireOwnedMessage(userId, messageId);
     if (message.deletedAt) return;
+    const deletedAt = new Date();
+
     await this.database.$transaction([
       this.database.message.update({
         where: { id: messageId },
-        data: { content: null, metadata: Prisma.JsonNull, deletedAt: new Date() },
+        data: { content: null, metadata: Prisma.JsonNull, deletedAt },
       }),
       this.database.messageAttachment.deleteMany({ where: { messageId } }),
       this.database.notification.deleteMany({ where: { messageId } }),
     ]);
+
+    await this.realtimePublisher.messageDeleted({
+      messageId,
+      conversationId: message.conversationId,
+      deletedAt: deletedAt.toISOString(),
+    });
   }
 
   async markRead(
@@ -351,7 +368,20 @@ export class MessageService {
         data: { readAt: new Date() },
       });
     });
-    return { unreadCount: 0, lastReadAt: readAt };
+    const response = {
+      unreadCount: 0,
+      lastReadAt: readAt,
+    };
+
+    await this.realtimePublisher.messageRead({
+      conversationId,
+      userId,
+      messageId: target?.id ?? null,
+      unreadCount: response.unreadCount,
+      lastReadAt: response.lastReadAt.toISOString(),
+    });
+
+    return response;
   }
 
   async updateState(
@@ -369,7 +399,11 @@ export class MessageService {
       where: { conversationId_userId: { conversationId, userId } },
       data,
     });
-    return this.requireConversation(userId, conversationId);
+    const response = await this.requireConversation(userId, conversationId);
+
+    await this.realtimePublisher.conversationUpdated(conversationId, response);
+
+    return response;
   }
 
   private async requireMembership(userId: string, conversationId: string): Promise<void> {
@@ -396,10 +430,14 @@ export class MessageService {
   private async requireOwnedMessage(
     userId: string,
     messageId: string,
-  ): Promise<{ deletedAt: Date | null }> {
+  ): Promise<{ deletedAt: Date | null; conversationId: string }> {
     const row = await this.database.message.findUnique({
       where: { id: messageId },
-      select: { senderId: true, deletedAt: true },
+      select: {
+        senderId: true,
+        deletedAt: true,
+        conversationId: true,
+      },
     });
     if (!row) throw new NotFoundException('Message not found.');
     if (row.senderId !== userId)
