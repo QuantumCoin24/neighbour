@@ -16,6 +16,7 @@ import { BadgeCounterService } from './badge/badge-counter.service';
 import { NotificationRetrySchedulerService } from './scheduler/notification-retry-scheduler.service';
 import { NotificationCollapseService } from './collapse/notification-collapse.service';
 import { NotificationExpirationService } from './expiry/notification-expiration.service';
+import { NotificationPriorityService } from './priority/notification-priority.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
