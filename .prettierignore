@@ -1,0 +1,10 @@
+.pnpm-store
+.turbo
+.next
+coverage
+dist
+node_modules
+DerivedData
+*.xcodeproj
+*.xcworkspace
+pnpm-lock.yaml
