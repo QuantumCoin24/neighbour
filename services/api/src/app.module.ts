@@ -12,6 +12,7 @@ import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { NotificationModule } from './notification/notification.module';
 import { InteractionModule } from './interaction/interaction.module';
+import { MessageModule } from './message/message.module';
 import { ProfileModule } from './profile/profile.module';
 import { PostModule } from './post/post.module';
 import { SocialGraphModule } from './social-graph/social-graph.module';
@@ -31,6 +32,7 @@ import { SocialGraphModule } from './social-graph/social-graph.module';
     HealthModule,
     NotificationModule,
     InteractionModule,
+    MessageModule,
     ProfileModule,
     PostModule,
     SocialGraphModule,

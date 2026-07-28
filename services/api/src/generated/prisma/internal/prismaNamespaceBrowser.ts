@@ -58,6 +58,11 @@ export const ModelName = {
   Post: 'Post',
   Comment: 'Comment',
   PostReaction: 'PostReaction',
+  Conversation: 'Conversation',
+  ConversationMember: 'ConversationMember',
+  Message: 'Message',
+  MessageAttachment: 'MessageAttachment',
+  MessageReadReceipt: 'MessageReadReceipt',
   Notification: 'Notification',
 } as const;
 
@@ -213,6 +218,86 @@ export const PostReactionScalarFieldEnum = {
 export type PostReactionScalarFieldEnum =
   (typeof PostReactionScalarFieldEnum)[keyof typeof PostReactionScalarFieldEnum];
 
+export const ConversationScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  title: 'title',
+  ownerId: 'ownerId',
+  communityId: 'communityId',
+  directKey: 'directKey',
+  lastMessageId: 'lastMessageId',
+  lastMessageAt: 'lastMessageAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type ConversationScalarFieldEnum =
+  (typeof ConversationScalarFieldEnum)[keyof typeof ConversationScalarFieldEnum];
+
+export const ConversationMemberScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  userId: 'userId',
+  role: 'role',
+  joinedAt: 'joinedAt',
+  leftAt: 'leftAt',
+  archivedAt: 'archivedAt',
+  mutedUntil: 'mutedUntil',
+  pinnedAt: 'pinnedAt',
+  lastReadMessageId: 'lastReadMessageId',
+  lastReadAt: 'lastReadAt',
+  unreadCount: 'unreadCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type ConversationMemberScalarFieldEnum =
+  (typeof ConversationMemberScalarFieldEnum)[keyof typeof ConversationMemberScalarFieldEnum];
+
+export const MessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  senderId: 'senderId',
+  parentMessageId: 'parentMessageId',
+  type: 'type',
+  content: 'content',
+  clientNonce: 'clientNonce',
+  metadata: 'metadata',
+  editedAt: 'editedAt',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type MessageScalarFieldEnum =
+  (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum];
+
+export const MessageAttachmentScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  storageKey: 'storageKey',
+  fileName: 'fileName',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  width: 'width',
+  height: 'height',
+  durationMs: 'durationMs',
+  createdAt: 'createdAt',
+} as const;
+
+export type MessageAttachmentScalarFieldEnum =
+  (typeof MessageAttachmentScalarFieldEnum)[keyof typeof MessageAttachmentScalarFieldEnum];
+
+export const MessageReadReceiptScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  userId: 'userId',
+  readAt: 'readAt',
+} as const;
+
+export type MessageReadReceiptScalarFieldEnum =
+  (typeof MessageReadReceiptScalarFieldEnum)[keyof typeof MessageReadReceiptScalarFieldEnum];
+
 export const NotificationScalarFieldEnum = {
   id: 'id',
   recipientId: 'recipientId',
@@ -220,6 +305,8 @@ export const NotificationScalarFieldEnum = {
   postId: 'postId',
   commentId: 'commentId',
   communityId: 'communityId',
+  conversationId: 'conversationId',
+  messageId: 'messageId',
   type: 'type',
   idempotencyKey: 'idempotencyKey',
   readAt: 'readAt',
@@ -238,6 +325,14 @@ export const SortOrder = {
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+} as const;
+
+export type NullableJsonNullValueInput =
+  (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput];
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive',
@@ -251,3 +346,11 @@ export const NullsOrder = {
 } as const;
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder];
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull,
+} as const;
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter];

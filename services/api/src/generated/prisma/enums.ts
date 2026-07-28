@@ -89,6 +89,7 @@ export const NotificationType = {
   COMMENT: 'COMMENT',
   REPLY: 'REPLY',
   REACTION: 'REACTION',
+  MESSAGE: 'MESSAGE',
   CONNECTION_REQUEST: 'CONNECTION_REQUEST',
   CONNECTION_ACCEPTED: 'CONNECTION_ACCEPTED',
   COMMUNITY_INVITE: 'COMMUNITY_INVITE',
@@ -97,3 +98,33 @@ export const NotificationType = {
 } as const;
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
+
+export const ConversationType = {
+  DIRECT: 'DIRECT',
+  GROUP: 'GROUP',
+  COMMUNITY: 'COMMUNITY',
+  BUSINESS: 'BUSINESS',
+  ORGANISATION: 'ORGANISATION',
+  SUPPORT: 'SUPPORT',
+} as const;
+
+export type ConversationType = (typeof ConversationType)[keyof typeof ConversationType];
+
+export const ConversationMemberRole = {
+  OWNER: 'OWNER',
+  ADMIN: 'ADMIN',
+  MEMBER: 'MEMBER',
+} as const;
+
+export type ConversationMemberRole =
+  (typeof ConversationMemberRole)[keyof typeof ConversationMemberRole];
+
+export const MessageType = {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  FILE: 'FILE',
+  SYSTEM: 'SYSTEM',
+} as const;
+
+export type MessageType = (typeof MessageType)[keyof typeof MessageType];

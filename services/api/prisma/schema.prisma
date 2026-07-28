@@ -70,10 +70,34 @@ enum NotificationType {
   COMMENT
   REPLY
   REACTION
+  MESSAGE
   CONNECTION_REQUEST
   CONNECTION_ACCEPTED
   COMMUNITY_INVITE
   COMMUNITY_ROLE_CHANGED
+  SYSTEM
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+  COMMUNITY
+  BUSINESS
+  ORGANISATION
+  SUPPORT
+}
+
+enum ConversationMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  FILE
   SYSTEM
 }
 
@@ -98,6 +122,10 @@ model User {
   postReactions        PostReaction[]
   notificationsReceived Notification[]   @relation("NotificationRecipient")
   notificationsActed    Notification[]   @relation("NotificationActor")
+  conversationsOwned   Conversation[] @relation("ConversationOwner")
+  conversationMembers  ConversationMember[]
+  messagesSent         Message[]      @relation("MessageSender")
+  messageReadReceipts  MessageReadReceipt[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -146,6 +174,7 @@ model Community {
   memberships Membership[]
   posts       Post[]
   notifications Notification[]
+  conversations Conversation[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 
@@ -270,6 +299,117 @@ model PostReaction {
   @@map("post_reactions")
 }
 
+model Conversation {
+  id            String           @id @default(uuid()) @db.Uuid
+  type          ConversationType
+  title         String?
+  ownerId       String           @db.Uuid
+  communityId   String?          @db.Uuid
+  directKey     String?          @unique
+  lastMessageId String?          @unique @db.Uuid
+  lastMessageAt DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  owner         User             @relation("ConversationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  community     Community?       @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  members       ConversationMember[]
+  messages      Message[]        @relation("ConversationMessages")
+  lastMessage   Message?         @relation("ConversationLastMessage", fields: [lastMessageId], references: [id], onDelete: SetNull)
+  notifications Notification[]
+
+  @@index([ownerId, updatedAt])
+  @@index([communityId, updatedAt])
+  @@index([type, updatedAt])
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model ConversationMember {
+  id                String                 @id @default(uuid()) @db.Uuid
+  conversationId    String                 @db.Uuid
+  userId            String                 @db.Uuid
+  role              ConversationMemberRole @default(MEMBER)
+  joinedAt          DateTime               @default(now())
+  leftAt            DateTime?
+  archivedAt        DateTime?
+  mutedUntil        DateTime?
+  pinnedAt          DateTime?
+  lastReadMessageId String?                @db.Uuid
+  lastReadAt        DateTime?
+  unreadCount       Int                    @default(0)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  conversation      Conversation           @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId, archivedAt, updatedAt])
+  @@index([conversationId, leftAt])
+  @@map("conversation_members")
+}
+
+model Message {
+  id              String              @id @default(uuid()) @db.Uuid
+  conversationId  String              @db.Uuid
+  senderId        String              @db.Uuid
+  parentMessageId String?             @db.Uuid
+  type            MessageType         @default(TEXT)
+  content         String?
+  clientNonce     String?
+  metadata        Json?
+  editedAt        DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  conversation    Conversation        @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+  lastForConversation Conversation?    @relation("ConversationLastMessage")
+  sender          User                @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  parentMessage   Message?            @relation("MessageReplies", fields: [parentMessageId], references: [id], onDelete: SetNull)
+  replies         Message[]           @relation("MessageReplies")
+  attachments     MessageAttachment[]
+  readReceipts    MessageReadReceipt[]
+  notifications   Notification[]
+
+  @@unique([conversationId, senderId, clientNonce])
+  @@index([conversationId, createdAt])
+  @@index([senderId, createdAt])
+  @@index([parentMessageId])
+  @@index([deletedAt])
+  @@map("messages")
+}
+
+model MessageAttachment {
+  id         String   @id @default(uuid()) @db.Uuid
+  messageId  String   @db.Uuid
+  storageKey String
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  width      Int?
+  height     Int?
+  durationMs Int?
+  createdAt  DateTime @default(now())
+  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([storageKey])
+  @@map("message_attachments")
+}
+
+model MessageReadReceipt {
+  id        String   @id @default(uuid()) @db.Uuid
+  messageId String   @db.Uuid
+  userId    String   @db.Uuid
+  readAt    DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId, readAt])
+  @@index([messageId, readAt])
+  @@map("message_read_receipts")
+}
+
 model Notification {
   id             String           @id @default(uuid()) @db.Uuid
   recipientId    String           @db.Uuid
@@ -277,6 +417,8 @@ model Notification {
   postId         String?          @db.Uuid
   commentId      String?          @db.Uuid
   communityId    String?          @db.Uuid
+  conversationId String?          @db.Uuid
+  messageId      String?          @db.Uuid
   type           NotificationType
   idempotencyKey String           @unique
   readAt         DateTime?
@@ -288,6 +430,8 @@ model Notification {
   post           Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
   comment        Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
   community      Community?       @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  conversation   Conversation?    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  message        Message?         @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([recipientId, dismissedAt, createdAt])
   @@index([recipientId, readAt, createdAt])
@@ -295,5 +439,7 @@ model Notification {
   @@index([postId])
   @@index([commentId])
   @@index([communityId])
+  @@index([conversationId])
+  @@index([messageId])
   @@map("notifications")
 }

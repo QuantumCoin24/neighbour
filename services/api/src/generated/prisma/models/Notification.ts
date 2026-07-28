@@ -30,6 +30,8 @@ export type NotificationMinAggregateOutputType = {
   postId: string | null;
   commentId: string | null;
   communityId: string | null;
+  conversationId: string | null;
+  messageId: string | null;
   type: $Enums.NotificationType | null;
   idempotencyKey: string | null;
   readAt: Date | null;
@@ -45,6 +47,8 @@ export type NotificationMaxAggregateOutputType = {
   postId: string | null;
   commentId: string | null;
   communityId: string | null;
+  conversationId: string | null;
+  messageId: string | null;
   type: $Enums.NotificationType | null;
   idempotencyKey: string | null;
   readAt: Date | null;
@@ -60,6 +64,8 @@ export type NotificationCountAggregateOutputType = {
   postId: number;
   commentId: number;
   communityId: number;
+  conversationId: number;
+  messageId: number;
   type: number;
   idempotencyKey: number;
   readAt: number;
@@ -76,6 +82,8 @@ export type NotificationMinAggregateInputType = {
   postId?: true;
   commentId?: true;
   communityId?: true;
+  conversationId?: true;
+  messageId?: true;
   type?: true;
   idempotencyKey?: true;
   readAt?: true;
@@ -91,6 +99,8 @@ export type NotificationMaxAggregateInputType = {
   postId?: true;
   commentId?: true;
   communityId?: true;
+  conversationId?: true;
+  messageId?: true;
   type?: true;
   idempotencyKey?: true;
   readAt?: true;
@@ -106,6 +116,8 @@ export type NotificationCountAggregateInputType = {
   postId?: true;
   commentId?: true;
   communityId?: true;
+  conversationId?: true;
+  messageId?: true;
   type?: true;
   idempotencyKey?: true;
   readAt?: true;
@@ -198,6 +210,8 @@ export type NotificationGroupByOutputType = {
   postId: string | null;
   commentId: string | null;
   communityId: string | null;
+  conversationId: string | null;
+  messageId: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt: Date | null;
@@ -231,6 +245,8 @@ export type NotificationWhereInput = {
   postId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
   commentId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
   communityId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
+  conversationId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
+  messageId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
   type?: Prisma.EnumNotificationTypeFilter<'Notification'> | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFilter<'Notification'> | string;
   readAt?: Prisma.DateTimeNullableFilter<'Notification'> | Date | string | null;
@@ -245,6 +261,11 @@ export type NotificationWhereInput = {
     Prisma.CommunityNullableScalarRelationFilter,
     Prisma.CommunityWhereInput
   > | null;
+  conversation?: Prisma.XOR<
+    Prisma.ConversationNullableScalarRelationFilter,
+    Prisma.ConversationWhereInput
+  > | null;
+  message?: Prisma.XOR<Prisma.MessageNullableScalarRelationFilter, Prisma.MessageWhereInput> | null;
 };
 
 export type NotificationOrderByWithRelationInput = {
@@ -254,6 +275,8 @@ export type NotificationOrderByWithRelationInput = {
   postId?: Prisma.SortOrderInput | Prisma.SortOrder;
   commentId?: Prisma.SortOrderInput | Prisma.SortOrder;
   communityId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  conversationId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  messageId?: Prisma.SortOrderInput | Prisma.SortOrder;
   type?: Prisma.SortOrder;
   idempotencyKey?: Prisma.SortOrder;
   readAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -265,6 +288,8 @@ export type NotificationOrderByWithRelationInput = {
   post?: Prisma.PostOrderByWithRelationInput;
   comment?: Prisma.CommentOrderByWithRelationInput;
   community?: Prisma.CommunityOrderByWithRelationInput;
+  conversation?: Prisma.ConversationOrderByWithRelationInput;
+  message?: Prisma.MessageOrderByWithRelationInput;
 };
 
 export type NotificationWhereUniqueInput = Prisma.AtLeast<
@@ -279,6 +304,8 @@ export type NotificationWhereUniqueInput = Prisma.AtLeast<
     postId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
     commentId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
     communityId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
+    conversationId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
+    messageId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
     type?: Prisma.EnumNotificationTypeFilter<'Notification'> | $Enums.NotificationType;
     readAt?: Prisma.DateTimeNullableFilter<'Notification'> | Date | string | null;
     dismissedAt?: Prisma.DateTimeNullableFilter<'Notification'> | Date | string | null;
@@ -295,6 +322,14 @@ export type NotificationWhereUniqueInput = Prisma.AtLeast<
       Prisma.CommunityNullableScalarRelationFilter,
       Prisma.CommunityWhereInput
     > | null;
+    conversation?: Prisma.XOR<
+      Prisma.ConversationNullableScalarRelationFilter,
+      Prisma.ConversationWhereInput
+    > | null;
+    message?: Prisma.XOR<
+      Prisma.MessageNullableScalarRelationFilter,
+      Prisma.MessageWhereInput
+    > | null;
   },
   'id' | 'idempotencyKey'
 >;
@@ -306,6 +341,8 @@ export type NotificationOrderByWithAggregationInput = {
   postId?: Prisma.SortOrderInput | Prisma.SortOrder;
   commentId?: Prisma.SortOrderInput | Prisma.SortOrder;
   communityId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  conversationId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  messageId?: Prisma.SortOrderInput | Prisma.SortOrder;
   type?: Prisma.SortOrder;
   idempotencyKey?: Prisma.SortOrder;
   readAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -331,6 +368,8 @@ export type NotificationScalarWhereWithAggregatesInput = {
   postId?: Prisma.UuidNullableWithAggregatesFilter<'Notification'> | string | null;
   commentId?: Prisma.UuidNullableWithAggregatesFilter<'Notification'> | string | null;
   communityId?: Prisma.UuidNullableWithAggregatesFilter<'Notification'> | string | null;
+  conversationId?: Prisma.UuidNullableWithAggregatesFilter<'Notification'> | string | null;
+  messageId?: Prisma.UuidNullableWithAggregatesFilter<'Notification'> | string | null;
   type?: Prisma.EnumNotificationTypeWithAggregatesFilter<'Notification'> | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringWithAggregatesFilter<'Notification'> | string;
   readAt?: Prisma.DateTimeNullableWithAggregatesFilter<'Notification'> | Date | string | null;
@@ -352,6 +391,8 @@ export type NotificationCreateInput = {
   post?: Prisma.PostCreateNestedOneWithoutNotificationsInput;
   comment?: Prisma.CommentCreateNestedOneWithoutNotificationsInput;
   community?: Prisma.CommunityCreateNestedOneWithoutNotificationsInput;
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput;
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput;
 };
 
 export type NotificationUncheckedCreateInput = {
@@ -361,6 +402,8 @@ export type NotificationUncheckedCreateInput = {
   postId?: string | null;
   commentId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -382,6 +425,8 @@ export type NotificationUpdateInput = {
   post?: Prisma.PostUpdateOneWithoutNotificationsNestedInput;
   comment?: Prisma.CommentUpdateOneWithoutNotificationsNestedInput;
   community?: Prisma.CommunityUpdateOneWithoutNotificationsNestedInput;
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput;
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput;
 };
 
 export type NotificationUncheckedUpdateInput = {
@@ -391,6 +436,8 @@ export type NotificationUncheckedUpdateInput = {
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -406,6 +453,8 @@ export type NotificationCreateManyInput = {
   postId?: string | null;
   commentId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -431,6 +480,8 @@ export type NotificationUncheckedUpdateManyInput = {
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -456,6 +507,8 @@ export type NotificationCountOrderByAggregateInput = {
   postId?: Prisma.SortOrder;
   commentId?: Prisma.SortOrder;
   communityId?: Prisma.SortOrder;
+  conversationId?: Prisma.SortOrder;
+  messageId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
   idempotencyKey?: Prisma.SortOrder;
   readAt?: Prisma.SortOrder;
@@ -471,6 +524,8 @@ export type NotificationMaxOrderByAggregateInput = {
   postId?: Prisma.SortOrder;
   commentId?: Prisma.SortOrder;
   communityId?: Prisma.SortOrder;
+  conversationId?: Prisma.SortOrder;
+  messageId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
   idempotencyKey?: Prisma.SortOrder;
   readAt?: Prisma.SortOrder;
@@ -486,6 +541,8 @@ export type NotificationMinOrderByAggregateInput = {
   postId?: Prisma.SortOrder;
   commentId?: Prisma.SortOrder;
   communityId?: Prisma.SortOrder;
+  conversationId?: Prisma.SortOrder;
+  messageId?: Prisma.SortOrder;
   type?: Prisma.SortOrder;
   idempotencyKey?: Prisma.SortOrder;
   readAt?: Prisma.SortOrder;
@@ -924,6 +981,178 @@ export type NotificationUncheckedUpdateManyWithoutCommentNestedInput = {
   deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[];
 };
 
+export type NotificationCreateNestedManyWithoutConversationInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.NotificationCreateWithoutConversationInput,
+        Prisma.NotificationUncheckedCreateWithoutConversationInput
+      >
+    | Prisma.NotificationCreateWithoutConversationInput[]
+    | Prisma.NotificationUncheckedCreateWithoutConversationInput[];
+  connectOrCreate?:
+    | Prisma.NotificationCreateOrConnectWithoutConversationInput
+    | Prisma.NotificationCreateOrConnectWithoutConversationInput[];
+  createMany?: Prisma.NotificationCreateManyConversationInputEnvelope;
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+};
+
+export type NotificationUncheckedCreateNestedManyWithoutConversationInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.NotificationCreateWithoutConversationInput,
+        Prisma.NotificationUncheckedCreateWithoutConversationInput
+      >
+    | Prisma.NotificationCreateWithoutConversationInput[]
+    | Prisma.NotificationUncheckedCreateWithoutConversationInput[];
+  connectOrCreate?:
+    | Prisma.NotificationCreateOrConnectWithoutConversationInput
+    | Prisma.NotificationCreateOrConnectWithoutConversationInput[];
+  createMany?: Prisma.NotificationCreateManyConversationInputEnvelope;
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+};
+
+export type NotificationUpdateManyWithoutConversationNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.NotificationCreateWithoutConversationInput,
+        Prisma.NotificationUncheckedCreateWithoutConversationInput
+      >
+    | Prisma.NotificationCreateWithoutConversationInput[]
+    | Prisma.NotificationUncheckedCreateWithoutConversationInput[];
+  connectOrCreate?:
+    | Prisma.NotificationCreateOrConnectWithoutConversationInput
+    | Prisma.NotificationCreateOrConnectWithoutConversationInput[];
+  upsert?:
+    | Prisma.NotificationUpsertWithWhereUniqueWithoutConversationInput
+    | Prisma.NotificationUpsertWithWhereUniqueWithoutConversationInput[];
+  createMany?: Prisma.NotificationCreateManyConversationInputEnvelope;
+  set?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  disconnect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  delete?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  update?:
+    | Prisma.NotificationUpdateWithWhereUniqueWithoutConversationInput
+    | Prisma.NotificationUpdateWithWhereUniqueWithoutConversationInput[];
+  updateMany?:
+    | Prisma.NotificationUpdateManyWithWhereWithoutConversationInput
+    | Prisma.NotificationUpdateManyWithWhereWithoutConversationInput[];
+  deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[];
+};
+
+export type NotificationUncheckedUpdateManyWithoutConversationNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.NotificationCreateWithoutConversationInput,
+        Prisma.NotificationUncheckedCreateWithoutConversationInput
+      >
+    | Prisma.NotificationCreateWithoutConversationInput[]
+    | Prisma.NotificationUncheckedCreateWithoutConversationInput[];
+  connectOrCreate?:
+    | Prisma.NotificationCreateOrConnectWithoutConversationInput
+    | Prisma.NotificationCreateOrConnectWithoutConversationInput[];
+  upsert?:
+    | Prisma.NotificationUpsertWithWhereUniqueWithoutConversationInput
+    | Prisma.NotificationUpsertWithWhereUniqueWithoutConversationInput[];
+  createMany?: Prisma.NotificationCreateManyConversationInputEnvelope;
+  set?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  disconnect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  delete?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  update?:
+    | Prisma.NotificationUpdateWithWhereUniqueWithoutConversationInput
+    | Prisma.NotificationUpdateWithWhereUniqueWithoutConversationInput[];
+  updateMany?:
+    | Prisma.NotificationUpdateManyWithWhereWithoutConversationInput
+    | Prisma.NotificationUpdateManyWithWhereWithoutConversationInput[];
+  deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[];
+};
+
+export type NotificationCreateNestedManyWithoutMessageInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.NotificationCreateWithoutMessageInput,
+        Prisma.NotificationUncheckedCreateWithoutMessageInput
+      >
+    | Prisma.NotificationCreateWithoutMessageInput[]
+    | Prisma.NotificationUncheckedCreateWithoutMessageInput[];
+  connectOrCreate?:
+    | Prisma.NotificationCreateOrConnectWithoutMessageInput
+    | Prisma.NotificationCreateOrConnectWithoutMessageInput[];
+  createMany?: Prisma.NotificationCreateManyMessageInputEnvelope;
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+};
+
+export type NotificationUncheckedCreateNestedManyWithoutMessageInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.NotificationCreateWithoutMessageInput,
+        Prisma.NotificationUncheckedCreateWithoutMessageInput
+      >
+    | Prisma.NotificationCreateWithoutMessageInput[]
+    | Prisma.NotificationUncheckedCreateWithoutMessageInput[];
+  connectOrCreate?:
+    | Prisma.NotificationCreateOrConnectWithoutMessageInput
+    | Prisma.NotificationCreateOrConnectWithoutMessageInput[];
+  createMany?: Prisma.NotificationCreateManyMessageInputEnvelope;
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+};
+
+export type NotificationUpdateManyWithoutMessageNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.NotificationCreateWithoutMessageInput,
+        Prisma.NotificationUncheckedCreateWithoutMessageInput
+      >
+    | Prisma.NotificationCreateWithoutMessageInput[]
+    | Prisma.NotificationUncheckedCreateWithoutMessageInput[];
+  connectOrCreate?:
+    | Prisma.NotificationCreateOrConnectWithoutMessageInput
+    | Prisma.NotificationCreateOrConnectWithoutMessageInput[];
+  upsert?:
+    | Prisma.NotificationUpsertWithWhereUniqueWithoutMessageInput
+    | Prisma.NotificationUpsertWithWhereUniqueWithoutMessageInput[];
+  createMany?: Prisma.NotificationCreateManyMessageInputEnvelope;
+  set?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  disconnect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  delete?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  update?:
+    | Prisma.NotificationUpdateWithWhereUniqueWithoutMessageInput
+    | Prisma.NotificationUpdateWithWhereUniqueWithoutMessageInput[];
+  updateMany?:
+    | Prisma.NotificationUpdateManyWithWhereWithoutMessageInput
+    | Prisma.NotificationUpdateManyWithWhereWithoutMessageInput[];
+  deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[];
+};
+
+export type NotificationUncheckedUpdateManyWithoutMessageNestedInput = {
+  create?:
+    | Prisma.XOR<
+        Prisma.NotificationCreateWithoutMessageInput,
+        Prisma.NotificationUncheckedCreateWithoutMessageInput
+      >
+    | Prisma.NotificationCreateWithoutMessageInput[]
+    | Prisma.NotificationUncheckedCreateWithoutMessageInput[];
+  connectOrCreate?:
+    | Prisma.NotificationCreateOrConnectWithoutMessageInput
+    | Prisma.NotificationCreateOrConnectWithoutMessageInput[];
+  upsert?:
+    | Prisma.NotificationUpsertWithWhereUniqueWithoutMessageInput
+    | Prisma.NotificationUpsertWithWhereUniqueWithoutMessageInput[];
+  createMany?: Prisma.NotificationCreateManyMessageInputEnvelope;
+  set?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  disconnect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  delete?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  connect?: Prisma.NotificationWhereUniqueInput | Prisma.NotificationWhereUniqueInput[];
+  update?:
+    | Prisma.NotificationUpdateWithWhereUniqueWithoutMessageInput
+    | Prisma.NotificationUpdateWithWhereUniqueWithoutMessageInput[];
+  updateMany?:
+    | Prisma.NotificationUpdateManyWithWhereWithoutMessageInput
+    | Prisma.NotificationUpdateManyWithWhereWithoutMessageInput[];
+  deleteMany?: Prisma.NotificationScalarWhereInput | Prisma.NotificationScalarWhereInput[];
+};
+
 export type EnumNotificationTypeFieldUpdateOperationsInput = {
   set?: $Enums.NotificationType;
 };
@@ -940,6 +1169,8 @@ export type NotificationCreateWithoutRecipientInput = {
   post?: Prisma.PostCreateNestedOneWithoutNotificationsInput;
   comment?: Prisma.CommentCreateNestedOneWithoutNotificationsInput;
   community?: Prisma.CommunityCreateNestedOneWithoutNotificationsInput;
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput;
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput;
 };
 
 export type NotificationUncheckedCreateWithoutRecipientInput = {
@@ -948,6 +1179,8 @@ export type NotificationUncheckedCreateWithoutRecipientInput = {
   postId?: string | null;
   commentId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -981,6 +1214,8 @@ export type NotificationCreateWithoutActorInput = {
   post?: Prisma.PostCreateNestedOneWithoutNotificationsInput;
   comment?: Prisma.CommentCreateNestedOneWithoutNotificationsInput;
   community?: Prisma.CommunityCreateNestedOneWithoutNotificationsInput;
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput;
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput;
 };
 
 export type NotificationUncheckedCreateWithoutActorInput = {
@@ -989,6 +1224,8 @@ export type NotificationUncheckedCreateWithoutActorInput = {
   postId?: string | null;
   commentId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -1048,6 +1285,8 @@ export type NotificationScalarWhereInput = {
   postId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
   commentId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
   communityId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
+  conversationId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
+  messageId?: Prisma.UuidNullableFilter<'Notification'> | string | null;
   type?: Prisma.EnumNotificationTypeFilter<'Notification'> | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFilter<'Notification'> | string;
   readAt?: Prisma.DateTimeNullableFilter<'Notification'> | Date | string | null;
@@ -1096,6 +1335,8 @@ export type NotificationCreateWithoutCommunityInput = {
   actor?: Prisma.UserCreateNestedOneWithoutNotificationsActedInput;
   post?: Prisma.PostCreateNestedOneWithoutNotificationsInput;
   comment?: Prisma.CommentCreateNestedOneWithoutNotificationsInput;
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput;
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput;
 };
 
 export type NotificationUncheckedCreateWithoutCommunityInput = {
@@ -1104,6 +1345,8 @@ export type NotificationUncheckedCreateWithoutCommunityInput = {
   actorId?: string | null;
   postId?: string | null;
   commentId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -1165,6 +1408,8 @@ export type NotificationCreateWithoutPostInput = {
   actor?: Prisma.UserCreateNestedOneWithoutNotificationsActedInput;
   comment?: Prisma.CommentCreateNestedOneWithoutNotificationsInput;
   community?: Prisma.CommunityCreateNestedOneWithoutNotificationsInput;
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput;
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput;
 };
 
 export type NotificationUncheckedCreateWithoutPostInput = {
@@ -1173,6 +1418,8 @@ export type NotificationUncheckedCreateWithoutPostInput = {
   actorId?: string | null;
   commentId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -1234,6 +1481,8 @@ export type NotificationCreateWithoutCommentInput = {
   actor?: Prisma.UserCreateNestedOneWithoutNotificationsActedInput;
   post?: Prisma.PostCreateNestedOneWithoutNotificationsInput;
   community?: Prisma.CommunityCreateNestedOneWithoutNotificationsInput;
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput;
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput;
 };
 
 export type NotificationUncheckedCreateWithoutCommentInput = {
@@ -1242,6 +1491,8 @@ export type NotificationUncheckedCreateWithoutCommentInput = {
   actorId?: string | null;
   postId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -1291,12 +1542,162 @@ export type NotificationUpdateManyWithWhereWithoutCommentInput = {
   >;
 };
 
+export type NotificationCreateWithoutConversationInput = {
+  id?: string;
+  type: $Enums.NotificationType;
+  idempotencyKey: string;
+  readAt?: Date | string | null;
+  dismissedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  recipient: Prisma.UserCreateNestedOneWithoutNotificationsReceivedInput;
+  actor?: Prisma.UserCreateNestedOneWithoutNotificationsActedInput;
+  post?: Prisma.PostCreateNestedOneWithoutNotificationsInput;
+  comment?: Prisma.CommentCreateNestedOneWithoutNotificationsInput;
+  community?: Prisma.CommunityCreateNestedOneWithoutNotificationsInput;
+  message?: Prisma.MessageCreateNestedOneWithoutNotificationsInput;
+};
+
+export type NotificationUncheckedCreateWithoutConversationInput = {
+  id?: string;
+  recipientId: string;
+  actorId?: string | null;
+  postId?: string | null;
+  commentId?: string | null;
+  communityId?: string | null;
+  messageId?: string | null;
+  type: $Enums.NotificationType;
+  idempotencyKey: string;
+  readAt?: Date | string | null;
+  dismissedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type NotificationCreateOrConnectWithoutConversationInput = {
+  where: Prisma.NotificationWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.NotificationCreateWithoutConversationInput,
+    Prisma.NotificationUncheckedCreateWithoutConversationInput
+  >;
+};
+
+export type NotificationCreateManyConversationInputEnvelope = {
+  data:
+    | Prisma.NotificationCreateManyConversationInput
+    | Prisma.NotificationCreateManyConversationInput[];
+  skipDuplicates?: boolean;
+};
+
+export type NotificationUpsertWithWhereUniqueWithoutConversationInput = {
+  where: Prisma.NotificationWhereUniqueInput;
+  update: Prisma.XOR<
+    Prisma.NotificationUpdateWithoutConversationInput,
+    Prisma.NotificationUncheckedUpdateWithoutConversationInput
+  >;
+  create: Prisma.XOR<
+    Prisma.NotificationCreateWithoutConversationInput,
+    Prisma.NotificationUncheckedCreateWithoutConversationInput
+  >;
+};
+
+export type NotificationUpdateWithWhereUniqueWithoutConversationInput = {
+  where: Prisma.NotificationWhereUniqueInput;
+  data: Prisma.XOR<
+    Prisma.NotificationUpdateWithoutConversationInput,
+    Prisma.NotificationUncheckedUpdateWithoutConversationInput
+  >;
+};
+
+export type NotificationUpdateManyWithWhereWithoutConversationInput = {
+  where: Prisma.NotificationScalarWhereInput;
+  data: Prisma.XOR<
+    Prisma.NotificationUpdateManyMutationInput,
+    Prisma.NotificationUncheckedUpdateManyWithoutConversationInput
+  >;
+};
+
+export type NotificationCreateWithoutMessageInput = {
+  id?: string;
+  type: $Enums.NotificationType;
+  idempotencyKey: string;
+  readAt?: Date | string | null;
+  dismissedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  recipient: Prisma.UserCreateNestedOneWithoutNotificationsReceivedInput;
+  actor?: Prisma.UserCreateNestedOneWithoutNotificationsActedInput;
+  post?: Prisma.PostCreateNestedOneWithoutNotificationsInput;
+  comment?: Prisma.CommentCreateNestedOneWithoutNotificationsInput;
+  community?: Prisma.CommunityCreateNestedOneWithoutNotificationsInput;
+  conversation?: Prisma.ConversationCreateNestedOneWithoutNotificationsInput;
+};
+
+export type NotificationUncheckedCreateWithoutMessageInput = {
+  id?: string;
+  recipientId: string;
+  actorId?: string | null;
+  postId?: string | null;
+  commentId?: string | null;
+  communityId?: string | null;
+  conversationId?: string | null;
+  type: $Enums.NotificationType;
+  idempotencyKey: string;
+  readAt?: Date | string | null;
+  dismissedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type NotificationCreateOrConnectWithoutMessageInput = {
+  where: Prisma.NotificationWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.NotificationCreateWithoutMessageInput,
+    Prisma.NotificationUncheckedCreateWithoutMessageInput
+  >;
+};
+
+export type NotificationCreateManyMessageInputEnvelope = {
+  data: Prisma.NotificationCreateManyMessageInput | Prisma.NotificationCreateManyMessageInput[];
+  skipDuplicates?: boolean;
+};
+
+export type NotificationUpsertWithWhereUniqueWithoutMessageInput = {
+  where: Prisma.NotificationWhereUniqueInput;
+  update: Prisma.XOR<
+    Prisma.NotificationUpdateWithoutMessageInput,
+    Prisma.NotificationUncheckedUpdateWithoutMessageInput
+  >;
+  create: Prisma.XOR<
+    Prisma.NotificationCreateWithoutMessageInput,
+    Prisma.NotificationUncheckedCreateWithoutMessageInput
+  >;
+};
+
+export type NotificationUpdateWithWhereUniqueWithoutMessageInput = {
+  where: Prisma.NotificationWhereUniqueInput;
+  data: Prisma.XOR<
+    Prisma.NotificationUpdateWithoutMessageInput,
+    Prisma.NotificationUncheckedUpdateWithoutMessageInput
+  >;
+};
+
+export type NotificationUpdateManyWithWhereWithoutMessageInput = {
+  where: Prisma.NotificationScalarWhereInput;
+  data: Prisma.XOR<
+    Prisma.NotificationUpdateManyMutationInput,
+    Prisma.NotificationUncheckedUpdateManyWithoutMessageInput
+  >;
+};
+
 export type NotificationCreateManyRecipientInput = {
   id?: string;
   actorId?: string | null;
   postId?: string | null;
   commentId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -1311,6 +1712,8 @@ export type NotificationCreateManyActorInput = {
   postId?: string | null;
   commentId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -1331,6 +1734,8 @@ export type NotificationUpdateWithoutRecipientInput = {
   post?: Prisma.PostUpdateOneWithoutNotificationsNestedInput;
   comment?: Prisma.CommentUpdateOneWithoutNotificationsNestedInput;
   community?: Prisma.CommunityUpdateOneWithoutNotificationsNestedInput;
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput;
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput;
 };
 
 export type NotificationUncheckedUpdateWithoutRecipientInput = {
@@ -1339,6 +1744,8 @@ export type NotificationUncheckedUpdateWithoutRecipientInput = {
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1353,6 +1760,8 @@ export type NotificationUncheckedUpdateManyWithoutRecipientInput = {
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1373,6 +1782,8 @@ export type NotificationUpdateWithoutActorInput = {
   post?: Prisma.PostUpdateOneWithoutNotificationsNestedInput;
   comment?: Prisma.CommentUpdateOneWithoutNotificationsNestedInput;
   community?: Prisma.CommunityUpdateOneWithoutNotificationsNestedInput;
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput;
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput;
 };
 
 export type NotificationUncheckedUpdateWithoutActorInput = {
@@ -1381,6 +1792,8 @@ export type NotificationUncheckedUpdateWithoutActorInput = {
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1395,6 +1808,8 @@ export type NotificationUncheckedUpdateManyWithoutActorInput = {
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1409,6 +1824,8 @@ export type NotificationCreateManyCommunityInput = {
   actorId?: string | null;
   postId?: string | null;
   commentId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -1429,6 +1846,8 @@ export type NotificationUpdateWithoutCommunityInput = {
   actor?: Prisma.UserUpdateOneWithoutNotificationsActedNestedInput;
   post?: Prisma.PostUpdateOneWithoutNotificationsNestedInput;
   comment?: Prisma.CommentUpdateOneWithoutNotificationsNestedInput;
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput;
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput;
 };
 
 export type NotificationUncheckedUpdateWithoutCommunityInput = {
@@ -1437,6 +1856,8 @@ export type NotificationUncheckedUpdateWithoutCommunityInput = {
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1451,6 +1872,8 @@ export type NotificationUncheckedUpdateManyWithoutCommunityInput = {
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1465,6 +1888,8 @@ export type NotificationCreateManyPostInput = {
   actorId?: string | null;
   commentId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -1485,6 +1910,8 @@ export type NotificationUpdateWithoutPostInput = {
   actor?: Prisma.UserUpdateOneWithoutNotificationsActedNestedInput;
   comment?: Prisma.CommentUpdateOneWithoutNotificationsNestedInput;
   community?: Prisma.CommunityUpdateOneWithoutNotificationsNestedInput;
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput;
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput;
 };
 
 export type NotificationUncheckedUpdateWithoutPostInput = {
@@ -1493,6 +1920,8 @@ export type NotificationUncheckedUpdateWithoutPostInput = {
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1507,6 +1936,8 @@ export type NotificationUncheckedUpdateManyWithoutPostInput = {
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1521,6 +1952,8 @@ export type NotificationCreateManyCommentInput = {
   actorId?: string | null;
   postId?: string | null;
   communityId?: string | null;
+  conversationId?: string | null;
+  messageId?: string | null;
   type: $Enums.NotificationType;
   idempotencyKey: string;
   readAt?: Date | string | null;
@@ -1541,6 +1974,8 @@ export type NotificationUpdateWithoutCommentInput = {
   actor?: Prisma.UserUpdateOneWithoutNotificationsActedNestedInput;
   post?: Prisma.PostUpdateOneWithoutNotificationsNestedInput;
   community?: Prisma.CommunityUpdateOneWithoutNotificationsNestedInput;
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput;
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput;
 };
 
 export type NotificationUncheckedUpdateWithoutCommentInput = {
@@ -1549,6 +1984,8 @@ export type NotificationUncheckedUpdateWithoutCommentInput = {
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1563,6 +2000,136 @@ export type NotificationUncheckedUpdateManyWithoutCommentInput = {
   actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  dismissedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type NotificationCreateManyConversationInput = {
+  id?: string;
+  recipientId: string;
+  actorId?: string | null;
+  postId?: string | null;
+  commentId?: string | null;
+  communityId?: string | null;
+  messageId?: string | null;
+  type: $Enums.NotificationType;
+  idempotencyKey: string;
+  readAt?: Date | string | null;
+  dismissedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type NotificationUpdateWithoutConversationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  dismissedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  recipient?: Prisma.UserUpdateOneRequiredWithoutNotificationsReceivedNestedInput;
+  actor?: Prisma.UserUpdateOneWithoutNotificationsActedNestedInput;
+  post?: Prisma.PostUpdateOneWithoutNotificationsNestedInput;
+  comment?: Prisma.CommentUpdateOneWithoutNotificationsNestedInput;
+  community?: Prisma.CommunityUpdateOneWithoutNotificationsNestedInput;
+  message?: Prisma.MessageUpdateOneWithoutNotificationsNestedInput;
+};
+
+export type NotificationUncheckedUpdateWithoutConversationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  recipientId?: Prisma.StringFieldUpdateOperationsInput | string;
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  dismissedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type NotificationUncheckedUpdateManyWithoutConversationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  recipientId?: Prisma.StringFieldUpdateOperationsInput | string;
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  messageId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  dismissedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type NotificationCreateManyMessageInput = {
+  id?: string;
+  recipientId: string;
+  actorId?: string | null;
+  postId?: string | null;
+  commentId?: string | null;
+  communityId?: string | null;
+  conversationId?: string | null;
+  type: $Enums.NotificationType;
+  idempotencyKey: string;
+  readAt?: Date | string | null;
+  dismissedAt?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
+export type NotificationUpdateWithoutMessageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  dismissedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  recipient?: Prisma.UserUpdateOneRequiredWithoutNotificationsReceivedNestedInput;
+  actor?: Prisma.UserUpdateOneWithoutNotificationsActedNestedInput;
+  post?: Prisma.PostUpdateOneWithoutNotificationsNestedInput;
+  comment?: Prisma.CommentUpdateOneWithoutNotificationsNestedInput;
+  community?: Prisma.CommunityUpdateOneWithoutNotificationsNestedInput;
+  conversation?: Prisma.ConversationUpdateOneWithoutNotificationsNestedInput;
+};
+
+export type NotificationUncheckedUpdateWithoutMessageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  recipientId?: Prisma.StringFieldUpdateOperationsInput | string;
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
+  idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  dismissedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+
+export type NotificationUncheckedUpdateManyWithoutMessageInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  recipientId?: Prisma.StringFieldUpdateOperationsInput | string;
+  actorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  postId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  commentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  communityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  conversationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType;
   idempotencyKey?: Prisma.StringFieldUpdateOperationsInput | string;
   readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -1581,6 +2148,8 @@ export type NotificationSelect<
     postId?: boolean;
     commentId?: boolean;
     communityId?: boolean;
+    conversationId?: boolean;
+    messageId?: boolean;
     type?: boolean;
     idempotencyKey?: boolean;
     readAt?: boolean;
@@ -1592,6 +2161,8 @@ export type NotificationSelect<
     post?: boolean | Prisma.Notification$postArgs<ExtArgs>;
     comment?: boolean | Prisma.Notification$commentArgs<ExtArgs>;
     community?: boolean | Prisma.Notification$communityArgs<ExtArgs>;
+    conversation?: boolean | Prisma.Notification$conversationArgs<ExtArgs>;
+    message?: boolean | Prisma.Notification$messageArgs<ExtArgs>;
   },
   ExtArgs['result']['notification']
 >;
@@ -1606,6 +2177,8 @@ export type NotificationSelectCreateManyAndReturn<
     postId?: boolean;
     commentId?: boolean;
     communityId?: boolean;
+    conversationId?: boolean;
+    messageId?: boolean;
     type?: boolean;
     idempotencyKey?: boolean;
     readAt?: boolean;
@@ -1617,6 +2190,8 @@ export type NotificationSelectCreateManyAndReturn<
     post?: boolean | Prisma.Notification$postArgs<ExtArgs>;
     comment?: boolean | Prisma.Notification$commentArgs<ExtArgs>;
     community?: boolean | Prisma.Notification$communityArgs<ExtArgs>;
+    conversation?: boolean | Prisma.Notification$conversationArgs<ExtArgs>;
+    message?: boolean | Prisma.Notification$messageArgs<ExtArgs>;
   },
   ExtArgs['result']['notification']
 >;
@@ -1631,6 +2206,8 @@ export type NotificationSelectUpdateManyAndReturn<
     postId?: boolean;
     commentId?: boolean;
     communityId?: boolean;
+    conversationId?: boolean;
+    messageId?: boolean;
     type?: boolean;
     idempotencyKey?: boolean;
     readAt?: boolean;
@@ -1642,6 +2219,8 @@ export type NotificationSelectUpdateManyAndReturn<
     post?: boolean | Prisma.Notification$postArgs<ExtArgs>;
     comment?: boolean | Prisma.Notification$commentArgs<ExtArgs>;
     community?: boolean | Prisma.Notification$communityArgs<ExtArgs>;
+    conversation?: boolean | Prisma.Notification$conversationArgs<ExtArgs>;
+    message?: boolean | Prisma.Notification$messageArgs<ExtArgs>;
   },
   ExtArgs['result']['notification']
 >;
@@ -1653,6 +2232,8 @@ export type NotificationSelectScalar = {
   postId?: boolean;
   commentId?: boolean;
   communityId?: boolean;
+  conversationId?: boolean;
+  messageId?: boolean;
   type?: boolean;
   idempotencyKey?: boolean;
   readAt?: boolean;
@@ -1670,6 +2251,8 @@ export type NotificationOmit<
   | 'postId'
   | 'commentId'
   | 'communityId'
+  | 'conversationId'
+  | 'messageId'
   | 'type'
   | 'idempotencyKey'
   | 'readAt'
@@ -1686,6 +2269,8 @@ export type NotificationInclude<
   post?: boolean | Prisma.Notification$postArgs<ExtArgs>;
   comment?: boolean | Prisma.Notification$commentArgs<ExtArgs>;
   community?: boolean | Prisma.Notification$communityArgs<ExtArgs>;
+  conversation?: boolean | Prisma.Notification$conversationArgs<ExtArgs>;
+  message?: boolean | Prisma.Notification$messageArgs<ExtArgs>;
 };
 export type NotificationIncludeCreateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
@@ -1695,6 +2280,8 @@ export type NotificationIncludeCreateManyAndReturn<
   post?: boolean | Prisma.Notification$postArgs<ExtArgs>;
   comment?: boolean | Prisma.Notification$commentArgs<ExtArgs>;
   community?: boolean | Prisma.Notification$communityArgs<ExtArgs>;
+  conversation?: boolean | Prisma.Notification$conversationArgs<ExtArgs>;
+  message?: boolean | Prisma.Notification$messageArgs<ExtArgs>;
 };
 export type NotificationIncludeUpdateManyAndReturn<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
@@ -1704,6 +2291,8 @@ export type NotificationIncludeUpdateManyAndReturn<
   post?: boolean | Prisma.Notification$postArgs<ExtArgs>;
   comment?: boolean | Prisma.Notification$commentArgs<ExtArgs>;
   community?: boolean | Prisma.Notification$communityArgs<ExtArgs>;
+  conversation?: boolean | Prisma.Notification$conversationArgs<ExtArgs>;
+  message?: boolean | Prisma.Notification$messageArgs<ExtArgs>;
 };
 
 export type $NotificationPayload<
@@ -1716,6 +2305,8 @@ export type $NotificationPayload<
     post: Prisma.$PostPayload<ExtArgs> | null;
     comment: Prisma.$CommentPayload<ExtArgs> | null;
     community: Prisma.$CommunityPayload<ExtArgs> | null;
+    conversation: Prisma.$ConversationPayload<ExtArgs> | null;
+    message: Prisma.$MessagePayload<ExtArgs> | null;
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1725,6 +2316,8 @@ export type $NotificationPayload<
       postId: string | null;
       commentId: string | null;
       communityId: string | null;
+      conversationId: string | null;
+      messageId: string | null;
       type: $Enums.NotificationType;
       idempotencyKey: string;
       readAt: Date | null;
@@ -2335,6 +2928,32 @@ export interface Prisma__NotificationClient<
     ExtArgs,
     GlobalOmitOptions
   >;
+  conversation<T extends Prisma.Notification$conversationArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Notification$conversationArgs<ExtArgs>>,
+  ): Prisma.Prisma__ConversationClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$ConversationPayload<ExtArgs>,
+      T,
+      'findUniqueOrThrow',
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
+  message<T extends Prisma.Notification$messageArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Notification$messageArgs<ExtArgs>>,
+  ): Prisma.Prisma__MessageClient<
+    runtime.Types.Result.GetResult<
+      Prisma.$MessagePayload<ExtArgs>,
+      T,
+      'findUniqueOrThrow',
+      GlobalOmitOptions
+    > | null,
+    null,
+    ExtArgs,
+    GlobalOmitOptions
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2372,6 +2991,8 @@ export interface NotificationFieldRefs {
   readonly postId: Prisma.FieldRef<'Notification', 'String'>;
   readonly commentId: Prisma.FieldRef<'Notification', 'String'>;
   readonly communityId: Prisma.FieldRef<'Notification', 'String'>;
+  readonly conversationId: Prisma.FieldRef<'Notification', 'String'>;
+  readonly messageId: Prisma.FieldRef<'Notification', 'String'>;
   readonly type: Prisma.FieldRef<'Notification', 'NotificationType'>;
   readonly idempotencyKey: Prisma.FieldRef<'Notification', 'String'>;
   readonly readAt: Prisma.FieldRef<'Notification', 'DateTime'>;
@@ -2896,6 +3517,48 @@ export type Notification$communityArgs<
    */
   include?: Prisma.CommunityInclude<ExtArgs> | null;
   where?: Prisma.CommunityWhereInput;
+};
+
+/**
+ * Notification.conversation
+ */
+export type Notification$conversationArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Conversation
+   */
+  select?: Prisma.ConversationSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Conversation
+   */
+  omit?: Prisma.ConversationOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConversationInclude<ExtArgs> | null;
+  where?: Prisma.ConversationWhereInput;
+};
+
+/**
+ * Notification.message
+ */
+export type Notification$messageArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Message
+   */
+  select?: Prisma.MessageSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Message
+   */
+  omit?: Prisma.MessageOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessageInclude<ExtArgs> | null;
+  where?: Prisma.MessageWhereInput;
 };
 
 /**

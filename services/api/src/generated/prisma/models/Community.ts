@@ -198,6 +198,7 @@ export type CommunityWhereInput = {
   memberships?: Prisma.MembershipListRelationFilter;
   posts?: Prisma.PostListRelationFilter;
   notifications?: Prisma.NotificationListRelationFilter;
+  conversations?: Prisma.ConversationListRelationFilter;
 };
 
 export type CommunityOrderByWithRelationInput = {
@@ -211,6 +212,7 @@ export type CommunityOrderByWithRelationInput = {
   memberships?: Prisma.MembershipOrderByRelationAggregateInput;
   posts?: Prisma.PostOrderByRelationAggregateInput;
   notifications?: Prisma.NotificationOrderByRelationAggregateInput;
+  conversations?: Prisma.ConversationOrderByRelationAggregateInput;
 };
 
 export type CommunityWhereUniqueInput = Prisma.AtLeast<
@@ -228,6 +230,7 @@ export type CommunityWhereUniqueInput = Prisma.AtLeast<
     memberships?: Prisma.MembershipListRelationFilter;
     posts?: Prisma.PostListRelationFilter;
     notifications?: Prisma.NotificationListRelationFilter;
+    conversations?: Prisma.ConversationListRelationFilter;
   },
   'id' | 'slug'
 >;
@@ -274,6 +277,7 @@ export type CommunityCreateInput = {
   memberships?: Prisma.MembershipCreateNestedManyWithoutCommunityInput;
   posts?: Prisma.PostCreateNestedManyWithoutCommunityInput;
   notifications?: Prisma.NotificationCreateNestedManyWithoutCommunityInput;
+  conversations?: Prisma.ConversationCreateNestedManyWithoutCommunityInput;
 };
 
 export type CommunityUncheckedCreateInput = {
@@ -287,6 +291,7 @@ export type CommunityUncheckedCreateInput = {
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutCommunityInput;
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutCommunityInput;
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCommunityInput;
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutCommunityInput;
 };
 
 export type CommunityUpdateInput = {
@@ -301,6 +306,7 @@ export type CommunityUpdateInput = {
   memberships?: Prisma.MembershipUpdateManyWithoutCommunityNestedInput;
   posts?: Prisma.PostUpdateManyWithoutCommunityNestedInput;
   notifications?: Prisma.NotificationUpdateManyWithoutCommunityNestedInput;
+  conversations?: Prisma.ConversationUpdateManyWithoutCommunityNestedInput;
 };
 
 export type CommunityUncheckedUpdateInput = {
@@ -315,6 +321,7 @@ export type CommunityUncheckedUpdateInput = {
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutCommunityNestedInput;
   posts?: Prisma.PostUncheckedUpdateManyWithoutCommunityNestedInput;
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCommunityNestedInput;
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutCommunityNestedInput;
 };
 
 export type CommunityCreateManyInput = {
@@ -447,6 +454,34 @@ export type CommunityUpdateOneWithoutPostsNestedInput = {
   >;
 };
 
+export type CommunityCreateNestedOneWithoutConversationsInput = {
+  create?: Prisma.XOR<
+    Prisma.CommunityCreateWithoutConversationsInput,
+    Prisma.CommunityUncheckedCreateWithoutConversationsInput
+  >;
+  connectOrCreate?: Prisma.CommunityCreateOrConnectWithoutConversationsInput;
+  connect?: Prisma.CommunityWhereUniqueInput;
+};
+
+export type CommunityUpdateOneWithoutConversationsNestedInput = {
+  create?: Prisma.XOR<
+    Prisma.CommunityCreateWithoutConversationsInput,
+    Prisma.CommunityUncheckedCreateWithoutConversationsInput
+  >;
+  connectOrCreate?: Prisma.CommunityCreateOrConnectWithoutConversationsInput;
+  upsert?: Prisma.CommunityUpsertWithoutConversationsInput;
+  disconnect?: Prisma.CommunityWhereInput | boolean;
+  delete?: Prisma.CommunityWhereInput | boolean;
+  connect?: Prisma.CommunityWhereUniqueInput;
+  update?: Prisma.XOR<
+    Prisma.XOR<
+      Prisma.CommunityUpdateToOneWithWhereWithoutConversationsInput,
+      Prisma.CommunityUpdateWithoutConversationsInput
+    >,
+    Prisma.CommunityUncheckedUpdateWithoutConversationsInput
+  >;
+};
+
 export type CommunityCreateNestedOneWithoutNotificationsInput = {
   create?: Prisma.XOR<
     Prisma.CommunityCreateWithoutNotificationsInput,
@@ -485,6 +520,7 @@ export type CommunityCreateWithoutMembershipsInput = {
   updatedAt?: Date | string;
   posts?: Prisma.PostCreateNestedManyWithoutCommunityInput;
   notifications?: Prisma.NotificationCreateNestedManyWithoutCommunityInput;
+  conversations?: Prisma.ConversationCreateNestedManyWithoutCommunityInput;
 };
 
 export type CommunityUncheckedCreateWithoutMembershipsInput = {
@@ -497,6 +533,7 @@ export type CommunityUncheckedCreateWithoutMembershipsInput = {
   updatedAt?: Date | string;
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutCommunityInput;
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCommunityInput;
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutCommunityInput;
 };
 
 export type CommunityCreateOrConnectWithoutMembershipsInput = {
@@ -538,6 +575,7 @@ export type CommunityUpdateWithoutMembershipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   posts?: Prisma.PostUpdateManyWithoutCommunityNestedInput;
   notifications?: Prisma.NotificationUpdateManyWithoutCommunityNestedInput;
+  conversations?: Prisma.ConversationUpdateManyWithoutCommunityNestedInput;
 };
 
 export type CommunityUncheckedUpdateWithoutMembershipsInput = {
@@ -551,6 +589,7 @@ export type CommunityUncheckedUpdateWithoutMembershipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   posts?: Prisma.PostUncheckedUpdateManyWithoutCommunityNestedInput;
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCommunityNestedInput;
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutCommunityNestedInput;
 };
 
 export type CommunityCreateWithoutPostsInput = {
@@ -563,6 +602,7 @@ export type CommunityCreateWithoutPostsInput = {
   updatedAt?: Date | string;
   memberships?: Prisma.MembershipCreateNestedManyWithoutCommunityInput;
   notifications?: Prisma.NotificationCreateNestedManyWithoutCommunityInput;
+  conversations?: Prisma.ConversationCreateNestedManyWithoutCommunityInput;
 };
 
 export type CommunityUncheckedCreateWithoutPostsInput = {
@@ -575,6 +615,7 @@ export type CommunityUncheckedCreateWithoutPostsInput = {
   updatedAt?: Date | string;
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutCommunityInput;
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCommunityInput;
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutCommunityInput;
 };
 
 export type CommunityCreateOrConnectWithoutPostsInput = {
@@ -616,6 +657,7 @@ export type CommunityUpdateWithoutPostsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   memberships?: Prisma.MembershipUpdateManyWithoutCommunityNestedInput;
   notifications?: Prisma.NotificationUpdateManyWithoutCommunityNestedInput;
+  conversations?: Prisma.ConversationUpdateManyWithoutCommunityNestedInput;
 };
 
 export type CommunityUncheckedUpdateWithoutPostsInput = {
@@ -629,6 +671,89 @@ export type CommunityUncheckedUpdateWithoutPostsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutCommunityNestedInput;
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCommunityNestedInput;
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutCommunityNestedInput;
+};
+
+export type CommunityCreateWithoutConversationsInput = {
+  id?: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  visibility?: $Enums.CommunityVisibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  memberships?: Prisma.MembershipCreateNestedManyWithoutCommunityInput;
+  posts?: Prisma.PostCreateNestedManyWithoutCommunityInput;
+  notifications?: Prisma.NotificationCreateNestedManyWithoutCommunityInput;
+};
+
+export type CommunityUncheckedCreateWithoutConversationsInput = {
+  id?: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  visibility?: $Enums.CommunityVisibility;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutCommunityInput;
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutCommunityInput;
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCommunityInput;
+};
+
+export type CommunityCreateOrConnectWithoutConversationsInput = {
+  where: Prisma.CommunityWhereUniqueInput;
+  create: Prisma.XOR<
+    Prisma.CommunityCreateWithoutConversationsInput,
+    Prisma.CommunityUncheckedCreateWithoutConversationsInput
+  >;
+};
+
+export type CommunityUpsertWithoutConversationsInput = {
+  update: Prisma.XOR<
+    Prisma.CommunityUpdateWithoutConversationsInput,
+    Prisma.CommunityUncheckedUpdateWithoutConversationsInput
+  >;
+  create: Prisma.XOR<
+    Prisma.CommunityCreateWithoutConversationsInput,
+    Prisma.CommunityUncheckedCreateWithoutConversationsInput
+  >;
+  where?: Prisma.CommunityWhereInput;
+};
+
+export type CommunityUpdateToOneWithWhereWithoutConversationsInput = {
+  where?: Prisma.CommunityWhereInput;
+  data: Prisma.XOR<
+    Prisma.CommunityUpdateWithoutConversationsInput,
+    Prisma.CommunityUncheckedUpdateWithoutConversationsInput
+  >;
+};
+
+export type CommunityUpdateWithoutConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  slug?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumCommunityVisibilityFieldUpdateOperationsInput | $Enums.CommunityVisibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  memberships?: Prisma.MembershipUpdateManyWithoutCommunityNestedInput;
+  posts?: Prisma.PostUpdateManyWithoutCommunityNestedInput;
+  notifications?: Prisma.NotificationUpdateManyWithoutCommunityNestedInput;
+};
+
+export type CommunityUncheckedUpdateWithoutConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string;
+  name?: Prisma.StringFieldUpdateOperationsInput | string;
+  slug?: Prisma.StringFieldUpdateOperationsInput | string;
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  visibility?:
+    Prisma.EnumCommunityVisibilityFieldUpdateOperationsInput | $Enums.CommunityVisibility;
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutCommunityNestedInput;
+  posts?: Prisma.PostUncheckedUpdateManyWithoutCommunityNestedInput;
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCommunityNestedInput;
 };
 
 export type CommunityCreateWithoutNotificationsInput = {
@@ -641,6 +766,7 @@ export type CommunityCreateWithoutNotificationsInput = {
   updatedAt?: Date | string;
   memberships?: Prisma.MembershipCreateNestedManyWithoutCommunityInput;
   posts?: Prisma.PostCreateNestedManyWithoutCommunityInput;
+  conversations?: Prisma.ConversationCreateNestedManyWithoutCommunityInput;
 };
 
 export type CommunityUncheckedCreateWithoutNotificationsInput = {
@@ -653,6 +779,7 @@ export type CommunityUncheckedCreateWithoutNotificationsInput = {
   updatedAt?: Date | string;
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutCommunityInput;
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutCommunityInput;
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutCommunityInput;
 };
 
 export type CommunityCreateOrConnectWithoutNotificationsInput = {
@@ -694,6 +821,7 @@ export type CommunityUpdateWithoutNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   memberships?: Prisma.MembershipUpdateManyWithoutCommunityNestedInput;
   posts?: Prisma.PostUpdateManyWithoutCommunityNestedInput;
+  conversations?: Prisma.ConversationUpdateManyWithoutCommunityNestedInput;
 };
 
 export type CommunityUncheckedUpdateWithoutNotificationsInput = {
@@ -707,6 +835,7 @@ export type CommunityUncheckedUpdateWithoutNotificationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutCommunityNestedInput;
   posts?: Prisma.PostUncheckedUpdateManyWithoutCommunityNestedInput;
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutCommunityNestedInput;
 };
 
 /**
@@ -717,6 +846,7 @@ export type CommunityCountOutputType = {
   memberships: number;
   posts: number;
   notifications: number;
+  conversations: number;
 };
 
 export type CommunityCountOutputTypeSelect<
@@ -725,6 +855,7 @@ export type CommunityCountOutputTypeSelect<
   memberships?: boolean | CommunityCountOutputTypeCountMembershipsArgs;
   posts?: boolean | CommunityCountOutputTypeCountPostsArgs;
   notifications?: boolean | CommunityCountOutputTypeCountNotificationsArgs;
+  conversations?: boolean | CommunityCountOutputTypeCountConversationsArgs;
 };
 
 /**
@@ -766,6 +897,15 @@ export type CommunityCountOutputTypeCountNotificationsArgs<
   where?: Prisma.NotificationWhereInput;
 };
 
+/**
+ * CommunityCountOutputType without action
+ */
+export type CommunityCountOutputTypeCountConversationsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  where?: Prisma.ConversationWhereInput;
+};
+
 export type CommunitySelect<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetSelect<
@@ -780,6 +920,7 @@ export type CommunitySelect<
     memberships?: boolean | Prisma.Community$membershipsArgs<ExtArgs>;
     posts?: boolean | Prisma.Community$postsArgs<ExtArgs>;
     notifications?: boolean | Prisma.Community$notificationsArgs<ExtArgs>;
+    conversations?: boolean | Prisma.Community$conversationsArgs<ExtArgs>;
     _count?: boolean | Prisma.CommunityCountOutputTypeDefaultArgs<ExtArgs>;
   },
   ExtArgs['result']['community']
@@ -837,6 +978,7 @@ export type CommunityInclude<
   memberships?: boolean | Prisma.Community$membershipsArgs<ExtArgs>;
   posts?: boolean | Prisma.Community$postsArgs<ExtArgs>;
   notifications?: boolean | Prisma.Community$notificationsArgs<ExtArgs>;
+  conversations?: boolean | Prisma.Community$conversationsArgs<ExtArgs>;
   _count?: boolean | Prisma.CommunityCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type CommunityIncludeCreateManyAndReturn<
@@ -854,6 +996,7 @@ export type $CommunityPayload<
     memberships: Prisma.$MembershipPayload<ExtArgs>[];
     posts: Prisma.$PostPayload<ExtArgs>[];
     notifications: Prisma.$NotificationPayload<ExtArgs>[];
+    conversations: Prisma.$ConversationPayload<ExtArgs>[];
   };
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
@@ -1430,6 +1573,17 @@ export interface Prisma__CommunityClient<
       >
     | Null
   >;
+  conversations<T extends Prisma.Community$conversationsArgs<ExtArgs> = {}>(
+    args?: Prisma.Subset<T, Prisma.Community$conversationsArgs<ExtArgs>>,
+  ): Prisma.PrismaPromise<
+    | runtime.Types.Result.GetResult<
+        Prisma.$ConversationPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
+  >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1970,6 +2124,33 @@ export type Community$notificationsArgs<
   take?: number;
   skip?: number;
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[];
+};
+
+/**
+ * Community.conversations
+ */
+export type Community$conversationsArgs<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+> = {
+  /**
+   * Select specific fields to fetch from the Conversation
+   */
+  select?: Prisma.ConversationSelect<ExtArgs> | null;
+  /**
+   * Omit specific fields from the Conversation
+   */
+  omit?: Prisma.ConversationOmit<ExtArgs> | null;
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConversationInclude<ExtArgs> | null;
+  where?: Prisma.ConversationWhereInput;
+  orderBy?:
+    Prisma.ConversationOrderByWithRelationInput | Prisma.ConversationOrderByWithRelationInput[];
+  cursor?: Prisma.ConversationWhereUniqueInput;
+  take?: number;
+  skip?: number;
+  distinct?: Prisma.ConversationScalarFieldEnum | Prisma.ConversationScalarFieldEnum[];
 };
 
 /**

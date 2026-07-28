@@ -67,6 +67,31 @@ export type Comment = Prisma.CommentModel;
  */
 export type PostReaction = Prisma.PostReactionModel;
 /**
+ * Model Conversation
+ *
+ */
+export type Conversation = Prisma.ConversationModel;
+/**
+ * Model ConversationMember
+ *
+ */
+export type ConversationMember = Prisma.ConversationMemberModel;
+/**
+ * Model Message
+ *
+ */
+export type Message = Prisma.MessageModel;
+/**
+ * Model MessageAttachment
+ *
+ */
+export type MessageAttachment = Prisma.MessageAttachmentModel;
+/**
+ * Model MessageReadReceipt
+ *
+ */
+export type MessageReadReceipt = Prisma.MessageReadReceiptModel;
+/**
  * Model Notification
  *
  */
