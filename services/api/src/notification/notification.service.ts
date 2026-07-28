@@ -3,6 +3,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { NotificationType, Prisma } from '../generated/prisma/client';
 import type { NotificationQueryDto } from './dto/notification-query.dto';
+import { NotificationRealtimePublisher } from './events/notification-realtime.publisher';
 import type {
   NotificationFeedResponse,
   NotificationResponse,
@@ -39,6 +40,7 @@ export class NotificationService {
   constructor(
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
+    private readonly realtimePublisher: NotificationRealtimePublisher,
   ) {}
 
   async getInbox(
@@ -124,10 +126,23 @@ export class NotificationService {
       });
     }
 
-    return this.requireNotificationWithActor(notificationId);
+    const notification = await this.requireNotificationWithActor(notificationId);
+
+    this.realtimePublisher.notificationRead({
+      notificationId,
+      recipientId,
+      readAt: notification.readAt?.toISOString() ?? new Date().toISOString(),
+      updatedCount: existing.readAt ? 0 : 1,
+      all: false,
+      notification,
+    });
+
+    return notification;
   }
 
   async markAllRead(recipientId: string): Promise<{ updatedCount: number }> {
+    const readAt = new Date();
+
     const result = await this.database.notification.updateMany({
       where: {
         recipientId,
@@ -135,8 +150,16 @@ export class NotificationService {
         readAt: null,
       },
       data: {
-        readAt: new Date(),
+        readAt,
       },
+    });
+
+    this.realtimePublisher.notificationRead({
+      notificationId: null,
+      recipientId,
+      readAt: readAt.toISOString(),
+      updatedCount: result.count,
+      all: true,
     });
 
     return {
@@ -162,7 +185,7 @@ export class NotificationService {
       return;
     }
 
-    await this.database.notification.upsert({
+    const notification = await this.database.notification.upsert({
       where: {
         idempotencyKey: `comment:${input.commentId}`,
       },
@@ -176,8 +199,15 @@ export class NotificationService {
       },
       update: {
         dismissedAt: null,
+        readAt: null,
       },
+      include: notificationInclude,
     });
+
+    this.realtimePublisher.notificationCreated(
+      input.recipientId,
+      this.toNotificationResponse(notification),
+    );
   }
 
   async notifyReaction(input: ReactionNotificationInput): Promise<void> {
@@ -187,7 +217,7 @@ export class NotificationService {
 
     const idempotencyKey = `reaction:${input.postId}:${input.actorId}`;
 
-    await this.database.notification.upsert({
+    const notification = await this.database.notification.upsert({
       where: {
         idempotencyKey,
       },
@@ -202,7 +232,13 @@ export class NotificationService {
         dismissedAt: null,
         readAt: null,
       },
+      include: notificationInclude,
     });
+
+    this.realtimePublisher.notificationCreated(
+      input.recipientId,
+      this.toNotificationResponse(notification),
+    );
   }
 
   async removeReactionNotification(actorId: string, postId: string): Promise<void> {
