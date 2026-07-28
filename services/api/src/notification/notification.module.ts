@@ -22,6 +22,7 @@ import { ApnsHeaderBuilderService } from './headers/apns-header-builder.service'
 import { ApnsRequestBuilderService } from './request/apns-request-builder.service';
 import { ApnsHttpRequestFactoryService } from './client/apns-http-request-factory.service';
 import { ApnsResponseParserService } from './response/apns-response-parser.service';
+import { NotificationDeliveryLifecycleService } from './lifecycle/notification-delivery-lifecycle.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
