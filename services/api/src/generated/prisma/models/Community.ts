@@ -370,10 +370,6 @@ export type CommunityScalarRelationFilter = {
   isNot?: Prisma.CommunityWhereInput;
 };
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null;
-};
-
 export type EnumCommunityVisibilityFieldUpdateOperationsInput = {
   set?: $Enums.CommunityVisibility;
 };

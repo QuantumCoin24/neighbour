@@ -49,6 +49,7 @@ export const AnyNull = runtime.AnyNull;
 
 export const ModelName = {
   User: 'User',
+  UserProfile: 'UserProfile',
   RefreshToken: 'RefreshToken',
   Community: 'Community',
   Membership: 'Membership',
@@ -83,6 +84,21 @@ export const UserScalarFieldEnum = {
 } as const;
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum];
+
+export const UserProfileScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  username: 'username',
+  bio: 'bio',
+  avatarUrl: 'avatarUrl',
+  localArea: 'localArea',
+  showLocalArea: 'showLocalArea',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type UserProfileScalarFieldEnum =
+  (typeof UserProfileScalarFieldEnum)[keyof typeof UserProfileScalarFieldEnum];
 
 export const RefreshTokenScalarFieldEnum = {
   id: 'id',

@@ -8,6 +8,7 @@ config({
   path: path.resolve(currentDirectory, '../../../.env'),
 });
 
+import { hash } from 'argon2';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 import { PrismaClient } from '../src/generated/prisma/client.js';
@@ -23,12 +24,19 @@ const prisma = new PrismaClient({
 });
 
 async function main(): Promise<void> {
+  const founderPasswordHash = await hash('NeighbourLocal123!', {
+    type: 2,
+  });
+
   const user = await prisma.user.upsert({
     where: { email: 'founder@neighbour.local' },
-    update: {},
+    update: {
+      passwordHash: founderPasswordHash,
+    },
     create: {
       email: 'founder@neighbour.local',
       displayName: 'Neighbour Founder',
+      passwordHash: founderPasswordHash,
     },
   });
 

@@ -10,6 +10,7 @@ import { environmentValidationSchema } from './config/environment.validation';
 import { DatabaseHealthModule } from './database/database-health.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { HealthModule } from './health/health.module';
     CommunityModule,
     DatabaseModule,
     HealthModule,
+    ProfileModule,
     DatabaseHealthModule,
   ],
 })

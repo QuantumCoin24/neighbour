@@ -176,12 +176,9 @@ export type StringNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedStringNullableFilter<$PrismaModel> | string | null;
 };
 
-export type EnumCommunityVisibilityFilter<$PrismaModel = never> = {
-  equals?: $Enums.CommunityVisibility | Prisma.EnumCommunityVisibilityFieldRefInput<$PrismaModel>;
-  in?: $Enums.CommunityVisibility[] | Prisma.ListEnumCommunityVisibilityFieldRefInput<$PrismaModel>;
-  notIn?:
-    $Enums.CommunityVisibility[] | Prisma.ListEnumCommunityVisibilityFieldRefInput<$PrismaModel>;
-  not?: Prisma.NestedEnumCommunityVisibilityFilter<$PrismaModel> | $Enums.CommunityVisibility;
+export type BoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean;
 };
 
 export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -200,6 +197,22 @@ export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>;
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>;
+};
+
+export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>;
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>;
+};
+
+export type EnumCommunityVisibilityFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityVisibility | Prisma.EnumCommunityVisibilityFieldRefInput<$PrismaModel>;
+  in?: $Enums.CommunityVisibility[] | Prisma.ListEnumCommunityVisibilityFieldRefInput<$PrismaModel>;
+  notIn?:
+    $Enums.CommunityVisibility[] | Prisma.ListEnumCommunityVisibilityFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedEnumCommunityVisibilityFilter<$PrismaModel> | $Enums.CommunityVisibility;
 };
 
 export type EnumCommunityVisibilityWithAggregatesFilter<$PrismaModel = never> = {
@@ -426,12 +439,9 @@ export type NestedStringNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedStringNullableFilter<$PrismaModel> | string | null;
 };
 
-export type NestedEnumCommunityVisibilityFilter<$PrismaModel = never> = {
-  equals?: $Enums.CommunityVisibility | Prisma.EnumCommunityVisibilityFieldRefInput<$PrismaModel>;
-  in?: $Enums.CommunityVisibility[] | Prisma.ListEnumCommunityVisibilityFieldRefInput<$PrismaModel>;
-  notIn?:
-    $Enums.CommunityVisibility[] | Prisma.ListEnumCommunityVisibilityFieldRefInput<$PrismaModel>;
-  not?: Prisma.NestedEnumCommunityVisibilityFilter<$PrismaModel> | $Enums.CommunityVisibility;
+export type NestedBoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean;
 };
 
 export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -449,6 +459,22 @@ export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>;
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>;
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>;
+};
+
+export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean;
+  _count?: Prisma.NestedIntFilter<$PrismaModel>;
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>;
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>;
+};
+
+export type NestedEnumCommunityVisibilityFilter<$PrismaModel = never> = {
+  equals?: $Enums.CommunityVisibility | Prisma.EnumCommunityVisibilityFieldRefInput<$PrismaModel>;
+  in?: $Enums.CommunityVisibility[] | Prisma.ListEnumCommunityVisibilityFieldRefInput<$PrismaModel>;
+  notIn?:
+    $Enums.CommunityVisibility[] | Prisma.ListEnumCommunityVisibilityFieldRefInput<$PrismaModel>;
+  not?: Prisma.NestedEnumCommunityVisibilityFilter<$PrismaModel> | $Enums.CommunityVisibility;
 };
 
 export type NestedEnumCommunityVisibilityWithAggregatesFilter<$PrismaModel = never> = {
