@@ -25,6 +25,7 @@ import { ApnsResponseParserService } from './response/apns-response-parser.servi
 import { NotificationDeliveryLifecycleService } from './lifecycle/notification-delivery-lifecycle.service';
 import { NotificationDeliveryResultService } from './result/notification-delivery-result.service';
 import { NotificationDeliveryStatisticsService } from './metrics/notification-delivery-statistics.service';
+import { NotificationDeliveryHealthService } from './health/notification-delivery-health.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
