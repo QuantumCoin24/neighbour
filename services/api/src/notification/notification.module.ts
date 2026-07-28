@@ -13,6 +13,7 @@ import { PushNotificationService } from './push/push-notification.service';
 import { NotificationRetryQueueService } from './queue/notification-retry-queue.service';
 import { NotificationDeliveryMetricsService } from './metrics/notification-delivery-metrics.service';
 import { BadgeCounterService } from './badge/badge-counter.service';
+import { NotificationRetrySchedulerService } from './scheduler/notification-retry-scheduler.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
