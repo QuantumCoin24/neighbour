@@ -345,6 +345,387 @@ EOF
 
     echo "Realtime contracts created."
 }
+
+build_presence_engine() {
+
+    local REALTIME_ROOT="${ROOT}/services/api/src/realtime"
+
+    echo "Creating realtime presence engine..."
+
+    cat > "${REALTIME_ROOT}/presence/presence.registry.ts" <<'EOF'
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class PresenceRegistry {
+  private readonly socketsByUser = new Map<string, Set<string>>();
+  private readonly userBySocket = new Map<string, string>();
+
+  register(userId: string, socketId: string): boolean {
+    const existingSockets = this.socketsByUser.get(userId);
+    const wasOffline = !existingSockets || existingSockets.size === 0;
+
+    const sockets = existingSockets ?? new Set<string>();
+    sockets.add(socketId);
+
+    this.socketsByUser.set(userId, sockets);
+    this.userBySocket.set(socketId, userId);
+
+    return wasOffline;
+  }
+
+  unregister(socketId: string): {
+    userId: string | null;
+    becameOffline: boolean;
+  } {
+    const userId = this.userBySocket.get(socketId);
+
+    if (!userId) {
+      return {
+        userId: null,
+        becameOffline: false,
+      };
+    }
+
+    this.userBySocket.delete(socketId);
+
+    const sockets = this.socketsByUser.get(userId);
+
+    if (!sockets) {
+      return {
+        userId,
+        becameOffline: true,
+      };
+    }
+
+    sockets.delete(socketId);
+
+    if (sockets.size === 0) {
+      this.socketsByUser.delete(userId);
+
+      return {
+        userId,
+        becameOffline: true,
+      };
+    }
+
+    return {
+      userId,
+      becameOffline: false,
+    };
+  }
+
+  isOnline(userId: string): boolean {
+    return (this.socketsByUser.get(userId)?.size ?? 0) > 0;
+  }
+
+  getUserId(socketId: string): string | null {
+    return this.userBySocket.get(socketId) ?? null;
+  }
+
+  getSocketIds(userId: string): string[] {
+    return [...(this.socketsByUser.get(userId) ?? [])];
+  }
+
+  getOnlineUserIds(): string[] {
+    return [...this.socketsByUser.keys()];
+  }
+
+  getConnectionCount(userId: string): number {
+    return this.socketsByUser.get(userId)?.size ?? 0;
+  }
+
+  clear(): void {
+    this.socketsByUser.clear();
+    this.userBySocket.clear();
+  }
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/interfaces/presence-state.interface.ts" <<'EOF'
+export interface PresenceState {
+  userId: string;
+  online: boolean;
+  connectionCount: number;
+  changedAt: string;
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/presence/presence.service.ts" <<'EOF'
+import { Injectable } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
+import { RealtimeEvents } from '../constants/realtime-events.constant';
+import { PresenceState } from '../interfaces/presence-state.interface';
+import { RoomNameFactory } from '../rooms/room-name.factory';
+import { RealtimeService } from '../services/realtime.service';
+import { PresenceRegistry } from './presence.registry';
+
+@Injectable()
+export class PresenceService {
+  constructor(
+    private readonly registry: PresenceRegistry,
+    private readonly realtimeService: RealtimeService,
+  ) {}
+
+  connect(userId: string, socketId: string): PresenceState {
+    const becameOnline = this.registry.register(userId, socketId);
+    const state = this.getState(userId);
+
+    if (becameOnline) {
+      this.broadcastState(state);
+    }
+
+    return state;
+  }
+
+  disconnect(socketId: string): PresenceState | null {
+    const result = this.registry.unregister(socketId);
+
+    if (!result.userId) {
+      return null;
+    }
+
+    const state = this.getState(result.userId);
+
+    if (result.becameOffline) {
+      this.broadcastState(state);
+    }
+
+    return state;
+  }
+
+  getState(userId: string): PresenceState {
+    return {
+      userId,
+      online: this.registry.isOnline(userId),
+      connectionCount: this.registry.getConnectionCount(userId),
+      changedAt: new Date().toISOString(),
+    };
+  }
+
+  isOnline(userId: string): boolean {
+    return this.registry.isOnline(userId);
+  }
+
+  getOnlineUserIds(): string[] {
+    return this.registry.getOnlineUserIds();
+  }
+
+  private broadcastState(state: PresenceState): void {
+    this.realtimeService.emitToRoom(
+      RoomNameFactory.user(state.userId),
+      RealtimeEvents.PRESENCE_CHANGED,
+      {
+        eventId: randomUUID(),
+        occurredAt: state.changedAt,
+        data: state,
+      },
+    );
+  }
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/services/realtime.service.ts" <<'EOF'
+import { Injectable } from '@nestjs/common';
+import { Server } from 'socket.io';
+import { RoomNameFactory } from '../rooms/room-name.factory';
+
+@Injectable()
+export class RealtimeService {
+  private server?: Server;
+
+  setServer(server: Server): void {
+    this.server = server;
+  }
+
+  getServer(): Server | undefined {
+    return this.server;
+  }
+
+  emitToRoom(room: string, event: string, payload: unknown): void {
+    this.server?.to(room).emit(event, payload);
+  }
+
+  emitToUser(userId: string, event: string, payload: unknown): void {
+    this.emitToRoom(RoomNameFactory.user(userId), event, payload);
+  }
+
+  emitToConversation(
+    conversationId: string,
+    event: string,
+    payload: unknown,
+  ): void {
+    this.emitToRoom(
+      RoomNameFactory.conversation(conversationId),
+      event,
+      payload,
+    );
+  }
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/realtime.module.ts" <<'EOF'
+import { Module } from '@nestjs/common';
+import { RealtimeGateway } from './gateway/realtime.gateway';
+import { PresenceRegistry } from './presence/presence.registry';
+import { PresenceService } from './presence/presence.service';
+import { RealtimeService } from './services/realtime.service';
+
+@Module({
+  providers: [
+    RealtimeGateway,
+    RealtimeService,
+    PresenceRegistry,
+    PresenceService,
+  ],
+  exports: [
+    RealtimeGateway,
+    RealtimeService,
+    PresenceRegistry,
+    PresenceService,
+  ],
+})
+export class RealtimeModule {}
+EOF
+
+    rm -f \
+        "${REALTIME_ROOT}/presence/.gitkeep" \
+        "${REALTIME_ROOT}/interfaces/.gitkeep"
+
+    echo "Realtime presence engine created."
+}
+
+
+wire_gateway_lifecycle() {
+
+    local REALTIME_ROOT="${ROOT}/services/api/src/realtime"
+
+    echo "Wiring gateway connection lifecycle..."
+
+    cat > "${REALTIME_ROOT}/interfaces/realtime-socket-data.interface.ts" <<'EOF'
+export interface RealtimeSocketData {
+  userId?: string;
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/gateway/realtime.gateway.ts" <<'EOF'
+import { Logger } from '@nestjs/common';
+import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { randomUUID } from 'node:crypto';
+import { Server, Socket } from 'socket.io';
+import { RealtimeEvents } from '../constants/realtime-events.constant';
+import { RealtimeSocketData } from '../interfaces/realtime-socket-data.interface';
+import { PresenceService } from '../presence/presence.service';
+import { RoomNameFactory } from '../rooms/room-name.factory';
+import { RealtimeService } from '../services/realtime.service';
+
+type RealtimeSocket = Socket<
+  Record<string, never>,
+  Record<string, never>,
+  Record<string, never>,
+  RealtimeSocketData
+>;
+
+@WebSocketGateway({
+  namespace: '/realtime',
+  cors: {
+    origin: true,
+    credentials: true,
+  },
+})
+export class RealtimeGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
+  @WebSocketServer()
+  server!: Server;
+
+  private readonly logger = new Logger(RealtimeGateway.name);
+
+  constructor(
+    private readonly realtimeService: RealtimeService,
+    private readonly presenceService: PresenceService,
+  ) {}
+
+  afterInit(server: Server): void {
+    this.realtimeService.setServer(server);
+    this.logger.log('Realtime gateway initialised');
+  }
+
+  async handleConnection(client: RealtimeSocket): Promise<void> {
+    const userId = this.resolveUserId(client);
+
+    if (!userId) {
+      this.logger.warn(
+        `Rejected unauthenticated realtime connection ${client.id}`,
+      );
+      client.disconnect(true);
+      return;
+    }
+
+    client.data.userId = userId;
+
+    await client.join(RoomNameFactory.user(userId));
+
+    const presence = this.presenceService.connect(userId, client.id);
+
+    client.emit(RealtimeEvents.CONNECTION_READY, {
+      eventId: randomUUID(),
+      occurredAt: new Date().toISOString(),
+      data: {
+        socketId: client.id,
+        userId,
+        presence,
+      },
+    });
+
+    this.logger.log(`Realtime client connected: ${userId} (${client.id})`);
+  }
+
+  handleDisconnect(client: RealtimeSocket): void {
+    const presence = this.presenceService.disconnect(client.id);
+
+    if (!presence) {
+      this.logger.debug(
+        `Realtime client disconnected without presence record: ${client.id}`,
+      );
+      return;
+    }
+
+    this.logger.log(
+      `Realtime client disconnected: ${presence.userId} (${client.id})`,
+    );
+  }
+
+  private resolveUserId(client: RealtimeSocket): string | null {
+    const authenticationUserId = client.handshake.auth?.userId;
+    const queryUserId = client.handshake.query?.userId;
+
+    if (
+      typeof authenticationUserId === 'string' &&
+      authenticationUserId.trim().length > 0
+    ) {
+      return authenticationUserId.trim();
+    }
+
+    if (typeof queryUserId === 'string' && queryUserId.trim().length > 0) {
+      return queryUserId.trim();
+    }
+
+    return null;
+  }
+}
+EOF
+
+    rm -f "${REALTIME_ROOT}/interfaces/.gitkeep"
+
+    echo "Gateway lifecycle wired."
+}
+
 ###############################################################################
 # Main
 ###############################################################################
@@ -354,6 +735,8 @@ run_step "[3/12] Create folder structure" create_structure
 run_step "[4/12] Build gateway" build_gateway
 run_step "[5/12] Wire realtime module" wire_realtime_module
 run_step "[6/12] Build realtime contracts" build_realtime_contracts
+run_step "[7/12] Build presence engine" build_presence_engine
+run_step "[8/12] Wire gateway lifecycle" wire_gateway_lifecycle
 
 echo
 success "Bootstrap foundation completed successfully."

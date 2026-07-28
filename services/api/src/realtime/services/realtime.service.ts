@@ -1,23 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { Server } from 'socket.io';
+import { RoomNameFactory } from '../rooms/room-name.factory';
 
 @Injectable()
 export class RealtimeService {
   private server?: Server;
 
-  setServer(server: Server) {
+  setServer(server: Server): void {
     this.server = server;
   }
 
-  getServer() {
+  getServer(): Server | undefined {
     return this.server;
   }
 
-  emitToUser(userId: string, event: string, payload: unknown) {
-    this.server?.to(`user:${userId}`).emit(event, payload);
+  emitToRoom(room: string, event: string, payload: unknown): void {
+    this.server?.to(room).emit(event, payload);
   }
 
-  emitToConversation(id: string, event: string, payload: unknown) {
-    this.server?.to(`conversation:${id}`).emit(event, payload);
+  emitToUser(userId: string, event: string, payload: unknown): void {
+    this.emitToRoom(RoomNameFactory.user(userId), event, payload);
+  }
+
+  emitToConversation(conversationId: string, event: string, payload: unknown): void {
+    this.emitToRoom(RoomNameFactory.conversation(conversationId), event, payload);
   }
 }
