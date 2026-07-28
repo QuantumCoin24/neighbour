@@ -16,27 +16,25 @@ import { MessageModule } from './message/message.module';
 import { ProfileModule } from './profile/profile.module';
 import { PostModule } from './post/post.module';
 import { SocialGraphModule } from './social-graph/social-graph.module';
+import { RealtimeModule } from './realtime/realtime.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      cache: true,
-      envFilePath: path.resolve(process.cwd(), '../../.env'),
-      load: [environment],
-      validationSchema: environmentValidationSchema,
     }),
     AuthModule,
     CommunityModule,
     DatabaseModule,
+    DatabaseHealthModule,
     HealthModule,
-    NotificationModule,
     InteractionModule,
     MessageModule,
-    ProfileModule,
+    NotificationModule,
     PostModule,
+    ProfileModule,
     SocialGraphModule,
-    DatabaseHealthModule,
+    RealtimeModule,
   ],
 })
 export class AppModule {}
