@@ -5,14 +5,14 @@ import { INestApplication, VersioningType } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 
-import { AppModule } from '../src/app.module';
+import { HealthModule } from '../src/health/health.module';
 
 describe('Health endpoint', () => {
   let app: INestApplication;
 
   before(async () => {
     const testingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [HealthModule],
     }).compile();
 
     app = testingModule.createNestApplication();
