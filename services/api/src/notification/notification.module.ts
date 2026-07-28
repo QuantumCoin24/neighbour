@@ -20,6 +20,7 @@ import { NotificationPriorityService } from './priority/notification-priority.se
 import { NotificationTopicService } from './topic/notification-topic.service';
 import { ApnsHeaderBuilderService } from './headers/apns-header-builder.service';
 import { ApnsRequestBuilderService } from './request/apns-request-builder.service';
+import { ApnsHttpRequestFactoryService } from './client/apns-http-request-factory.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
