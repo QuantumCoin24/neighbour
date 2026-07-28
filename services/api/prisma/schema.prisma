@@ -46,6 +46,18 @@ enum ConnectionStatus {
   DECLINED
 }
 
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum PostVisibility {
+  PUBLIC
+  CONNECTIONS
+  COMMUNITY
+  PRIVATE
+}
+
 model User {
   id                   String         @id @default(uuid()) @db.Uuid
   email                String         @unique
@@ -62,6 +74,7 @@ model User {
   requestedConnections Connection[]   @relation("ConnectionRequester")
   blocksCreated        UserBlock[]    @relation("Blocker")
   blocksReceived       UserBlock[]    @relation("Blocked")
+  posts                Post[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -108,6 +121,7 @@ model Community {
   description String?
   visibility  CommunityVisibility @default(PUBLIC)
   memberships Membership[]
+  posts       Post[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 
@@ -165,4 +179,27 @@ model UserBlock {
   @@index([blockerId])
   @@index([blockedId])
   @@map("user_blocks")
+}
+
+model Post {
+  id          String         @id @default(uuid()) @db.Uuid
+  authorId    String         @db.Uuid
+  communityId String?        @db.Uuid
+  title       String?
+  content     String
+  status      PostStatus     @default(DRAFT)
+  visibility  PostVisibility @default(PUBLIC)
+  publishedAt DateTime?
+  editedAt    DateTime?
+  deletedAt   DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  author      User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  community   Community?     @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([authorId, status, publishedAt])
+  @@index([communityId, status, publishedAt])
+  @@index([status, visibility, publishedAt])
+  @@index([deletedAt])
+  @@map("posts")
 }

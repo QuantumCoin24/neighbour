@@ -51,3 +51,8 @@ export type Connection = Prisma.ConnectionModel;
  *
  */
 export type UserBlock = Prisma.UserBlockModel;
+/**
+ * Model Post
+ *
+ */
+export type Post = Prisma.PostModel;

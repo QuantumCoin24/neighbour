@@ -55,6 +55,7 @@ export const ModelName = {
   Membership: 'Membership',
   Connection: 'Connection',
   UserBlock: 'UserBlock',
+  Post: 'Post',
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -164,6 +165,23 @@ export const UserBlockScalarFieldEnum = {
 
 export type UserBlockScalarFieldEnum =
   (typeof UserBlockScalarFieldEnum)[keyof typeof UserBlockScalarFieldEnum];
+
+export const PostScalarFieldEnum = {
+  id: 'id',
+  authorId: 'authorId',
+  communityId: 'communityId',
+  title: 'title',
+  content: 'content',
+  status: 'status',
+  visibility: 'visibility',
+  publishedAt: 'publishedAt',
+  editedAt: 'editedAt',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',

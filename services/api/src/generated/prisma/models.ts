@@ -14,4 +14,5 @@ export type * from './models/Community.js';
 export type * from './models/Membership.js';
 export type * from './models/Connection.js';
 export type * from './models/UserBlock.js';
+export type * from './models/Post.js';
 export type * from './commonInputTypes.js';

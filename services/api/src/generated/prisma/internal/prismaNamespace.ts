@@ -397,6 +397,7 @@ export const ModelName = {
   Membership: 'Membership',
   Connection: 'Connection',
   UserBlock: 'UserBlock',
+  Post: 'Post',
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -423,7 +424,8 @@ export type TypeMap<
       | 'community'
       | 'membership'
       | 'connection'
-      | 'userBlock';
+      | 'userBlock'
+      | 'post';
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -946,6 +948,80 @@ export type TypeMap<
         };
       };
     };
+    Post: {
+      payload: Prisma.$PostPayload<ExtArgs>;
+      fields: Prisma.PostFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.PostFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.PostFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload>;
+        };
+        findFirst: {
+          args: Prisma.PostFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.PostFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload>;
+        };
+        findMany: {
+          args: Prisma.PostFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload>[];
+        };
+        create: {
+          args: Prisma.PostCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload>;
+        };
+        createMany: {
+          args: Prisma.PostCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.PostCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload>[];
+        };
+        delete: {
+          args: Prisma.PostDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload>;
+        };
+        update: {
+          args: Prisma.PostUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload>;
+        };
+        deleteMany: {
+          args: Prisma.PostDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.PostUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.PostUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload>[];
+        };
+        upsert: {
+          args: Prisma.PostUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PostPayload>;
+        };
+        aggregate: {
+          args: Prisma.PostAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePost>;
+        };
+        groupBy: {
+          args: Prisma.PostGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.PostGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.PostCountArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.PostCountAggregateOutputType> | number;
+        };
+      };
+    };
   };
 } & {
   other: {
@@ -1076,6 +1152,23 @@ export const UserBlockScalarFieldEnum = {
 
 export type UserBlockScalarFieldEnum =
   (typeof UserBlockScalarFieldEnum)[keyof typeof UserBlockScalarFieldEnum];
+
+export const PostScalarFieldEnum = {
+  id: 'id',
+  authorId: 'authorId',
+  communityId: 'communityId',
+  title: 'title',
+  content: 'content',
+  status: 'status',
+  visibility: 'visibility',
+  publishedAt: 'publishedAt',
+  editedAt: 'editedAt',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+} as const;
+
+export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',
@@ -1221,6 +1314,38 @@ export type EnumConnectionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
 export type ListEnumConnectionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
   $PrismaModel,
   'ConnectionStatus[]'
+>;
+
+/**
+ * Reference to a field of type 'PostStatus'
+ */
+export type EnumPostStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'PostStatus'
+>;
+
+/**
+ * Reference to a field of type 'PostStatus[]'
+ */
+export type ListEnumPostStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'PostStatus[]'
+>;
+
+/**
+ * Reference to a field of type 'PostVisibility'
+ */
+export type EnumPostVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'PostVisibility'
+>;
+
+/**
+ * Reference to a field of type 'PostVisibility[]'
+ */
+export type ListEnumPostVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'PostVisibility[]'
 >;
 
 /**
@@ -1397,6 +1522,7 @@ export type GlobalOmitConfig = {
   membership?: Prisma.MembershipOmit;
   connection?: Prisma.ConnectionOmit;
   userBlock?: Prisma.UserBlockOmit;
+  post?: Prisma.PostOmit;
 };
 
 /* Types for Logging */

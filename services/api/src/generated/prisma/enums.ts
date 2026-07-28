@@ -58,3 +58,19 @@ export const ConnectionStatus = {
 } as const;
 
 export type ConnectionStatus = (typeof ConnectionStatus)[keyof typeof ConnectionStatus];
+
+export const PostStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+} as const;
+
+export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus];
+
+export const PostVisibility = {
+  PUBLIC: 'PUBLIC',
+  CONNECTIONS: 'CONNECTIONS',
+  COMMUNITY: 'COMMUNITY',
+  PRIVATE: 'PRIVATE',
+} as const;
+
+export type PostVisibility = (typeof PostVisibility)[keyof typeof PostVisibility];
