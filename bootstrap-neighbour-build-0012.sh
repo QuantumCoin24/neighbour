@@ -969,6 +969,389 @@ EOF
     echo "JWT WebSocket authentication created."
 }
 
+
+build_conversation_rooms() {
+
+    local REALTIME_ROOT="${ROOT}/services/api/src/realtime"
+
+    echo "Building authenticated conversation room management..."
+
+    cat > "${REALTIME_ROOT}/interfaces/room-membership.interface.ts" <<'EOF'
+import type { ConversationMemberRole } from '../../generated/prisma/enums.js';
+
+export interface RoomMembership {
+  conversationId: string;
+  userId: string;
+  role: ConversationMemberRole;
+  roomName: string;
+  joinedAt: string;
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/dto/conversation-room.dto.ts" <<'EOF'
+export interface ConversationRoomDto {
+  conversationId: string;
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/rooms/conversation-room.service.ts" <<'EOF'
+import { Injectable } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
+import type { Socket } from 'socket.io';
+
+import { DatabaseService } from '../../database/database.service';
+import type { RoomMembership } from '../interfaces/room-membership.interface';
+import { RoomNameFactory } from './room-name.factory';
+
+@Injectable()
+export class ConversationRoomService {
+  constructor(private readonly database: DatabaseService) {}
+
+  async join(
+    client: Socket,
+    userId: string,
+    conversationId: string,
+  ): Promise<RoomMembership> {
+    const membership = await this.requireMembership(userId, conversationId);
+    const roomName = RoomNameFactory.conversation(conversationId);
+
+    await client.join(roomName);
+
+    return {
+      conversationId,
+      userId,
+      role: membership.role,
+      roomName,
+      joinedAt: new Date().toISOString(),
+    };
+  }
+
+  async leave(
+    client: Socket,
+    userId: string,
+    conversationId: string,
+  ): Promise<RoomMembership> {
+    const membership = await this.requireMembership(userId, conversationId);
+    const roomName = RoomNameFactory.conversation(conversationId);
+
+    await client.leave(roomName);
+
+    return {
+      conversationId,
+      userId,
+      role: membership.role,
+      roomName,
+      joinedAt: new Date().toISOString(),
+    };
+  }
+
+  private async requireMembership(
+    userId: string,
+    conversationId: string,
+  ) {
+    const membership = await this.database.conversationMember.findUnique({
+      where: {
+        conversationId_userId: {
+          conversationId,
+          userId,
+        },
+      },
+      select: {
+        role: true,
+        leftAt: true,
+        conversation: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (
+      !membership ||
+      membership.leftAt !== null ||
+      membership.conversation.id !== conversationId
+    ) {
+      throw new WsException(
+        'You are not an active member of this conversation.',
+      );
+    }
+
+    return membership;
+  }
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/gateway/realtime.gateway.ts" <<'EOF'
+import { Logger } from '@nestjs/common';
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+  WsException,
+} from '@nestjs/websockets';
+import { randomUUID } from 'node:crypto';
+import { Server, Socket } from 'socket.io';
+
+import { WebSocketAuthService } from '../auth/websocket-auth.service';
+import { RealtimeEvents } from '../constants/realtime-events.constant';
+import type { ConversationRoomDto } from '../dto/conversation-room.dto';
+import type { RealtimeSocketData } from '../interfaces/realtime-socket-data.interface';
+import type { RoomMembership } from '../interfaces/room-membership.interface';
+import { PresenceService } from '../presence/presence.service';
+import { ConversationRoomService } from '../rooms/conversation-room.service';
+import { RoomNameFactory } from '../rooms/room-name.factory';
+import { RealtimeService } from '../services/realtime.service';
+
+interface RealtimeEnvelope<T> {
+  eventId: string;
+  occurredAt: string;
+  data: T;
+}
+
+interface ClientToServerEvents {
+  'room.join': (
+    payload: ConversationRoomDto,
+    acknowledgement?: (
+      response: RealtimeEnvelope<RoomMembership>,
+    ) => void,
+  ) => void;
+
+  'room.leave': (
+    payload: ConversationRoomDto,
+    acknowledgement?: (
+      response: RealtimeEnvelope<RoomMembership>,
+    ) => void,
+  ) => void;
+}
+
+interface ServerToClientEvents {
+  'connection.ready': (
+    payload: RealtimeEnvelope<{
+      socketId: string;
+      userId: string;
+      presence: {
+        userId: string;
+        online: boolean;
+        connectionCount: number;
+        changedAt: string;
+      };
+    }>,
+  ) => void;
+
+  'room.joined': (
+    payload: RealtimeEnvelope<RoomMembership>,
+  ) => void;
+
+  'room.left': (
+    payload: RealtimeEnvelope<RoomMembership>,
+  ) => void;
+}
+
+type RealtimeSocket = Socket<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  Record<string, never>,
+  RealtimeSocketData
+>;
+
+@WebSocketGateway({
+  namespace: '/realtime',
+  cors: {
+    origin: true,
+    credentials: true,
+  },
+})
+export class RealtimeGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
+  @WebSocketServer()
+  server!: Server;
+
+  private readonly logger = new Logger(RealtimeGateway.name);
+
+  constructor(
+    private readonly realtimeService: RealtimeService,
+    private readonly presenceService: PresenceService,
+    private readonly websocketAuthService: WebSocketAuthService,
+    private readonly conversationRoomService: ConversationRoomService,
+  ) {}
+
+  afterInit(server: Server): void {
+    this.realtimeService.setServer(server);
+    this.logger.log('Realtime gateway initialised');
+  }
+
+  async handleConnection(client: RealtimeSocket): Promise<void> {
+    try {
+      const authentication =
+        await this.websocketAuthService.authenticate(client);
+
+      const userId = authentication.user.id;
+
+      client.data.userId = userId;
+      client.data.user = authentication.user;
+      client.data.authenticatedAt = new Date().toISOString();
+
+      await client.join(RoomNameFactory.user(userId));
+
+      const presence = this.presenceService.connect(userId, client.id);
+
+      client.emit(
+        RealtimeEvents.CONNECTION_READY,
+        this.createEnvelope({
+          socketId: client.id,
+          userId,
+          presence,
+        }),
+      );
+
+      this.logger.log(
+        `Authenticated realtime client connected: ${userId} (${client.id})`,
+      );
+    } catch {
+      this.logger.warn(
+        `Rejected unauthenticated realtime connection ${client.id}`,
+      );
+
+      client.disconnect(true);
+    }
+  }
+
+  handleDisconnect(client: RealtimeSocket): void {
+    const presence = this.presenceService.disconnect(client.id);
+
+    if (!presence) {
+      this.logger.debug(
+        `Realtime client disconnected without presence record: ${client.id}`,
+      );
+      return;
+    }
+
+    this.logger.log(
+      `Realtime client disconnected: ${presence.userId} (${client.id})`,
+    );
+  }
+
+  @SubscribeMessage(RealtimeEvents.ROOM_JOIN)
+  async joinConversationRoom(
+    @ConnectedSocket() client: RealtimeSocket,
+    @MessageBody() payload: ConversationRoomDto,
+  ): Promise<RealtimeEnvelope<RoomMembership>> {
+    const userId = this.requireAuthenticatedUserId(client);
+    const conversationId = this.requireConversationId(payload);
+
+    const membership = await this.conversationRoomService.join(
+      client,
+      userId,
+      conversationId,
+    );
+
+    const envelope = this.createEnvelope(membership);
+
+    client.emit(RealtimeEvents.ROOM_JOINED, envelope);
+
+    return envelope;
+  }
+
+  @SubscribeMessage(RealtimeEvents.ROOM_LEAVE)
+  async leaveConversationRoom(
+    @ConnectedSocket() client: RealtimeSocket,
+    @MessageBody() payload: ConversationRoomDto,
+  ): Promise<RealtimeEnvelope<RoomMembership>> {
+    const userId = this.requireAuthenticatedUserId(client);
+    const conversationId = this.requireConversationId(payload);
+
+    const membership = await this.conversationRoomService.leave(
+      client,
+      userId,
+      conversationId,
+    );
+
+    const envelope = this.createEnvelope(membership);
+
+    client.emit(RealtimeEvents.ROOM_LEFT, envelope);
+
+    return envelope;
+  }
+
+  private requireAuthenticatedUserId(client: RealtimeSocket): string {
+    const userId = client.data.userId;
+
+    if (!userId) {
+      throw new WsException('The realtime connection is not authenticated.');
+    }
+
+    return userId;
+  }
+
+  private requireConversationId(
+    payload: ConversationRoomDto,
+  ): string {
+    const conversationId = payload?.conversationId?.trim();
+
+    if (!conversationId) {
+      throw new WsException('A conversationId is required.');
+    }
+
+    return conversationId;
+  }
+
+  private createEnvelope<T>(data: T): RealtimeEnvelope<T> {
+    return {
+      eventId: randomUUID(),
+      occurredAt: new Date().toISOString(),
+      data,
+    };
+  }
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/realtime.module.ts" <<'EOF'
+import { Module } from '@nestjs/common';
+
+import { AuthModule } from '../auth/auth.module';
+import { DatabaseModule } from '../database/database.module';
+import { WebSocketAuthService } from './auth/websocket-auth.service';
+import { RealtimeGateway } from './gateway/realtime.gateway';
+import { PresenceRegistry } from './presence/presence.registry';
+import { PresenceService } from './presence/presence.service';
+import { ConversationRoomService } from './rooms/conversation-room.service';
+import { RealtimeService } from './services/realtime.service';
+
+@Module({
+  imports: [AuthModule, DatabaseModule],
+  providers: [
+    RealtimeGateway,
+    RealtimeService,
+    PresenceRegistry,
+    PresenceService,
+    WebSocketAuthService,
+    ConversationRoomService,
+  ],
+  exports: [
+    RealtimeGateway,
+    RealtimeService,
+    PresenceRegistry,
+    PresenceService,
+    WebSocketAuthService,
+    ConversationRoomService,
+  ],
+})
+export class RealtimeModule {}
+EOF
+
+    rm -f "${REALTIME_ROOT}/rooms/.gitkeep"
+    rm -f "${REALTIME_ROOT}/dto/.gitkeep"
+
+    echo "Authenticated conversation room management created."
+}
+
 ###############################################################################
 # Main
 ###############################################################################
@@ -981,6 +1364,7 @@ run_step "[6/12] Build realtime contracts" build_realtime_contracts
 run_step "[7/12] Build presence engine" build_presence_engine
 run_step "[8/12] Wire gateway lifecycle" wire_gateway_lifecycle
 run_step "[9/12] Build WebSocket authentication" build_websocket_authentication
+run_step "[10/12] Build conversation room management" build_conversation_rooms
 
 echo
 success "Bootstrap foundation completed successfully."
