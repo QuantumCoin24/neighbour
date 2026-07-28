@@ -49,6 +49,7 @@ export const AnyNull = runtime.AnyNull;
 
 export const ModelName = {
   User: 'User',
+  RefreshToken: 'RefreshToken',
   Community: 'Community',
   Membership: 'Membership',
 } as const;
@@ -73,12 +74,27 @@ export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   displayName: 'displayName',
+  passwordHash: 'passwordHash',
+  role: 'role',
   status: 'status',
+  emailVerifiedAt: 'emailVerifiedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
 } as const;
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum];
+
+export const RefreshTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+} as const;
+
+export type RefreshTokenScalarFieldEnum =
+  (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum];
 
 export const CommunityScalarFieldEnum = {
   id: 'id',

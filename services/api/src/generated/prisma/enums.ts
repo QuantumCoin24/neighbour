@@ -8,6 +8,16 @@
  * 🟢 You can import this file directly.
  */
 
+export const PlatformRole = {
+  USER: 'USER',
+  BUSINESS: 'BUSINESS',
+  MODERATOR: 'MODERATOR',
+  ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN',
+} as const;
+
+export type PlatformRole = (typeof PlatformRole)[keyof typeof PlatformRole];
+
 export const UserStatus = {
   ACTIVE: 'ACTIVE',
   SUSPENDED: 'SUSPENDED',
