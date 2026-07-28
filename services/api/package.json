@@ -1,0 +1,38 @@
+{
+  "name": "@neighbour/api",
+  "version": "1.0.0-alpha.2",
+  "private": true,
+  "description": "Neighbour™ shared platform API.",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "clean": "rm -rf dist .turbo",
+    "dev": "nest start --watch",
+    "lint": "tsc --noEmit",
+    "start": "node dist/main.js",
+    "start:prod": "node dist/main.js",
+    "test": "node --test --import tsx \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "joi": "^18.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/testing": "^11.0.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.0.0",
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
