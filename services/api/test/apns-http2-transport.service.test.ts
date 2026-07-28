@@ -1,36 +1,27 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { ApnsConfigurationService } from '../src/notification/config/apns-configuration.service';
-import { ApnsProviderTokenService } from '../src/notification/auth/apns-provider-token.service';
+import { ApnsRequestBuilderService } from '../src/notification/transport/apns-request-builder.service';
 import { ApnsHttp2TransportService } from '../src/notification/transport/apns-http2-transport.service';
 
-class TestConfigurationService extends ApnsConfigurationService {
-  override load() {
+class TestRequestBuilder {
+  build(deviceToken: string) {
     return {
-      teamId: 'TEAM',
-      keyId: 'KEY',
-      bundleId: 'com.neighbour.app',
-      privateKey: 'private-key',
-      environment: 'development' as const,
-      host: 'api.sandbox.push.apple.com',
-      tokenLifetimeSeconds: 3600,
-      requestTimeoutMilliseconds: 10000,
+      authority: 'api.sandbox.push.apple.com',
+      headers: {
+        authorization: 'bearer signed.jwt.token',
+        'apns-topic': 'com.neighbour.app',
+        ':path': `/3/device/${deviceToken}`,
+        ':method': 'POST',
+      },
     };
   }
 }
 
-class TestTokenService extends ApnsProviderTokenService {
-  constructor() {
-    super(new TestConfigurationService());
-  }
-}
-
 describe('ApnsHttp2TransportService', () => {
-  it('creates a transport response', async () => {
+  it('creates a transport response from APNs request metadata', async () => {
     const service = new ApnsHttp2TransportService(
-      new TestConfigurationService(),
-      new TestTokenService(),
+      new TestRequestBuilder() as unknown as ApnsRequestBuilderService,
     );
 
     const response = await service.send({
@@ -46,7 +37,7 @@ describe('ApnsHttp2TransportService', () => {
     assert.deepEqual(response, {
       status: 200,
       accepted: true,
-      endpoint: 'https://api.sandbox.push.apple.com/3/device',
+      endpoint: 'https://api.sandbox.push.apple.com/3/device/device-token',
     });
   });
 });

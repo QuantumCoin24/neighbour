@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { ApnsConfigurationService } from '../config/apns-configuration.service';
-import { ApnsProviderTokenService } from '../auth/apns-provider-token.service';
+import { ApnsRequestBuilderService } from './apns-request-builder.service';
 
 export interface ApnsTransportRequest {
   deviceToken: string;
@@ -17,24 +16,21 @@ export interface ApnsTransportResponse {
 
 @Injectable()
 export class ApnsHttp2TransportService {
-  constructor(
-    private readonly configuration: ApnsConfigurationService,
-    private readonly providerToken: ApnsProviderTokenService,
-  ) {}
+  constructor(private readonly requestBuilder: ApnsRequestBuilderService) {}
 
   async send(request: ApnsTransportRequest): Promise<ApnsTransportResponse> {
-    const config = this.configuration.load();
-    const token = this.providerToken.getToken();
+    const apnsRequest = this.requestBuilder.build(request.deviceToken);
 
-    // Phase 3 foundation.
-    // HTTP/2 session wiring arrives in the next phase.
-    void request;
-    void token;
+    // Build 0017 transport integration foundation.
+    // The live HTTP/2 stream will consume this metadata next.
+    void request.headers;
+    void request.payload;
+    void apnsRequest.headers;
 
     return {
       status: 200,
       accepted: true,
-      endpoint: `https://${config.host}/3/device`,
+      endpoint: `https://${apnsRequest.authority}${apnsRequest.headers[':path']}`,
     };
   }
 }
