@@ -11,6 +11,7 @@ import { ApnsConfigService } from './push/apns-config.service';
 import { ApnsTokenService } from './push/apns-token.service';
 import { PushNotificationService } from './push/push-notification.service';
 import { NotificationRetryQueueService } from './queue/notification-retry-queue.service';
+import { NotificationDeliveryMetricsService } from './metrics/notification-delivery-metrics.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
