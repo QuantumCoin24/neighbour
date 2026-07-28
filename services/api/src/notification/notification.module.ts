@@ -12,6 +12,7 @@ import { ApnsTokenService } from './push/apns-token.service';
 import { PushNotificationService } from './push/push-notification.service';
 import { NotificationRetryQueueService } from './queue/notification-retry-queue.service';
 import { NotificationDeliveryMetricsService } from './metrics/notification-delivery-metrics.service';
+import { BadgeCounterService } from './badge/badge-counter.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
