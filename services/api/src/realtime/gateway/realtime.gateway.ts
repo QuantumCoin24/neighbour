@@ -8,6 +8,8 @@ import {
 } from '@nestjs/websockets';
 import { randomUUID } from 'node:crypto';
 import { Server, Socket } from 'socket.io';
+
+import { WebSocketAuthService } from '../auth/websocket-auth.service';
 import { RealtimeEvents } from '../constants/realtime-events.constant';
 import { RealtimeSocketData } from '../interfaces/realtime-socket-data.interface';
 import { PresenceService } from '../presence/presence.service';
@@ -56,6 +58,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   constructor(
     private readonly realtimeService: RealtimeService,
     private readonly presenceService: PresenceService,
+    private readonly websocketAuthService: WebSocketAuthService,
   ) {}
 
   afterInit(server: Server): void {
@@ -64,31 +67,35 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   }
 
   async handleConnection(client: RealtimeSocket): Promise<void> {
-    const userId = this.resolveUserId(client);
+    try {
+      const authentication = await this.websocketAuthService.authenticate(client);
 
-    if (!userId) {
+      const userId = authentication.user.id;
+
+      client.data.userId = userId;
+      client.data.user = authentication.user;
+      client.data.authenticatedAt = new Date().toISOString();
+
+      await client.join(RoomNameFactory.user(userId));
+
+      const presence = this.presenceService.connect(userId, client.id);
+
+      client.emit(RealtimeEvents.CONNECTION_READY, {
+        eventId: randomUUID(),
+        occurredAt: new Date().toISOString(),
+        data: {
+          socketId: client.id,
+          userId,
+          presence,
+        },
+      });
+
+      this.logger.log(`Authenticated realtime client connected: ${userId} (${client.id})`);
+    } catch {
       this.logger.warn(`Rejected unauthenticated realtime connection ${client.id}`);
+
       client.disconnect(true);
-      return;
     }
-
-    client.data.userId = userId;
-
-    await client.join(RoomNameFactory.user(userId));
-
-    const presence = this.presenceService.connect(userId, client.id);
-
-    client.emit(RealtimeEvents.CONNECTION_READY, {
-      eventId: randomUUID(),
-      occurredAt: new Date().toISOString(),
-      data: {
-        socketId: client.id,
-        userId,
-        presence,
-      },
-    });
-
-    this.logger.log(`Realtime client connected: ${userId} (${client.id})`);
   }
 
   handleDisconnect(client: RealtimeSocket): void {
@@ -100,20 +107,5 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     }
 
     this.logger.log(`Realtime client disconnected: ${presence.userId} (${client.id})`);
-  }
-
-  private resolveUserId(client: RealtimeSocket): string | null {
-    const authenticationUserId = client.handshake.auth?.userId;
-    const queryUserId = client.handshake.query?.userId;
-
-    if (typeof authenticationUserId === 'string' && authenticationUserId.trim().length > 0) {
-      return authenticationUserId.trim();
-    }
-
-    if (typeof queryUserId === 'string' && queryUserId.trim().length > 0) {
-      return queryUserId.trim();
-    }
-
-    return null;
   }
 }

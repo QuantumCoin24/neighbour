@@ -726,6 +726,249 @@ EOF
     echo "Gateway lifecycle wired."
 }
 
+
+build_websocket_authentication() {
+
+    local REALTIME_ROOT="${ROOT}/services/api/src/realtime"
+
+    echo "Building JWT WebSocket authentication..."
+
+    cat > "${REALTIME_ROOT}/auth/websocket-auth.interface.ts" <<'EOF'
+import type { AuthUser } from '../../auth/interfaces/auth-user.interface';
+
+export interface WebSocketAuthenticationResult {
+  token: string;
+  user: AuthUser;
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/auth/websocket-auth.service.ts" <<'EOF'
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import type { Socket } from 'socket.io';
+
+import { AuthService } from '../../auth/auth.service';
+import type { WebSocketAuthenticationResult } from './websocket-auth.interface';
+
+@Injectable()
+export class WebSocketAuthService {
+  constructor(private readonly authService: AuthService) {}
+
+  async authenticate(client: Socket): Promise<WebSocketAuthenticationResult> {
+    const token = this.extractAccessToken(client);
+
+    const payload = await this.authService.verifyAccessToken(token);
+    const user = await this.authService.findAuthenticatedUser(payload.sub);
+
+    return {
+      token,
+      user,
+    };
+  }
+
+  private extractAccessToken(client: Socket): string {
+    const authToken = client.handshake.auth?.token;
+    const authorizationHeader = client.handshake.headers.authorization;
+
+    if (typeof authToken === 'string' && authToken.trim().length > 0) {
+      return this.removeBearerPrefix(authToken);
+    }
+
+    if (
+      typeof authorizationHeader === 'string' &&
+      authorizationHeader.trim().length > 0
+    ) {
+      return this.removeBearerPrefix(authorizationHeader);
+    }
+
+    throw new UnauthorizedException(
+      'A valid WebSocket access token is required.',
+    );
+  }
+
+  private removeBearerPrefix(value: string): string {
+    const token = value.trim().replace(/^Bearer\s+/i, '').trim();
+
+    if (!token) {
+      throw new UnauthorizedException(
+        'A valid WebSocket access token is required.',
+      );
+    }
+
+    return token;
+  }
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/interfaces/realtime-socket-data.interface.ts" <<'EOF'
+import type { AuthUser } from '../../auth/interfaces/auth-user.interface';
+
+export interface RealtimeSocketData {
+  userId?: string;
+  user?: AuthUser;
+  authenticatedAt?: string;
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/gateway/realtime.gateway.ts" <<'EOF'
+import { Logger } from '@nestjs/common';
+import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { randomUUID } from 'node:crypto';
+import { Server, Socket } from 'socket.io';
+
+import { WebSocketAuthService } from '../auth/websocket-auth.service';
+import { RealtimeEvents } from '../constants/realtime-events.constant';
+import { RealtimeSocketData } from '../interfaces/realtime-socket-data.interface';
+import { PresenceService } from '../presence/presence.service';
+import { RoomNameFactory } from '../rooms/room-name.factory';
+import { RealtimeService } from '../services/realtime.service';
+
+interface ClientToServerEvents {}
+
+interface ServerToClientEvents {
+  'connection.ready': (payload: {
+    eventId: string;
+    occurredAt: string;
+    data: {
+      socketId: string;
+      userId: string;
+      presence: {
+        userId: string;
+        online: boolean;
+        connectionCount: number;
+        changedAt: string;
+      };
+    };
+  }) => void;
+}
+
+type RealtimeSocket = Socket<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  Record<string, never>,
+  RealtimeSocketData
+>;
+
+@WebSocketGateway({
+  namespace: '/realtime',
+  cors: {
+    origin: true,
+    credentials: true,
+  },
+})
+export class RealtimeGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
+  @WebSocketServer()
+  server!: Server;
+
+  private readonly logger = new Logger(RealtimeGateway.name);
+
+  constructor(
+    private readonly realtimeService: RealtimeService,
+    private readonly presenceService: PresenceService,
+    private readonly websocketAuthService: WebSocketAuthService,
+  ) {}
+
+  afterInit(server: Server): void {
+    this.realtimeService.setServer(server);
+    this.logger.log('Realtime gateway initialised');
+  }
+
+  async handleConnection(client: RealtimeSocket): Promise<void> {
+    try {
+      const authentication =
+        await this.websocketAuthService.authenticate(client);
+
+      const userId = authentication.user.id;
+
+      client.data.userId = userId;
+      client.data.user = authentication.user;
+      client.data.authenticatedAt = new Date().toISOString();
+
+      await client.join(RoomNameFactory.user(userId));
+
+      const presence = this.presenceService.connect(userId, client.id);
+
+      client.emit(RealtimeEvents.CONNECTION_READY, {
+        eventId: randomUUID(),
+        occurredAt: new Date().toISOString(),
+        data: {
+          socketId: client.id,
+          userId,
+          presence,
+        },
+      });
+
+      this.logger.log(
+        `Authenticated realtime client connected: ${userId} (${client.id})`,
+      );
+    } catch {
+      this.logger.warn(
+        `Rejected unauthenticated realtime connection ${client.id}`,
+      );
+
+      client.disconnect(true);
+    }
+  }
+
+  handleDisconnect(client: RealtimeSocket): void {
+    const presence = this.presenceService.disconnect(client.id);
+
+    if (!presence) {
+      this.logger.debug(
+        `Realtime client disconnected without presence record: ${client.id}`,
+      );
+      return;
+    }
+
+    this.logger.log(
+      `Realtime client disconnected: ${presence.userId} (${client.id})`,
+    );
+  }
+}
+EOF
+
+    cat > "${REALTIME_ROOT}/realtime.module.ts" <<'EOF'
+import { Module } from '@nestjs/common';
+
+import { AuthModule } from '../auth/auth.module';
+import { WebSocketAuthService } from './auth/websocket-auth.service';
+import { RealtimeGateway } from './gateway/realtime.gateway';
+import { PresenceRegistry } from './presence/presence.registry';
+import { PresenceService } from './presence/presence.service';
+import { RealtimeService } from './services/realtime.service';
+
+@Module({
+  imports: [AuthModule],
+  providers: [
+    RealtimeGateway,
+    RealtimeService,
+    PresenceRegistry,
+    PresenceService,
+    WebSocketAuthService,
+  ],
+  exports: [
+    RealtimeGateway,
+    RealtimeService,
+    PresenceRegistry,
+    PresenceService,
+    WebSocketAuthService,
+  ],
+})
+export class RealtimeModule {}
+EOF
+
+    rm -f "${REALTIME_ROOT}/auth/.gitkeep"
+
+    echo "JWT WebSocket authentication created."
+}
+
 ###############################################################################
 # Main
 ###############################################################################
@@ -737,6 +980,7 @@ run_step "[5/12] Wire realtime module" wire_realtime_module
 run_step "[6/12] Build realtime contracts" build_realtime_contracts
 run_step "[7/12] Build presence engine" build_presence_engine
 run_step "[8/12] Wire gateway lifecycle" wire_gateway_lifecycle
+run_step "[9/12] Build WebSocket authentication" build_websocket_authentication
 
 echo
 success "Bootstrap foundation completed successfully."
