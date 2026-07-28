@@ -24,6 +24,7 @@ import { ApnsHttpRequestFactoryService } from './client/apns-http-request-factor
 import { ApnsResponseParserService } from './response/apns-response-parser.service';
 import { NotificationDeliveryLifecycleService } from './lifecycle/notification-delivery-lifecycle.service';
 import { NotificationDeliveryResultService } from './result/notification-delivery-result.service';
+import { NotificationDeliveryStatisticsService } from './metrics/notification-delivery-statistics.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
