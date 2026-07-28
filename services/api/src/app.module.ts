@@ -1,20 +1,26 @@
+import path from 'node:path';
+
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { applicationConfig } from './config/environment';
+import { environment } from './config/environment';
 import { environmentValidationSchema } from './config/environment.validation';
+import { DatabaseHealthModule } from './database/database-health.module';
+import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      cache: true,
-      expandVariables: true,
       isGlobal: true,
-      load: [applicationConfig],
+      cache: true,
+      envFilePath: path.resolve(process.cwd(), '../../.env'),
+      load: [environment],
       validationSchema: environmentValidationSchema,
     }),
+    DatabaseModule,
     HealthModule,
+    DatabaseHealthModule,
   ],
 })
 export class AppModule {}

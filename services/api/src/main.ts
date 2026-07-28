@@ -6,7 +6,7 @@ import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
-import type { ApplicationConfig } from './config/environment';
+import type { Environment } from './config/environment';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
@@ -14,35 +14,38 @@ async function bootstrap(): Promise<void> {
   });
 
   const configService = app.get(ConfigService);
-  const config = configService.getOrThrow<ApplicationConfig>('app');
+  const config = configService.getOrThrow<Environment>('app');
 
   app.enableCors({
+    origin: true,
     credentials: true,
-    origin: config.corsOrigins,
   });
 
   app.enableShutdownHooks();
+
   app.enableVersioning({
-    defaultVersion: '1',
     type: VersioningType.URI,
+    defaultVersion: '1',
   });
+
   app.setGlobalPrefix('api');
 
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
+
   app.useGlobalPipes(
     new ValidationPipe({
+      whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
-      whitelist: true,
     }),
   );
 
-  await app.listen(config.port, config.host);
+  await app.listen(config.port);
 
-  Logger.log(`Neighbour API listening at http://${config.host}:${config.port}/api/v1`, 'Bootstrap');
+  Logger.log(`Neighbour API listening at http://localhost:${config.port}/api/v1`, 'Bootstrap');
 }
 
 void bootstrap();

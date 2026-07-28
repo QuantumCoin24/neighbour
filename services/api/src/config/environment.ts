@@ -1,20 +1,13 @@
-export type Environment = 'development' | 'test' | 'production';
-
-export interface ApplicationConfig {
-  corsOrigins: string[];
-  environment: Environment;
-  host: string;
+export interface Environment {
+  nodeEnv: string;
   port: number;
+  databaseUrl: string;
+  appVersion: string;
 }
 
-export const applicationConfig = (): { app: ApplicationConfig } => ({
-  app: {
-    corsOrigins: (process.env.CORS_ORIGINS ?? 'http://localhost:3000')
-      .split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean),
-    environment: (process.env.NODE_ENV ?? 'development') as Environment,
-    host: process.env.API_HOST ?? '0.0.0.0',
-    port: Number.parseInt(process.env.API_PORT ?? '4000', 10),
-  },
+export const environment = (): Environment => ({
+  nodeEnv: process.env.NODE_ENV ?? 'development',
+  port: Number.parseInt(process.env.PORT ?? '4000', 10),
+  databaseUrl: process.env.DATABASE_URL ?? '',
+  appVersion: process.env.APP_VERSION ?? '1.0.0-alpha.3',
 });
