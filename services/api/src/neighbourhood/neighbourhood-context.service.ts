@@ -4,9 +4,9 @@ import { MembershipRepository } from './membership/membership.repository';
 
 @Injectable()
 export class NeighbourhoodContextService {
-  constructor(private readonly membershipRepository: MembershipRepository) {}
+  constructor(private readonly repository: MembershipRepository) {}
 
   getUserNeighbourhoods(userId: string) {
-    return this.membershipRepository.findByUser(userId);
+    return this.repository.findByUser(userId);
   }
 }

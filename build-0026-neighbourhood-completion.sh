@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🚀 BUILD 0026 — Neighbourhood Engine Completion"
+echo "🚀 BUILD 0026 — Neighbourhood Completion"
 
 cd services/api
 
@@ -11,9 +11,9 @@ mkdir -p src/neighbourhood/discovery
 mkdir -p src/neighbourhood/events
 
 
-# ==============================
+# =====================================
 # Discovery Response
-# ==============================
+# =====================================
 
 cat > src/neighbourhood/discovery/neighbourhood-discovery.response.ts <<'TS'
 export interface NeighbourhoodDiscoveryResponse {
@@ -25,9 +25,9 @@ export interface NeighbourhoodDiscoveryResponse {
 TS
 
 
-# ==============================
+# =====================================
 # Discovery Service
-# ==============================
+# =====================================
 
 cat > src/neighbourhood/discovery/neighbourhood-discovery.service.ts <<'TS'
 import { Injectable } from '@nestjs/common';
@@ -71,9 +71,9 @@ export class NeighbourhoodDiscoveryService {
 TS
 
 
-# ==============================
+# =====================================
 # Event Bus
-# ==============================
+# =====================================
 
 cat > src/neighbourhood/events/neighbourhood-event-bus.service.ts <<'TS'
 import { Injectable } from '@nestjs/common';
@@ -134,9 +134,9 @@ export class NeighbourhoodEventBusService {
 TS
 
 
-# ==============================
-# Profile Connection Contract
-# ==============================
+# =====================================
+# User Neighbourhood Context
+# =====================================
 
 cat > src/neighbourhood/neighbourhood-context.service.ts <<'TS'
 import { Injectable } from '@nestjs/common';
@@ -148,7 +148,7 @@ import { MembershipRepository } from './membership/membership.repository';
 export class NeighbourhoodContextService {
 
   constructor(
-    private readonly membershipRepository: MembershipRepository,
+    private readonly repository: MembershipRepository,
   ) {}
 
 
@@ -156,15 +156,10 @@ export class NeighbourhoodContextService {
     userId: string,
   ) {
 
-    return this.membershipRepository.findByUser(
-      userId,
-    );
+    return this.repository.findByUser(userId);
   }
 }
 TS
-
-
-echo "✅ BUILD 0026 files created"
 
 
 cd ../..
