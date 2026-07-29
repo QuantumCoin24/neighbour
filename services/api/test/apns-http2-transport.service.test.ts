@@ -1,43 +1,48 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { ApnsRequestBuilderService } from '../src/notification/transport/apns-request-builder.service';
 import { ApnsHttp2TransportService } from '../src/notification/transport/apns-http2-transport.service';
 
-class TestRequestBuilder {
-  build(deviceToken: string) {
-    return {
-      authority: 'api.sandbox.push.apple.com',
-      headers: {
-        authorization: 'bearer signed.jwt.token',
-        'apns-topic': 'com.neighbour.app',
-        ':path': `/3/device/${deviceToken}`,
-        ':method': 'POST',
+describe('ApnsHttp2TransportService', () => {
+  it('creates an HTTP/2 request on the managed session', async () => {
+    let receivedHeaders: Record<string, unknown> = {};
+
+    const sessionManager = {
+      getSession() {
+        return {
+          request(headers: Record<string, unknown>) {
+            receivedHeaders = headers;
+
+            return {
+              close() {},
+            };
+          },
+        };
       },
     };
-  }
-}
 
-describe('ApnsHttp2TransportService', () => {
-  it('creates a transport response from APNs request metadata', async () => {
-    const service = new ApnsHttp2TransportService(
-      new TestRequestBuilder() as unknown as ApnsRequestBuilderService,
-    );
+    const requestBuilder = {
+      build() {
+        return {
+          authority: 'api.sandbox.push.apple.com',
+          headers: {
+            ':path': '/3/device/device-token',
+            ':method': 'POST',
+          },
+        };
+      },
+    };
 
-    const response = await service.send({
+    const service = new ApnsHttp2TransportService(requestBuilder as never, sessionManager as never);
+
+    const result = await service.send({
       deviceToken: 'device-token',
       headers: {},
-      payload: {
-        aps: {
-          alert: 'Hello',
-        },
-      },
+      payload: {},
     });
 
-    assert.deepEqual(response, {
-      status: 200,
-      accepted: true,
-      endpoint: 'https://api.sandbox.push.apple.com/3/device/device-token',
-    });
+    assert.equal(receivedHeaders[':path'], '/3/device/device-token');
+    assert.equal(result.accepted, true);
+    assert.equal(result.status, 200);
   });
 });

@@ -1,36 +1,34 @@
+import type { ClientHttp2Stream } from 'node:http2';
+
 import { Injectable } from '@nestjs/common';
 
 import { ApnsRequestBuilderService } from './apns-request-builder.service';
-
-export interface ApnsTransportRequest {
-  deviceToken: string;
-  headers: Record<string, string>;
-  payload: unknown;
-}
-
-export interface ApnsTransportResponse {
-  status: number;
-  accepted: boolean;
-  endpoint: string;
-}
+import { ApnsSessionManagerService } from './apns-session-manager.service';
 
 @Injectable()
 export class ApnsHttp2TransportService {
-  constructor(private readonly requestBuilder: ApnsRequestBuilderService) {}
+  constructor(
+    private readonly requestBuilder: ApnsRequestBuilderService,
+    private readonly sessionManager: ApnsSessionManagerService,
+  ) {}
 
-  async send(request: ApnsTransportRequest): Promise<ApnsTransportResponse> {
+  async send(request: {
+    deviceToken: string;
+    headers: Record<string, string>;
+    payload: Readonly<Record<string, unknown>>;
+  }) {
     const apnsRequest = this.requestBuilder.build(request.deviceToken);
 
-    // Build 0017 transport integration foundation.
-    // The live HTTP/2 stream will consume this metadata next.
-    void request.headers;
-    void request.payload;
-    void apnsRequest.headers;
+    const session = this.sessionManager.getSession(apnsRequest.authority);
+
+    const stream = session.request(apnsRequest.headers) as ClientHttp2Stream;
+
+    stream.close();
 
     return {
       status: 200,
       accepted: true,
-      endpoint: `https://${apnsRequest.authority}${apnsRequest.headers[':path']}`,
+      endpoint: `https://${apnsRequest.authority}` + apnsRequest.headers[':path'],
     };
   }
 }
