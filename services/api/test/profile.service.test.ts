@@ -7,7 +7,8 @@ describe('ProfileService', () => {
   it('creates profiles through repository', async () => {
     let stored: unknown;
 
-    const service = new ProfileService({
+    const service = new ProfileService(
+    {
       save(profile: unknown) {
         stored = profile;
         return Promise.resolve(profile);
@@ -28,7 +29,11 @@ describe('ProfileService', () => {
       update(profile: unknown) {
         return Promise.resolve(profile);
       },
-    } as never);
+    } as never,
+    {
+      publish() {},
+    } as never,
+  );
 
     await service.create({
       id: 'profile-1',

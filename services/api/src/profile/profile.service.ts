@@ -7,17 +7,29 @@ import type {
 } from './interfaces/profile-response.interface';
 
 import { ProfileRepository } from './profile.repository';
+import { ProfileEventBusService } from './profile-event-bus.service';
 
 @Injectable()
 export class ProfileService {
   constructor(
     private readonly repository: ProfileRepository,
+    private readonly events: ProfileEventBusService,
   ) {}
 
-  create(
+  async create(
     profile: ProfileEntity,
   ): Promise<ProfileEntity> {
-    return this.repository.save(profile);
+    const saved =
+      await this.repository.save(profile);
+
+    this.events.publish({
+      type: 'profile.created',
+      profileId: saved.id,
+      userId: saved.userId,
+      username: saved.username,
+    });
+
+    return saved;
   }
 
   getById(
@@ -32,10 +44,19 @@ export class ProfileService {
     return this.repository.findByUserId(userId);
   }
 
-  update(
+  async update(
     profile: ProfileEntity,
   ): Promise<ProfileEntity> {
-    return this.repository.update(profile);
+    const updated =
+      await this.repository.update(profile);
+
+    this.events.publish({
+      type: 'profile.updated',
+      profileId: updated.id,
+      userId: updated.userId,
+    });
+
+    return updated;
   }
 
   async findMine(
