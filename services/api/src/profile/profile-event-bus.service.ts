@@ -13,33 +13,23 @@ export interface ProfileUpdatedEvent {
   userId: string;
 }
 
-export type ProfileEvent =
-  | ProfileCreatedEvent
-  | ProfileUpdatedEvent;
+export type ProfileEvent = ProfileCreatedEvent | ProfileUpdatedEvent;
 
-export type ProfileEventHandler =
-  (event: ProfileEvent) => void;
+export type ProfileEventHandler = (event: ProfileEvent) => void;
 
 @Injectable()
 export class ProfileEventBusService {
   private handlers: ProfileEventHandler[] = [];
 
-  subscribe(
-    handler: ProfileEventHandler,
-  ): () => void {
+  subscribe(handler: ProfileEventHandler): () => void {
     this.handlers.push(handler);
 
     return () => {
-      this.handlers =
-        this.handlers.filter(
-          (item) => item !== handler,
-        );
+      this.handlers = this.handlers.filter((item) => item !== handler);
     };
   }
 
-  publish(
-    event: ProfileEvent,
-  ): void {
+  publish(event: ProfileEvent): void {
     for (const handler of this.handlers) {
       handler(event);
     }

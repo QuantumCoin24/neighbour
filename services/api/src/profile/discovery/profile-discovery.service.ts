@@ -5,20 +5,12 @@ import type { DiscoverableProfileResponse } from './profile-discovery.response';
 
 import { ProfileRepository } from '../profile.repository';
 
-
 @Injectable()
 export class ProfileDiscoveryService {
+  constructor(private readonly repository: ProfileRepository) {}
 
-  constructor(
-    private readonly repository: ProfileRepository,
-  ) {}
-
-  async findByUsername(
-    username: string,
-  ): Promise<DiscoverableProfileResponse | undefined> {
-
-    const profile =
-      await this.repository.findByUsername(username);
+  async findByUsername(username: string): Promise<DiscoverableProfileResponse | undefined> {
+    const profile = await this.repository.findByUsername(username);
 
     if (!profile) {
       return undefined;
@@ -27,31 +19,19 @@ export class ProfileDiscoveryService {
     return this.map(profile);
   }
 
-
-  private map(
-    profile: ProfileEntity,
-  ): DiscoverableProfileResponse {
-
+  private map(profile: ProfileEntity): DiscoverableProfileResponse {
     return {
       id: profile.id,
       username: profile.username,
       displayName: profile.displayName,
       avatarUrl: profile.avatarUrl ?? null,
       bio: profile.bio ?? null,
-      localArea:
-        profile.showLocalArea
-          ? profile.localArea
-          : null,
-      completionScore:
-        this.score(profile),
+      localArea: profile.showLocalArea ? profile.localArea : null,
+      completionScore: this.score(profile),
     };
   }
 
-
-  private score(
-    profile: ProfileEntity,
-  ): number {
-
+  private score(profile: ProfileEntity): number {
     let score = 0;
 
     if (profile.username) score += 25;

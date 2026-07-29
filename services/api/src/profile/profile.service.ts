@@ -16,11 +16,8 @@ export class ProfileService {
     private readonly events: ProfileEventBusService,
   ) {}
 
-  async create(
-    profile: ProfileEntity,
-  ): Promise<ProfileEntity> {
-    const saved =
-      await this.repository.save(profile);
+  async create(profile: ProfileEntity): Promise<ProfileEntity> {
+    const saved = await this.repository.save(profile);
 
     this.events.publish({
       type: 'profile.created',
@@ -32,23 +29,16 @@ export class ProfileService {
     return saved;
   }
 
-  getById(
-    id: string,
-  ): Promise<ProfileEntity | undefined> {
+  getById(id: string): Promise<ProfileEntity | undefined> {
     return this.repository.findById(id);
   }
 
-  getByUserId(
-    userId: string,
-  ): Promise<ProfileEntity | undefined> {
+  getByUserId(userId: string): Promise<ProfileEntity | undefined> {
     return this.repository.findByUserId(userId);
   }
 
-  async update(
-    profile: ProfileEntity,
-  ): Promise<ProfileEntity> {
-    const updated =
-      await this.repository.update(profile);
+  async update(profile: ProfileEntity): Promise<ProfileEntity> {
+    const updated = await this.repository.update(profile);
 
     this.events.publish({
       type: 'profile.updated',
@@ -59,16 +49,11 @@ export class ProfileService {
     return updated;
   }
 
-  async findMine(
-    userId: string,
-  ): Promise<PrivateProfileResponse> {
-    const profile =
-      await this.repository.findByUserId(userId);
+  async findMine(userId: string): Promise<PrivateProfileResponse> {
+    const profile = await this.repository.findByUserId(userId);
 
     if (!profile) {
-      throw new NotFoundException(
-        'Profile not found',
-      );
+      throw new NotFoundException('Profile not found');
     }
 
     return {
@@ -85,25 +70,18 @@ export class ProfileService {
     };
   }
 
-  async updateMine(
-    userId: string,
-    dto: Partial<ProfileEntity>,
-  ): Promise<PrivateProfileResponse> {
-    const existing =
-      await this.repository.findByUserId(userId);
+  async updateMine(userId: string, dto: Partial<ProfileEntity>): Promise<PrivateProfileResponse> {
+    const existing = await this.repository.findByUserId(userId);
 
     if (!existing) {
-      throw new NotFoundException(
-        'Profile not found',
-      );
+      throw new NotFoundException('Profile not found');
     }
 
-    const updated =
-      await this.repository.update({
-        ...existing,
-        ...dto,
-        updatedAt: new Date(),
-      });
+    const updated = await this.repository.update({
+      ...existing,
+      ...dto,
+      updatedAt: new Date(),
+    });
 
     return {
       id: updated.id,
@@ -119,16 +97,11 @@ export class ProfileService {
     };
   }
 
-  async findPublicByUsername(
-    username: string,
-  ): Promise<PublicProfileResponse> {
-    const profile =
-      await this.repository.findByUsername(username);
+  async findPublicByUsername(username: string): Promise<PublicProfileResponse> {
+    const profile = await this.repository.findByUsername(username);
 
     if (!profile) {
-      throw new NotFoundException(
-        'Profile not found',
-      );
+      throw new NotFoundException('Profile not found');
     }
 
     return {
