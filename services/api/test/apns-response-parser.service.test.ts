@@ -1,30 +1,42 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { ApnsResponseParserService } from '../src/notification/response/apns-response-parser.service';
+import { ApnsResponseParserService } from '../src/notification/transport/apns-response-parser.service';
 
 describe('ApnsResponseParserService', () => {
-  it('parses a successful response', () => {
-    const service = new ApnsResponseParserService();
+  it('parses successful responses', () => {
+    const parser = new ApnsResponseParserService();
 
-    assert.deepEqual(service.parse(200), {
-      success: true,
+    assert.deepEqual(parser.parse(200), {
+      accepted: true,
       status: 200,
     });
   });
 
-  it('parses an APNs error response', () => {
-    const service = new ApnsResponseParserService();
+  it('extracts APNs error reasons', () => {
+    const parser = new ApnsResponseParserService();
 
     assert.deepEqual(
-      service.parse(410, {
-        reason: 'Unregistered',
-      }),
+      parser.parse(
+        400,
+        JSON.stringify({
+          reason: 'BadDeviceToken',
+        }),
+      ),
       {
-        success: false,
-        status: 410,
-        reason: 'Unregistered',
+        accepted: false,
+        status: 400,
+        reason: 'BadDeviceToken',
       },
     );
+  });
+
+  it('ignores malformed JSON', () => {
+    const parser = new ApnsResponseParserService();
+
+    assert.deepEqual(parser.parse(500, 'not-json'), {
+      accepted: false,
+      status: 500,
+    });
   });
 });
