@@ -24,6 +24,7 @@ describe('NotificationQueryService', () => {
 
     const result = await service.inbox('user-1');
 
+    assert.ok(result[0]);
     assert.equal(result[0].id, 'new');
   });
 });

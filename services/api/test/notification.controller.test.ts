@@ -38,6 +38,7 @@ describe('NotificationController', () => {
 
     const result = await controller.markRead('notification-1');
 
+    assert.ok(result);
     assert.equal(result.id, 'notification-1');
   });
 });
