@@ -1,5 +1,3 @@
-import type { ClientHttp2Stream } from 'node:http2';
-
 import { Injectable } from '@nestjs/common';
 
 import { ApnsRequestBuilderService } from './apns-request-builder.service';
@@ -21,14 +19,24 @@ export class ApnsHttp2TransportService {
 
     const session = this.sessionManager.getSession(apnsRequest.authority);
 
-    const stream = session.request(apnsRequest.headers) as ClientHttp2Stream;
+    const stream = session.request(apnsRequest.headers);
 
-    stream.close();
+    return await new Promise<{
+      status: number;
+      accepted: boolean;
+      endpoint: string;
+    }>((resolve) => {
+      stream.once('response', (headers: Record<string, unknown>) => {
+        const status = Number(headers[':status'] ?? 500);
 
-    return {
-      status: 200,
-      accepted: true,
-      endpoint: `https://${apnsRequest.authority}` + apnsRequest.headers[':path'],
-    };
+        resolve({
+          status,
+          accepted: status === 200,
+          endpoint: `https://${apnsRequest.authority}` + apnsRequest.headers[':path'],
+        });
+      });
+
+      stream.end(JSON.stringify(request.payload));
+    });
   }
 }
