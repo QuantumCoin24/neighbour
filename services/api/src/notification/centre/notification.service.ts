@@ -19,4 +19,8 @@ export class NotificationService {
   markRead(id: string): Promise<NotificationEntity | undefined> {
     return this.repository.markRead(id);
   }
+
+  markAllRead(userId: string): Promise<void> {
+    return this.repository.markAllRead(userId);
+  }
 }

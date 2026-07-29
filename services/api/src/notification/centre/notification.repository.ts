@@ -6,4 +6,6 @@ export abstract class NotificationRepository {
   abstract findByUser(userId: string): Promise<NotificationEntity[]>;
 
   abstract markRead(id: string): Promise<NotificationEntity | undefined>;
+
+  abstract markAllRead(userId: string): Promise<void>;
 }
