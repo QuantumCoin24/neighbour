@@ -1,196 +1,62 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { DatabaseService } from '../database/database.service';
-import type { UpdateProfileDto } from './dto/update-profile.dto';
+import type { ProfileEntity } from './profile.entity';
 import type {
   PrivateProfileResponse,
   PublicProfileResponse,
 } from './interfaces/profile-response.interface';
-import { createUsernameCandidate, normaliseUsername } from './utils/profile-username.util';
+
+import { ProfileRepository } from './profile.repository';
 
 @Injectable()
 export class ProfileService {
   constructor(
-    @Inject(DatabaseService)
-    private readonly database: DatabaseService,
+    private readonly repository: ProfileRepository,
   ) {}
 
-  async findMine(userId: string): Promise<PrivateProfileResponse> {
-    const profile = await this.ensureProfile(userId);
-
-    return this.toPrivateResponse(profile);
+  create(
+    profile: ProfileEntity,
+  ): Promise<ProfileEntity> {
+    return this.repository.save(profile);
   }
 
-  async updateMine(userId: string, dto: UpdateProfileDto): Promise<PrivateProfileResponse> {
-    const existingProfile = await this.ensureProfile(userId);
-
-    if (dto.username && normaliseUsername(dto.username) !== existingProfile.username) {
-      await this.assertUsernameAvailable(dto.username, userId);
-    }
-
-    const profile = await this.database.userProfile.update({
-      where: {
-        userId,
-      },
-      data: {
-        ...(dto.username !== undefined ? { username: normaliseUsername(dto.username) } : {}),
-        ...(dto.bio !== undefined ? { bio: dto.bio.length > 0 ? dto.bio : null } : {}),
-        ...(dto.avatarUrl !== undefined
-          ? {
-              avatarUrl: dto.avatarUrl.length > 0 ? dto.avatarUrl : null,
-            }
-          : {}),
-        ...(dto.localArea !== undefined
-          ? {
-              localArea: dto.localArea.length > 0 ? dto.localArea : null,
-            }
-          : {}),
-        ...(dto.showLocalArea !== undefined ? { showLocalArea: dto.showLocalArea } : {}),
-      },
-      include: {
-        user: {
-          select: {
-            displayName: true,
-          },
-        },
-      },
-    });
-
-    return this.toPrivateResponse(profile);
+  getById(
+    id: string,
+  ): Promise<ProfileEntity | undefined> {
+    return this.repository.findById(id);
   }
 
-  async findPublicByUsername(username: string): Promise<PublicProfileResponse> {
-    const profile = await this.database.userProfile.findUnique({
-      where: {
-        username: normaliseUsername(username),
-      },
-      include: {
-        user: {
-          select: {
-            displayName: true,
-            status: true,
-          },
-        },
-      },
-    });
-
-    if (!profile || profile.user.status !== 'ACTIVE') {
-      throw new NotFoundException('Profile not found.');
-    }
-
-    return this.toPublicResponse(profile);
+  getByUserId(
+    userId: string,
+  ): Promise<ProfileEntity | undefined> {
+    return this.repository.findByUserId(userId);
   }
 
-  private async ensureProfile(userId: string) {
-    const existingProfile = await this.database.userProfile.findUnique({
-      where: {
-        userId,
-      },
-      include: {
-        user: {
-          select: {
-            displayName: true,
-          },
-        },
-      },
-    });
-
-    if (existingProfile) {
-      return existingProfile;
-    }
-
-    const user = await this.database.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        id: true,
-        displayName: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found.');
-    }
-
-    const username = await this.generateAvailableUsername(user.displayName, user.id);
-
-    return this.database.userProfile.create({
-      data: {
-        userId,
-        username,
-      },
-      include: {
-        user: {
-          select: {
-            displayName: true,
-          },
-        },
-      },
-    });
+  update(
+    profile: ProfileEntity,
+  ): Promise<ProfileEntity> {
+    return this.repository.update(profile);
   }
 
-  private async assertUsernameAvailable(username: string, currentUserId: string): Promise<void> {
-    const existingProfile = await this.database.userProfile.findUnique({
-      where: {
-        username: normaliseUsername(username),
-      },
-      select: {
-        userId: true,
-      },
-    });
+  async findMine(
+    userId: string,
+  ): Promise<PrivateProfileResponse> {
+    const profile =
+      await this.repository.findByUserId(userId);
 
-    if (existingProfile && existingProfile.userId !== currentUserId) {
-      throw new ConflictException('Username is already in use.');
-    }
-  }
-
-  private async generateAvailableUsername(displayName: string, userId: string): Promise<string> {
-    const baseCandidate = createUsernameCandidate(displayName, userId);
-
-    let candidate = baseCandidate;
-    let suffix = 2;
-
-    while (
-      await this.database.userProfile.findUnique({
-        where: {
-          username: candidate,
-        },
-        select: {
-          id: true,
-        },
-      })
-    ) {
-      const suffixText = `.${suffix}`;
-      candidate = `${baseCandidate.slice(0, 30 - suffixText.length)}${suffixText}`;
-
-      suffix += 1;
+    if (!profile) {
+      throw new NotFoundException(
+        'Profile not found',
+      );
     }
 
-    return candidate;
-  }
-
-  private toPrivateResponse(profile: {
-    id: string;
-    userId: string;
-    username: string;
-    bio: string | null;
-    avatarUrl: string | null;
-    localArea: string | null;
-    showLocalArea: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    user: {
-      displayName: string;
-    };
-  }): PrivateProfileResponse {
     return {
       id: profile.id,
       userId: profile.userId,
       username: profile.username,
-      displayName: profile.user.displayName,
-      bio: profile.bio,
-      avatarUrl: profile.avatarUrl,
+      displayName: profile.displayName,
+      avatarUrl: profile.avatarUrl ?? null,
+      bio: profile.bio ?? null,
       localArea: profile.localArea,
       showLocalArea: profile.showLocalArea,
       createdAt: profile.createdAt,
@@ -198,28 +64,60 @@ export class ProfileService {
     };
   }
 
-  private toPublicResponse(profile: {
-    id: string;
-    userId: string;
-    username: string;
-    bio: string | null;
-    avatarUrl: string | null;
-    localArea: string | null;
-    showLocalArea: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    user: {
-      displayName: string;
+  async updateMine(
+    userId: string,
+    dto: Partial<ProfileEntity>,
+  ): Promise<PrivateProfileResponse> {
+    const existing =
+      await this.repository.findByUserId(userId);
+
+    if (!existing) {
+      throw new NotFoundException(
+        'Profile not found',
+      );
+    }
+
+    const updated =
+      await this.repository.update({
+        ...existing,
+        ...dto,
+        updatedAt: new Date(),
+      });
+
+    return {
+      id: updated.id,
+      userId: updated.userId,
+      username: updated.username,
+      displayName: updated.displayName,
+      avatarUrl: updated.avatarUrl ?? null,
+      bio: updated.bio ?? null,
+      localArea: updated.localArea,
+      showLocalArea: updated.showLocalArea,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
     };
-  }): PublicProfileResponse {
+  }
+
+  async findPublicByUsername(
+    username: string,
+  ): Promise<PublicProfileResponse> {
+    const profile =
+      await this.repository.findByUsername(username);
+
+    if (!profile) {
+      throw new NotFoundException(
+        'Profile not found',
+      );
+    }
+
     return {
       id: profile.id,
       userId: profile.userId,
       username: profile.username,
-      displayName: profile.user.displayName,
-      bio: profile.bio,
-      avatarUrl: profile.avatarUrl,
-      localArea: profile.showLocalArea ? profile.localArea : null,
+      displayName: profile.displayName,
+      avatarUrl: profile.avatarUrl ?? null,
+      bio: profile.bio ?? null,
+      localArea: profile.localArea,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
     };
