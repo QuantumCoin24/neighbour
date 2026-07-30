@@ -8,6 +8,7 @@ allowBuilds:
   argon2: true
   esbuild: true
   prisma: true
+  sharp: false
 
 catalog:
   typescript: ^5.9.2

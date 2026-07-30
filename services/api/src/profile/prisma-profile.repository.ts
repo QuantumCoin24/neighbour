@@ -18,7 +18,7 @@ export class PrismaProfileRepository extends ProfileRepository {
       id: profile.id,
       userId: profile.userId,
       username: profile.username,
-      displayName: profile.username,
+      displayName: profile.displayName ?? profile.username,
       avatarUrl: profile.avatarUrl ?? undefined,
       bio: profile.bio ?? undefined,
       localArea: profile.localArea ?? null,

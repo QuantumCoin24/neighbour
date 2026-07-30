@@ -15,6 +15,7 @@ import type { RegisterDto } from './dto/register.dto';
 import type { AccessTokenPayload, RefreshTokenPayload } from './interfaces/token-payload.interface';
 
 import type { AuthResponse, AuthTokens } from './interfaces/auth-response.interface';
+import { ProfileService } from '../profile/profile.service';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +30,8 @@ export class AuthService {
 
     @Inject(ConfigService)
     configService: ConfigService,
+
+    private readonly profileService: ProfileService,
   ) {
     this.config = configService.getOrThrow<Environment>('app');
   }
@@ -53,6 +56,17 @@ export class AuthService {
         displayName: dto.displayName,
         passwordHash,
       },
+    });
+
+    await this.profileService.create({
+      id: randomUUID(),
+      userId: user.id,
+      username: dto.email.split('@')[0] ?? dto.displayName.toLowerCase().replace(/\s+/g, ''),
+      displayName: user.displayName,
+      localArea: null,
+      showLocalArea: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     const tokens = await this.issueTokenPair(user);

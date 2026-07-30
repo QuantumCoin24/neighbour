@@ -16,6 +16,7 @@ import { PostModule } from './post/post.module';
 import { ProfileModule } from './profile/profile.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { SocialGraphModule } from './social-graph/social-graph.module';
+import { NeighbourhoodModule } from './neighbourhood/neighbourhood.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { SocialGraphModule } from './social-graph/social-graph.module';
     ProfileModule,
     RealtimeModule,
     SocialGraphModule,
+    NeighbourhoodModule,
   ],
 })
 export class AppModule {}
