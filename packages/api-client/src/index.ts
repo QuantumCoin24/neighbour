@@ -75,3 +75,4 @@ export * from "./messages";
 export * from "./notifications";
 export * from "./media";
 export * from "./events";
+export * from "./search";
