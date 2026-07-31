@@ -20,3 +20,17 @@ export function createPost(
     },
   );
 }
+
+
+export function getPostsByProfile(
+  username: string,
+) {
+  return apiRequest<{
+  items:any[];
+}>(
+    `/posts/profiles/${username}`,
+    {
+      method:"GET",
+    },
+  );
+}
