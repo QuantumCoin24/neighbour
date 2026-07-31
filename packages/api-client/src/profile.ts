@@ -35,3 +35,27 @@ export function getMyProfile(token: string) {
     },
   });
 }
+
+
+export interface PublicProfile {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  localArea: string | null;
+  completionScore: number;
+}
+
+
+export function getPublicProfile(
+  username: string,
+) {
+  return apiRequest<PublicProfile>(
+    `/profiles/${username}`,
+    {
+      method: "GET",
+    },
+  );
+}
+
