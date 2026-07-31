@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 
 import {
   getPublicProfile,
+  getPostsByProfile,
   type PublicProfile,
 } from "@neighbour/api-client";
 
@@ -24,6 +25,9 @@ export default function PublicProfilePage({
   const [message,setMessage] =
     useState("Loading profile...");
 
+  const [posts,setPosts] =
+    useState<any[]>([]);
+
 
   useEffect(()=>{
 
@@ -37,6 +41,13 @@ export default function PublicProfilePage({
           );
 
         setProfile(result);
+
+        const profilePosts =
+          await getPostsByProfile(
+            username
+          );
+
+        setPosts(profilePosts.items);
 
       } catch {
 
@@ -102,6 +113,28 @@ export default function PublicProfilePage({
           {" "}
           {new Date(profile.createdAt).toLocaleDateString()}
         </p>
+
+        <hr />
+
+        <h2>
+          Posts
+        </h2>
+
+        {
+          posts.map(post => (
+            <div
+              key={post.id}
+              style={{
+                marginTop:"15px",
+                padding:"15px",
+                background:"#f5f5f5",
+                borderRadius:"15px"
+              }}
+            >
+              {post.content}
+            </div>
+          ))
+        }
 
       </section>
 
