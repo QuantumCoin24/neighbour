@@ -73,3 +73,4 @@ export * from "./social";
 export * from "./messages";
 
 export * from "./notifications";
+export * from "./media";
