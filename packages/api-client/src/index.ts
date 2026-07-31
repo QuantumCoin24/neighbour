@@ -69,3 +69,5 @@ export * from "./interaction";
 export * from "./neighbourhood";
 
 export * from "./social";
+
+export * from "./messages";
