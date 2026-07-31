@@ -1,5 +1,20 @@
 import { apiRequest } from "./index";
 
+
+
+export interface MembershipCommunity {
+  id: string;
+  userId: string;
+  neighbourhoodId: string;
+  createdAt: string;
+  community?: {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string | null;
+  };
+}
+
 export interface Membership {
   id: string;
   userId: string;

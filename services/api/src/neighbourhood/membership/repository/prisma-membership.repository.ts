@@ -31,13 +31,22 @@ export class PrismaMembershipRepository
     }
 
     const record =
-      await this.database.membership.create({
-        data: {
+      await this.database.membership.upsert({
+        where:{
+          userId_communityId:{
+            userId: membership.userId,
+            communityId: community.id,
+          },
+        },
+        update:{
+          status:'ACTIVE',
+        },
+        create:{
           id: membership.id,
           userId: membership.userId,
           communityId: community.id,
-          role: 'MEMBER',
-          status: 'ACTIVE',
+          role:'MEMBER',
+          status:'ACTIVE',
         },
         include:{
           community:true,

@@ -185,46 +185,20 @@ style={{
 borderTop:"1px solid #eee",
 paddingTop:"14px",
 display:"flex",
-gap:"12px"
+gap:"12px",
+alignItems:"center"
 }}
 
 >
 
-
-<button
-
-style={{
-border:"none",
-background:"#f5f5f5",
-borderRadius:"20px",
-padding:"8px 18px",
-cursor:"pointer"
-}}
-
->
-
-❤️ Like
-
-</button>
+<ReactionBar
+postId={post.id}
+/>
 
 
-
-<button
-
-style={{
-border:"none",
-background:"#f5f5f5",
-borderRadius:"20px",
-padding:"8px 18px",
-cursor:"pointer"
-}}
-
->
-
-💬 Comment
-
-</button>
-
+<CommentDrawer
+postId={post.id}
+/>
 
 
 <button

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   getNeighbourhoods,
   joinNeighbourhood,
+  getCommunityFeed,
   type Neighbourhood,
 } from "@neighbour/api-client";
 
@@ -19,6 +20,9 @@ export default function CommunityPage() {
 
   const [message,setMessage] =
     useState("");
+
+const [posts,setPosts] =
+    useState<any[]>([]);
 
 
   const [token, setToken] = useState<string | null>(null);
@@ -51,6 +55,35 @@ export default function CommunityPage() {
 
   },[token]);
 
+
+
+
+  async function loadFeed(slug:string){
+
+    if(!token)return;
+
+    try{
+
+      const result =
+        await getCommunityFeed(
+          token,
+          slug
+        );
+
+      setPosts(
+        result.items
+      );
+
+    }catch(error){
+
+      console.error(
+        "Feed load failed",
+        error
+      );
+
+    }
+
+  }
 
 
   async function handleJoin(id:string){
@@ -175,6 +208,52 @@ export default function CommunityPage() {
           )
         )
       }
+
+
+
+<section
+style={{
+marginTop:"40px"
+}}
+>
+
+<h2>
+Community Feed
+</h2>
+
+
+{
+posts.length===0 ?
+
+<p>
+No posts loaded yet.
+</p>
+
+:
+
+posts.map(post=>(
+
+<div
+key={post.id}
+style={{
+background:"#fff",
+padding:"20px",
+borderRadius:"20px",
+marginTop:"20px"
+}}
+>
+
+<p>
+{post.content}
+</p>
+
+</div>
+
+))
+
+}
+
+</section>
 
 
     </main>
