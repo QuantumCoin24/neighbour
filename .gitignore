@@ -52,3 +52,11 @@ secrets/
 postgres-data/
 redis-data/
 minio-data/
+
+# Local development audit files
+auth-audit.txt
+neighbour-route-audit.txt
+route-audit.sh
+system-audit-fix.sh
+fix-auth.sh
+backups/
