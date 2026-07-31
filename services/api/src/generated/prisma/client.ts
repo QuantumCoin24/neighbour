@@ -131,3 +131,8 @@ export type Notification = Prisma.NotificationModel
  * 
  */
 export type MediaAsset = Prisma.MediaAssetModel
+/**
+ * Model Event
+ * 
+ */
+export type Event = Prisma.EventModel

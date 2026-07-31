@@ -68,7 +68,8 @@ export const ModelName = {
   MessageReadReceipt: 'MessageReadReceipt',
   PushDevice: 'PushDevice',
   Notification: 'Notification',
-  MediaAsset: 'MediaAsset'
+  MediaAsset: 'MediaAsset',
+  Event: 'Event'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -356,6 +357,20 @@ export const MediaAssetScalarFieldEnum = {
 } as const
 
 export type MediaAssetScalarFieldEnum = (typeof MediaAssetScalarFieldEnum)[keyof typeof MediaAssetScalarFieldEnum]
+
+
+export const EventScalarFieldEnum = {
+  id: 'id',
+  communityId: 'communityId',
+  creatorId: 'creatorId',
+  title: 'title',
+  description: 'description',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  createdAt: 'createdAt'
+} as const
+
+export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
 
 
 export const SortOrder = {
