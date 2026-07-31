@@ -67,3 +67,5 @@ export * from "./profile";
 export * from "./membership";
 export * from "./interaction";
 export * from "./neighbourhood";
+
+export * from "./social";

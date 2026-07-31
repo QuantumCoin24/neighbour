@@ -5,6 +5,8 @@ import { use, useEffect, useState } from "react";
 import {
   getPublicProfile,
   getPostsByProfile,
+  getRelationshipStatus,
+  sendConnectionRequest,
   type PublicProfile,
 } from "@neighbour/api-client";
 
@@ -28,6 +30,9 @@ export default function PublicProfilePage({
   const [posts,setPosts] =
     useState<any[]>([]);
 
+  const [relationship,setRelationship] =
+    useState<any>(null);
+
 
   useEffect(()=>{
 
@@ -49,6 +54,14 @@ export default function PublicProfilePage({
 
         setPosts(profilePosts.items);
 
+        const relation =
+          await getRelationshipStatus(
+            localStorage.getItem("accessToken") ?? "",
+            result.userId
+          );
+
+        setRelationship(relation);
+
       } catch {
 
         setMessage(
@@ -62,6 +75,30 @@ export default function PublicProfilePage({
     load();
 
   },[username]);
+
+
+
+async function connect(){
+
+const token =
+localStorage.getItem("accessToken");
+
+if(!token)return;
+
+await sendConnectionRequest(
+ token,
+ profile?.userId
+);
+
+const updated =
+await getRelationshipStatus(
+ token,
+ profile?.userId
+);
+
+setRelationship(updated);
+
+}
 
 
   if(!profile){
@@ -99,6 +136,31 @@ export default function PublicProfilePage({
         <p>
           @{profile.username}
         </p>
+
+        <button
+          onClick={connect}
+          disabled={
+            relationship?.status === "CONNECTED" ||
+            relationship?.status === "OUTGOING_REQUEST"
+          }
+          style={{
+            marginTop:"15px",
+            padding:"10px 20px",
+            borderRadius:"20px",
+            border:"none",
+            cursor:"pointer"
+          }}
+        >
+          {
+            relationship?.status === "CONNECTED"
+              ? "Connected"
+              :
+            relationship?.status === "OUTGOING_REQUEST"
+              ? "Request Sent"
+              :
+              "Add Neighbour"
+          }
+        </button>
 
         <p>
           📍 {profile.localArea ?? "Location hidden"}

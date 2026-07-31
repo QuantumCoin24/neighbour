@@ -39,12 +39,14 @@ export function getMyProfile(token: string) {
 
 export interface PublicProfile {
   id: string;
+  userId: string;
   username: string;
   displayName: string;
   avatarUrl: string | null;
   bio: string | null;
   localArea: string | null;
-  completionScore: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 
