@@ -7,7 +7,8 @@ return (
 <nav
 style={{
 display:"flex",
-gap:"20px"
+gap:"20px",
+flexWrap:"wrap"
 }}
 >
 
@@ -26,7 +27,22 @@ My Communities
 </Link>
 
 
-<Link href="/profile">
+<Link href="/messages">
+Messages
+</Link>
+
+
+<Link href="/notifications">
+Notifications
+</Link>
+
+
+<Link href="/search">
+Search
+</Link>
+
+
+<Link href="/profile/setup">
 Profile
 </Link>
 
