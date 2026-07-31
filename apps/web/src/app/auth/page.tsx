@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { saveTokens } from "../../lib/auth";
 import {
   registerUser,
   loginUser,
@@ -35,13 +36,8 @@ export default function AuthPage() {
               password,
             });
 
-      localStorage.setItem(
-        "accessToken",
+      saveTokens(
         response.accessToken,
-      );
-
-      localStorage.setItem(
-        "refreshToken",
         response.refreshToken,
       );
 
