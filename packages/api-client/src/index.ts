@@ -71,3 +71,5 @@ export * from "./neighbourhood";
 export * from "./social";
 
 export * from "./messages";
+
+export * from "./notifications";
