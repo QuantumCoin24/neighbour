@@ -8,8 +8,8 @@ import * as argon2 from 'argon2';
 
 import type { Environment } from '../config/environment';
 import { DatabaseService } from '../database/database.service';
-import { UserStatus } from '../generated/prisma/enums.js';
-import type { UserModel } from '../generated/prisma/models/User.js';
+import { UserStatus } from '../generated/prisma/client.js';
+import type { User } from '../generated/prisma/client.js';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
 import type { AccessTokenPayload, RefreshTokenPayload } from './interfaces/token-payload.interface';
@@ -178,7 +178,7 @@ export class AuthService {
     }
   }
 
-  private async issueTokenPair(user: UserModel): Promise<AuthTokens> {
+  private async issueTokenPair(user: User): Promise<AuthTokens> {
     const refreshTokenId = randomUUID();
 
     const accessPayload: AccessTokenPayload = {
@@ -225,7 +225,7 @@ export class AuthService {
     return createHash('sha256').update(token).digest('hex');
   }
 
-  private toPublicUser(user: UserModel) {
+  private toPublicUser(user: User) {
     return {
       id: user.id,
       email: user.email,

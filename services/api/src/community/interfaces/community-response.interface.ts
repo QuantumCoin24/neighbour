@@ -2,7 +2,7 @@ import type {
   CommunityVisibility,
   MembershipRole,
   MembershipStatus,
-} from '../../generated/prisma/enums.js';
+} from '../../generated/prisma/client.js';
 
 export interface CommunitySummary {
   id: string;

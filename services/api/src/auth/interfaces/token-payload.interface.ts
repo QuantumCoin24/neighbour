@@ -1,4 +1,4 @@
-import type { PlatformRole } from '../../generated/prisma/enums.js';
+import type { PlatformRole } from '../../generated/prisma/client.js';
 
 export interface AccessTokenPayload {
   sub: string;

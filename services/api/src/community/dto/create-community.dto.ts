@@ -1,7 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsEnum, IsOptional, IsString, Length, MaxLength } from 'class-validator';
 
-import { CommunityVisibility } from '../../generated/prisma/enums.js';
+import { CommunityVisibility } from '../../generated/prisma/client.js';
 
 export class CreateCommunityDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))

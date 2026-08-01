@@ -1,4 +1,4 @@
-import type { PlatformRole, UserStatus } from '../../generated/prisma/enums.js';
+import type { PlatformRole, UserStatus } from '../../generated/prisma/client.js';
 
 export interface AuthUser {
   id: string;

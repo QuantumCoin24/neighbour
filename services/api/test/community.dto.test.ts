@@ -5,7 +5,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 
 import { CreateCommunityDto } from '../src/community/dto/create-community.dto';
-import { CommunityVisibility } from '../src/generated/prisma/enums.js';
+import { CommunityVisibility } from '../src/generated/prisma/client.js';
 
 describe('CreateCommunityDto', () => {
   it('normalises a valid community request', async () => {

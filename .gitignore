@@ -60,3 +60,6 @@ route-audit.sh
 system-audit-fix.sh
 fix-auth.sh
 backups/
+
+# Prisma generated client
+services/api/src/generated/prisma/

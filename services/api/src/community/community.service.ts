@@ -10,7 +10,7 @@ import {
   CommunityVisibility,
   MembershipRole,
   MembershipStatus,
-} from '../generated/prisma/enums.js';
+} from '../generated/prisma/client.js';
 import { DatabaseService } from '../database/database.service';
 import type { CreateCommunityDto } from './dto/create-community.dto';
 import type {

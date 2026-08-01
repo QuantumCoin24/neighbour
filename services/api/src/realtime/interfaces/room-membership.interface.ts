@@ -1,4 +1,4 @@
-import type { ConversationMemberRole } from '../../generated/prisma/enums.js';
+import type { ConversationMemberRole } from '../../generated/prisma/client.js';
 
 export interface RoomMembership {
   conversationId: string;
