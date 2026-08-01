@@ -41,7 +41,16 @@ export default function AuthPage() {
         response.refreshToken,
       );
 
-      window.location.href = "/home";
+
+      if(mode === "register"){
+
+        window.location.href = "/profile/setup";
+
+      } else {
+
+        window.location.href = "/home";
+
+      }
 
     } catch (error) {
       setMessage(
