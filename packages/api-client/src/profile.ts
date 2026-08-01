@@ -18,7 +18,7 @@ export function createProfile(
   data: CreateProfileInput,
   token: string,
 ) {
-  return apiRequest<Profile>("/profile", {
+  return apiRequest<Profile>("/profiles", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
