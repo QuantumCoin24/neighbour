@@ -27,6 +27,22 @@ export class PrismaEventRepository extends EventRepository {
       startsAt: event.startsAt,
       endsAt: event.endsAt,
       createdAt: event.createdAt,
+
+      ...(event.community && {
+        community:{
+          id: event.community.id,
+          name: event.community.name,
+        },
+      }),
+
+      ...(event.creator && {
+        creator:{
+          id: event.creator.id,
+          displayName: event.creator.displayName,
+        },
+      }),
+
+      attendanceCount: event._count?.attendances ?? 0,
     };
 
   }
@@ -64,6 +80,15 @@ export class PrismaEventRepository extends EventRepository {
         where:{
           id,
         },
+        include:{
+          community:true,
+          creator:true,
+          _count:{
+            select:{
+              attendances:true,
+            },
+          },
+        },
       });
 
 
@@ -82,6 +107,15 @@ export class PrismaEventRepository extends EventRepository {
       await this.database.event.findMany({
         where:{
           communityId,
+        },
+        include:{
+          community:true,
+          creator:true,
+          _count:{
+            select:{
+              attendances:true,
+            },
+          },
         },
         orderBy:{
           startsAt:"asc",
