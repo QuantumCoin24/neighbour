@@ -110,7 +110,6 @@ model User {
   status               UserStatus     @default(ACTIVE)
   emailVerifiedAt      DateTime?
   memberships          Membership[]
-  neighbourhoodMemberships NeighbourhoodMembership[]
   profile              UserProfile?
   refreshTokens        RefreshToken[]
   connectionsAsUserA   Connection[]   @relation("ConnectionUserA")
@@ -128,6 +127,7 @@ model User {
   messagesSent         Message[]      @relation("MessageSender")
   messageReadReceipts  MessageReadReceipt[]
   pushDevices          PushDevice[]
+  neighbourhoodMemberships NeighbourhoodMembership[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -530,3 +530,6 @@ model Event {
   @@index([startsAt])
   @@map("events")
 }
+
+
+

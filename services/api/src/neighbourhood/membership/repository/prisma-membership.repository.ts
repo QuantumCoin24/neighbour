@@ -17,64 +17,39 @@ export class PrismaMembershipRepository
     membership: MembershipEntity,
   ): Promise<any> {
 
-    const community =
-      await this.database.community.findUnique({
-        where: {
-          slug: membership.neighbourhoodId,
-        },
-      });
-
-    if (!community) {
-      throw new Error(
-        `Community not found: ${membership.neighbourhoodId}`,
-      );
-    }
-
     const record =
-      await this.database.membership.upsert({
-        where:{
-          userId_communityId:{
+      await this.database.neighbourhoodMembership.upsert({
+        where: {
+          userId_neighbourhoodId: {
             userId: membership.userId,
-            communityId: community.id,
+            neighbourhoodId: membership.neighbourhoodId,
           },
         },
-        update:{
-          status:'ACTIVE',
-        },
-        create:{
+        update: {},
+        create: {
           id: membership.id,
           userId: membership.userId,
-          communityId: community.id,
-          role:'MEMBER',
-          status:'ACTIVE',
+          neighbourhoodId: membership.neighbourhoodId,
         },
-        include:{
-          community:true,
+        include: {
+          neighbourhood: true,
         },
       });
 
-    return {
-      id: record.id,
-      userId: record.userId,
-      neighbourhoodId: record.communityId,
-      createdAt: record.joinedAt,
-      role: record.role,
-      status: record.status,
-      community: record.community,
-    };
+    return record;
   }
 
 
   async remove(
-    userId:string,
-    neighbourhoodId:string,
-  ):Promise<void>{
+    userId: string,
+    neighbourhoodId: string,
+  ): Promise<void> {
 
-    await this.database.membership.delete({
-      where:{
-        userId_communityId:{
+    await this.database.neighbourhoodMembership.delete({
+      where: {
+        userId_neighbourhoodId: {
           userId,
-          communityId:neighbourhoodId,
+          neighbourhoodId,
         },
       },
     });
@@ -83,53 +58,36 @@ export class PrismaMembershipRepository
 
 
   async findByUser(
-    userId:string,
-  ):Promise<any[]>{
+    userId: string,
+  ): Promise<any[]> {
 
-    const records =
-      await this.database.membership.findMany({
-        where:{
-          userId,
-          status:'ACTIVE',
-        },
-        include:{
-          community:true,
-        },
-        orderBy:{
-          joinedAt:'desc',
-        },
-      });
-
-
-    return records.map(record=>({
-      id:record.id,
-      role:record.role,
-      status:record.status,
-      joinedAt:record.joinedAt,
-      community:{
-        id:record.community.id,
-        name:record.community.name,
-        slug:record.community.slug,
-        description:record.community.description,
+    return this.database.neighbourhoodMembership.findMany({
+      where: {
+        userId,
       },
-    }));
+      include: {
+        neighbourhood: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
   }
 
 
   async findMembers(
-    communityId:string,
-  ):Promise<any[]>{
+    neighbourhoodId: string,
+  ): Promise<any[]> {
 
-    return this.database.membership.findMany({
-      where:{
-        communityId,
-        status:'ACTIVE',
+    return this.database.neighbourhoodMembership.findMany({
+      where: {
+        neighbourhoodId,
       },
-      include:{
-        user:{
-          include:{
-            profile:true,
+      include: {
+        user: {
+          include: {
+            profile: true,
           },
         },
       },
