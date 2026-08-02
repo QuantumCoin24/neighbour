@@ -160,6 +160,7 @@ model Neighbourhood {
 
   memberships NeighbourhoodMembership[]
   posts        Post[]
+  communities  Community[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -200,6 +201,7 @@ model RefreshToken {
 
 model Community {
   id          String              @id @default(uuid()) @db.Uuid
+  neighbourhoodId String?         @db.Uuid
   name        String
   slug        String              @unique
   description String?
@@ -208,6 +210,9 @@ model Community {
   posts       Post[]
   notifications Notification[]
   conversations Conversation[]
+
+  neighbourhood Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: Cascade)
+
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 
