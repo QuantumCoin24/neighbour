@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createProfile } from "@neighbour/api-client";
+import { updateMyProfile } from "@neighbour/api-client";
 
 
 export default function ProfileSetupPage(){
@@ -44,7 +44,7 @@ return;
 }
 
 
-await createProfile(
+await updateMyProfile(
 {
 username,
 localArea,

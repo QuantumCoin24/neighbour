@@ -27,6 +27,19 @@ export function createProfile(
   });
 }
 
+export function updateMyProfile(
+  data: Partial<CreateProfileInput>,
+  token: string,
+) {
+  return apiRequest<Profile>("/profiles/me", {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+}
+
 export function getMyProfile(token: string) {
   return apiRequest<Profile>("/profiles/me", {
     method: "GET",
