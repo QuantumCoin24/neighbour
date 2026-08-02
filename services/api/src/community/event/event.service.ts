@@ -16,6 +16,10 @@ export class EventService {
     return this.repository.findByCommunity(communityId);
   }
 
+  findForUser(userId: string): Promise<EventEntity[]> {
+    return this.repository.findForUser(userId);
+  }
+
   findById(id: string): Promise<EventEntity | undefined> {
     return this.repository.findById(id);
   }

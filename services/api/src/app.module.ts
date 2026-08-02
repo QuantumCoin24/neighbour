@@ -6,6 +6,7 @@ import { environment } from './config/environment';
 import { environmentValidationSchema } from './config/environment.validation';
 
 import { AuthModule } from './auth/auth.module';
+import { ActivityModule } from './activity/activity.module';
 import { CommunityModule } from './community/community.module';
 import { DatabaseHealthModule } from './database/database-health.module';
 import { DatabaseModule } from './database/database.module';
@@ -30,6 +31,7 @@ import { SearchModule } from './search/search.module';
     }),
 
     AuthModule,
+    ActivityModule,
     CommunityModule,
     DatabaseModule,
     DatabaseHealthModule,

@@ -130,6 +130,51 @@ export class PrismaEventRepository extends EventRepository {
   }
 
 
+  async findForUser(
+    userId:string,
+  ):Promise<EventEntity[]>{
+
+    const records =
+      await this.database.event.findMany({
+        where:{
+          OR:[
+            {
+              creatorId:userId,
+            },
+            {
+              community:{
+                memberships:{
+                  some:{
+                    userId,
+                    status:"ACTIVE",
+                  },
+                },
+              },
+            },
+          ],
+        },
+        include:{
+          community:true,
+          creator:true,
+          _count:{
+            select:{
+              attendances:true,
+            },
+          },
+        },
+        orderBy:{
+          startsAt:"asc",
+        },
+      });
+
+
+    return records.map(
+      record=>this.map(record),
+    );
+
+  }
+
+
   async remove(
     id:string,
   ):Promise<void>{

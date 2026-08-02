@@ -7,5 +7,7 @@ export abstract class EventRepository {
 
   abstract findByCommunity(communityId: string): Promise<EventEntity[]>;
 
+  abstract findForUser(userId: string): Promise<EventEntity[]>;
+
   abstract remove(id: string): Promise<void>;
 }
