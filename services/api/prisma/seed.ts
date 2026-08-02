@@ -69,6 +69,26 @@ async function main(): Promise<void> {
       status: 'ACTIVE',
     },
   });
+  await prisma.neighbourhood.createMany({
+    data: [
+      {
+        name: 'Blackley',
+        description: 'A local community connecting neighbours in Blackley.',
+        localArea: 'Manchester',
+      },
+      {
+        name: 'Charlestown',
+        description: 'A local community connecting neighbours in Charlestown.',
+        localArea: 'Manchester',
+      },
+      {
+        name: 'Moston',
+        description: 'A local community connecting neighbours in Moston.',
+        localArea: 'Manchester',
+      },
+    ],
+    skipDuplicates: true,
+  });
 
   console.log('Neighbour database seed completed.');
 }
