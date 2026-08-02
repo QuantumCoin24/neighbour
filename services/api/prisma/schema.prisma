@@ -110,6 +110,7 @@ model User {
   status               UserStatus     @default(ACTIVE)
   emailVerifiedAt      DateTime?
   memberships          Membership[]
+  neighbourhoodMemberships NeighbourhoodMembership[]
   profile              UserProfile?
   refreshTokens        RefreshToken[]
   connectionsAsUserA   Connection[]   @relation("ConnectionUserA")
@@ -151,7 +152,37 @@ model UserProfile {
   @@index([showLocalArea])
   @@map("user_profiles")
 }
+model Neighbourhood {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String
+  localArea   String?
 
+  memberships NeighbourhoodMembership[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([localArea])
+  @@map("neighbourhoods")
+}
+
+model NeighbourhoodMembership {
+  id              String @id @default(uuid()) @db.Uuid
+  userId          String @db.Uuid
+  neighbourhoodId String @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  neighbourhood Neighbourhood @relation(fields: [neighbourhoodId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, neighbourhoodId])
+  @@index([userId])
+  @@index([neighbourhoodId])
+  @@map("neighbourhood_memberships")
+}
 model RefreshToken {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String    @db.Uuid

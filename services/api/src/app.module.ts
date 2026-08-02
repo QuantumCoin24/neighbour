@@ -24,7 +24,7 @@ import { SearchModule } from './search/search.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: path.resolve(process.cwd(), '.env'),
+      envFilePath: path.resolve(__dirname, '../../../.env'),
       load: [environment],
       validationSchema: environmentValidationSchema,
     }),

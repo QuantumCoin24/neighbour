@@ -7,7 +7,7 @@ import { MembershipService } from './membership/membership.service';
 import { MembershipController } from './membership/membership.controller';
 
 import { NeighbourhoodRepository } from './neighbourhood.repository';
-import { InMemoryNeighbourhoodRepository } from './repository/in-memory-neighbourhood.repository';
+import { PrismaNeighbourhoodRepository } from './repository/prisma-neighbourhood.repository';
 
 import { MembershipRepository } from './membership/membership.repository';
 import { PrismaMembershipRepository } from './membership/repository/prisma-membership.repository';
@@ -24,7 +24,7 @@ import { PrismaMembershipRepository } from './membership/repository/prisma-membe
 
     {
       provide: NeighbourhoodRepository,
-      useClass: InMemoryNeighbourhoodRepository,
+      useClass: PrismaNeighbourhoodRepository,
     },
 
     {
