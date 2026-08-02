@@ -16,6 +16,12 @@ export interface PostCommunityResponse {
   slug: string;
 }
 
+export interface PostNeighbourhoodResponse {
+  id: string;
+  name: string;
+  localArea: string | null;
+}
+
 export interface PostResponse {
   id: string;
   title: string | null;
@@ -24,6 +30,7 @@ export interface PostResponse {
   visibility: PostVisibilityResponse;
   author: PostAuthorResponse;
   community: PostCommunityResponse | null;
+  neighbourhood: PostNeighbourhoodResponse | null;
   publishedAt: Date | null;
   editedAt: Date | null;
   createdAt: Date;

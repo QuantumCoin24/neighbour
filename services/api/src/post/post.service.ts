@@ -21,6 +21,7 @@ const postInclude = {
     },
   },
   community: true,
+  neighbourhood: true,
 } satisfies Prisma.PostInclude;
 
 type PostWithRelations = Prisma.PostGetPayload<{
@@ -47,6 +48,7 @@ export class PostService {
     const data: Prisma.PostUncheckedCreateInput = {
       authorId: currentUserId,
       communityId: dto.communityId ?? null,
+      neighbourhoodId: dto.neighbourhoodId ?? null,
       title: this.normaliseOptionalText(dto.title),
       content: dto.content.trim(),
       status,
@@ -170,7 +172,7 @@ export class PostService {
   }
 
   async getHomeFeed(currentUserId: string, query: FeedQueryDto): Promise<FeedResponse> {
-    const [connections, memberships] = await Promise.all([
+    const [connections, memberships, neighbourhoodMemberships] = await Promise.all([
       this.database.connection.findMany({
         where: {
           status: 'CONNECTED',
@@ -190,6 +192,14 @@ export class PostService {
           communityId: true,
         },
       }),
+      this.database.neighbourhoodMembership.findMany({
+        where: {
+          userId: currentUserId,
+        },
+        select: {
+          neighbourhoodId: true,
+        },
+      }),
     ]);
 
     const connectedUserIds = connections.map((connection) =>
@@ -197,6 +207,10 @@ export class PostService {
     );
 
     const communityIds = memberships.map((membership) => membership.communityId);
+
+    const neighbourhoodIds = neighbourhoodMemberships.map(
+      (membership) => membership.neighbourhoodId,
+    );
 
     const pagination = createCursorPagination(query);
 
@@ -223,6 +237,14 @@ export class PostService {
         visibility: PostVisibility.COMMUNITY,
         communityId: {
           in: communityIds,
+        },
+      });
+    }
+
+    if (neighbourhoodIds.length > 0) {
+      visibilityFilters.push({
+        neighbourhoodId: {
+          in: neighbourhoodIds,
         },
       });
     }
@@ -613,6 +635,13 @@ export class PostService {
             id: post.community.id,
             name: post.community.name,
             slug: post.community.slug,
+          }
+        : null,
+      neighbourhood: post.neighbourhood
+        ? {
+            id: post.neighbourhood.id,
+            name: post.neighbourhood.name,
+            localArea: post.neighbourhood.localArea,
           }
         : null,
       publishedAt: post.publishedAt,

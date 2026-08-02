@@ -21,6 +21,10 @@ export class CreatePostDto {
   communityId?: string;
 
   @IsOptional()
+  @IsUUID()
+  neighbourhoodId?: string;
+
+  @IsOptional()
   @IsIn(postStatuses)
   status?: PostStatusValue;
 
