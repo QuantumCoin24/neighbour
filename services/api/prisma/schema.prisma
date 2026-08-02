@@ -129,6 +129,7 @@ model User {
   pushDevices          PushDevice[]
   neighbourhoodMemberships NeighbourhoodMembership[]
   attendances          Attendance[]
+  createdEvents        Event[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -208,9 +209,10 @@ model Community {
   description String?
   visibility  CommunityVisibility @default(PUBLIC)
   memberships Membership[]
-  posts       Post[]
   notifications Notification[]
   conversations Conversation[]
+  posts       Post[]
+  events      Event[]
 
   neighbourhood Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: Cascade)
 
@@ -525,11 +527,14 @@ model MediaAsset {
   @@map("media_assets")
 }
 
-
 model Event {
-  id          String   @id @default(uuid()) @db.Uuid
-  communityId String   @db.Uuid
-  creatorId   String   @db.Uuid
+  id           String   @id @default(uuid()) @db.Uuid
+  communityId  String   @db.Uuid
+  creatorId    String   @db.Uuid
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  creator   User      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
   title       String
   description String
   startsAt    DateTime
@@ -538,6 +543,7 @@ model Event {
   createdAt   DateTime @default(now())
 
   @@index([communityId])
+  @@index([creatorId])
   @@index([startsAt])
   @@map("events")
 }
