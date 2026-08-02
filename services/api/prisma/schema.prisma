@@ -101,6 +101,21 @@ enum MessageType {
   SYSTEM
 }
 
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ReportTargetType {
+  USER
+  POST
+  COMMENT
+  MESSAGE
+  EVENT
+}
+
 model User {
   id                   String         @id @default(uuid()) @db.Uuid
   email                String         @unique
@@ -120,6 +135,8 @@ model User {
   posts                Post[]
   comments             Comment[]
   postReactions        PostReaction[]
+  reportsSubmitted     Report[] @relation("ReportReporter")
+  moderationActions    ModerationAction[] @relation("ModerationModerator")
   notificationsReceived Notification[]   @relation("NotificationRecipient")
   notificationsActed    Notification[]   @relation("NotificationActor")
   conversationsOwned   Conversation[] @relation("ConversationOwner")
@@ -506,6 +523,55 @@ model Notification {
   @@index([conversationId])
   @@index([messageId])
   @@map("notifications")
+}
+
+
+
+model Report {
+  id String @id @default(uuid()) @db.Uuid
+
+  reporterId String @db.Uuid
+
+  targetType ReportTargetType
+  targetId String @db.Uuid
+
+  reason String
+  description String?
+
+  status ReportStatus @default(PENDING)
+
+  reporter User @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  actions ModerationAction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([reporterId])
+  @@index([targetType,targetId])
+  @@index([status])
+  @@map("reports")
+}
+
+
+model ModerationAction {
+  id String @id @default(uuid()) @db.Uuid
+
+  reportId String @db.Uuid
+  moderatorId String @db.Uuid
+
+  action String
+  notes String?
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  moderator User @relation("ModerationModerator", fields: [moderatorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([reportId])
+  @@index([moderatorId])
+  @@map("moderation_actions")
 }
 
 

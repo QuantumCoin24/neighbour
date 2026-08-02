@@ -20,6 +20,7 @@ import { RealtimeModule } from './realtime/realtime.module';
 import { SocialGraphModule } from './social-graph/social-graph.module';
 import { NeighbourhoodModule } from './neighbourhood/neighbourhood.module';
 import { SearchModule } from './search/search.module';
+import { SecurityModule } from './security/security.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { SearchModule } from './search/search.module';
     SocialGraphModule,
     NeighbourhoodModule,
     SearchModule,
+    SecurityModule,
   ],
 })
 export class AppModule {}
