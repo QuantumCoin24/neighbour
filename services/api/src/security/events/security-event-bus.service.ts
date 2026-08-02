@@ -12,6 +12,10 @@ export type SecurityEvent =
   | {
       type: 'privacy.changed';
       userId: string;
+    }
+  | {
+      type: 'report.created';
+      subjectId: string;
     };
 
 @Injectable()

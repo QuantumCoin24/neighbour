@@ -3,8 +3,10 @@ import { Module } from '@nestjs/common';
 import { SecurityEventBusService } from './events/security-event-bus.service';
 import { TrustService } from './trust/trust.service';
 import { PrivacyService } from './privacy/privacy.service';
+import { ReportModule } from './reports/report.module';
 
 @Module({
+  imports:[ReportModule],
   providers: [
     SecurityEventBusService,
     TrustService,
