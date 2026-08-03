@@ -15,6 +15,21 @@ import {
 } from "@neighbour/design-system";
 
 import PageContainer from "../../components/layout/PageContainer";
+import { getNeighbourContext, type NeighbourContext } from "../../lib/neighbour-context";
+import { getCommunityActivity, type CommunityActivityData } from "../../lib/community-activity";
+import NeighbourHeader from "../../components/dashboard/NeighbourHeader";
+import ProfileSummary from "../../components/dashboard/ProfileSummary";
+import CommunityPulse from "../../components/dashboard/CommunityPulse";
+import CommunityIdentity from "../../components/dashboard/CommunityIdentity";
+import CommunityStats from "../../components/dashboard/CommunityStats";
+import FeedPreview from "../../components/dashboard/FeedPreview";
+import EventPreview from "../../components/dashboard/EventPreview";
+import MessagePreview from "../../components/dashboard/MessagePreview";
+import NotificationPreview from "../../components/dashboard/NotificationPreview";
+import CommunityActivity from "../../components/dashboard/CommunityActivity";
+import ActionCentre from "../../components/dashboard/ActionCentre";
+import DashboardGrid from "../../components/dashboard/layout/DashboardGrid";
+import DashboardSection from "../../components/dashboard/layout/DashboardSection";
 
 
 interface User {
@@ -40,6 +55,12 @@ useState<User|null>(null);
 
 const [profile,setProfile] =
 useState<Profile|null>(null);
+
+const [context,setContext] =
+useState<NeighbourContext|null>(null);
+
+const [activity,setActivity] =
+useState<CommunityActivityData|null>(null);
 
 const [message,setMessage] =
 useState("Loading your neighbourhood...");
@@ -83,6 +104,27 @@ await getMyProfile(token);
 
 
 setProfile(profileResponse);
+
+
+const neighbourContext =
+await getNeighbourContext(
+token,
+profileResponse.localArea,
+);
+
+
+setContext(neighbourContext);
+
+
+const activityData =
+await getCommunityActivity(
+token,
+neighbourContext.communitySlug,
+neighbourContext.communityId,
+);
+
+
+setActivity(activityData);
 
 
 }
@@ -141,37 +183,56 @@ Good evening {user.displayName} 👋
 
 
 
-<NeighbourCard>
-
-<NeighbourAvatar
+<NeighbourHeader
 name={user.displayName}
+area={profile?.localArea ?? null}
 />
 
 
-<h3>
-{user.displayName}
-</h3>
+<ProfileSummary
+name={user.displayName}
+bio={profile?.bio}
+/>
 
+<CommunityPulse
+area={profile?.localArea ?? null}
+/>
 
-<NeighbourBadge>
-Local Neighbour
-</NeighbourBadge>
+<CommunityIdentity
+neighbourhoodName={context?.neighbourhoodName ?? null}
+communityName={context?.communityName ?? null}
+/>
 
+<CommunityStats
+communityName={context?.communityName ?? null}
+memberCount={context?.communityMemberCount ?? null}
+/>
 
-<p>
-📍 {profile?.localArea ?? "Discover your community"}
-</p>
+<CommunityActivity
+memberCount={context?.communityMemberCount ?? null}
+postCount={activity?.postCount ?? 0}
+eventCount={activity?.eventCount ?? 0}
+conversationCount={activity?.conversationCount ?? 0}
+/>
 
+<ActionCentre />
 
-{
-profile?.bio &&
-<p>
-{profile.bio}
-</p>
-}
+<FeedPreview
+token={localStorage.getItem("accessToken") ?? ""}
+communitySlug={context?.communitySlug ?? undefined}
+/>
 
+<EventPreview
+communityId={context?.communityId ?? undefined}
+/>
 
-</NeighbourCard>
+<MessagePreview
+token={localStorage.getItem("accessToken") ?? ""}
+/>
+
+<NotificationPreview
+token={localStorage.getItem("accessToken") ?? ""}
+/>
 
 
 

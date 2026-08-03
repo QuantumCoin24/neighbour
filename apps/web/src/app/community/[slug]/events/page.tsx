@@ -9,6 +9,8 @@ import {
   useParams
 } from "next/navigation";
 
+import ReportButton from "../../../../components/security/ReportButton";
+
 import {
   getCommunity,
   getCommunityEvents,
@@ -131,6 +133,21 @@ export default function EventsPage(){
             <small>
               {new Date(event.startsAt).toLocaleString()}
             </small>
+
+
+            <div
+              style={{
+                marginTop:"15px"
+              }}
+            >
+
+              <ReportButton
+                targetType="EVENT"
+                targetId={event.id}
+              />
+
+            </div>
+
 
           </section>
 

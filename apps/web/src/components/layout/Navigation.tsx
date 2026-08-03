@@ -26,6 +26,11 @@ const links = [
     icon:"💬",
   },
   {
+    href:"/business/discover",
+    label:"Discover",
+    icon:"🔎",
+  },
+  {
     href:"/notifications",
     label:"Notifications",
     icon:"🔔",
@@ -39,6 +44,11 @@ const links = [
     href:"/profile/setup",
     label:"Profile",
     icon:"👤",
+  },
+  {
+    href:"/business/dashboard",
+    label:"Business Centre",
+    icon:"💼",
   },
 ];
 

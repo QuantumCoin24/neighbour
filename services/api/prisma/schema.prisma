@@ -116,6 +116,13 @@ enum ReportTargetType {
   EVENT
 }
 
+
+enum BusinessVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id                   String         @id @default(uuid()) @db.Uuid
   email                String         @unique
@@ -147,6 +154,8 @@ model User {
   neighbourhoodMemberships NeighbourhoodMembership[]
   attendances          Attendance[]
   createdEvents        Event[]
+  businesses            Business[]
+  businessVerifications BusinessVerification[] @relation("BusinessVerificationReviewer")
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -230,6 +239,7 @@ model Community {
   conversations Conversation[]
   posts       Post[]
   events      Event[]
+  businesses  Business[]
 
   neighbourhood Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: Cascade)
 
@@ -629,4 +639,128 @@ model Attendance {
 }
 
 
+model Business {
 
+  id String @id @default(uuid()) @db.Uuid
+
+  communityId String @db.Uuid
+  ownerId String @db.Uuid
+
+  name String
+  description String
+  category String
+
+  verified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  community Community @relation(fields:[communityId], references:[id], onDelete:Cascade)
+
+  owner User @relation(fields:[ownerId], references:[id], onDelete:Cascade)
+
+  verification BusinessVerification?
+
+  offers Offer[]
+
+  businessEvents BusinessEvent[]
+
+  @@index([communityId])
+  @@index([ownerId])
+  @@index([category])
+
+  @@map("businesses")
+}
+
+
+model BusinessVerification {
+
+  id String @id @default(uuid()) @db.Uuid
+
+  businessId String @unique @db.Uuid
+
+  status BusinessVerificationStatus @default(PENDING)
+
+  notes String?
+
+  submittedAt DateTime @default(now())
+
+  reviewedAt DateTime?
+
+  reviewerId String? @db.Uuid
+
+
+  business Business @relation(fields:[businessId], references:[id], onDelete:Cascade)
+
+
+  reviewer User? @relation("BusinessVerificationReviewer", fields:[reviewerId], references:[id], onDelete:SetNull)
+
+
+  @@index([status])
+
+  @@map("business_verifications")
+
+}
+
+
+
+
+
+model Offer {
+
+  id String @id @default(uuid()) @db.Uuid
+
+  businessId String @db.Uuid
+
+  title String
+
+  description String
+
+  active Boolean @default(true)
+
+  startsAt DateTime?
+
+  endsAt DateTime?
+
+  createdAt DateTime @default(now())
+
+
+  business Business @relation(fields:[businessId], references:[id], onDelete:Cascade)
+
+
+  @@index([businessId])
+
+  @@index([active])
+
+  @@map("offers")
+
+}
+
+
+model BusinessEvent {
+
+  id String @id @default(uuid()) @db.Uuid
+
+  businessId String @db.Uuid
+
+  title String
+
+  description String
+
+  startsAt DateTime
+
+  endsAt DateTime
+
+  createdAt DateTime @default(now())
+
+
+  business Business @relation(fields:[businessId], references:[id], onDelete:Cascade)
+
+
+  @@index([businessId])
+
+  @@index([startsAt])
+
+  @@map("business_events")
+
+}

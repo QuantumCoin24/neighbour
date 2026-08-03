@@ -2,6 +2,8 @@
 
 import { use, useEffect, useState } from "react";
 
+import ReportButton from "../../../components/security/ReportButton";
+
 import {
   getPublicProfile,
   getPostsByProfile,
@@ -161,6 +163,13 @@ setRelationship(updated);
               "Add Neighbour"
           }
         </button>
+
+
+        <ReportButton
+          targetType="USER"
+          targetId={profile.userId}
+        />
+
 
         <p>
           📍 {profile.localArea ?? "Location hidden"}

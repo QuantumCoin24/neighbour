@@ -3,12 +3,13 @@
 import React from "react";
 
 import Navigation from "./Navigation";
+import MobileNavigation from "./MobileNavigation";
 
 
 export default function AppShell({
-  children,
+children,
 }:{
-  children:React.ReactNode;
+children:React.ReactNode;
 }){
 
 
@@ -24,6 +25,7 @@ display:"flex",
 
 
 <aside
+className="desktop-nav"
 style={{
 width:"240px",
 padding:"24px",
@@ -32,18 +34,11 @@ color:"#FFFFFF",
 }}
 >
 
-
-<h2
-style={{
-marginBottom:"30px",
-}}
->
+<h2>
 Neighbour™
 </h2>
 
-
 <Navigation />
-
 
 </aside>
 
@@ -52,13 +47,35 @@ Neighbour™
 <main
 style={{
 flex:1,
-padding:"32px",
+paddingBottom:"90px",
 }}
 >
 
 {children}
 
 </main>
+
+
+
+<MobileNavigation />
+
+
+<style jsx>{`
+
+.desktop-nav{
+display:block;
+}
+
+
+@media(max-width:768px){
+
+.desktop-nav{
+display:none;
+}
+
+}
+
+`}</style>
 
 
 </div>

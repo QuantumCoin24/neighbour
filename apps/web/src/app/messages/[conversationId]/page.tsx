@@ -9,6 +9,8 @@ import {
   useParams
 } from "next/navigation";
 
+import ReportButton from "../../../components/security/ReportButton";
+
 import {
   getConversation,
   getMessages,
@@ -155,6 +157,12 @@ export default function ConversationPage(){
             <p>
               {message.content}
             </p>
+
+
+            <ReportButton
+              targetType="MESSAGE"
+              targetId={message.id}
+            />
 
           </div>
 

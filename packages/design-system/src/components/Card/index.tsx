@@ -1,5 +1,11 @@
 import React from "react";
 
+import {
+  shadows,
+  colors,
+  radius,
+} from "../../index";
+
 
 export function NeighbourCard({
 children,
@@ -14,10 +20,10 @@ return (
 
 <div
 style={{
-background:"#FFFFFF",
-borderRadius:"24px",
+background:colors.background.surface,
+borderRadius:radius.lg,
 padding:"24px",
-boxShadow:"0 10px 30px rgba(0,0,0,0.06)",
+boxShadow:shadows.card,
 ...style,
 }}
 >

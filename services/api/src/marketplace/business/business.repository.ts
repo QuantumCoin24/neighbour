@@ -5,6 +5,8 @@ export abstract class BusinessRepository {
 
   abstract findById(id: string): Promise<BusinessEntity | undefined>;
 
+  abstract findByOwner(ownerId: string): Promise<BusinessEntity | undefined>;
+
   abstract findByCommunity(communityId: string): Promise<BusinessEntity[]>;
 
   abstract search(query: string): Promise<BusinessEntity[]>;

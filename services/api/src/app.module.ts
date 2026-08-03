@@ -21,6 +21,7 @@ import { SocialGraphModule } from './social-graph/social-graph.module';
 import { NeighbourhoodModule } from './neighbourhood/neighbourhood.module';
 import { SearchModule } from './search/search.module';
 import { SecurityModule } from './security/security.module';
+import { BusinessModule } from './marketplace/business/business.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { SecurityModule } from './security/security.module';
     NeighbourhoodModule,
     SearchModule,
     SecurityModule,
+    BusinessModule,
   ],
 })
 export class AppModule {}

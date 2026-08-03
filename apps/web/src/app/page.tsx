@@ -1,53 +1,39 @@
-export default function Home() {
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Arial, sans-serif",
-        background:
-          "linear-gradient(135deg,#f5f9ff,#ffffff)",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "64px",
-          fontWeight: 700,
-        }}
-      >
-        NEIGHBOUR™
-      </h1>
+import Navbar from "../components/marketing/Navbar";
+import HeroSection from "../components/marketing/HeroSection";
+import HowItWorks from "../components/marketing/HowItWorks";
+import CommunityShowcase from "../components/marketing/CommunityShowcase";
+import SafetySection from "../components/marketing/SafetySection";
+import OrganisationSection from "../components/marketing/OrganisationSection";
+import BusinessSection from "../components/marketing/BusinessSection";
+import DownloadSection from "../components/marketing/DownloadSection";
+import Footer from "../components/marketing/Footer";
 
-      <p
-        style={{
-          fontSize: "24px",
-          marginTop: "20px",
-        }}
-      >
-        Welcome home.
-      </p>
+export default function Home(){
 
-      <p
-        style={{
-          marginTop: "10px",
-          fontSize: "18px",
-        }}
-      >
-        Connect with the people around you.
-      </p>
+return (
 
-      <div style={{ marginTop: "40px" }}>
-        <button>
-          Create Account
-        </button>
+<main>
 
-        <button style={{ marginLeft: "20px" }}>
-          Sign In
-        </button>
-      </div>
-    </main>
-  );
+<Navbar />
+
+<HeroSection />
+
+<HowItWorks />
+
+<CommunityShowcase />
+
+<SafetySection />
+
+<OrganisationSection />
+
+<BusinessSection />
+
+<DownloadSection />
+
+<Footer />
+
+</main>
+
+);
+
 }

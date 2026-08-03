@@ -2,6 +2,7 @@
 
 import ReactionBar from "./ReactionBar";
 import CommentDrawer from "./CommentDrawer";
+import ReportButton from "../security/ReportButton";
 
 
 function timeAgo(date:string){
@@ -198,6 +199,12 @@ postId={post.id}
 
 <CommentDrawer
 postId={post.id}
+/>
+
+
+<ReportButton
+targetType="POST"
+targetId={post.id}
 />
 
 
