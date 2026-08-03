@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   getBusinessDashboard,
   getMyBusiness,
+  getBusinessAnalytics,
 } from "@neighbour/api-client";
 
 
@@ -12,6 +13,8 @@ export default function BusinessDashboardPage(){
 
 
 const [dashboard,setDashboard] = useState<any>(null);
+
+const [analytics,setAnalytics] = useState<any>(null);
 
 const [loading,setLoading] = useState(true);
 
@@ -42,7 +45,17 @@ business.id
 );
 
 
+const analyticsData =
+await getBusinessAnalytics(
+business.id
+);
+
+
 setDashboard(data);
+
+setAnalytics(
+analyticsData
+);
 
 }
 catch(error){
@@ -204,6 +217,74 @@ label="Business Trust"
 
 
 </section>
+
+
+
+
+
+<section style={grid}>
+
+
+<DashboardCard
+
+title="Profile Views"
+
+value={
+analytics?.profileViews ?? 0
+}
+
+label="People viewing your business"
+
+/>
+
+
+
+<DashboardCard
+
+title="Offer Views"
+
+value={
+analytics?.offerViews ?? 0
+}
+
+label="Offer engagement"
+
+/>
+
+
+
+<DashboardCard
+
+title="Event Views"
+
+value={
+analytics?.eventViews ?? 0
+}
+
+label="Event engagement"
+
+/>
+
+
+
+<DashboardCard
+
+title="Total Reach"
+
+value={
+analytics?.totalReach ?? 0
+}
+
+label="Community activity"
+
+/>
+
+
+</section>
+
+
+
+
 
 
 

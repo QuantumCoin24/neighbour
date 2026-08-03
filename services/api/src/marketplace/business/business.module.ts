@@ -10,6 +10,7 @@ import { PrismaBusinessRepository } from './prisma-business.repository';
 import { VerificationModule } from './verification/verification.module';
 import { OfferModule } from './offers/offer.module';
 import { BusinessEventModule } from './events/event.module';
+import { BusinessAnalyticsModule } from './analytics/business-analytics.module';
 
 
 @Module({
@@ -19,6 +20,7 @@ import { BusinessEventModule } from './events/event.module';
     VerificationModule,
     OfferModule,
     BusinessEventModule,
+    BusinessAnalyticsModule,
   ],
 
 
