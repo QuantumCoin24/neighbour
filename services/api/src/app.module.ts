@@ -22,6 +22,7 @@ import { NeighbourhoodModule } from './neighbourhood/neighbourhood.module';
 import { SearchModule } from './search/search.module';
 import { SecurityModule } from './security/security.module';
 import { BusinessModule } from './marketplace/business/business.module';
+import { OrganisationModule } from './organisation/organisation.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { BusinessModule } from './marketplace/business/business.module';
     SearchModule,
     SecurityModule,
     BusinessModule,
+    OrganisationModule,
   ],
 })
 export class AppModule {}

@@ -116,7 +116,6 @@ enum ReportTargetType {
   EVENT
 }
 
-
 enum BusinessVerificationStatus {
   PENDING
   APPROVED
@@ -124,40 +123,42 @@ enum BusinessVerificationStatus {
 }
 
 model User {
-  id                   String         @id @default(uuid()) @db.Uuid
-  email                String         @unique
-  displayName          String
-  passwordHash         String
-  role                 PlatformRole   @default(USER)
-  status               UserStatus     @default(ACTIVE)
-  emailVerifiedAt      DateTime?
-  memberships          Membership[]
-  profile              UserProfile?
-  refreshTokens        RefreshToken[]
-  connectionsAsUserA   Connection[]   @relation("ConnectionUserA")
-  connectionsAsUserB   Connection[]   @relation("ConnectionUserB")
-  requestedConnections Connection[]   @relation("ConnectionRequester")
-  blocksCreated        UserBlock[]    @relation("Blocker")
-  blocksReceived       UserBlock[]    @relation("Blocked")
-  posts                Post[]
-  comments             Comment[]
-  postReactions        PostReaction[]
-  reportsSubmitted     Report[] @relation("ReportReporter")
-  moderationActions    ModerationAction[] @relation("ModerationModerator")
-  notificationsReceived Notification[]   @relation("NotificationRecipient")
-  notificationsActed    Notification[]   @relation("NotificationActor")
-  conversationsOwned   Conversation[] @relation("ConversationOwner")
-  conversationMembers  ConversationMember[]
-  messagesSent         Message[]      @relation("MessageSender")
-  messageReadReceipts  MessageReadReceipt[]
-  pushDevices          PushDevice[]
+  id                       String                    @id @default(uuid()) @db.Uuid
+  email                    String                    @unique
+  displayName              String
+  passwordHash             String
+  role                     PlatformRole              @default(USER)
+  status                   UserStatus                @default(ACTIVE)
+  emailVerifiedAt          DateTime?
+  memberships              Membership[]
+  profile                  UserProfile?
+  refreshTokens            RefreshToken[]
+  connectionsAsUserA       Connection[]              @relation("ConnectionUserA")
+  connectionsAsUserB       Connection[]              @relation("ConnectionUserB")
+  requestedConnections     Connection[]              @relation("ConnectionRequester")
+  blocksCreated            UserBlock[]               @relation("Blocker")
+  blocksReceived           UserBlock[]               @relation("Blocked")
+  posts                    Post[]
+  comments                 Comment[]
+  postReactions            PostReaction[]
+  reportsSubmitted         Report[]                  @relation("ReportReporter")
+  moderationActions        ModerationAction[]        @relation("ModerationModerator")
+  notificationsReceived    Notification[]            @relation("NotificationRecipient")
+  notificationsActed       Notification[]            @relation("NotificationActor")
+  conversationsOwned       Conversation[]            @relation("ConversationOwner")
+  conversationMembers      ConversationMember[]
+  messagesSent             Message[]                 @relation("MessageSender")
+  messageReadReceipts      MessageReadReceipt[]
+  pushDevices              PushDevice[]
   neighbourhoodMemberships NeighbourhoodMembership[]
-  attendances          Attendance[]
-  createdEvents        Event[]
-  businesses            Business[]
-  businessVerifications BusinessVerification[] @relation("BusinessVerificationReviewer")
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
+  attendances              Attendance[]
+  createdEvents            Event[]
+  businesses               Business[]
+  organisations            Organisation[]
+  organisationMemberships   OrganisationMember[]
+  businessVerifications    BusinessVerification[]    @relation("BusinessVerificationReviewer")
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
 
   @@index([status])
   @@index([role])
@@ -180,15 +181,16 @@ model UserProfile {
   @@index([showLocalArea])
   @@map("user_profiles")
 }
+
 model Neighbourhood {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String  @id @default(uuid()) @db.Uuid
   name        String
   description String
   localArea   String?
 
   memberships NeighbourhoodMembership[]
-  posts        Post[]
-  communities  Community[]
+  posts       Post[]
+  communities Community[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -213,6 +215,7 @@ model NeighbourhoodMembership {
   @@index([neighbourhoodId])
   @@map("neighbourhood_memberships")
 }
+
 model RefreshToken {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String    @db.Uuid
@@ -228,23 +231,23 @@ model RefreshToken {
 }
 
 model Community {
-  id          String              @id @default(uuid()) @db.Uuid
-  neighbourhoodId String?         @db.Uuid
-  name        String
-  slug        String              @unique
-  description String?
-  visibility  CommunityVisibility @default(PUBLIC)
-  memberships Membership[]
-  notifications Notification[]
-  conversations Conversation[]
-  posts       Post[]
-  events      Event[]
-  businesses  Business[]
+  id              String              @id @default(uuid()) @db.Uuid
+  neighbourhoodId String?             @db.Uuid
+  name            String
+  slug            String              @unique
+  description     String?
+  visibility      CommunityVisibility @default(PUBLIC)
+  memberships     Membership[]
+  notifications   Notification[]
+  conversations   Conversation[]
+  posts           Post[]
+  events          Event[]
+  businesses      Business[]
 
   neighbourhood Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([visibility])
   @@map("communities")
@@ -303,25 +306,25 @@ model UserBlock {
 }
 
 model Post {
-  id          String         @id @default(uuid()) @db.Uuid
-  authorId    String         @db.Uuid
-  communityId    String?        @db.Uuid
+  id              String         @id @default(uuid()) @db.Uuid
+  authorId        String         @db.Uuid
+  communityId     String?        @db.Uuid
   neighbourhoodId String?        @db.Uuid
-  comments       Comment[]
-  reactions   PostReaction[]
-  notifications Notification[]
-  title       String?
-  content     String
-  status      PostStatus     @default(DRAFT)
-  visibility  PostVisibility @default(PUBLIC)
-  publishedAt DateTime?
-  editedAt    DateTime?
-  deletedAt   DateTime?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  author      User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  community   Community?     @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  neighbourhood Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: Cascade)
+  comments        Comment[]
+  reactions       PostReaction[]
+  notifications   Notification[]
+  title           String?
+  content         String
+  status          PostStatus     @default(DRAFT)
+  visibility      PostVisibility @default(PUBLIC)
+  publishedAt     DateTime?
+  editedAt        DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  author          User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  community       Community?     @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  neighbourhood   Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: Cascade)
 
   @@index([authorId, status, publishedAt])
   @@index([communityId, status, publishedAt])
@@ -332,19 +335,19 @@ model Post {
 }
 
 model Comment {
-  id        String    @id @default(uuid()) @db.Uuid
-  postId    String    @db.Uuid
-  authorId  String    @db.Uuid
-  parentId  String?   @db.Uuid
-  content   String
-  editedAt  DateTime?
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[] @relation("CommentReplies")
+  id            String         @id @default(uuid()) @db.Uuid
+  postId        String         @db.Uuid
+  authorId      String         @db.Uuid
+  parentId      String?        @db.Uuid
+  content       String
+  editedAt      DateTime?
+  deletedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  post          Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent        Comment?       @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies       Comment[]      @relation("CommentReplies")
   notifications Notification[]
 
   @@index([postId, createdAt])
@@ -371,21 +374,21 @@ model PostReaction {
 }
 
 model Conversation {
-  id            String           @id @default(uuid()) @db.Uuid
+  id            String               @id @default(uuid()) @db.Uuid
   type          ConversationType
   title         String?
-  ownerId       String           @db.Uuid
-  communityId   String?          @db.Uuid
-  directKey     String?          @unique
-  lastMessageId String?          @unique @db.Uuid
+  ownerId       String               @db.Uuid
+  communityId   String?              @db.Uuid
+  directKey     String?              @unique
+  lastMessageId String?              @unique @db.Uuid
   lastMessageAt DateTime?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  owner         User             @relation("ConversationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  community     Community?       @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  owner         User                 @relation("ConversationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  community     Community?           @relation(fields: [communityId], references: [id], onDelete: Cascade)
   members       ConversationMember[]
-  messages      Message[]        @relation("ConversationMessages")
-  lastMessage   Message?         @relation("ConversationLastMessage", fields: [lastMessageId], references: [id], onDelete: SetNull)
+  messages      Message[]            @relation("ConversationMessages")
+  lastMessage   Message?             @relation("ConversationLastMessage", fields: [lastMessageId], references: [id], onDelete: SetNull)
   notifications Notification[]
 
   @@index([ownerId, updatedAt])
@@ -420,26 +423,26 @@ model ConversationMember {
 }
 
 model Message {
-  id              String              @id @default(uuid()) @db.Uuid
-  conversationId  String              @db.Uuid
-  senderId        String              @db.Uuid
-  parentMessageId String?             @db.Uuid
-  type            MessageType         @default(TEXT)
-  content         String?
-  clientNonce     String?
-  metadata        Json?
-  editedAt        DateTime?
-  deletedAt       DateTime?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  conversation    Conversation        @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
-  lastForConversation Conversation?    @relation("ConversationLastMessage")
-  sender          User                @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-  parentMessage   Message?            @relation("MessageReplies", fields: [parentMessageId], references: [id], onDelete: SetNull)
-  replies         Message[]           @relation("MessageReplies")
-  attachments     MessageAttachment[]
-  readReceipts    MessageReadReceipt[]
-  notifications   Notification[]
+  id                  String               @id @default(uuid()) @db.Uuid
+  conversationId      String               @db.Uuid
+  senderId            String               @db.Uuid
+  parentMessageId     String?              @db.Uuid
+  type                MessageType          @default(TEXT)
+  content             String?
+  clientNonce         String?
+  metadata            Json?
+  editedAt            DateTime?
+  deletedAt           DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  conversation        Conversation         @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+  lastForConversation Conversation?        @relation("ConversationLastMessage")
+  sender              User                 @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  parentMessage       Message?             @relation("MessageReplies", fields: [parentMessageId], references: [id], onDelete: SetNull)
+  replies             Message[]            @relation("MessageReplies")
+  attachments         MessageAttachment[]
+  readReceipts        MessageReadReceipt[]
+  notifications       Notification[]
 
   @@unique([conversationId, senderId, clientNonce])
   @@index([conversationId, createdAt])
@@ -480,7 +483,6 @@ model MessageReadReceipt {
   @@index([messageId, readAt])
   @@map("message_read_receipts")
 }
-
 
 model PushDevice {
   id           String    @id @default(uuid()) @db.Uuid
@@ -535,17 +537,15 @@ model Notification {
   @@map("notifications")
 }
 
-
-
 model Report {
   id String @id @default(uuid()) @db.Uuid
 
   reporterId String @db.Uuid
 
   targetType ReportTargetType
-  targetId String @db.Uuid
+  targetId   String           @db.Uuid
 
-  reason String
+  reason      String
   description String?
 
   status ReportStatus @default(PENDING)
@@ -558,20 +558,19 @@ model Report {
   updatedAt DateTime @updatedAt
 
   @@index([reporterId])
-  @@index([targetType,targetId])
+  @@index([targetType, targetId])
   @@index([status])
   @@map("reports")
 }
 
-
 model ModerationAction {
   id String @id @default(uuid()) @db.Uuid
 
-  reportId String @db.Uuid
+  reportId    String @db.Uuid
   moderatorId String @db.Uuid
 
   action String
-  notes String?
+  notes  String?
 
   report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
@@ -584,19 +583,18 @@ model ModerationAction {
   @@map("moderation_actions")
 }
 
-
 model MediaAsset {
-  id          String   @id @default(uuid()) @db.Uuid
-  ownerId     String   @db.Uuid
-  storageKey  String
-  fileName    String
-  mimeType    String
-  sizeBytes   Int
-  width       Int?
-  height      Int?
-  durationMs  Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid()) @db.Uuid
+  ownerId    String   @db.Uuid
+  storageKey String
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  width      Int?
+  height     Int?
+  durationMs Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([ownerId])
   @@index([storageKey])
@@ -604,9 +602,9 @@ model MediaAsset {
 }
 
 model Event {
-  id           String   @id @default(uuid()) @db.Uuid
-  communityId  String   @db.Uuid
-  creatorId    String   @db.Uuid
+  id          String @id @default(uuid()) @db.Uuid
+  communityId String @db.Uuid
+  creatorId   String @db.Uuid
 
   community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   creator   User      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
@@ -616,13 +614,14 @@ model Event {
   startsAt    DateTime
   endsAt      DateTime
   attendances Attendance[]
-  createdAt   DateTime @default(now())
+  createdAt   DateTime     @default(now())
 
   @@index([communityId])
   @@index([creatorId])
   @@index([startsAt])
   @@map("events")
 }
+
 model Attendance {
   id        String   @id @default(uuid()) @db.Uuid
   eventId   String   @db.Uuid
@@ -638,43 +637,39 @@ model Attendance {
   @@map("attendances")
 }
 
-
 model Business {
-
   id String @id @default(uuid()) @db.Uuid
 
   communityId String @db.Uuid
-  ownerId String @db.Uuid
+  ownerId     String @db.Uuid
 
-  name String
+  name        String
   description String
-  category String
+  category    String
 
   verified Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  community Community @relation(fields:[communityId], references:[id], onDelete:Cascade)
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
 
-  owner User @relation(fields:[ownerId], references:[id], onDelete:Cascade)
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   verification BusinessVerification?
 
   offers Offer[]
 
   businessEvents BusinessEvent[]
+  organisationLinks OrganisationBusiness[]
 
   @@index([communityId])
   @@index([ownerId])
   @@index([category])
-
   @@map("businesses")
 }
 
-
 model BusinessVerification {
-
   id String @id @default(uuid()) @db.Uuid
 
   businessId String @unique @db.Uuid
@@ -689,25 +684,15 @@ model BusinessVerification {
 
   reviewerId String? @db.Uuid
 
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
-  business Business @relation(fields:[businessId], references:[id], onDelete:Cascade)
-
-
-  reviewer User? @relation("BusinessVerificationReviewer", fields:[reviewerId], references:[id], onDelete:SetNull)
-
+  reviewer User? @relation("BusinessVerificationReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
 
   @@index([status])
-
   @@map("business_verifications")
-
 }
 
-
-
-
-
 model Offer {
-
   id String @id @default(uuid()) @db.Uuid
 
   businessId String @db.Uuid
@@ -724,21 +709,14 @@ model Offer {
 
   createdAt DateTime @default(now())
 
-
-  business Business @relation(fields:[businessId], references:[id], onDelete:Cascade)
-
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId])
-
   @@index([active])
-
   @@map("offers")
-
 }
 
-
 model BusinessEvent {
-
   id String @id @default(uuid()) @db.Uuid
 
   businessId String @db.Uuid
@@ -753,14 +731,171 @@ model BusinessEvent {
 
   createdAt DateTime @default(now())
 
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([startsAt])
+  @@map("business_events")
+}
+
+model Organisation {
+  id String @id @default(uuid()) @db.Uuid
+
+  ownerId String @db.Uuid
+
+  name String
+
+  description String
+
+  type String
+
+  verified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  members OrganisationMember[]
+
+  roles OrganisationRole[]
+
+  businesses OrganisationBusiness[]
+
+  verification OrganisationVerification?
+
+  @@index([ownerId])
+  @@index([type])
+  @@map("organisations")
+}
+
+
+model OrganisationMember {
+
+  id String @id @default(uuid()) @db.Uuid
+
+  organisationId String @db.Uuid
+
+  userId String @db.Uuid
+
+  role String @default("MEMBER")
+
+  createdAt DateTime @default(now())
+
+
+  organisation Organisation @relation(fields:[organisationId], references:[id], onDelete:Cascade)
+
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+
+
+  @@unique([organisationId,userId])
+
+  @@index([organisationId])
+
+  @@index([userId])
+
+  @@map("organisation_members")
+
+}
+
+
+
+model OrganisationRole {
+
+  id String @id @default(uuid()) @db.Uuid
+
+  organisationId String @db.Uuid
+
+  name String
+
+  createdAt DateTime @default(now())
+
+
+  organisation Organisation @relation(fields:[organisationId], references:[id], onDelete:Cascade)
+
+  permissions OrganisationPermission[]
+
+
+  @@index([organisationId])
+
+  @@map("organisation_roles")
+
+}
+
+
+
+model OrganisationPermission {
+
+  id String @id @default(uuid()) @db.Uuid
+
+  roleId String @db.Uuid
+
+  name String
+
+  createdAt DateTime @default(now())
+
+
+  role OrganisationRole @relation(fields:[roleId], references:[id], onDelete:Cascade)
+
+
+  @@index([roleId])
+
+  @@map("organisation_permissions")
+
+}
+
+
+
+model OrganisationBusiness {
+
+  id String @id @default(uuid()) @db.Uuid
+
+  organisationId String @db.Uuid
+
+  businessId String @db.Uuid
+
+  createdAt DateTime @default(now())
+
+
+  organisation Organisation @relation(fields:[organisationId], references:[id], onDelete:Cascade)
 
   business Business @relation(fields:[businessId], references:[id], onDelete:Cascade)
 
 
+  @@unique([organisationId,businessId])
+
+  @@index([organisationId])
+
   @@index([businessId])
 
-  @@index([startsAt])
-
-  @@map("business_events")
+  @@map("organisation_businesses")
 
 }
+
+
+
+model OrganisationVerification {
+
+  id String @id @default(uuid()) @db.Uuid
+
+  organisationId String @unique @db.Uuid
+
+  status String @default("PENDING")
+
+  notes String?
+
+  submittedAt DateTime @default(now())
+
+  reviewedAt DateTime?
+
+
+  organisation Organisation @relation(fields:[organisationId], references:[id], onDelete:Cascade)
+
+
+  @@index([status])
+
+  @@map("organisation_verifications")
+
+}
+
