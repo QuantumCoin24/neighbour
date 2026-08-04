@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { initialiseMobileApiClient } from './src/api/configure-api-client';
 import { AuthProvider } from './src/auth/auth-provider';
 import AppNavigator from './src/navigation/AppNavigator';
+import { RealtimeProvider } from './src/realtime';
 import { NeighbourThemeProvider, useNeighbourTheme } from './src/theme';
 
 initialiseMobileApiClient();
@@ -23,7 +24,9 @@ export default function App() {
   return (
     <NeighbourThemeProvider>
       <AuthProvider>
-        <NeighbourApplication />
+        <RealtimeProvider>
+          <NeighbourApplication />
+        </RealtimeProvider>
       </AuthProvider>
     </NeighbourThemeProvider>
   );
