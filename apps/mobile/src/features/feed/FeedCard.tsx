@@ -5,6 +5,7 @@ import { AppText, Card } from '../../components';
 
 import { CommunityBadge } from './CommunityBadge';
 import { FeedAvatar } from './FeedAvatar';
+import { ReactionBar } from './ReactionBar';
 import { RelativeTime } from './RelativeTime';
 
 interface FeedCardProps {
@@ -49,6 +50,8 @@ export function FeedCard({ post }: FeedCardProps) {
           Edited
         </AppText>
       ) : null}
+
+      <ReactionBar postId={post.id} />
     </Card>
   );
 }
