@@ -1,4 +1,4 @@
-import { apiRequest } from './index';
+import { apiRequest } from './client';
 
 import type { Business } from './business';
 

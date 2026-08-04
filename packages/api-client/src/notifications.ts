@@ -1,4 +1,4 @@
-import { apiRequest } from './index';
+import { apiRequest } from './client';
 
 export interface NotificationActor {
   id: string;
