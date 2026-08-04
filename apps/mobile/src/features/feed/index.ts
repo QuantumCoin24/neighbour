@@ -1,3 +1,5 @@
+export { CommentBar } from './CommentBar';
+export { CommentSheet } from './CommentSheet';
 export { CommunityBadge } from './CommunityBadge';
 export { FeedAvatar } from './FeedAvatar';
 export { FeedCard } from './FeedCard';

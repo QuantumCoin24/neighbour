@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppText, Card } from '../../components';
 
+import { CommentBar } from './CommentBar';
 import { CommunityBadge } from './CommunityBadge';
 import { FeedAvatar } from './FeedAvatar';
 import { ReactionBar } from './ReactionBar';
@@ -52,6 +53,8 @@ export function FeedCard({ post }: FeedCardProps) {
       ) : null}
 
       <ReactionBar postId={post.id} />
+
+      <CommentBar postId={post.id} />
     </Card>
   );
 }

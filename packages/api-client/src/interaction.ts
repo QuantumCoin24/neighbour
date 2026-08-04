@@ -39,12 +39,33 @@ export interface CommentFeedResponse {
   nextCursor: string | null;
 }
 
+export interface CommentQuery {
+  cursor?: string;
+  limit?: number;
+}
+
 function tokenHeaders(token?: string): HeadersInit | undefined {
   return token
     ? {
         Authorization: `Bearer ${token}`,
       }
     : undefined;
+}
+
+function buildCommentQuery(query: CommentQuery = {}): string {
+  const parameters = new URLSearchParams();
+
+  if (query.cursor) {
+    parameters.set('cursor', query.cursor);
+  }
+
+  if (query.limit) {
+    parameters.set('limit', String(query.limit));
+  }
+
+  const value = parameters.toString();
+
+  return value ? `?${value}` : '';
 }
 
 export function setReaction(postId: string, type: ReactionType): Promise<ReactionResponse>;
@@ -106,19 +127,31 @@ export function getReactionSummary(first: string, second?: string): Promise<Reac
   });
 }
 
-export function getComments(postId: string): Promise<CommentFeedResponse>;
+export function getComments(postId: string, query?: CommentQuery): Promise<CommentFeedResponse>;
 
-export function getComments(token: string, postId: string): Promise<CommentFeedResponse>;
+export function getComments(
+  token: string,
+  postId: string,
+  query?: CommentQuery,
+): Promise<CommentFeedResponse>;
 
-export function getComments(first: string, second?: string): Promise<CommentFeedResponse> {
-  const legacyCall = second !== undefined;
+export function getComments(
+  first: string,
+  second: string | CommentQuery = {},
+  third: CommentQuery = {},
+): Promise<CommentFeedResponse> {
+  const legacyCall = typeof second === 'string';
 
   const token = legacyCall ? first : undefined;
   const postId = legacyCall ? second : first;
+  const query = legacyCall ? third : second;
 
-  return apiRequest<CommentFeedResponse>(`/posts/${encodeURIComponent(postId)}/comments`, {
-    headers: tokenHeaders(token),
-  });
+  return apiRequest<CommentFeedResponse>(
+    `/posts/${encodeURIComponent(postId)}/comments${buildCommentQuery(query)}`,
+    {
+      headers: tokenHeaders(token),
+    },
+  );
 }
 
 export function createComment(postId: string, content: string): Promise<Comment>;
