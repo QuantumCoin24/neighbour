@@ -9,11 +9,10 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '../auth/auth-context';
 import { AppText } from '../components';
-import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 import { useNeighbourTheme } from '../theme';
 
+import AppTabs from './AppTabs';
 import { type RootStackParamList, ROUTES } from './routes';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -88,11 +87,7 @@ export default function AppNavigator() {
         }}
       >
         {user ? (
-          <>
-            <Stack.Screen name={ROUTES.HOME} component={HomeScreen} />
-
-            <Stack.Screen name={ROUTES.PROFILE} component={ProfileScreen} />
-          </>
+          <Stack.Screen name={ROUTES.APP} component={AppTabs} />
         ) : (
           <Stack.Screen name={ROUTES.LOGIN} component={LoginScreen} />
         )}
