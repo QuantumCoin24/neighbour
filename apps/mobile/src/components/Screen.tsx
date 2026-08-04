@@ -1,7 +1,8 @@
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactElement } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   type StyleProp,
@@ -14,9 +15,15 @@ import { useNeighbourTheme } from '../theme';
 interface ScreenProps {
   scroll?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
+  refreshControl?: ReactElement<React.ComponentProps<typeof RefreshControl>>;
 }
 
-export function Screen({ children, scroll = true, contentStyle }: PropsWithChildren<ScreenProps>) {
+export function Screen({
+  children,
+  scroll = true,
+  contentStyle,
+  refreshControl,
+}: PropsWithChildren<ScreenProps>) {
   const { theme } = useNeighbourTheme();
 
   const content = scroll ? (
@@ -31,6 +38,7 @@ export function Screen({ children, scroll = true, contentStyle }: PropsWithChild
         contentStyle,
       ]}
       keyboardShouldPersistTaps="handled"
+      refreshControl={refreshControl}
       showsVerticalScrollIndicator={false}
     >
       {children}
@@ -54,7 +62,12 @@ export function Screen({ children, scroll = true, contentStyle }: PropsWithChild
   return (
     <SafeAreaView
       edges={['top', 'bottom']}
-      style={[styles.safeArea, { backgroundColor: theme.colors.background }]}
+      style={[
+        styles.safeArea,
+        {
+          backgroundColor: theme.colors.background,
+        },
+      ]}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

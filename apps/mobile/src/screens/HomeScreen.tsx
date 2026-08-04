@@ -144,15 +144,19 @@ export default function HomeScreen() {
   }
 
   return (
-    <Screen contentStyle={styles.screen} scroll>
-      <RefreshControl
-        refreshing={refreshing}
-        onRefresh={() => {
-          void loadDashboard(true);
-        }}
-        tintColor={theme.colors.primary}
-      />
-
+    <Screen
+      contentStyle={styles.screen}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing || feed.refreshing}
+          onRefresh={() => {
+            void Promise.all([loadDashboard(true), feed.refresh()]);
+          }}
+          tintColor={theme.colors.primary}
+        />
+      }
+      scroll
+    >
       <View style={styles.topBar}>
         <View style={styles.brand}>
           <View
@@ -366,7 +370,18 @@ export default function HomeScreen() {
             </Pressable>
           </Card>
         ) : (
-          <FeedList posts={feed.posts} />
+          <FeedList
+            posts={feed.posts}
+            hasMore={feed.nextCursor !== null}
+            loadingMore={feed.loadingMore}
+            error={feed.posts.length > 0 ? feed.error : null}
+            onLoadMore={() => {
+              void feed.loadMore();
+            }}
+            onRetry={() => {
+              void feed.loadMore();
+            }}
+          />
         )}
       </View>
     </Screen>
