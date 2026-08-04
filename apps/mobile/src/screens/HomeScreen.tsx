@@ -1,4 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { getDashboardData, type DashboardData, type DashboardPost } from '@neighbour/api-client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '../auth/auth-context';
 import { AppText, Card, Screen } from '../components';
@@ -7,11 +9,12 @@ import { useNeighbourTheme } from '../theme';
 interface DashboardActionProps {
   symbol: string;
   title: string;
+  value: string;
   description: string;
   tone: 'community' | 'business' | 'event' | 'information';
 }
 
-function DashboardAction({ symbol, title, description, tone }: DashboardActionProps) {
+function DashboardAction({ symbol, title, value, description, tone }: DashboardActionProps) {
   const { theme } = useNeighbourTheme();
 
   const accentColor = {
@@ -56,8 +59,8 @@ function DashboardAction({ symbol, title, description, tone }: DashboardActionPr
       </View>
 
       <View style={styles.actionCopy}>
+        <AppText variant="heading">{value}</AppText>
         <AppText variant="bodyStrong">{title}</AppText>
-
         <AppText variant="caption" tone="secondary">
           {description}
         </AppText>
@@ -66,14 +69,127 @@ function DashboardAction({ symbol, title, description, tone }: DashboardActionPr
   );
 }
 
+function FeedPostCard({ post }: { post: DashboardPost }) {
+  const { theme } = useNeighbourTheme();
+
+  return (
+    <Card style={styles.feedCard}>
+      <View style={styles.feedHeader}>
+        <View
+          style={[
+            styles.feedAvatar,
+            {
+              backgroundColor: theme.colors.primarySoft,
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText variant="label" tone="brand">
+            {post.author.displayName.slice(0, 1).toUpperCase()}
+          </AppText>
+        </View>
+
+        <View style={styles.feedIdentity}>
+          <AppText variant="bodyStrong">{post.author.displayName}</AppText>
+
+          <AppText variant="caption" tone="muted">
+            {post.community?.name ??
+              post.neighbourhood?.name ??
+              post.author.localArea ??
+              'Neighbour'}
+          </AppText>
+        </View>
+      </View>
+
+      {post.title ? <AppText variant="subheading">{post.title}</AppText> : null}
+
+      <AppText tone="secondary">{post.content}</AppText>
+    </Card>
+  );
+}
+
 export default function HomeScreen() {
   const { user } = useAuth();
   const { theme } = useNeighbourTheme();
 
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const firstName = user?.displayName.trim().split(/\s+/)[0] ?? 'Neighbour';
 
+  const loadDashboard = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    setError(null);
+
+    try {
+      const data = await getDashboardData();
+
+      setDashboard(data);
+    } catch {
+      setError('Your dashboard could not be loaded. Pull down to try again.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadDashboard();
+  }, [loadDashboard]);
+
+  const localArea = dashboard?.profile?.localArea?.trim() || 'Set your local area';
+
+  const communityCount = dashboard?.communities.length ?? 0;
+  const conversationCount = dashboard?.conversations.length ?? 0;
+  const unreadMessages = dashboard?.unreadMessages ?? 0;
+  const unreadNotifications = dashboard?.unreadNotifications ?? 0;
+  const posts = dashboard?.posts ?? [];
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+
+    if (hour < 12) {
+      return 'Good morning';
+    }
+
+    if (hour < 18) {
+      return 'Good afternoon';
+    }
+
+    return 'Good evening';
+  }, []);
+
+  if (loading) {
+    return (
+      <Screen scroll={false} contentStyle={styles.loadingScreen}>
+        <ActivityIndicator color={theme.colors.primary} size="large" />
+
+        <AppText variant="subheading">Opening your dashboard…</AppText>
+
+        <AppText variant="caption" tone="secondary">
+          Loading your communities, messages and local activity.
+        </AppText>
+      </Screen>
+    );
+  }
+
   return (
-    <Screen contentStyle={styles.screen}>
+    <Screen contentStyle={styles.screen} scroll>
+      <RefreshControl
+        refreshing={refreshing}
+        onRefresh={() => {
+          void loadDashboard(true);
+        }}
+        tintColor={theme.colors.primary}
+      />
+
       <View style={styles.topBar}>
         <View style={styles.brand}>
           <View
@@ -117,12 +233,45 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.hero}>
-        <AppText variant="title">Good evening, {firstName}.</AppText>
+        <AppText variant="title">
+          {greeting}, {firstName}.
+        </AppText>
 
         <AppText variant="bodyLarge" tone="secondary">
           Here is what is happening across your neighbourhood.
         </AppText>
       </View>
+
+      {error ? (
+        <Card
+          variant="muted"
+          style={[
+            styles.errorCard,
+            {
+              borderColor: theme.colors.danger,
+            },
+          ]}
+        >
+          <AppText variant="bodyStrong" style={{ color: theme.colors.danger }}>
+            Dashboard unavailable
+          </AppText>
+
+          <AppText variant="caption" tone="secondary">
+            {error}
+          </AppText>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              void loadDashboard();
+            }}
+          >
+            <AppText variant="label" tone="brand">
+              Try again
+            </AppText>
+          </Pressable>
+        </Card>
+      ) : null}
 
       <Card
         style={[
@@ -153,14 +302,15 @@ export default function HomeScreen() {
             </AppText>
 
             <AppText variant="heading" tone="inverse">
-              Set your local area
+              {localArea}
             </AppText>
           </View>
         </View>
 
         <AppText variant="body" tone="inverse" style={styles.locationDescription}>
-          Complete your profile to unlock nearby communities, events, businesses and trusted local
-          updates.
+          {dashboard?.profile
+            ? 'Your local profile is connected to your Neighbour account.'
+            : 'Complete your profile to unlock nearby communities, events and trusted updates.'}
         </AppText>
       </Card>
 
@@ -170,36 +320,43 @@ export default function HomeScreen() {
             <AppText variant="subheading">Your community</AppText>
 
             <AppText variant="caption" tone="secondary">
-              Everything local, in one place.
+              Live information from your account.
             </AppText>
           </View>
-
-          <AppText variant="label" tone="brand">
-            Explore
-          </AppText>
         </View>
 
         <View style={styles.actionGrid}>
           <DashboardAction
             symbol="◎"
             title="Communities"
-            description="Connect locally"
+            value={String(communityCount)}
+            description="Connected groups"
             tone="community"
           />
 
           <DashboardAction
             symbol="◌"
             title="Messages"
-            description="Speak privately"
+            value={String(unreadMessages)}
+            description={
+              unreadMessages > 0 ? 'Unread messages' : `${conversationCount} conversations`
+            }
             tone="information"
           />
 
-          <DashboardAction symbol="◇" title="Events" description="See what is on" tone="event" />
+          <DashboardAction
+            symbol="◇"
+            title="Notifications"
+            value={String(unreadNotifications)}
+            description="Unread alerts"
+            tone="event"
+          />
 
           <DashboardAction
             symbol="⌂"
-            title="Businesses"
-            description="Support local"
+            title="Profile"
+            value={dashboard?.profile ? 'Ready' : 'Setup'}
+            description={dashboard?.profile ? dashboard.profile.username : 'Complete your identity'}
             tone="business"
           />
         </View>
@@ -211,40 +368,47 @@ export default function HomeScreen() {
             <AppText variant="subheading">Community pulse</AppText>
 
             <AppText variant="caption" tone="secondary">
-              Your latest neighbourhood activity.
+              Your latest local activity.
             </AppText>
           </View>
         </View>
 
-        <Card variant="muted" style={styles.emptyCard}>
-          <View
-            style={[
-              styles.emptyIcon,
-              {
-                backgroundColor: theme.colors.surfaceStrong,
-                borderRadius: theme.radius.pill,
-              },
-            ]}
-          >
-            <AppText
-              style={{
-                color: theme.colors.primary,
-                fontSize: 24,
-              }}
+        {posts.length > 0 ? (
+          <View style={styles.feedList}>
+            {posts.map((post) => (
+              <FeedPostCard key={post.id} post={post} />
+            ))}
+          </View>
+        ) : (
+          <Card variant="muted" style={styles.emptyCard}>
+            <View
+              style={[
+                styles.emptyIcon,
+                {
+                  backgroundColor: theme.colors.surfaceStrong,
+                  borderRadius: theme.radius.pill,
+                },
+              ]}
             >
-              ✦
-            </AppText>
-          </View>
+              <AppText
+                style={{
+                  color: theme.colors.primary,
+                  fontSize: 24,
+                }}
+              >
+                ✦
+              </AppText>
+            </View>
 
-          <View style={styles.emptyCopy}>
-            <AppText variant="bodyStrong">Your local feed is ready</AppText>
+            <View style={styles.emptyCopy}>
+              <AppText variant="bodyStrong">Your feed is ready</AppText>
 
-            <AppText variant="caption" tone="secondary">
-              Community posts, alerts and recommendations will appear here as you connect with your
-              area.
-            </AppText>
-          </View>
-        </Card>
+              <AppText variant="caption" tone="secondary">
+                Community posts and trusted local updates will appear here.
+              </AppText>
+            </View>
+          </Card>
+        )}
       </View>
     </Screen>
   );
@@ -253,6 +417,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     paddingBottom: 40,
+  },
+  loadingScreen: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 14,
+    justifyContent: 'center',
   },
   topBar: {
     alignItems: 'center',
@@ -279,6 +449,10 @@ const styles = StyleSheet.create({
   hero: {
     gap: 10,
     marginTop: 34,
+  },
+  errorCard: {
+    gap: 10,
+    marginTop: 24,
   },
   locationCard: {
     gap: 18,
@@ -323,7 +497,7 @@ const styles = StyleSheet.create({
   actionCard: {
     borderWidth: StyleSheet.hairlineWidth,
     gap: 14,
-    minHeight: 150,
+    minHeight: 170,
     padding: 18,
     width: '48%',
   },
@@ -335,6 +509,27 @@ const styles = StyleSheet.create({
   },
   actionCopy: {
     gap: 4,
+  },
+  feedList: {
+    gap: 14,
+  },
+  feedCard: {
+    gap: 14,
+  },
+  feedHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  feedAvatar: {
+    alignItems: 'center',
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  feedIdentity: {
+    flex: 1,
+    gap: 2,
   },
   emptyCard: {
     alignItems: 'center',
