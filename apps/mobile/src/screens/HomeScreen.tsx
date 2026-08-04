@@ -1,9 +1,10 @@
-import { getDashboardData, type DashboardData, type DashboardPost } from '@neighbour/api-client';
+import { getDashboardData, type DashboardData } from '@neighbour/api-client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '../auth/auth-context';
 import { AppText, Card, Screen } from '../components';
+import { FeedList } from '../features/feed';
 import { useNeighbourTheme } from '../theme';
 
 interface DashboardActionProps {
@@ -66,45 +67,6 @@ function DashboardAction({ symbol, title, value, description, tone }: DashboardA
         </AppText>
       </View>
     </Pressable>
-  );
-}
-
-function FeedPostCard({ post }: { post: DashboardPost }) {
-  const { theme } = useNeighbourTheme();
-
-  return (
-    <Card style={styles.feedCard}>
-      <View style={styles.feedHeader}>
-        <View
-          style={[
-            styles.feedAvatar,
-            {
-              backgroundColor: theme.colors.primarySoft,
-              borderRadius: theme.radius.pill,
-            },
-          ]}
-        >
-          <AppText variant="label" tone="brand">
-            {post.author.displayName.slice(0, 1).toUpperCase()}
-          </AppText>
-        </View>
-
-        <View style={styles.feedIdentity}>
-          <AppText variant="bodyStrong">{post.author.displayName}</AppText>
-
-          <AppText variant="caption" tone="muted">
-            {post.community?.name ??
-              post.neighbourhood?.name ??
-              post.author.localArea ??
-              'Neighbour'}
-          </AppText>
-        </View>
-      </View>
-
-      {post.title ? <AppText variant="subheading">{post.title}</AppText> : null}
-
-      <AppText tone="secondary">{post.content}</AppText>
-    </Card>
   );
 }
 
@@ -373,42 +335,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {posts.length > 0 ? (
-          <View style={styles.feedList}>
-            {posts.map((post) => (
-              <FeedPostCard key={post.id} post={post} />
-            ))}
-          </View>
-        ) : (
-          <Card variant="muted" style={styles.emptyCard}>
-            <View
-              style={[
-                styles.emptyIcon,
-                {
-                  backgroundColor: theme.colors.surfaceStrong,
-                  borderRadius: theme.radius.pill,
-                },
-              ]}
-            >
-              <AppText
-                style={{
-                  color: theme.colors.primary,
-                  fontSize: 24,
-                }}
-              >
-                ✦
-              </AppText>
-            </View>
-
-            <View style={styles.emptyCopy}>
-              <AppText variant="bodyStrong">Your feed is ready</AppText>
-
-              <AppText variant="caption" tone="secondary">
-                Community posts and trusted local updates will appear here.
-              </AppText>
-            </View>
-          </Card>
-        )}
+        <FeedList posts={posts} />
       </View>
     </Screen>
   );
