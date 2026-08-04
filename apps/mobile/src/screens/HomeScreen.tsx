@@ -1,8 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 
-import { AppText, Card, Screen } from '../components';
+import { useAuth } from '../auth/auth-context';
+import { AppText, Button, Card, Screen } from '../components';
 
 export default function HomeScreen() {
+  const { user, logout } = useAuth();
+
+  const firstName = user?.displayName.trim().split(/\s+/)[0] ?? 'Neighbour';
+
   return (
     <Screen>
       <View style={styles.header}>
@@ -10,20 +15,28 @@ export default function HomeScreen() {
           Neighbour™
         </AppText>
 
-        <AppText variant="title">Your community starts here.</AppText>
+        <AppText variant="title">Welcome home, {firstName}.</AppText>
 
         <AppText variant="bodyLarge" tone="secondary">
-          Local updates, trusted people and useful places will come together here.
+          Your secure Neighbour account is connected. Your local dashboard is the next product
+          layer.
         </AppText>
       </View>
 
       <Card variant="muted" style={styles.card}>
-        <AppText variant="subheading">Home foundation ready</AppText>
+        <AppText variant="subheading">Account connected</AppText>
 
-        <AppText tone="secondary">
-          The real neighbourhood dashboard will be composed from the new shared design system.
-        </AppText>
+        <AppText tone="secondary">Signed in as {user?.email ?? 'your Neighbour account'}.</AppText>
       </Card>
+
+      <Button
+        label="Sign out"
+        onPress={() => {
+          void logout();
+        }}
+        style={styles.logoutButton}
+        variant="secondary"
+      />
     </Screen>
   );
 }
@@ -35,5 +48,8 @@ const styles = StyleSheet.create({
   card: {
     gap: 10,
     marginTop: 32,
+  },
+  logoutButton: {
+    marginTop: 24,
   },
 });

@@ -5,7 +5,10 @@ import {
   type Theme as NavigationTheme,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { useAuth } from '../auth/auth-context';
+import { AppText } from '../components';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -15,8 +18,45 @@ import { type RootStackParamList, ROUTES } from './routes';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+function SessionLoadingScreen() {
+  const { theme } = useNeighbourTheme();
+
+  return (
+    <View
+      style={[
+        styles.loadingScreen,
+        {
+          backgroundColor: theme.colors.background,
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.loadingMark,
+          {
+            backgroundColor: theme.colors.primary,
+            borderRadius: theme.radius.xl,
+          },
+          theme.shadows.floating,
+        ]}
+      >
+        <AppText variant="heading" tone="inverse">
+          N
+        </AppText>
+      </View>
+
+      <ActivityIndicator color={theme.colors.primary} size="small" />
+
+      <AppText variant="caption" tone="muted">
+        Opening your neighbourhood…
+      </AppText>
+    </View>
+  );
+}
+
 export default function AppNavigator() {
   const { theme, isDark } = useNeighbourTheme();
+  const { status, user } = useAuth();
 
   const baseTheme = isDark ? DarkTheme : DefaultTheme;
 
@@ -33,10 +73,13 @@ export default function AppNavigator() {
     },
   };
 
+  if (status === 'restoring') {
+    return <SessionLoadingScreen />;
+  }
+
   return (
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator
-        initialRouteName={ROUTES.LOGIN}
         screenOptions={{
           contentStyle: {
             backgroundColor: theme.colors.background,
@@ -44,10 +87,31 @@ export default function AppNavigator() {
           headerShown: false,
         }}
       >
-        <Stack.Screen name={ROUTES.LOGIN} component={LoginScreen} />
-        <Stack.Screen name={ROUTES.HOME} component={HomeScreen} />
-        <Stack.Screen name={ROUTES.PROFILE} component={ProfileScreen} />
+        {user ? (
+          <>
+            <Stack.Screen name={ROUTES.HOME} component={HomeScreen} />
+
+            <Stack.Screen name={ROUTES.PROFILE} component={ProfileScreen} />
+          </>
+        ) : (
+          <Stack.Screen name={ROUTES.LOGIN} component={LoginScreen} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingScreen: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 18,
+    justifyContent: 'center',
+  },
+  loadingMark: {
+    alignItems: 'center',
+    height: 68,
+    justifyContent: 'center',
+    width: 68,
+  },
+});

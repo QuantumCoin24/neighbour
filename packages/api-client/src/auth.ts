@@ -28,11 +28,8 @@ export interface AuthTokens {
   expiresIn: number;
 }
 
-export interface AuthResponse {
+export interface AuthResponse extends AuthTokens {
   user: AuthUser;
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
 }
 
 export function registerUser(data: RegisterRequest): Promise<AuthResponse> {
@@ -46,5 +43,27 @@ export function loginUser(data: LoginRequest): Promise<AuthResponse> {
   return apiRequest<AuthResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(data),
+  });
+}
+
+export function getCurrentUser(): Promise<AuthUser> {
+  return apiRequest<AuthUser>('/auth/me');
+}
+
+export function refreshAuthTokens(refreshToken: string): Promise<AuthTokens> {
+  return apiRequest<AuthTokens>('/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({
+      refreshToken,
+    }),
+  });
+}
+
+export function logoutUser(refreshToken: string): Promise<{ success: true }> {
+  return apiRequest<{ success: true }>('/auth/logout', {
+    method: 'POST',
+    body: JSON.stringify({
+      refreshToken,
+    }),
   });
 }

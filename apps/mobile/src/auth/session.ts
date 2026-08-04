@@ -1,19 +1,68 @@
+import type { AuthResponse, AuthUser } from '@neighbour/api-client';
+import * as SecureStore from 'expo-secure-store';
+
 const SESSION_KEY = 'neighbour_session';
 
-let session: string | null = null;
-
-export function saveSession(value: string) {
-  session = value;
+export interface MobileSession {
+  user: AuthUser;
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
 }
 
-export function getSession() {
-  return session;
+let currentSession: MobileSession | null = null;
+
+export function getSession(): MobileSession | null {
+  return currentSession;
 }
 
-export function clearSession() {
-  session = null;
+export function getSessionAccessToken(): string | null {
+  return currentSession?.accessToken ?? null;
 }
 
-export function hasSession() {
-  return session !== null;
+export function createSession(response: AuthResponse): MobileSession {
+  return {
+    user: response.user,
+    accessToken: response.accessToken,
+    refreshToken: response.refreshToken,
+    expiresAt: Date.now() + response.expiresIn * 1000,
+  };
+}
+
+export async function saveSession(session: MobileSession): Promise<void> {
+  currentSession = session;
+
+  await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
+}
+
+export async function loadSession(): Promise<MobileSession | null> {
+  const storedValue = await SecureStore.getItemAsync(SESSION_KEY);
+
+  if (!storedValue) {
+    currentSession = null;
+
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(storedValue) as MobileSession;
+
+    currentSession = parsed;
+
+    return parsed;
+  } catch {
+    await clearSession();
+
+    return null;
+  }
+}
+
+export async function clearSession(): Promise<void> {
+  currentSession = null;
+
+  await SecureStore.deleteItemAsync(SESSION_KEY);
+}
+
+export function hasSession(): boolean {
+  return currentSession !== null;
 }
