@@ -82,47 +82,12 @@ export interface DashboardNotificationSummary {
   unreadCount: number;
 }
 
-export interface DashboardPost {
-  id: string;
-  title: string | null;
-  content: string;
-  status: 'DRAFT' | 'PUBLISHED';
-  visibility: 'PUBLIC' | 'CONNECTIONS' | 'COMMUNITY' | 'PRIVATE';
-  author: {
-    id: string;
-    displayName: string;
-    username: string | null;
-    avatarUrl: string | null;
-    localArea: string | null;
-  };
-  community: {
-    id: string;
-    name: string;
-    slug: string;
-  } | null;
-  neighbourhood: {
-    id: string;
-    name: string;
-    localArea: string | null;
-  } | null;
-  publishedAt: string | null;
-  editedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface DashboardFeed {
-  items: DashboardPost[];
-  nextCursor: string | null;
-}
-
 export interface DashboardData {
   profile: DashboardProfile | null;
   communities: DashboardCommunityMembership[];
   conversations: DashboardConversation[];
   unreadMessages: number;
   unreadNotifications: number;
-  posts: DashboardPost[];
 }
 
 async function getDashboardProfile(): Promise<DashboardProfile | null> {
@@ -138,12 +103,11 @@ async function getDashboardProfile(): Promise<DashboardProfile | null> {
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
-  const [profile, communities, conversations, notifications, feed] = await Promise.all([
+  const [profile, communities, conversations, notifications] = await Promise.all([
     getDashboardProfile(),
     apiRequest<DashboardCommunityMembership[]>('/communities/mine'),
     apiRequest<DashboardConversationFeed>('/messages/conversations?limit=5'),
     apiRequest<DashboardNotificationSummary>('/notifications/unread-count'),
-    apiRequest<DashboardFeed>('/feed?limit=5'),
   ]);
 
   const unreadMessages = conversations.items.reduce(
@@ -159,6 +123,5 @@ export async function getDashboardData(): Promise<DashboardData> {
     conversations: conversations.items,
     unreadMessages,
     unreadNotifications: notifications.unreadCount,
-    posts: feed.items,
   };
 }

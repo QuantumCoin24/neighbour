@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from '
 
 import { useAuth } from '../auth/auth-context';
 import { AppText, Card, Screen } from '../components';
-import { FeedList } from '../features/feed';
+import { FeedList, useFeedController } from '../features/feed';
 import { useNeighbourTheme } from '../theme';
 
 interface DashboardActionProps {
@@ -79,6 +79,8 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const feed = useFeedController();
+
   const firstName = user?.displayName.trim().split(/\s+/)[0] ?? 'Neighbour';
 
   const loadDashboard = useCallback(async (isRefresh = false) => {
@@ -112,7 +114,6 @@ export default function HomeScreen() {
   const conversationCount = dashboard?.conversations.length ?? 0;
   const unreadMessages = dashboard?.unreadMessages ?? 0;
   const unreadNotifications = dashboard?.unreadNotifications ?? 0;
-  const posts = dashboard?.posts ?? [];
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -335,7 +336,38 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <FeedList posts={posts} />
+        {feed.loading ? (
+          <View style={styles.feedLoading}>
+            <ActivityIndicator color={theme.colors.primary} size="small" />
+
+            <AppText variant="caption" tone="secondary">
+              Loading community posts…
+            </AppText>
+          </View>
+        ) : feed.error && feed.posts.length === 0 ? (
+          <Card variant="muted" style={styles.feedError}>
+            <AppText variant="bodyStrong" style={{ color: theme.colors.danger }}>
+              Community feed unavailable
+            </AppText>
+
+            <AppText variant="caption" tone="secondary">
+              {feed.error}
+            </AppText>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                void feed.retry();
+              }}
+            >
+              <AppText variant="label" tone="brand">
+                Try again
+              </AppText>
+            </Pressable>
+          </Card>
+        ) : (
+          <FeedList posts={feed.posts} />
+        )}
       </View>
     </Screen>
   );
@@ -439,6 +471,14 @@ const styles = StyleSheet.create({
   },
   feedList: {
     gap: 14,
+  },
+  feedLoading: {
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 28,
+  },
+  feedError: {
+    gap: 10,
   },
   feedCard: {
     gap: 14,

@@ -1,4 +1,4 @@
-import type { DashboardPost } from '@neighbour/api-client';
+import type { FeedPost } from '@neighbour/api-client';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText, Card } from '../../components';
@@ -8,7 +8,7 @@ import { FeedAvatar } from './FeedAvatar';
 import { RelativeTime } from './RelativeTime';
 
 interface FeedCardProps {
-  post: DashboardPost;
+  post: FeedPost;
 }
 
 export function FeedCard({ post }: FeedCardProps) {

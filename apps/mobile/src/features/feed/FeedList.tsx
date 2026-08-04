@@ -1,11 +1,11 @@
-import type { DashboardPost } from '@neighbour/api-client';
+import type { FeedPost } from '@neighbour/api-client';
 import { StyleSheet, View } from 'react-native';
 
 import { FeedCard } from './FeedCard';
 import { FeedEmptyState } from './FeedEmptyState';
 
 interface FeedListProps {
-  posts: DashboardPost[];
+  posts: FeedPost[];
 }
 
 export function FeedList({ posts }: FeedListProps) {

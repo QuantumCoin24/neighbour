@@ -4,3 +4,5 @@ export { FeedCard } from './FeedCard';
 export { FeedEmptyState } from './FeedEmptyState';
 export { FeedList } from './FeedList';
 export { RelativeTime } from './RelativeTime';
+
+export { useFeedController } from './hooks/useFeedController';
