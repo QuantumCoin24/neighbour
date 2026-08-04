@@ -1,24 +1,39 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+
+import { AppText, Card, Screen } from '../components';
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Neighbour™</Text>
+    <Screen>
+      <View style={styles.header}>
+        <AppText variant="overline" tone="brand">
+          Neighbour™
+        </AppText>
 
-      <Text>Your community starts here.</Text>
-    </View>
+        <AppText variant="title">Your community starts here.</AppText>
+
+        <AppText variant="bodyLarge" tone="secondary">
+          Local updates, trusted people and useful places will come together here.
+        </AppText>
+      </View>
+
+      <Card variant="muted" style={styles.card}>
+        <AppText variant="subheading">Home foundation ready</AppText>
+
+        <AppText tone="secondary">
+          The real neighbourhood dashboard will be composed from the new shared design system.
+        </AppText>
+      </Card>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  header: {
+    gap: 12,
   },
-
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
+  card: {
+    gap: 10,
+    marginTop: 32,
   },
 });
