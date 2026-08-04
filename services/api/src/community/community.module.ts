@@ -13,14 +13,12 @@ import { AttendanceController } from './attendance/attendance.controller';
 import { AttendanceService } from './attendance/attendance.service';
 import { AttendanceRepository } from './attendance/attendance.repository';
 import { PrismaAttendanceRepository } from './attendance/prisma-attendance.repository';
+import { CommunityInsightService } from './intelligence/community-insight.service';
+import { CommunityInsightListenerService } from './intelligence/community-insight-listener.service';
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [
-    CommunityController,
-    EventController,
-    AttendanceController
-  ],
+  controllers: [CommunityController, EventController, AttendanceController],
   providers: [
     CommunityService,
     EventService,
@@ -28,15 +26,14 @@ import { PrismaAttendanceRepository } from './attendance/prisma-attendance.repos
       provide: EventRepository,
       useClass: PrismaEventRepository,
     },
-  AttendanceService,
-  {
-    provide: AttendanceRepository,
-    useClass: PrismaAttendanceRepository,
-  }
+    AttendanceService,
+    CommunityInsightService,
+    CommunityInsightListenerService,
+    {
+      provide: AttendanceRepository,
+      useClass: PrismaAttendanceRepository,
+    },
   ],
-  exports: [
-    CommunityService,
-    EventService,
-  ],
+  exports: [CommunityService, EventService],
 })
 export class CommunityModule {}

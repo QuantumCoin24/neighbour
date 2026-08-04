@@ -1,14 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class JourneyMapService {
-
-
   map() {
-
     return [
-
       {
         name: 'AUTH',
         status: 'READY',
@@ -33,10 +28,6 @@ export class JourneyMapService {
         name: 'NOTIFICATIONS',
         status: 'READY',
       },
-
     ];
-
   }
-
-
 }

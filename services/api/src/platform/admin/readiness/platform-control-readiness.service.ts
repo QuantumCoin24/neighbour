@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class PlatformControlReadinessService {
-
-
-  check(
-    control: string,
-  ) {
-
+  check(control: string) {
     return {
-
       control,
 
-      ready:
-        control === 'READY',
+      ready: control === 'READY',
 
       checkedAt: new Date(),
-
     };
-
   }
-
-
 }

@@ -1,5 +1,4 @@
 export interface MonitoringStatusEntity {
-
   domain: string;
 
   events: string;
@@ -9,5 +8,4 @@ export interface MonitoringStatusEntity {
   response: string;
 
   status: string;
-
 }

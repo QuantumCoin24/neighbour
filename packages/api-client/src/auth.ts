@@ -1,4 +1,4 @@
-import { apiRequest } from "./index";
+import { apiRequest } from './index';
 
 export interface RegisterRequest {
   email: string;
@@ -35,26 +35,16 @@ export interface AuthResponse {
   expiresIn: number;
 }
 
-export function registerUser(
-  data: RegisterRequest,
-): Promise<AuthResponse> {
-  return apiRequest<AuthResponse>(
-    "/auth/register",
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-    },
-  );
+export function registerUser(data: RegisterRequest): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
-export function loginUser(
-  data: LoginRequest,
-): Promise<AuthResponse> {
-  return apiRequest<AuthResponse>(
-    "/auth/login",
-    {
-      method: "POST",
-      body: JSON.stringify(data),
-    },
-  );
+export function loginUser(data: LoginRequest): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }

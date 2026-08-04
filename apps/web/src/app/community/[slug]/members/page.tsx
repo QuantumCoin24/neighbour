@@ -1,36 +1,21 @@
-"use client";
+'use client';
 
-import {useParams} from "next/navigation";
+import { useParams } from 'next/navigation';
 
+export default function MembersPage() {
+  const params = useParams();
 
-export default function MembersPage(){
+  return (
+    <main
+      style={{
+        padding: '40px',
+      }}
+    >
+      <h1>Community Members</h1>
 
-const params=useParams();
+      <p>Members for {params.slug as string}</p>
 
-return (
-
-<main style={{
-padding:"40px"
-}}>
-
-<h1>
-Community Members
-</h1>
-
-<p>
-Members for {params.slug as string}
-</p>
-
-
-<div>
-
-👤 Jason
-
-</div>
-
-
-</main>
-
-);
-
+      <div>👤 Jason</div>
+    </main>
+  );
 }

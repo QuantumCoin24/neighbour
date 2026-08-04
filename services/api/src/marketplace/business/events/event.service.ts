@@ -6,73 +6,39 @@ import type { BusinessEventEntity } from './event.entity';
 
 import { BusinessEventRepository } from './event.repository';
 
-
 @Injectable()
 export class BusinessEventService {
+  constructor(private readonly repository: BusinessEventRepository) {}
 
+  async create(input: {
+    businessId: string;
+    title: string;
+    description: string;
+    startsAt: Date;
+    endsAt: Date;
+  }): Promise<BusinessEventEntity> {
+    return this.repository.save({
+      id: randomUUID(),
 
-constructor(
-private readonly repository:BusinessEventRepository,
-){}
+      businessId: input.businessId,
 
+      title: input.title,
 
+      description: input.description,
 
-async create(
-input:{
-businessId:string;
-title:string;
-description:string;
-startsAt:Date;
-endsAt:Date;
-}
-):Promise<BusinessEventEntity>{
+      startsAt: input.startsAt,
 
+      endsAt: input.endsAt,
 
-return this.repository.save({
+      createdAt: new Date(),
+    });
+  }
 
-id:randomUUID(),
+  async findByBusiness(businessId: string): Promise<BusinessEventEntity[]> {
+    return this.repository.findByBusiness(businessId);
+  }
 
-businessId:input.businessId,
-
-title:input.title,
-
-description:input.description,
-
-startsAt:input.startsAt,
-
-endsAt:input.endsAt,
-
-createdAt:new Date(),
-
-});
-
-}
-
-
-
-
-async findByBusiness(
-businessId:string,
-):Promise<BusinessEventEntity[]>{
-
-return this.repository.findByBusiness(
-businessId
-);
-
-}
-
-
-
-
-async findById(
-id:string,
-):Promise<BusinessEventEntity|undefined>{
-
-return this.repository.findById(
-id
-);
-
-}
-
-
+  async findById(id: string): Promise<BusinessEventEntity | undefined> {
+    return this.repository.findById(id);
+  }
 }

@@ -1,6 +1,4 @@
 export interface ActivationPlanEntity {
-
-
   domain: string;
 
   currentState: string;
@@ -10,5 +8,4 @@ export interface ActivationPlanEntity {
   priority: string;
 
   launchImpact: string;
-
 }

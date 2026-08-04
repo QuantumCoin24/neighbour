@@ -1,4 +1,4 @@
-import { apiRequest } from "./index";
+import { apiRequest } from './index';
 
 export interface CreateProfileInput {
   username: string;
@@ -14,12 +14,9 @@ export interface Profile {
   bio?: string | null;
 }
 
-export function createProfile(
-  data: CreateProfileInput,
-  token: string,
-) {
-  return apiRequest<Profile>("/profiles", {
-    method: "POST",
+export function createProfile(data: CreateProfileInput, token: string) {
+  return apiRequest<Profile>('/profiles', {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -27,12 +24,9 @@ export function createProfile(
   });
 }
 
-export function updateMyProfile(
-  data: Partial<CreateProfileInput>,
-  token: string,
-) {
-  return apiRequest<Profile>("/profiles/me", {
-    method: "PATCH",
+export function updateMyProfile(data: Partial<CreateProfileInput>, token: string) {
+  return apiRequest<Profile>('/profiles/me', {
+    method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -41,14 +35,13 @@ export function updateMyProfile(
 }
 
 export function getMyProfile(token: string) {
-  return apiRequest<Profile>("/profiles/me", {
-    method: "GET",
+  return apiRequest<Profile>('/profiles/me', {
+    method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 }
-
 
 export interface PublicProfile {
   id: string;
@@ -62,15 +55,8 @@ export interface PublicProfile {
   updatedAt: string;
 }
 
-
-export function getPublicProfile(
-  username: string,
-) {
-  return apiRequest<PublicProfile>(
-    `/profiles/${username}`,
-    {
-      method: "GET",
-    },
-  );
+export function getPublicProfile(username: string) {
+  return apiRequest<PublicProfile>(`/profiles/${username}`, {
+    method: 'GET',
+  });
 }
-

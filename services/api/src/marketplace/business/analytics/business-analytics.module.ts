@@ -5,26 +5,13 @@ import { AnalyticsModule } from '../../../analytics/analytics.module';
 import { BusinessAnalyticsService } from './business-analytics.service';
 import { BusinessAnalyticsController } from './business-analytics.controller';
 
-
 @Module({
+  controllers: [BusinessAnalyticsController],
 
-controllers:[
-BusinessAnalyticsController,
-],
+  imports: [AnalyticsModule],
 
-imports:[
-AnalyticsModule,
-],
+  providers: [BusinessAnalyticsService],
 
-
-providers:[
-BusinessAnalyticsService,
-],
-
-
-exports:[
-BusinessAnalyticsService,
-],
-
+  exports: [BusinessAnalyticsService],
 })
 export class BusinessAnalyticsModule {}

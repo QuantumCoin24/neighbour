@@ -1,11 +1,7 @@
-export function getAccessToken(){
-
-  if(typeof window === "undefined"){
+export function getAccessToken() {
+  if (typeof window === 'undefined') {
     return null;
   }
 
-  return localStorage.getItem(
-    "accessToken"
-  );
-
+  return localStorage.getItem('accessToken');
 }

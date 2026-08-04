@@ -1,215 +1,119 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 
-import {
-  searchBusinesses,
-} from "@neighbour/api-client";
+import { searchBusinesses } from '@neighbour/api-client';
 
+export default function BusinessDiscoverPage() {
+  const [query, setQuery] = useState('');
 
-export default function BusinessDiscoverPage(){
+  const [results, setResults] = useState<any[]>([]);
 
+  async function search() {
+    const data = await searchBusinesses(query);
 
-const [query,setQuery] = useState("");
+    setResults(data);
+  }
 
-const [results,setResults] = useState<any[]>([]);
+  return (
+    <main style={page}>
+      <h1>🔎 Neighbour™ Business Discover</h1>
 
+      <p>Find trusted businesses inside your community.</p>
 
+      <div style={searchBox}>
+        <input
+          placeholder="Search businesses..."
 
-async function search(){
+          value={query}
 
+          onChange={(e) => setQuery(e.target.value)}
 
-const data =
-await searchBusinesses(query);
+          style={input}
+        />
 
+        <button
+          onClick={search}
 
-setResults(data);
+          style={button}
+        >
+          Search
+        </button>
+      </div>
 
+      <section style={grid}>
+        {results.map((business) => (
+          <div
+            key={business.id}
 
+            style={card}
+          >
+            <h2>{business.name}</h2>
+
+            <p>{business.category}</p>
+
+            <p>{business.description}</p>
+          </div>
+        ))}
+      </section>
+    </main>
+  );
 }
 
+const page = {
+  padding: '40px',
 
+  maxWidth: '1100px',
 
-return (
-
-<main style={page}>
-
-
-<h1>
-🔎 Neighbour™ Business Discover
-</h1>
-
-
-<p>
-Find trusted businesses inside your community.
-</p>
-
-
-
-<div style={searchBox}>
-
-
-<input
-
-placeholder="Search businesses..."
-
-value={query}
-
-onChange={
-e=>setQuery(e.target.value)
-}
-
-style={input}
-
-/>
-
-
-<button
-
-onClick={search}
-
-style={button}
-
->
-Search
-</button>
-
-
-</div>
-
-
-
-
-<section style={grid}>
-
-
-{
-results.map(business=>(
-
-
-<div
-
-key={business.id}
-
-style={card}
-
->
-
-
-<h2>
-{business.name}
-</h2>
-
-
-<p>
-{business.category}
-</p>
-
-
-<p>
-{business.description}
-</p>
-
-
-</div>
-
-
-))
-
-}
-
-
-</section>
-
-
-</main>
-
-);
-
-}
-
-
-
-
-const page={
-
-padding:"40px",
-
-maxWidth:"1100px",
-
-margin:"auto",
-
+  margin: 'auto',
 };
 
+const searchBox = {
+  display: 'flex',
 
+  gap: '12px',
 
-const searchBox={
-
-display:"flex",
-
-gap:"12px",
-
-marginTop:"30px",
-
+  marginTop: '30px',
 };
 
+const input = {
+  flex: 1,
 
+  padding: '14px',
 
-const input={
+  borderRadius: '12px',
 
-flex:1,
-
-padding:"14px",
-
-borderRadius:"12px",
-
-border:"1px solid #ddd",
-
+  border: '1px solid #ddd',
 };
 
+const button = {
+  padding: '14px 22px',
 
+  borderRadius: '12px',
 
-const button={
+  border: 'none',
 
-padding:"14px 22px",
+  background: '#08111F',
 
-borderRadius:"12px",
-
-border:"none",
-
-background:"#08111F",
-
-color:"#fff",
-
+  color: '#fff',
 };
 
+const grid = {
+  display: 'grid',
 
+  gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))',
 
-const grid={
+  gap: '20px',
 
-display:"grid",
-
-gridTemplateColumns:
-"repeat(auto-fit,minmax(260px,1fr))",
-
-gap:"20px",
-
-marginTop:"30px",
-
+  marginTop: '30px',
 };
 
+const card = {
+  background: '#fff',
 
+  padding: '25px',
 
-const card={
+  borderRadius: '20px',
 
-background:"#fff",
-
-padding:"25px",
-
-borderRadius:"20px",
-
-boxShadow:
-"0 10px 30px rgba(0,0,0,.08)",
-
+  boxShadow: '0 10px 30px rgba(0,0,0,.08)',
 };
-

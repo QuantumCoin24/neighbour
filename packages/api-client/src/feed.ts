@@ -1,4 +1,4 @@
-import { apiRequest } from "./index";
+import { apiRequest } from './index';
 
 export interface Post {
   id: string;
@@ -26,16 +26,10 @@ export interface FeedResponse {
   nextCursor: string | null;
 }
 
-export function getCommunityFeed(
-  token: string,
-  slug: string,
-) {
-  return apiRequest<FeedResponse>(
-    `/communities/${slug}/feed`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+export function getCommunityFeed(token: string, slug: string) {
+  return apiRequest<FeedResponse>(`/communities/${slug}/feed`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 }

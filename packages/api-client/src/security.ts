@@ -1,96 +1,63 @@
-import { apiRequest } from "./index";
-
+import { apiRequest } from './index';
 
 export interface SecurityReport {
+  id: string;
 
-  id:string;
+  reporterId: string;
 
-  reporterId:string;
+  targetType: string;
 
-  targetType:string;
+  targetId: string;
 
-  targetId:string;
+  reason: string;
 
-  reason:string;
+  description: string | null;
 
-  description:string|null;
+  status: string;
 
-  status:string;
+  createdAt: string;
 
-  createdAt:string;
-
-  updatedAt:string;
-
+  updatedAt: string;
 }
-
-
 
 export interface CreateSecurityReportInput {
+  targetType: string;
 
-  targetType:string;
+  targetId: string;
 
-  targetId:string;
+  reason: string;
 
-  reason:string;
-
-  description?:string;
-
+  description?: string;
 }
-
-
 
 export function createSecurityReport(
+  token: string,
 
-  token:string,
+  data: CreateSecurityReportInput,
+) {
+  return apiRequest<SecurityReport>(
+    '/security/reports',
 
-  data:CreateSecurityReportInput,
+    {
+      method: 'POST',
 
-){
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
 
-return apiRequest<SecurityReport>(
-
-"/security/reports",
-
-{
-
-method:"POST",
-
-headers:{
-
-Authorization:`Bearer ${token}`,
-
-},
-
-body:JSON.stringify(data),
-
-},
-
-);
-
+      body: JSON.stringify(data),
+    },
+  );
 }
 
+export function getMySecurityReports(token: string) {
+  return apiRequest<SecurityReport[]>(
+    '/security/reports/mine',
 
-
-export function getMySecurityReports(
-
-  token:string,
-
-){
-
-return apiRequest<SecurityReport[]>(
-
-"/security/reports/mine",
-
-{
-
-headers:{
-
-Authorization:`Bearer ${token}`,
-
-},
-
-},
-
-);
-
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
 }

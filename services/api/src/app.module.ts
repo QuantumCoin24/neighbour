@@ -20,6 +20,10 @@ import { RealtimeModule } from './realtime/realtime.module';
 import { SocialGraphModule } from './social-graph/social-graph.module';
 import { NeighbourhoodModule } from './neighbourhood/neighbourhood.module';
 import { SearchModule } from './search/search.module';
+import { PlatformModule } from './platform/platform.module';
+import { TrustModule } from './trust/trust.module';
+import { IntegrationsModule } from './integrations/integrations.module';
+import { DeveloperModule } from './developer/developer.module';
 import { SecurityModule } from './security/security.module';
 import { BusinessModule } from './marketplace/business/business.module';
 import { OrganisationModule } from './organisation/organisation.module';
@@ -48,6 +52,10 @@ import { OrganisationModule } from './organisation/organisation.module';
     SocialGraphModule,
     NeighbourhoodModule,
     SearchModule,
+    PlatformModule,
+    TrustModule,
+    IntegrationsModule,
+    DeveloperModule,
     SecurityModule,
     BusinessModule,
     OrganisationModule,

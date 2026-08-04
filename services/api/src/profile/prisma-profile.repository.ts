@@ -7,9 +7,7 @@ import { ProfileRepository } from './profile.repository';
 
 @Injectable()
 export class PrismaProfileRepository extends ProfileRepository {
-  constructor(
-    private readonly database: DatabaseService,
-  ) {
+  constructor(private readonly database: DatabaseService) {
     super();
   }
 

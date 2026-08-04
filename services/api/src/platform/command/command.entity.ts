@@ -1,5 +1,4 @@
 export interface CommandEntity {
-
   id: string;
 
   type: string;
@@ -9,5 +8,4 @@ export interface CommandEntity {
   status: 'created' | 'executed' | 'failed';
 
   createdAt: Date;
-
 }

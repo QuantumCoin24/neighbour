@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '../database/database.service';
+import { SearchIntelligenceService } from './intelligence/search-intelligence.service';
 
 @Injectable()
 export class SearchService {
-
   constructor(
     private readonly database: DatabaseService,
+    private readonly intelligence: SearchIntelligenceService,
   ) {}
 
   async search(query: string) {
-
     const term = query.trim();
 
     if (!term) {
@@ -28,17 +28,10 @@ export class SearchService {
       mode: 'insensitive' as const,
     };
 
-    const [
-      users,
-      communities,
-      neighbourhoods,
-      events,
-      posts,
-    ] = await Promise.all([
-
+    const [users, communities, neighbourhoods, events, posts] = await Promise.all([
       this.database.user.findMany({
-        where:{
-          OR:[
+        where: {
+          OR: [
             {
               displayName: contains,
             },
@@ -46,22 +39,22 @@ export class SearchService {
               email: contains,
             },
             {
-              profile:{
+              profile: {
                 username: contains,
               },
             },
           ],
         },
-        select:{
-          id:true,
-          displayName:true,
+        select: {
+          id: true,
+          displayName: true,
         },
-        take:10,
+        take: 10,
       }),
 
       this.database.community.findMany({
-        where:{
-          OR:[
+        where: {
+          OR: [
             {
               name: contains,
             },
@@ -70,17 +63,17 @@ export class SearchService {
             },
           ],
         },
-        select:{
-          id:true,
-          name:true,
-          slug:true,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
         },
-        take:10,
+        take: 10,
       }),
 
       this.database.neighbourhood.findMany({
-        where:{
-          OR:[
+        where: {
+          OR: [
             {
               name: contains,
             },
@@ -89,17 +82,17 @@ export class SearchService {
             },
           ],
         },
-        select:{
-          id:true,
-          name:true,
-          localArea:true,
+        select: {
+          id: true,
+          name: true,
+          localArea: true,
         },
-        take:10,
+        take: 10,
       }),
 
       this.database.event.findMany({
-        where:{
-          OR:[
+        where: {
+          OR: [
             {
               title: contains,
             },
@@ -108,22 +101,22 @@ export class SearchService {
             },
           ],
         },
-        select:{
-          id:true,
-          title:true,
-          startsAt:true,
-          community:{
-            select:{
-              name:true,
+        select: {
+          id: true,
+          title: true,
+          startsAt: true,
+          community: {
+            select: {
+              name: true,
             },
           },
         },
-        take:10,
+        take: 10,
       }),
 
       this.database.post.findMany({
-        where:{
-          OR:[
+        where: {
+          OR: [
             {
               title: contains,
             },
@@ -132,25 +125,35 @@ export class SearchService {
             },
           ],
         },
-        select:{
-          id:true,
-          title:true,
-          content:true,
+        select: {
+          id: true,
+          title: true,
+          content: true,
         },
-        take:10,
+        take: 10,
       }),
-
     ]);
 
-
     return {
-      users,
-      communities,
-      neighbourhoods,
-      events,
-      posts,
+      users: this.intelligence.rank(users, (item) =>
+        this.intelligence.scoreText(item.displayName, term),
+      ),
+
+      communities: this.intelligence.rank(communities, (item) =>
+        this.intelligence.scoreText(item.name, term),
+      ),
+
+      neighbourhoods: this.intelligence.rank(neighbourhoods, (item) =>
+        this.intelligence.scoreText(item.name, term),
+      ),
+
+      events: this.intelligence.rank(events, (item) =>
+        this.intelligence.scoreText(item.title, term),
+      ),
+
+      posts: this.intelligence.rank(posts, (item) =>
+        this.intelligence.scoreText(item.title ?? item.content, term),
+      ),
     };
-
   }
-
 }

@@ -80,8 +80,5 @@ test('Neighbour profile journey: create identity → view profile → update pro
 
   const updatedProfile = await updateResponse.json();
 
-  assert.equal(
-    updatedProfile.bio,
-    'My updated Neighbour identity',
-  );
+  assert.equal(updatedProfile.bio, 'My updated Neighbour identity');
 });

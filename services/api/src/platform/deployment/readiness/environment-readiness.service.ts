@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class EnvironmentReadinessService {
-
-
-  check(
-    environment: string,
-  ) {
-
+  check(environment: string) {
     return {
-
       environment,
 
-      ready:
-        environment === 'READY',
+      ready: environment === 'READY',
 
       checkedAt: new Date(),
-
     };
-
   }
-
-
 }

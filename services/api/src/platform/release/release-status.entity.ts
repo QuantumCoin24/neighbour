@@ -1,5 +1,4 @@
 export interface ReleaseStatusEntity {
-
   build: string;
 
   tests: string;
@@ -9,5 +8,4 @@ export interface ReleaseStatusEntity {
   launch: string;
 
   status: string;
-
 }

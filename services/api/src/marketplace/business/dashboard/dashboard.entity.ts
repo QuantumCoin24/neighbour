@@ -1,11 +1,9 @@
 export interface BusinessDashboardEntity {
+  business: any;
 
-  business:any;
+  verification: any;
 
-  verification:any;
+  offers: any[];
 
-  offers:any[];
-
-  events:any[];
-
+  events: any[];
 }

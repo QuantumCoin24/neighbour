@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-
 export type IntegrationEvent =
   | {
       type: 'integration.connected';
@@ -15,31 +14,17 @@ export type IntegrationEvent =
       webhookId: string;
     };
 
-
 @Injectable()
 export class IntegrationEventBusService {
+  private listeners: ((event: IntegrationEvent) => void)[] = [];
 
-  private listeners:
-    ((event: IntegrationEvent) => void)[] = [];
-
-
-  subscribe(
-    listener: (event: IntegrationEvent) => void,
-  ) {
-
+  subscribe(listener: (event: IntegrationEvent) => void) {
     this.listeners.push(listener);
-
   }
 
-
-  publish(
-    event: IntegrationEvent,
-  ) {
-
+  publish(event: IntegrationEvent) {
     for (const listener of this.listeners) {
       listener(event);
     }
-
   }
-
 }

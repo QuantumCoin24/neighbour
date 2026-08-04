@@ -6,12 +6,8 @@ import type { NeighbourhoodEntity } from '../neighbourhood.entity';
 import { NeighbourhoodRepository } from '../neighbourhood.repository';
 
 @Injectable()
-export class PrismaNeighbourhoodRepository
-  implements NeighbourhoodRepository
-{
-  constructor(
-    private readonly database: DatabaseService,
-  ) {}
+export class PrismaNeighbourhoodRepository implements NeighbourhoodRepository {
+  constructor(private readonly database: DatabaseService) {}
 
   private map(record: any): NeighbourhoodEntity {
     return {
@@ -24,9 +20,7 @@ export class PrismaNeighbourhoodRepository
     };
   }
 
-  async save(
-    neighbourhood: NeighbourhoodEntity,
-  ): Promise<NeighbourhoodEntity> {
+  async save(neighbourhood: NeighbourhoodEntity): Promise<NeighbourhoodEntity> {
     const record = await this.database.neighbourhood.create({
       data: {
         id: neighbourhood.id,
@@ -39,9 +33,7 @@ export class PrismaNeighbourhoodRepository
     return this.map(record);
   }
 
-  async findById(
-    id: string,
-  ): Promise<NeighbourhoodEntity | undefined> {
+  async findById(id: string): Promise<NeighbourhoodEntity | undefined> {
     const record = await this.database.neighbourhood.findUnique({
       where: { id },
     });
@@ -59,9 +51,7 @@ export class PrismaNeighbourhoodRepository
     return records.map((record) => this.map(record));
   }
 
-  async update(
-    neighbourhood: NeighbourhoodEntity,
-  ): Promise<NeighbourhoodEntity> {
+  async update(neighbourhood: NeighbourhoodEntity): Promise<NeighbourhoodEntity> {
     const record = await this.database.neighbourhood.update({
       where: {
         id: neighbourhood.id,

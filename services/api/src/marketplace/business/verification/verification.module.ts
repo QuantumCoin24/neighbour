@@ -8,31 +8,20 @@ import { VerificationService } from './verification.service';
 import { VerificationRepository } from './verification.repository';
 import { PrismaVerificationRepository } from './prisma-verification.repository';
 
-
 @Module({
+  imports: [DatabaseModule],
 
-  imports:[
-    DatabaseModule,
-  ],
+  controllers: [VerificationController],
 
-  controllers:[
-    VerificationController,
-  ],
-
-  providers:[
-
+  providers: [
     VerificationService,
 
     {
-      provide:VerificationRepository,
-      useClass:PrismaVerificationRepository,
+      provide: VerificationRepository,
+      useClass: PrismaVerificationRepository,
     },
-
   ],
 
-  exports:[
-    VerificationService,
-  ],
-
+  exports: [VerificationService],
 })
 export class VerificationModule {}

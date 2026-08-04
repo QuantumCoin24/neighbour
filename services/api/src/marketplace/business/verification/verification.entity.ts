@@ -1,17 +1,15 @@
 export interface VerificationEntity {
+  id: string;
 
-  id:string;
+  businessId: string;
 
-  businessId:string;
+  status: string;
 
-  status:string;
+  notes?: string | null;
 
-  notes?:string | null;
+  submittedAt: Date;
 
-  submittedAt:Date;
+  reviewedAt?: Date | null;
 
-  reviewedAt?:Date | null;
-
-  reviewerId?:string | null;
-
+  reviewerId?: string | null;
 }

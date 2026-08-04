@@ -8,6 +8,12 @@ export type IntelligenceEvent =
   | {
       type: 'preference.changed';
       userId: string;
+    }
+  | {
+      type: 'activity.recorded';
+      userId: string;
+      activityType: string;
+      entityId?: string;
     };
 
 @Injectable()

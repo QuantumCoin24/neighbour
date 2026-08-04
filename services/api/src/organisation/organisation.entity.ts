@@ -1,17 +1,15 @@
 export interface OrganisationEntity {
+  id: string;
 
-id:string;
+  ownerId: string;
 
-ownerId:string;
+  name: string;
 
-name:string;
+  description: string;
 
-description:string;
+  type: string;
 
-type:string;
+  verified: boolean;
 
-verified:boolean;
-
-createdAt:Date;
-
+  createdAt: Date;
 }

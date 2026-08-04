@@ -1,13 +1,11 @@
 export interface OrganisationMemberEntity {
+  id: string;
 
-id:string;
+  organisationId: string;
 
-organisationId:string;
+  userId: string;
 
-userId:string;
+  role: string;
 
-role:string;
-
-createdAt:Date;
-
+  createdAt: Date;
 }

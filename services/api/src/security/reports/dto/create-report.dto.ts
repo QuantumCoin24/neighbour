@@ -9,7 +9,6 @@ export enum ReportTargetType {
 }
 
 export class CreateReportDto {
-
   @IsEnum(ReportTargetType)
   targetType: ReportTargetType;
 
@@ -22,5 +21,4 @@ export class CreateReportDto {
   @IsOptional()
   @IsString()
   description?: string;
-
 }

@@ -1,5 +1,4 @@
 export interface DeploymentStatusEntity {
-
   environment: string;
 
   configuration: string;
@@ -9,5 +8,4 @@ export interface DeploymentStatusEntity {
   deployment: string;
 
   status: string;
-
 }

@@ -1,11 +1,9 @@
 export interface OrganisationBusinessEntity {
+  id: string;
 
-id:string;
+  organisationId: string;
 
-organisationId:string;
+  businessId: string;
 
-businessId:string;
-
-createdAt:Date;
-
+  createdAt: Date;
 }

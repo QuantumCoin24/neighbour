@@ -1,5 +1,4 @@
 export interface TrustStatusEntity {
-
   domain: string;
 
   identity: string;
@@ -9,5 +8,4 @@ export interface TrustStatusEntity {
   safety: string;
 
   status: string;
-
 }

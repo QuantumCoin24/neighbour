@@ -4,40 +4,22 @@ import { describe, it } from 'node:test';
 
 import { OperationalReadinessService } from '../../../../src/platform/operations/readiness/operational-readiness.service';
 
-
 describe('OperationalReadinessService', () => {
-
-
   it('marks ready operations as available', () => {
+    const service = new OperationalReadinessService();
 
+    const result = service.evaluate({
+      domain: 'platform',
 
-    const service =
-      new OperationalReadinessService();
+      health: 'READY',
 
+      metrics: 'READY',
 
-    const result =
-      service.evaluate({
+      alerts: 'READY',
 
-        domain: 'platform',
+      status: 'READY',
+    });
 
-        health: 'READY',
-
-        metrics: 'READY',
-
-        alerts: 'READY',
-
-        status: 'READY',
-
-      });
-
-
-    assert.equal(
-      result.ready,
-      true,
-    );
-
-
+    assert.equal(result.ready, true);
   });
-
-
 });

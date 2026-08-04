@@ -5,162 +5,87 @@ import { DatabaseService } from '../../../database/database.service';
 import type { BusinessEventEntity } from './event.entity';
 import { BusinessEventRepository } from './event.repository';
 
-
 @Injectable()
 export class PrismaBusinessEventRepository extends BusinessEventRepository {
+  constructor(private readonly database: DatabaseService) {
+    super();
+  }
 
+  private map(record: any): BusinessEventEntity {
+    return {
+      id: record.id,
 
-constructor(
-private readonly database:DatabaseService,
-){
-super();
-}
+      businessId: record.businessId,
 
+      title: record.title,
 
+      description: record.description,
 
-private map(
-record:any
-):BusinessEventEntity {
+      startsAt: record.startsAt,
 
-return {
+      endsAt: record.endsAt,
 
-id:record.id,
+      createdAt: record.createdAt,
+    };
+  }
 
-businessId:record.businessId,
+  async save(event: BusinessEventEntity): Promise<BusinessEventEntity> {
+    const record = await this.database.businessEvent.create({
+      data: {
+        id: event.id,
 
-title:record.title,
+        businessId: event.businessId,
 
-description:record.description,
+        title: event.title,
 
-startsAt:record.startsAt,
+        description: event.description,
 
-endsAt:record.endsAt,
+        startsAt: event.startsAt,
 
-createdAt:record.createdAt,
+        endsAt: event.endsAt,
+      },
+    });
 
-};
+    return this.map(record);
+  }
 
-}
+  async findById(id: string): Promise<BusinessEventEntity | undefined> {
+    const record = await this.database.businessEvent.findUnique({
+      where: {
+        id,
+      },
+    });
 
+    return record ? this.map(record) : undefined;
+  }
 
+  async findByBusiness(businessId: string): Promise<BusinessEventEntity[]> {
+    const records = await this.database.businessEvent.findMany({
+      where: {
+        businessId,
+      },
 
+      orderBy: {
+        startsAt: 'asc',
+      },
+    });
 
-async save(
-event:BusinessEventEntity
-):Promise<BusinessEventEntity>{
+    return records.map((record) => this.map(record));
+  }
 
+  async findUpcoming(): Promise<BusinessEventEntity[]> {
+    const records = await this.database.businessEvent.findMany({
+      where: {
+        startsAt: {
+          gte: new Date(),
+        },
+      },
 
-const record =
-await this.database.businessEvent.create({
+      orderBy: {
+        startsAt: 'asc',
+      },
+    });
 
-data:{
-
-id:event.id,
-
-businessId:event.businessId,
-
-title:event.title,
-
-description:event.description,
-
-startsAt:event.startsAt,
-
-endsAt:event.endsAt,
-
-},
-
-});
-
-
-return this.map(record);
-
-}
-
-
-
-
-async findById(
-id:string
-):Promise<BusinessEventEntity|undefined>{
-
-
-const record =
-await this.database.businessEvent.findUnique({
-
-where:{
-id,
-},
-
-});
-
-
-return record
-?
-this.map(record)
-:
-undefined;
-
-}
-
-
-
-
-async findByBusiness(
-businessId:string
-):Promise<BusinessEventEntity[]>{
-
-
-const records =
-await this.database.businessEvent.findMany({
-
-where:{
-businessId,
-},
-
-orderBy:{
-startsAt:"asc",
-},
-
-});
-
-
-return records.map(
-record=>this.map(record),
-);
-
-}
-
-
-
-
-async findUpcoming(
-):Promise<BusinessEventEntity[]>{
-
-
-const records =
-await this.database.businessEvent.findMany({
-
-where:{
-
-startsAt:{
-gte:new Date(),
-},
-
-},
-
-orderBy:{
-startsAt:"asc",
-},
-
-});
-
-
-return records.map(
-record=>this.map(record),
-);
-
-
-}
-
-
+    return records.map((record) => this.map(record));
+  }
 }

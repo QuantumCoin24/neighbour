@@ -1,19 +1,17 @@
 export interface OfferEntity {
+  id: string;
 
-  id:string;
+  businessId: string;
 
-  businessId:string;
+  title: string;
 
-  title:string;
+  description: string;
 
-  description:string;
+  active: boolean;
 
-  active:boolean;
+  startsAt: Date | null;
 
-  startsAt:Date|null;
+  endsAt: Date | null;
 
-  endsAt:Date|null;
-
-  createdAt:Date;
-
+  createdAt: Date;
 }

@@ -1,48 +1,31 @@
-import { apiRequest } from "./index";
-
+import { apiRequest } from './index';
 
 export interface BusinessVerification {
+  id: string;
 
-id:string;
+  businessId: string;
 
-businessId:string;
+  status: string;
 
-status:string;
+  notes: string | null;
 
-notes:string|null;
+  submittedAt: string;
 
-submittedAt:string;
-
-reviewedAt:string|null;
-
+  reviewedAt: string | null;
 }
-
 
 export function submitBusinessVerification(
-businessId:string,
-data:{
-notes?:string;
-},
-){
-
-return apiRequest<BusinessVerification>(
-`/businesses/${businessId}/verification`,
-{
-method:"POST",
-body:JSON.stringify(data),
-},
-);
-
+  businessId: string,
+  data: {
+    notes?: string;
+  },
+) {
+  return apiRequest<BusinessVerification>(`/businesses/${businessId}/verification`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
-
-
-export function getBusinessVerification(
-businessId:string,
-){
-
-return apiRequest<BusinessVerification | null>(
-`/businesses/${businessId}/verification`,
-);
-
+export function getBusinessVerification(businessId: string) {
+  return apiRequest<BusinessVerification | null>(`/businesses/${businessId}/verification`);
 }

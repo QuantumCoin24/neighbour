@@ -1,17 +1,15 @@
 export interface BusinessEventEntity {
+  id: string;
 
-  id:string;
+  businessId: string;
 
-  businessId:string;
+  title: string;
 
-  title:string;
+  description: string;
 
-  description:string;
+  startsAt: Date;
 
-  startsAt:Date;
+  endsAt: Date;
 
-  endsAt:Date;
-
-  createdAt:Date;
-
+  createdAt: Date;
 }

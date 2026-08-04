@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class PermissionReviewService {
-
-
-  review(
-    permission: string,
-  ) {
-
+  review(permission: string) {
     return {
-
       permission,
 
-      valid:
-        permission === 'VALID',
+      valid: permission === 'VALID',
 
       reviewedAt: new Date(),
-
     };
-
   }
-
-
 }

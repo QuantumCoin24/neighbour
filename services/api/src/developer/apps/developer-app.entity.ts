@@ -2,8 +2,6 @@ export interface DeveloperAppEntity {
   id: string;
   ownerId: string;
   name: string;
-  status:
-    | 'active'
-    | 'disabled';
+  status: 'active' | 'disabled';
   createdAt: Date;
 }

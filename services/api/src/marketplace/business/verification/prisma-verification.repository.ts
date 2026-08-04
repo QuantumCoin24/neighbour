@@ -6,118 +6,57 @@ import type { VerificationEntity } from './verification.entity';
 
 import { VerificationRepository } from './verification.repository';
 
-
 @Injectable()
-export class PrismaVerificationRepository
-extends VerificationRepository {
+export class PrismaVerificationRepository extends VerificationRepository {
+  constructor(private readonly database: DatabaseService) {
+    super();
+  }
 
+  private map(verification: any): VerificationEntity {
+    return {
+      id: verification.id,
 
-constructor(
-private readonly database:DatabaseService,
-){
-super();
-}
+      businessId: verification.businessId,
 
+      status: verification.status,
 
+      notes: verification.notes,
 
-private map(
-verification:any,
-):VerificationEntity {
+      submittedAt: verification.submittedAt,
 
+      reviewedAt: verification.reviewedAt,
 
-return {
+      reviewerId: verification.reviewerId,
+    };
+  }
 
-id:
-verification.id,
+  async save(verification: VerificationEntity): Promise<VerificationEntity> {
+    const record = await this.database.businessVerification.create({
+      data: {
+        id: verification.id,
 
-businessId:
-verification.businessId,
+        businessId: verification.businessId,
 
-status:
-verification.status,
+        status: verification.status as any,
 
-notes:
-verification.notes,
+        notes: verification.notes ?? null,
 
-submittedAt:
-verification.submittedAt,
+        reviewedAt: verification.reviewedAt ?? null,
 
-reviewedAt:
-verification.reviewedAt,
+        reviewerId: verification.reviewerId ?? null,
+      },
+    });
 
-reviewerId:
-verification.reviewerId,
+    return this.map(record);
+  }
 
-};
+  async findByBusiness(businessId: string): Promise<VerificationEntity | undefined> {
+    const record = await this.database.businessVerification.findUnique({
+      where: {
+        businessId,
+      },
+    });
 
-}
-
-
-
-
-async save(
-verification:VerificationEntity,
-):Promise<VerificationEntity>{
-
-
-const record =
-await this.database.businessVerification.create({
-
-data:{
-
-id:
-verification.id,
-
-businessId:
-verification.businessId,
-
-status:
-verification.status as any,
-
-notes:
-verification.notes ?? null,
-
-reviewedAt:
-verification.reviewedAt ?? null,
-
-reviewerId:
-verification.reviewerId ?? null,
-
-},
-
-});
-
-
-return this.map(record);
-
-}
-
-
-
-
-async findByBusiness(
-businessId:string,
-):Promise<VerificationEntity|undefined>{
-
-
-const record =
-await this.database.businessVerification.findUnique({
-
-where:{
-businessId,
-},
-
-});
-
-
-return record
-?
-this.map(record)
-:
-undefined;
-
-
-}
-
-
+    return record ? this.map(record) : undefined;
+  }
 }

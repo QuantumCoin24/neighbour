@@ -1,11 +1,9 @@
 export interface OrganisationPermissionEntity {
+  id: string;
 
-id:string;
+  roleId: string;
 
-roleId:string;
+  name: string;
 
-name:string;
-
-createdAt:Date;
-
+  createdAt: Date;
 }

@@ -1,26 +1,15 @@
-import { apiRequest } from "./index";
-
+import { apiRequest } from './index';
 
 export interface BusinessDashboard {
+  business: any;
 
-  business:any;
+  verification: any;
 
-  verification:any;
+  offers: any[];
 
-  offers:any[];
-
-  events:any[];
-
+  events: any[];
 }
 
-
-
-export function getBusinessDashboard(
-businessId:string,
-){
-
-return apiRequest<BusinessDashboard>(
-`/businesses/${businessId}/dashboard`,
-);
-
+export function getBusinessDashboard(businessId: string) {
+  return apiRequest<BusinessDashboard>(`/businesses/${businessId}/dashboard`);
 }

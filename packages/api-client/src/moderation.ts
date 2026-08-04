@@ -1,177 +1,118 @@
-import { apiRequest } from "./index";
-
+import { apiRequest } from './index';
 
 export interface ModerationReporter {
+  id: string;
 
-  id:string;
+  displayName: string;
 
-  displayName:string;
+  email: string;
 
-  email:string;
-
-  role:string;
-
+  role: string;
 }
-
 
 export interface ModerationAction {
+  id: string;
 
-  id:string;
+  action: string;
 
-  action:string;
+  notes: string | null;
 
-  notes:string|null;
+  createdAt: string;
 
-  createdAt:string;
-
-  moderator?:{
-    id:string;
-    displayName:string;
+  moderator?: {
+    id: string;
+    displayName: string;
   };
-
 }
-
 
 export interface ModerationReport {
+  id: string;
 
-  id:string;
+  targetType: string;
 
-  targetType:string;
+  targetId: string;
 
-  targetId:string;
+  reason: string;
 
-  reason:string;
+  description: string | null;
 
-  description:string|null;
+  status: string;
 
-  status:string;
+  createdAt: string;
 
-  createdAt:string;
+  updatedAt: string;
 
-  updatedAt:string;
+  reporter?: ModerationReporter;
 
-  reporter?:ModerationReporter;
+  evidence?: any;
 
-  evidence?:any;
-
-  actions?:ModerationAction[];
-
+  actions?: ModerationAction[];
 }
-
 
 export function getModerationReports(
-token:string,
-filters?:{
-status?:string;
-targetType?:string;
-search?:string;
-},
-){
+  token: string,
+  filters?: {
+    status?: string;
+    targetType?: string;
+    search?: string;
+  },
+) {
+  const params = new URLSearchParams();
 
-const params =
-new URLSearchParams();
+  if (filters?.status) {
+    params.set('status', filters.status);
+  }
 
+  if (filters?.targetType) {
+    params.set('targetType', filters.targetType);
+  }
 
-if(filters?.status){
-params.set(
-"status",
-filters.status,
-);
+  if (filters?.search) {
+    params.set('search', filters.search);
+  }
+
+  const query = params.toString() ? `?${params.toString()}` : '';
+
+  return apiRequest<ModerationReport[]>(`/security/moderation/reports${query}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
-
-
-if(filters?.targetType){
-params.set(
-"targetType",
-filters.targetType,
-);
-}
-
-
-if(filters?.search){
-params.set(
-"search",
-filters.search,
-);
-}
-
-
-
-const query =
-params.toString()
-?
-`?${params.toString()}`
-:
-"";
-
-
-return apiRequest<ModerationReport[]>(
-`/security/moderation/reports${query}`,
-{
-headers:{
-Authorization:`Bearer ${token}`,
-},
-},
-);
-
-}
-
-
 
 export function updateModerationReport(
-token:string,
-id:string,
-data:{
-status:string;
-notes?:string;
-},
-){
+  token: string,
+  id: string,
+  data: {
+    status: string;
+    notes?: string;
+  },
+) {
+  return apiRequest(`/security/moderation/reports/${id}`, {
+    method: 'PATCH',
 
-return apiRequest(
-`/security/moderation/reports/${id}`,
-{
-method:"PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
 
-headers:{
-Authorization:`Bearer ${token}`,
-},
-
-body:JSON.stringify(data),
-
-},
-);
-
+    body: JSON.stringify(data),
+  });
 }
-
-
-
 
 export interface ModerationStats {
+  pending: number;
 
-  pending:number;
+  underReview: number;
 
-  underReview:number;
+  resolved: number;
 
-  resolved:number;
-
-  dismissed:number;
-
+  dismissed: number;
 }
 
-
-
-export function getModerationStats(
-token:string,
-){
-
-return apiRequest<ModerationStats>(
-"/security/moderation/stats",
-{
-headers:{
-Authorization:`Bearer ${token}`,
-},
-},
-);
-
+export function getModerationStats(token: string) {
+  return apiRequest<ModerationStats>('/security/moderation/stats', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
-

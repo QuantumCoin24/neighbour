@@ -1,524 +1,268 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import {
-  getBusinessDashboard,
-  getMyBusiness,
-  getBusinessAnalytics,
-} from "@neighbour/api-client";
+import { getBusinessDashboard, getMyBusiness, getBusinessAnalytics } from '@neighbour/api-client';
 
+export default function BusinessDashboardPage() {
+  const [dashboard, setDashboard] = useState<any>(null);
 
-export default function BusinessDashboardPage(){
+  const [analytics, setAnalytics] = useState<any>(null);
 
+  const [loading, setLoading] = useState(true);
 
-const [dashboard,setDashboard] = useState<any>(null);
+  useEffect(() => {
+    async function load() {
+      try {
+        const business = await getMyBusiness();
 
-const [analytics,setAnalytics] = useState<any>(null);
+        if (!business) {
+          setDashboard(null);
 
-const [loading,setLoading] = useState(true);
+          return;
+        }
 
+        const data = await getBusinessDashboard(business.id);
 
+        const analyticsData = await getBusinessAnalytics(business.id);
 
-useEffect(()=>{
+        setDashboard(data);
 
-async function load(){
+        setAnalytics(analyticsData);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-try{
+    load();
+  }, []);
 
-const business =
-await getMyBusiness();
+  if (loading) {
+    return (
+      <main style={page}>
+        <h1>Neighbour™ Business Centre</h1>
 
+        <p>Loading your business dashboard...</p>
+      </main>
+    );
+  }
 
-if(!business){
+  const business = dashboard?.business;
 
-setDashboard(null);
+  const verification = dashboard?.verification;
 
-return;
+  return (
+    <main style={page}>
+      <header style={hero}>
+        <h1>Neighbour™ Business Centre</h1>
 
+        <p>Manage your local business presence and connect with your community.</p>
+      </header>
+
+      <section style={businessCard}>
+        <div>
+          <h2>{business?.name ?? 'Your Business'}</h2>
+
+          <p>{business?.category ?? 'Business Category'}</p>
+        </div>
+
+        <div style={badge}>
+          🟢
+          {verification?.status ?? 'Pending'}
+        </div>
+      </section>
+
+      <section style={grid}>
+        <DashboardCard
+          title="Offers"
+
+          value={dashboard?.offers?.length ?? 0}
+
+          label="Active Offers"
+        />
+
+        <DashboardCard
+          title="Events"
+
+          value={dashboard?.events?.length ?? 0}
+
+          label="Upcoming Events"
+        />
+
+        <DashboardCard
+          title="Verification"
+
+          value={verification?.status ?? 'Pending'}
+
+          label="Business Trust"
+        />
+      </section>
+
+      <section style={grid}>
+        <DashboardCard
+          title="Profile Views"
+
+          value={analytics?.profileViews ?? 0}
+
+          label="People viewing your business"
+        />
+
+        <DashboardCard
+          title="Offer Views"
+
+          value={analytics?.offerViews ?? 0}
+
+          label="Offer engagement"
+        />
+
+        <DashboardCard
+          title="Event Views"
+
+          value={analytics?.eventViews ?? 0}
+
+          label="Event engagement"
+        />
+
+        <DashboardCard
+          title="Total Reach"
+
+          value={analytics?.totalReach ?? 0}
+
+          label="Community activity"
+        />
+      </section>
+
+      <section style={actions}>
+        <h2>Quick Actions</h2>
+
+        <div>
+          <button style={primary}>Create Offer</button>
+
+          <button style={secondary}>Create Event</button>
+
+          <button style={secondary}>Edit Profile</button>
+        </div>
+      </section>
+    </main>
+  );
 }
 
+function DashboardCard({ title, value, label }: { title: string; value: any; label: string }) {
+  return (
+    <div style={card}>
+      <h3>{title}</h3>
 
-const data =
-await getBusinessDashboard(
-business.id
-);
+      <strong>{value}</strong>
 
-
-const analyticsData =
-await getBusinessAnalytics(
-business.id
-);
-
-
-setDashboard(data);
-
-setAnalytics(
-analyticsData
-);
-
-}
-catch(error){
-
-console.error(error);
-
-}
-finally{
-
-setLoading(false);
-
+      <p>{label}</p>
+    </div>
+  );
 }
 
-}
+const page = {
+  padding: '40px',
 
-load();
+  maxWidth: '1100px',
 
-},[]);
-
-
-
-if(loading){
-
-return (
-
-<main style={page}>
-
-<h1>
-Neighbour™ Business Centre
-</h1>
-
-<p>
-Loading your business dashboard...
-</p>
-
-</main>
-
-);
-
-}
-
-
-
-const business =
-dashboard?.business;
-
-
-const verification =
-dashboard?.verification;
-
-
-
-return (
-
-<main style={page}>
-
-
-<header style={hero}>
-
-<h1>
-Neighbour™ Business Centre
-</h1>
-
-<p>
-Manage your local business presence and connect with your community.
-</p>
-
-</header>
-
-
-
-<section style={businessCard}>
-
-
-<div>
-
-<h2>
-{
-business?.name ??
-"Your Business"
-}
-</h2>
-
-
-<p>
-{
-business?.category ??
-"Business Category"
-}
-</p>
-
-
-</div>
-
-
-
-<div style={badge}>
-
-🟢
-
-{
-verification?.status ??
-"Pending"
-}
-
-</div>
-
-
-</section>
-
-
-
-
-
-<section style={grid}>
-
-
-<DashboardCard
-
-title="Offers"
-
-value={
-dashboard?.offers?.length ?? 0
-}
-
-label="Active Offers"
-
-/>
-
-
-
-<DashboardCard
-
-title="Events"
-
-value={
-dashboard?.events?.length ?? 0
-}
-
-label="Upcoming Events"
-
-/>
-
-
-
-<DashboardCard
-
-title="Verification"
-
-value={
-verification?.status ??
-"Pending"
-}
-
-label="Business Trust"
-
-/>
-
-
-
-</section>
-
-
-
-
-
-<section style={grid}>
-
-
-<DashboardCard
-
-title="Profile Views"
-
-value={
-analytics?.profileViews ?? 0
-}
-
-label="People viewing your business"
-
-/>
-
-
-
-<DashboardCard
-
-title="Offer Views"
-
-value={
-analytics?.offerViews ?? 0
-}
-
-label="Offer engagement"
-
-/>
-
-
-
-<DashboardCard
-
-title="Event Views"
-
-value={
-analytics?.eventViews ?? 0
-}
-
-label="Event engagement"
-
-/>
-
-
-
-<DashboardCard
-
-title="Total Reach"
-
-value={
-analytics?.totalReach ?? 0
-}
-
-label="Community activity"
-
-/>
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<section style={actions}>
-
-
-<h2>
-Quick Actions
-</h2>
-
-
-<div>
-
-<button style={primary}>
-Create Offer
-</button>
-
-
-<button style={secondary}>
-Create Event
-</button>
-
-
-<button style={secondary}>
-Edit Profile
-</button>
-
-
-</div>
-
-
-</section>
-
-
-
-
-</main>
-
-);
-
-}
-
-
-
-
-
-function DashboardCard({
-
-title,
-value,
-label,
-
-}:{
-
-title:string;
-value:any;
-label:string;
-
-}){
-
-
-return (
-
-<div style={card}>
-
-<h3>
-{title}
-</h3>
-
-
-<strong>
-{value}
-</strong>
-
-
-<p>
-{label}
-</p>
-
-
-</div>
-
-);
-
-}
-
-
-
-
-
-const page={
-
-padding:"40px",
-
-maxWidth:"1100px",
-
-margin:"auto",
-
+  margin: 'auto',
 };
 
+const hero = {
+  background: 'linear-gradient(135deg,#08111F,#18283F)',
 
+  color: '#fff',
 
-const hero={
+  padding: '35px',
 
-background:
-"linear-gradient(135deg,#08111F,#18283F)",
-
-color:"#fff",
-
-padding:"35px",
-
-borderRadius:"24px",
-
+  borderRadius: '24px',
 };
 
+const businessCard = {
+  marginTop: '25px',
 
+  padding: '30px',
 
-const businessCard={
+  borderRadius: '22px',
 
-marginTop:"25px",
+  background: '#fff',
 
-padding:"30px",
+  display: 'flex',
 
-borderRadius:"22px",
+  justifyContent: 'space-between',
 
-background:"#fff",
+  alignItems: 'center',
 
-display:"flex",
-
-justifyContent:"space-between",
-
-alignItems:"center",
-
-boxShadow:"0 10px 30px rgba(0,0,0,.08)",
-
+  boxShadow: '0 10px 30px rgba(0,0,0,.08)',
 };
 
+const badge = {
+  background: '#E8F7E8',
 
+  padding: '12px 18px',
 
-const badge={
+  borderRadius: '30px',
 
-background:"#E8F7E8",
-
-padding:"12px 18px",
-
-borderRadius:"30px",
-
-fontWeight:700,
-
+  fontWeight: 700,
 };
 
+const grid = {
+  display: 'grid',
 
+  gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))',
 
-const grid={
+  gap: '20px',
 
-display:"grid",
-
-gridTemplateColumns:
-"repeat(auto-fit,minmax(220px,1fr))",
-
-gap:"20px",
-
-marginTop:"25px",
-
+  marginTop: '25px',
 };
 
+const card = {
+  background: '#fff',
 
+  padding: '25px',
 
-const card={
+  borderRadius: '20px',
 
-background:"#fff",
-
-padding:"25px",
-
-borderRadius:"20px",
-
-boxShadow:
-"0 10px 30px rgba(0,0,0,.08)",
-
+  boxShadow: '0 10px 30px rgba(0,0,0,.08)',
 };
 
+const actions = {
+  marginTop: '30px',
 
+  background: '#fff',
 
-const actions={
+  padding: '30px',
 
-marginTop:"30px",
+  borderRadius: '22px',
 
-background:"#fff",
-
-padding:"30px",
-
-borderRadius:"22px",
-
-boxShadow:
-"0 10px 30px rgba(0,0,0,.08)",
-
+  boxShadow: '0 10px 30px rgba(0,0,0,.08)',
 };
 
+const primary = {
+  background: '#08111F',
 
+  color: '#fff',
 
-const primary={
+  padding: '14px 22px',
 
-background:"#08111F",
+  borderRadius: '14px',
 
-color:"#fff",
+  border: 'none',
 
-padding:"14px 22px",
-
-borderRadius:"14px",
-
-border:"none",
-
-marginRight:"12px",
-
+  marginRight: '12px',
 };
 
+const secondary = {
+  background: '#D6A84F',
 
+  color: '#08111F',
 
-const secondary={
+  padding: '14px 22px',
 
-background:"#D6A84F",
+  borderRadius: '14px',
 
-color:"#08111F",
+  border: 'none',
 
-padding:"14px 22px",
-
-borderRadius:"14px",
-
-border:"none",
-
-marginRight:"12px",
-
+  marginRight: '12px',
 };
-
-

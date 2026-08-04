@@ -1,163 +1,83 @@
-"use client";
+'use client';
 
-import {
-  useEffect,
-  useState
-} from "react";
+import { useEffect, useState } from 'react';
 
-import {
-  useParams
-} from "next/navigation";
+import { useParams } from 'next/navigation';
 
-import ReportButton from "../../../../components/security/ReportButton";
+import ReportButton from '../../../../components/security/ReportButton';
 
-import {
-  getCommunity,
-  getCommunityEvents,
-  type EventItem
-} from "@neighbour/api-client";
+import { getCommunity, getCommunityEvents, type EventItem } from '@neighbour/api-client';
 
-
-export default function EventsPage(){
-
+export default function EventsPage() {
   const params = useParams();
 
-  const slug =
-    params.slug as string;
+  const slug = params.slug as string;
 
+  const [events, setEvents] = useState<EventItem[]>([]);
 
-  const [events,setEvents] =
-    useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  async function load() {
+    const token = localStorage.getItem('accessToken');
 
-  const [loading,setLoading] =
-    useState(true);
+    if (!token) return;
 
+    const community = await getCommunity(token, slug);
 
-
-  async function load(){
-
-    const token =
-      localStorage.getItem("accessToken");
-
-    if(!token)return;
-
-
-    const community =
-      await getCommunity(
-        token,
-        slug
-      );
-
-
-    const result =
-      await getCommunityEvents(
-        community.id
-      );
-
+    const result = await getCommunityEvents(community.id);
 
     setEvents(result);
 
     setLoading(false);
-
   }
 
-
-
-  useEffect(()=>{
-
+  useEffect(() => {
     load();
+  }, []);
 
-  },[]);
-
-
-
-  if(loading){
-
-    return (
-      <main style={{padding:"40px"}}>
-        Loading events...
-      </main>
-    );
-
+  if (loading) {
+    return <main style={{ padding: '40px' }}>Loading events...</main>;
   }
-
-
 
   return (
-
     <main
       style={{
-        padding:"40px",
-        maxWidth:"800px",
-        margin:"auto"
+        padding: '40px',
+        maxWidth: '800px',
+        margin: 'auto',
       }}
     >
+      <h1>Community Events</h1>
 
-      <h1>
-        Community Events
-      </h1>
-
-
-      {
-        events.length === 0 ?
-
-        (
-          <p>
-            No events scheduled.
-          </p>
-        )
-
-        :
-
-        events.map(event=>(
-
+      {events.length === 0 ? (
+        <p>No events scheduled.</p>
+      ) : (
+        events.map((event) => (
           <section
             key={event.id}
             style={{
-              padding:"20px",
-              marginTop:"15px",
-              background:"#fff",
-              borderRadius:"20px"
+              padding: '20px',
+              marginTop: '15px',
+              background: '#fff',
+              borderRadius: '20px',
             }}
           >
+            <h3>{event.title}</h3>
 
-            <h3>
-              {event.title}
-            </h3>
+            <p>{event.description}</p>
 
-            <p>
-              {event.description}
-            </p>
-
-            <small>
-              {new Date(event.startsAt).toLocaleString()}
-            </small>
-
+            <small>{new Date(event.startsAt).toLocaleString()}</small>
 
             <div
               style={{
-                marginTop:"15px"
+                marginTop: '15px',
               }}
             >
-
-              <ReportButton
-                targetType="EVENT"
-                targetId={event.id}
-              />
-
+              <ReportButton targetType="EVENT" targetId={event.id} />
             </div>
-
-
           </section>
-
         ))
-
-      }
-
-
+      )}
     </main>
-
   );
-
 }

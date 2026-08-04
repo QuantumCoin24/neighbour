@@ -1,5 +1,4 @@
 export interface ProductionDataStatusEntity {
-
   domain: string;
 
   schema: string;
@@ -9,5 +8,4 @@ export interface ProductionDataStatusEntity {
   backups: string;
 
   status: string;
-
 }

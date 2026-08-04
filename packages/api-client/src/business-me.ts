@@ -1,12 +1,7 @@
-import { apiRequest } from "./index";
+import { apiRequest } from './index';
 
-import type { Business } from "./business";
+import type { Business } from './business';
 
-
-export function getMyBusiness(){
-
-return apiRequest<Business | null>(
-"/businesses/me",
-);
-
+export function getMyBusiness() {
+  return apiRequest<Business | null>('/businesses/me');
 }

@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class BuildVerificationService {
-
-
-  check(
-    build: string,
-  ) {
-
+  check(build: string) {
     return {
-
       build,
 
-      passed:
-        build === 'PASS',
+      passed: build === 'PASS',
 
       checkedAt: new Date(),
-
     };
-
   }
-
-
 }

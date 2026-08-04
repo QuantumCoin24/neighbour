@@ -1,122 +1,63 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import {
-  getConversations,
-  type Conversation,
-} from "@neighbour/api-client";
+import { getConversations, type Conversation } from '@neighbour/api-client';
 
+export default function MessagesPage() {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
-export default function MessagesPage(){
+  const [loading, setLoading] = useState(true);
 
-  const [conversations,setConversations] =
-    useState<Conversation[]>([]);
+  async function load() {
+    const token = localStorage.getItem('accessToken');
 
-  const [loading,setLoading] =
-    useState(true);
+    if (!token) return;
 
-
-  async function load(){
-
-    const token =
-      localStorage.getItem("accessToken");
-
-    if(!token)return;
-
-
-    const result =
-      await getConversations(token);
-
+    const result = await getConversations(token);
 
     setConversations(result.items);
 
     setLoading(false);
-
   }
 
-
-  useEffect(()=>{
-
+  useEffect(() => {
     load();
+  }, []);
 
-  },[]);
-
-
-
-  if(loading){
-
-    return (
-      <main style={{padding:"40px"}}>
-        Loading messages...
-      </main>
-    );
-
+  if (loading) {
+    return <main style={{ padding: '40px' }}>Loading messages...</main>;
   }
-
 
   return (
-
     <main
       style={{
-        padding:"40px",
-        maxWidth:"800px",
-        margin:"auto"
+        padding: '40px',
+        maxWidth: '800px',
+        margin: 'auto',
       }}
     >
+      <h1>Messages</h1>
 
-      <h1>
-        Messages
-      </h1>
-
-
-      {
-        conversations.length === 0 ?
-
-        (
-          <p>
-            No conversations yet.
-          </p>
-        )
-
-        :
-
-        conversations.map(conversation=>(
-
+      {conversations.length === 0 ? (
+        <p>No conversations yet.</p>
+      ) : (
+        conversations.map((conversation) => (
           <section
             key={conversation.id}
             style={{
-              padding:"20px",
-              marginTop:"15px",
-              background:"#fff",
-              borderRadius:"20px"
+              padding: '20px',
+              marginTop: '15px',
+              background: '#fff',
+              borderRadius: '20px',
             }}
           >
+            <h3>{conversation.title ?? 'Conversation'}</h3>
 
-            <h3>
-              {
-                conversation.title ??
-                "Conversation"
-              }
-            </h3>
-
-
-            <p>
-              {
-                conversation.lastMessage?.content ??
-                "No messages yet"
-              }
-            </p>
-
+            <p>{conversation.lastMessage?.content ?? 'No messages yet'}</p>
           </section>
-
         ))
-
-      }
-
-
+      )}
     </main>
-
   );
-
 }

@@ -1,91 +1,53 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 
 import { OfferService } from './offer.service';
 
-
 @Controller('businesses')
 export class OfferController {
+  constructor(private readonly service: OfferService) {}
 
+  @Post(':businessId/offers')
+  create(
+    @Param('businessId')
+    businessId: string,
 
-constructor(
-private readonly service:OfferService,
-){}
+    @Body()
+    body: {
+      title: string;
+      description: string;
+      active?: boolean;
+      startsAt?: string;
+      endsAt?: string;
+    },
+  ) {
+    return this.service.create({
+      businessId,
 
+      title: body.title,
 
+      description: body.description,
 
-@Post(':businessId/offers')
-create(
-@Param('businessId')
-businessId:string,
+      ...(body.active !== undefined ? { active: body.active } : {}),
 
-@Body()
-body:{
-title:string;
-description:string;
-active?:boolean;
-startsAt?:string;
-endsAt?:string;
-},
-){
+      ...(body.startsAt ? { startsAt: new Date(body.startsAt) } : {}),
 
-return this.service.create({
+      ...(body.endsAt ? { endsAt: new Date(body.endsAt) } : {}),
+    });
+  }
 
-businessId,
+  @Get(':businessId/offers')
+  findBusinessOffers(
+    @Param('businessId')
+    businessId: string,
+  ) {
+    return this.service.findByBusiness(businessId);
+  }
 
-title:
-body.title,
-
-description:
-body.description,
-
-...(body.active !== undefined
-? { active: body.active }
-: {}),
-
-...(body.startsAt
-? { startsAt: new Date(body.startsAt) }
-: {}),
-
-...(body.endsAt
-? { endsAt: new Date(body.endsAt) }
-: {}),
-
-});
-
-}
-
-
-
-@Get(':businessId/offers')
-findBusinessOffers(
-@Param('businessId')
-businessId:string,
-){
-
-return this.service.findByBusiness(
-businessId,
-);
-
-}
-
-
-@Get('/offers/:id')
-findOne(
-@Param('id')
-id:string,
-){
-
-return this.service.findById(
-id,
-);
-
-}
-
-
+  @Get('/offers/:id')
+  findOne(
+    @Param('id')
+    id: string,
+  ) {
+    return this.service.findById(id);
+  }
 }

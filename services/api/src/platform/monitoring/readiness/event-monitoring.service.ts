@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class EventMonitoringService {
-
-
-  check(
-    events: string,
-  ) {
-
+  check(events: string) {
     return {
-
       events,
 
-      visible:
-        events === 'READY',
+      visible: events === 'READY',
 
       checkedAt: new Date(),
-
     };
-
   }
-
-
 }

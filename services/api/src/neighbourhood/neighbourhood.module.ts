@@ -13,10 +13,7 @@ import { MembershipRepository } from './membership/membership.repository';
 import { PrismaMembershipRepository } from './membership/repository/prisma-membership.repository';
 
 @Module({
-  controllers: [
-    NeighbourhoodController,
-    MembershipController,
-  ],
+  controllers: [NeighbourhoodController, MembershipController],
 
   providers: [
     NeighbourhoodService,
@@ -33,9 +30,6 @@ import { PrismaMembershipRepository } from './membership/repository/prisma-membe
     },
   ],
 
-  exports: [
-    NeighbourhoodService,
-    MembershipService,
-  ],
+  exports: [NeighbourhoodService, MembershipService],
 })
 export class NeighbourhoodModule {}

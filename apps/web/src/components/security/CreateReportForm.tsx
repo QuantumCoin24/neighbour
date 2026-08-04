@@ -1,265 +1,155 @@
-"use client";
+'use client';
 
-import {
-  useState,
-} from "react";
+import { useState } from 'react';
 
+import { createSecurityReport } from '@neighbour/api-client';
 
-import {
-  createSecurityReport,
-} from "@neighbour/api-client";
+import { NeighbourButton, NeighbourCard } from '@neighbour/design-system';
 
+export default function CreateReportForm() {
+  const [targetType, setTargetType] = useState('POST');
 
-import {
-  NeighbourButton,
-  NeighbourCard,
-} from "@neighbour/design-system";
+  const [targetId, setTargetId] = useState('');
 
+  const [reason, setReason] = useState('');
 
+  const [description, setDescription] = useState('');
 
-export default function CreateReportForm(){
+  const [message, setMessage] = useState('');
 
+  async function submit() {
+    const token = localStorage.getItem('accessToken');
 
-const [targetType,setTargetType] =
-useState("POST");
+    if (!token) {
+      setMessage('No active session.');
 
+      return;
+    }
 
-const [targetId,setTargetId] =
-useState("");
+    try {
+      await createSecurityReport(
+        token,
 
+        {
+          targetType,
 
-const [reason,setReason] =
-useState("");
+          targetId,
 
+          reason,
 
-const [description,setDescription] =
-useState("");
+          description,
+        },
+      );
 
+      setMessage('Report submitted successfully.');
 
-const [message,setMessage] =
-useState("");
+      setTargetId('');
+      setReason('');
+      setDescription('');
+    } catch {
+      setMessage('Unable to submit report.');
+    }
+  }
 
+  return (
+    <NeighbourCard
+      style={{
+        marginTop: '24px',
+      }}
+    >
+      <h2>Create Safety Report</h2>
 
+      <select
+        value={targetType}
 
-async function submit(){
+        onChange={(e) => setTargetType(e.target.value)}
 
+        style={{
+          padding: '12px',
+          borderRadius: '12px',
+          marginTop: '16px',
+        }}
+      >
+        <option value="POST">Post</option>
 
-const token =
-localStorage.getItem("accessToken");
+        <option value="USER">User</option>
 
+        <option value="COMMENT">Comment</option>
 
-if(!token){
+        <option value="MESSAGE">Message</option>
 
-setMessage("No active session.");
+        <option value="EVENT">Event</option>
+      </select>
 
-return;
+      <input
+        placeholder="Target ID"
 
-}
+        value={targetId}
 
+        onChange={(e) => setTargetId(e.target.value)}
 
-try{
+        style={{
+          display: 'block',
+          width: '100%',
+          padding: '12px',
+          borderRadius: '12px',
+          marginTop: '16px',
+          border: '1px solid #ddd',
+        }}
+      />
 
-
-await createSecurityReport(
-
-token,
-
-{
-
-targetType,
-
-targetId,
-
-reason,
-
-description,
-
-},
-
-);
-
-
-
-setMessage(
-"Report submitted successfully."
-);
-
-
-setTargetId("");
-setReason("");
-setDescription("");
-
-
-}
-catch{
-
-
-setMessage(
-"Unable to submit report."
-);
-
-}
-
-
-}
-
-
-
-return (
-
-<NeighbourCard
-style={{
-marginTop:"24px",
-}}
->
-
-
-<h2>
-Create Safety Report
-</h2>
-
-
-
-<select
-
-value={targetType}
-
-onChange={(e)=>setTargetType(e.target.value)}
-
-style={{
-padding:"12px",
-borderRadius:"12px",
-marginTop:"16px",
-}}
-
->
-
-<option value="POST">
-Post
-</option>
-
-<option value="USER">
-User
-</option>
-
-<option value="COMMENT">
-Comment
-</option>
-
-<option value="MESSAGE">
-Message
-</option>
-
-<option value="EVENT">
-Event
-</option>
-
-</select>
-
-
-
-<input
-
-placeholder="Target ID"
-
-value={targetId}
-
-onChange={(e)=>setTargetId(e.target.value)}
-
-style={{
-display:"block",
-width:"100%",
-padding:"12px",
-borderRadius:"12px",
-marginTop:"16px",
-border:"1px solid #ddd",
-}}
-
-/>
-
-
-
-<input
-
-placeholder="Reason"
-
-value={reason}
-
-onChange={(e)=>setReason(e.target.value)}
-
-style={{
-display:"block",
-width:"100%",
-padding:"12px",
-borderRadius:"12px",
-marginTop:"16px",
-border:"1px solid #ddd",
-}}
-
-/>
-
-
-
-<textarea
-
-placeholder="Description"
-
-value={description}
-
-onChange={(e)=>setDescription(e.target.value)}
-
-style={{
-display:"block",
-width:"100%",
-padding:"12px",
-borderRadius:"12px",
-marginTop:"16px",
-minHeight:"120px",
-border:"1px solid #ddd",
-}}
-
-/>
-
-
-
-<div
-style={{
-marginTop:"20px",
-}}
->
-
-<NeighbourButton
-onClick={submit}
->
-
-Submit Report
-
-</NeighbourButton>
-
-
-</div>
-
-
-
-{
-message &&
-
-<p
-style={{
-marginTop:"16px",
-}}
->
-
-{message}
-
-</p>
-
-}
-
-
-
-</NeighbourCard>
-
-);
-
+      <input
+        placeholder="Reason"
+
+        value={reason}
+
+        onChange={(e) => setReason(e.target.value)}
+
+        style={{
+          display: 'block',
+          width: '100%',
+          padding: '12px',
+          borderRadius: '12px',
+          marginTop: '16px',
+          border: '1px solid #ddd',
+        }}
+      />
+
+      <textarea
+        placeholder="Description"
+
+        value={description}
+
+        onChange={(e) => setDescription(e.target.value)}
+
+        style={{
+          display: 'block',
+          width: '100%',
+          padding: '12px',
+          borderRadius: '12px',
+          marginTop: '16px',
+          minHeight: '120px',
+          border: '1px solid #ddd',
+        }}
+      />
+
+      <div
+        style={{
+          marginTop: '20px',
+        }}
+      >
+        <NeighbourButton onClick={submit}>Submit Report</NeighbourButton>
+      </div>
+
+      {message && (
+        <p
+          style={{
+            marginTop: '16px',
+          }}
+        >
+          {message}
+        </p>
+      )}
+    </NeighbourCard>
+  );
 }

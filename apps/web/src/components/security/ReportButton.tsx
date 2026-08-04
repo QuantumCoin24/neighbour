@@ -1,131 +1,61 @@
-"use client";
+'use client';
 
-import {
-  useState,
-} from "react";
+import { useState } from 'react';
 
+import { createSecurityReport } from '@neighbour/api-client';
 
-import {
-  createSecurityReport,
-} from "@neighbour/api-client";
-
-
-import {
-  NeighbourButton,
-} from "@neighbour/design-system";
-
+import { NeighbourButton } from '@neighbour/design-system';
 
 interface Props {
+  targetType: 'USER' | 'POST' | 'COMMENT' | 'MESSAGE' | 'EVENT';
 
-targetType:
-"USER"
-|"POST"
-|"COMMENT"
-|"MESSAGE"
-|"EVENT";
-
-targetId:string;
-
+  targetId: string;
 }
-
 
 export default function ReportButton({
+  targetType,
 
-targetType,
+  targetId,
+}: Props) {
+  const [message, setMessage] = useState('');
 
-targetId,
+  async function report() {
+    const token = localStorage.getItem('accessToken');
 
-}:Props){
+    if (!token) {
+      return;
+    }
 
+    try {
+      await createSecurityReport(
+        token,
 
-const [message,setMessage] =
-useState("");
+        {
+          targetType,
 
+          targetId,
 
+          reason: 'Community Report',
+        },
+      );
 
-async function report(){
+      setMessage('Reported');
+    } catch {
+      setMessage('Unable to report');
+    }
+  }
 
+  return (
+    <div>
+      <NeighbourButton
+        variant="ghost"
 
-const token =
-localStorage.getItem("accessToken");
+        onClick={report}
+      >
+        🚩 Report
+      </NeighbourButton>
 
-
-if(!token){
-
-return;
-
-}
-
-
-try{
-
-
-await createSecurityReport(
-
-token,
-
-{
-
-targetType,
-
-targetId,
-
-reason:"Community Report",
-
-},
-
-);
-
-
-setMessage(
-"Reported"
-);
-
-
-}
-catch{
-
-setMessage(
-"Unable to report"
-);
-
-}
-
-
-}
-
-
-
-return (
-
-<div>
-
-
-<NeighbourButton
-
-variant="ghost"
-
-onClick={report}
-
->
-
-🚩 Report
-
-</NeighbourButton>
-
-
-{
-message &&
-
-<small>
-{message}
-</small>
-
-}
-
-
-</div>
-
-);
-
+      {message && <small>{message}</small>}
+    </div>
+  );
 }

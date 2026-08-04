@@ -1,5 +1,4 @@
 export interface OperationalStatusEntity {
-
   domain: string;
 
   health: string;
@@ -9,5 +8,4 @@ export interface OperationalStatusEntity {
   alerts: string;
 
   status: string;
-
 }

@@ -8,27 +8,16 @@ import type { ActivityFeedResponse } from './interfaces/activity-response.interf
 
 @Injectable()
 export class ActivityService {
-
   constructor(
     private readonly postService: PostService,
     private readonly eventService: EventService,
   ) {}
 
-  async getFeed(
-    currentUserId: string,
-    query: FeedQueryDto,
-  ): Promise<ActivityFeedResponse> {
-
+  async getFeed(currentUserId: string, query: FeedQueryDto): Promise<ActivityFeedResponse> {
     const [posts, events] = await Promise.all([
-      this.postService.getHomeFeed(
-        currentUserId,
-        query,
-      ),
-      this.eventService.findForUser(
-        currentUserId,
-      ),
+      this.postService.getHomeFeed(currentUserId, query),
+      this.eventService.findForUser(currentUserId),
     ]);
-
 
     const items = [
       ...posts.items.map((post) => ({
@@ -46,19 +35,10 @@ export class ActivityService {
       })),
     ];
 
-
-    items.sort(
-      (a,b) =>
-        new Date(b.createdAt).getTime()
-        -
-        new Date(a.createdAt).getTime(),
-    );
-
+    items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return {
       items,
     };
-
   }
-
 }

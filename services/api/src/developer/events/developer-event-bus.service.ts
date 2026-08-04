@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-
 export type DeveloperEvent =
   | {
       type: 'developer.app.created';
@@ -15,31 +14,17 @@ export type DeveloperEvent =
       appId: string;
     };
 
-
 @Injectable()
 export class DeveloperEventBusService {
+  private listeners: ((event: DeveloperEvent) => void)[] = [];
 
-  private listeners:
-    ((event: DeveloperEvent) => void)[] = [];
-
-
-  subscribe(
-    listener: (event: DeveloperEvent) => void,
-  ) {
-
+  subscribe(listener: (event: DeveloperEvent) => void) {
     this.listeners.push(listener);
-
   }
 
-
-  publish(
-    event: DeveloperEvent,
-  ) {
-
+  publish(event: DeveloperEvent) {
     for (const listener of this.listeners) {
       listener(event);
     }
-
   }
-
 }

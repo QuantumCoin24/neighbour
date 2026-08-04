@@ -28,6 +28,7 @@ describe('post contracts', () => {
         localArea: null,
       },
       community: null,
+      neighbourhood: null,
       publishedAt: new Date('2026-07-28T00:00:00.000Z'),
       editedAt: null,
       createdAt: new Date('2026-07-28T00:00:00.000Z'),
@@ -41,5 +42,6 @@ describe('post contracts', () => {
 
     assert.equal(feed.items[0]?.content, 'Hello, neighbours.');
     assert.equal(feed.items[0]?.author.localArea, null);
+    assert.equal(feed.items[0]?.neighbourhood, null);
   });
 });

@@ -1,6 +1,4 @@
-export type ActivityType =
-  | 'POST'
-  | 'EVENT';
+export type ActivityType = 'POST' | 'EVENT';
 
 export interface ActivityItem {
   id: string;

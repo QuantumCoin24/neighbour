@@ -4,6 +4,7 @@ import { DatabaseService } from '../database/database.service';
 import { NotificationType, Prisma } from '../generated/prisma/client';
 import type { NotificationQueryDto } from './dto/notification-query.dto';
 import { NotificationRealtimePublisher } from './events/notification-realtime.publisher';
+import { NotificationIntelligenceService } from './intelligence/notification-intelligence.service';
 import type {
   NotificationFeedResponse,
   NotificationResponse,
@@ -41,6 +42,7 @@ export class NotificationService {
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
     private readonly realtimePublisher: NotificationRealtimePublisher,
+    private readonly intelligence: NotificationIntelligenceService,
   ) {}
 
   async getInbox(
@@ -185,6 +187,10 @@ export class NotificationService {
       return;
     }
 
+    const intelligence = this.intelligence.evaluate({
+      type: input.isReply ? 'REPLY' : 'COMMENT',
+    });
+
     const notification = await this.database.notification.upsert({
       where: {
         idempotencyKey: `comment:${input.commentId}`,
@@ -214,6 +220,10 @@ export class NotificationService {
     if (input.recipientId === input.actorId) {
       return;
     }
+
+    const intelligence = this.intelligence.evaluate({
+      type: 'REACTION',
+    });
 
     const idempotencyKey = `reaction:${input.postId}:${input.actorId}`;
 

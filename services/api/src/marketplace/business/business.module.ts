@@ -12,10 +12,8 @@ import { OfferModule } from './offers/offer.module';
 import { BusinessEventModule } from './events/event.module';
 import { BusinessAnalyticsModule } from './analytics/business-analytics.module';
 
-
 @Module({
-
-  imports:[
+  imports: [
     DatabaseModule,
     VerificationModule,
     OfferModule,
@@ -23,27 +21,17 @@ import { BusinessAnalyticsModule } from './analytics/business-analytics.module';
     BusinessAnalyticsModule,
   ],
 
+  controllers: [BusinessController],
 
-  controllers:[
-    BusinessController,
-  ],
-
-
-  providers:[
-
+  providers: [
     BusinessService,
 
     {
-      provide:BusinessRepository,
-      useClass:PrismaBusinessRepository,
+      provide: BusinessRepository,
+      useClass: PrismaBusinessRepository,
     },
-
   ],
 
-
-  exports:[
-    BusinessService,
-  ],
-
+  exports: [BusinessService],
 })
 export class BusinessModule {}

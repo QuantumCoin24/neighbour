@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import type { AuthUser } from '../../auth/interfaces/auth-user.interface';
@@ -15,9 +8,7 @@ import { EventService } from './event.service';
 
 @Controller('communities')
 export class EventController {
-  constructor(
-    private readonly eventService: EventService,
-  ) {}
+  constructor(private readonly eventService: EventService) {}
 
   @Post(':communityId/events')
   create(
@@ -38,25 +29,17 @@ export class EventController {
   }
 
   @Get(':communityId/events')
-  findCommunityEvents(
-    @Param('communityId') communityId: string,
-  ) {
-    return this.eventService.findCommunityEvents(
-      communityId,
-    );
+  findCommunityEvents(@Param('communityId') communityId: string) {
+    return this.eventService.findCommunityEvents(communityId);
   }
 
   @Get('/events/:id')
-  findOne(
-    @Param('id') id: string,
-  ) {
+  findOne(@Param('id') id: string) {
     return this.eventService.findById(id);
   }
 
   @Delete('/events/:id')
-  remove(
-    @Param('id') id: string,
-  ) {
+  remove(@Param('id') id: string) {
     return this.eventService.remove(id);
   }
 }

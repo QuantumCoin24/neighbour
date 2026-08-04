@@ -1,263 +1,135 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 import {
   getNeighbourhoods,
   joinNeighbourhood,
   getCommunityFeed,
   type Neighbourhood,
-} from "@neighbour/api-client";
-
+} from '@neighbour/api-client';
 
 export default function CommunityPage() {
+  const [communities, setCommunities] = useState<Neighbourhood[]>([]);
 
-  const [communities,setCommunities] =
-    useState<Neighbourhood[]>([]);
+  const [joined, setJoined] = useState<string[]>([]);
 
-  const [joined,setJoined] =
-    useState<string[]>([]);
+  const [message, setMessage] = useState('');
 
-  const [message,setMessage] =
-    useState("");
-
-const [posts,setPosts] =
-    useState<any[]>([]);
-
+  const [posts, setPosts] = useState<any[]>([]);
 
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("accessToken");
-    console.log("COMMUNITY ACCESS TOKEN:", storedToken);
+    const storedToken = localStorage.getItem('accessToken');
+    console.log('COMMUNITY ACCESS TOKEN:', storedToken);
     setToken(storedToken);
   }, []);
 
-
-
-  useEffect(()=>{
-
-    if(!token){
-      setMessage("Please login first.");
+  useEffect(() => {
+    if (!token) {
+      setMessage('Please login first.');
       return;
     }
-
 
     getNeighbourhoods(token)
       .then(setCommunities)
-      .catch(error =>
-        setMessage(
-          error instanceof Error
-          ? error.message
-          : "Unable to load communities"
-        )
+      .catch((error) =>
+        setMessage(error instanceof Error ? error.message : 'Unable to load communities'),
       );
+  }, [token]);
 
-  },[token]);
+  async function loadFeed(slug: string) {
+    if (!token) return;
 
+    try {
+      const result = await getCommunityFeed(token, slug);
 
-
-
-  async function loadFeed(slug:string){
-
-    if(!token)return;
-
-    try{
-
-      const result =
-        await getCommunityFeed(
-          token,
-          slug
-        );
-
-      setPosts(
-        result.items
-      );
-
-    }catch(error){
-
-      console.error(
-        "Feed load failed",
-        error
-      );
-
+      setPosts(result.items);
+    } catch (error) {
+      console.error('Feed load failed', error);
     }
-
   }
 
-
-  async function handleJoin(id:string){
-
-    if(!token){
-      setMessage("Please login first.");
+  async function handleJoin(id: string) {
+    if (!token) {
+      setMessage('Please login first.');
       return;
     }
 
+    try {
+      await joinNeighbourhood(token, id);
 
-    try{
+      setJoined((prev) => [...prev, id]);
 
-      await joinNeighbourhood(
-        token,
-        id
-      );
-
-
-      setJoined(prev=>[
-        ...prev,
-        id
-      ]);
-
-
-      setMessage(
-        "Joined community ✅"
-      );
-
-
-    }catch(error){
-
-      setMessage(
-        error instanceof Error
-        ? error.message
-        : "Unable to join"
-      );
-
+      setMessage('Joined community ✅');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to join');
     }
-
   }
 
-
-
   return (
-
     <main
       style={{
-        minHeight:"100vh",
-        padding:"50px",
-        fontFamily:"Arial",
-        background:
-        "linear-gradient(135deg,#f5f9ff,#ffffff)"
+        minHeight: '100vh',
+        padding: '50px',
+        fontFamily: 'Arial',
+        background: 'linear-gradient(135deg,#f5f9ff,#ffffff)',
       }}
     >
+      <h1>NEIGHBOUR™</h1>
 
-      <h1>
-        NEIGHBOUR™
-      </h1>
+      <h2>Find your neighbourhood</h2>
 
+      {message && <p>{message}</p>}
 
-      <h2>
-        Find your neighbourhood
-      </h2>
+      {communities.map((community) => (
+        <section
+          key={community.id}
+          style={{
+            marginTop: '20px',
+            padding: '25px',
+            background: '#fff',
+            borderRadius: '20px',
+          }}
+        >
+          <h3>📍 {community.name}</h3>
 
+          <p>{community.localArea}</p>
 
-      {
-        message &&
-        <p>{message}</p>
-      }
+          <p>{community.description}</p>
 
+          <button onClick={() => handleJoin(community.id)}>
+            {joined.includes(community.id) ? 'Joined ✅' : 'Join Community'}
+          </button>
+        </section>
+      ))}
 
-      {
-        communities.map(
-          community=>(
+      <section
+        style={{
+          marginTop: '40px',
+        }}
+      >
+        <h2>Community Feed</h2>
 
-            <section
-              key={community.id}
+        {posts.length === 0 ? (
+          <p>No posts loaded yet.</p>
+        ) : (
+          posts.map((post) => (
+            <div
+              key={post.id}
               style={{
-                marginTop:"20px",
-                padding:"25px",
-                background:"#fff",
-                borderRadius:"20px"
+                background: '#fff',
+                padding: '20px',
+                borderRadius: '20px',
+                marginTop: '20px',
               }}
             >
-
-              <h3>
-                📍 {community.name}
-              </h3>
-
-
-              <p>
-                {community.localArea}
-              </p>
-
-
-              <p>
-                {community.description}
-              </p>
-
-
-              <button
-                onClick={() =>
-                  handleJoin(community.id)
-                }
-              >
-
-                {
-                  joined.includes(
-                    community.id
-                  )
-                  ?
-                  "Joined ✅"
-                  :
-                  "Join Community"
-                }
-
-              </button>
-
-
-            </section>
-
-          )
-        )
-      }
-
-
-
-<section
-style={{
-marginTop:"40px"
-}}
->
-
-<h2>
-Community Feed
-</h2>
-
-
-{
-posts.length===0 ?
-
-<p>
-No posts loaded yet.
-</p>
-
-:
-
-posts.map(post=>(
-
-<div
-key={post.id}
-style={{
-background:"#fff",
-padding:"20px",
-borderRadius:"20px",
-marginTop:"20px"
-}}
->
-
-<p>
-{post.content}
-</p>
-
-</div>
-
-))
-
-}
-
-</section>
-
-
+              <p>{post.content}</p>
+            </div>
+          ))
+        )}
+      </section>
     </main>
-
   );
-
 }

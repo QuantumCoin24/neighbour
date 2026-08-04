@@ -1,5 +1,4 @@
 export interface ActivationRecordEntity {
-
   domain: string;
 
   service: boolean;
@@ -11,5 +10,4 @@ export interface ActivationRecordEntity {
   database: boolean;
 
   status: string;
-
 }

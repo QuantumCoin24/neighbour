@@ -8,8 +8,8 @@ step_10 = 'run_step "[10/12] Build conversation room management" build_conversat
 step_11 = 'run_step "[11/12] Build heartbeat and typing events" build_realtime_activity_events'
 
 if step_11 not in text:
-    if step_10 not in text:
-        raise SystemExit("Step 10 runner was not found.")
+if step_10 not in text:
+raise SystemExit("Step 10 runner was not found.")
 
     text = text.replace(
         step_10,
@@ -29,14 +29,13 @@ pnpm format
 pnpm --filter @neighbour/api run lint
 pnpm --filter @neighbour/api run build
 
-
 ============================================================
-             Neighbour™ Platform Bootstrap
+Neighbour™ Platform Bootstrap
 
              Build 0012
              Realtime Gateway
-============================================================
 
+============================================================
 
 ============================================================
 [1/12] Validating development environment
@@ -55,12 +54,12 @@ Git: git version 2.53.0
 Installing NestJS 11 realtime dependencies into @neighbour/api...
 ✓ Lockfile passes supply-chain policies (verified 5m ago)
 Progress: resolved 566, reused 0, downloaded 0, added 0, done
-.                                        |   +2   -1 +-
+. | +2 -1 +-
 Done in 1.4s using pnpm v11.17.0
 Installing Socket.IO test client into @neighbour/api...
 ✓ Lockfile passes supply-chain policies (verified 408ms ago)
 Progress: resolved 566, reused 0, downloaded 0, added 0, done
-.                                        |   +2   -1 +-
+. | +2 -1 +-
 Done in 1.3s using pnpm v11.17.0
 ✔ [2/12] Install dependencies completed
 
@@ -305,20 +304,22 @@ tsconfig.base.json 1ms (unchanged)
 turbo.json 1ms (unchanged)
 $ tsc --noEmit
 src/realtime/gateway/realtime.gateway.ts:192:58 - error TS2379: Argument of type '{ socketId: string; userId: string; clientTimestamp: string | undefined; acknowledgedAt: string; }' is not assignable to parameter of type 'HeartbeatState' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
-  Types of property 'clientTimestamp' are incompatible.
-    Type 'string | undefined' is not assignable to type 'string'.
-      Type 'undefined' is not assignable to type 'string'.
+Types of property 'clientTimestamp' are incompatible.
+Type 'string | undefined' is not assignable to type 'string'.
+Type 'undefined' is not assignable to type 'string'.
 
-192     const envelope = this.createEnvelope<HeartbeatState>({
-                                                             ~
-193       socketId: client.id,
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
-... 
-196       acknowledgedAt: new Date().toISOString(),
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-197     });
-    ~~~~~
+192 const envelope = this.createEnvelope<HeartbeatState>({
+~
+193 socketId: client.id,
 
+```
+...
+196 acknowledgedAt: new Date().toISOString(),
+```
+
+197 });
+
+```
 
 Found 1 error in src/realtime/gateway/realtime.gateway.ts:192
 
@@ -327,50 +328,53 @@ Found 1 error in src/realtime/gateway/realtime.gateway.ts:192
 Exit status 2
 $ nest build
 src/realtime/gateway/realtime.gateway.ts:192:58 - error TS2379: Argument of type '{ socketId: string; userId: string; clientTimestamp: string | undefined; acknowledgedAt: string; }' is not assignable to parameter of type 'HeartbeatState' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
-  Types of property 'clientTimestamp' are incompatible.
-    Type 'string | undefined' is not assignable to type 'string'.
-      Type 'undefined' is not assignable to type 'string'.
+Types of property 'clientTimestamp' are incompatible.
+Type 'string | undefined' is not assignable to type 'string'.
+Type 'undefined' is not assignable to type 'string'.
 
-192     const envelope = this.createEnvelope<HeartbeatState>({
-                                                             ~
-193       socketId: client.id,
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
-... 
-196       acknowledgedAt: new Date().toISOString(),
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-197     });
-    ~~~~~
+192 const envelope = this.createEnvelope<HeartbeatState>({
+~
+193 socketId: client.id,
+```
+
+...
+196 acknowledgedAt: new Date().toISOString(),
+
+`````
+197 });
+~~~~~
 
 Found 1 error(s).
 
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 build: `nest build`
 Exit status 1
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
-old = """    const envelope = this.createEnvelope<HeartbeatState>({
-      socketId: client.id,
-      userId,
-      clientTimestamp: payload?.clientTimestamp,
-      acknowledgedAt: new Date().toISOString(),
-    });
+old = """ const envelope = this.createEnvelope<HeartbeatState>({
+socketId: client.id,
+userId,
+clientTimestamp: payload?.clientTimestamp,
+acknowledgedAt: new Date().toISOString(),
+});
 """
 
-new = """    const heartbeatState: HeartbeatState = {
-      socketId: client.id,
-      userId,
-      acknowledgedAt: new Date().toISOString(),
-      ...(payload?.clientTimestamp
-        ? { clientTimestamp: payload.clientTimestamp }
-        : {}),
-    };
+new = """ const heartbeatState: HeartbeatState = {
+socketId: client.id,
+userId,
+acknowledgedAt: new Date().toISOString(),
+...(payload?.clientTimestamp
+? { clientTimestamp: payload.clientTimestamp }
+: {}),
+};
 
     const envelope =
       this.createEnvelope<HeartbeatState>(heartbeatState);
+
 """
 
 for path in files:
-    text = path.read_text()
+text = path.read_text()
 
     if old not in text:
         raise SystemExit(f"Heartbeat block not found in {path}")
@@ -553,11 +557,11 @@ jasongreaves@Mac neighbour % git add .
 git commit -m "build: add realtime heartbeat and typing indicators"
 git push
 [main 41a356a] build: add realtime heartbeat and typing indicators
- 7 files changed, 873 insertions(+), 3 deletions(-)
- create mode 100644 services/api/src/realtime/activity/typing.service.ts
- create mode 100644 services/api/src/realtime/dto/typing-event.dto.ts
- create mode 100644 services/api/src/realtime/interfaces/heartbeat-state.interface.ts
- create mode 100644 services/api/src/realtime/interfaces/typing-state.interface.ts
+7 files changed, 873 insertions(+), 3 deletions(-)
+create mode 100644 services/api/src/realtime/activity/typing.service.ts
+create mode 100644 services/api/src/realtime/dto/typing-event.dto.ts
+create mode 100644 services/api/src/realtime/interfaces/heartbeat-state.interface.ts
+create mode 100644 services/api/src/realtime/interfaces/typing-state.interface.ts
 Enumerating objects: 28, done.
 Counting objects: 100% (28/28), done.
 Delta compression using up to 10 threads
@@ -566,8 +570,9 @@ Writing objects: 100% (17/17), 5.24 KiB | 5.24 MiB/s, done.
 Total 17 (delta 8), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (8/8), completed with 8 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
-   35013a9..41a356a  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+35013a9..41a356a main -> main
+jasongreaves@Mac neighbour % >....
+
 # Architecture 0012 — Realtime Gateway
 
 ## Status
@@ -598,7 +603,7 @@ After authentication, the socket is associated with the complete
 authenticated user record and joins its deterministic private user
 room:
 
-```text
+````text
 user:<userId>
 heredoc> pnpm format
 pnpm --filter @neighbour/api run lint
@@ -606,8 +611,8 @@ pnpm --filter @neighbour/api run test
 pnpm --filter @neighbour/api run build
 heredoc> bash -n bootstrap-neighbour-build-0012.sh
 ./bootstrap-neighbour-build-0012.sh
-heredoc> 
-jasongreaves@Mac neighbour % >....                                                   
+heredoc>
+jasongreaves@Mac neighbour % >....
       RealtimeEvents.NOTIFICATION_CREATED,
       RealtimeEvents.NOTIFICATION_READ,
     ];
@@ -943,7 +948,7 @@ test at test/health.e2e.test.ts:2:1075
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 test: `node --test --import tsx "test/**/*.test.ts"`
 Exit status 1
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       .useValue({
         ping: async (): Promise<boolean> => true,
       })
@@ -1275,7 +1280,7 @@ test at test/health.e2e.test.ts:2:1217
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 test: `node --test --import tsx "test/**/*.test.ts"`
 Exit status 1
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   before(async () => {
     const testingModule = await Test.createTestingModule({
       imports: [HealthModule],
@@ -1584,7 +1589,7 @@ $ node --test --import tsx "test/**/*.test.ts"
 ℹ skipped 0
 ℹ todo 0
 ℹ duration_ms 639.680708
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
 ## Status
 
@@ -1621,8 +1626,8 @@ heredoc> pnpm format
 pnpm --filter @neighbour/api run lint
 pnpm --filter @neighbour/api run test
 pnpm --filter @neighbour/api run build
-heredoc> 
-jasongreaves@Mac neighbour % >....                                                   
+heredoc>
+jasongreaves@Mac neighbour % >....
 - typing.start
 - typing.stop
 
@@ -2261,7 +2266,7 @@ On branch main
 Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
-jasongreaves@Mac neighbour % git tag -a build-0012 -m "Build 0012 - Realtime Gateway" 
+jasongreaves@Mac neighbour % git tag -a build-0012 -m "Build 0012 - Realtime Gateway"
 git push origin build-0012
 Enumerating objects: 1, done.
 Counting objects: 100% (1/1), done.
@@ -2459,7 +2464,7 @@ export class RealtimeService {
 223:  @SubscribeMessage(RealtimeEvents.ROOM_LEAVE)
 246:  @SubscribeMessage(RealtimeEvents.TYPING_START)
 269:  @SubscribeMessage(RealtimeEvents.TYPING_STOP)
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       conversationId,
     );
 
@@ -3119,7 +3124,7 @@ Found 1 error(s).
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 build: `nest build`
 Exit status 1
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     r"""(
       private\s+async\s+requireOwnedMessage\(
       .*?
@@ -3449,7 +3454,7 @@ Found 1 error(s).
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 build: `nest build`
 Exit status 1
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 new = """select: {
         deletedAt: true,
         conversationId: true,
@@ -3859,7 +3864,7 @@ services/api/src/message/message.service.ts
     };
   }
 }
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     const row = await this.database.message.findUnique({
       where: { id: messageId },
       select: { senderId: true, deletedAt: true },
@@ -4183,7 +4188,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    b7f5ede..640c0d5  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 ## Decision
 
 The message domain publishes realtime events only after the corresponding
@@ -4216,7 +4221,7 @@ Every delivery uses an envelope containing:
 event
 occurredAt
 data
-heredoc> >....                                                                       
+heredoc> >....
 ## Decision
 
 The message domain publishes realtime events only after the corresponding
@@ -4249,8 +4254,8 @@ Every delivery uses an envelope containing:
 event
 occurredAt
 data
-heredoc> 
-jasongreaves@Mac neighbour % >....                                                   
+heredoc>
+jasongreaves@Mac neighbour % >....
 
 ## Event contract
 
@@ -4575,7 +4580,7 @@ Total 5 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    640c0d5..a832169  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     const { publisher, emissions } = createHarness();
 
     publisher.notificationCreated(
@@ -4909,7 +4914,7 @@ Total 12 (delta 7), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    a832169..562b00f  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
   getDevices(userId: string): DeviceRegistration[] {
     return this.devices.get(userId) ?? [];
@@ -5254,7 +5259,7 @@ Total 11 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    562b00f..bf748b0  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const service = new DeviceRegistryService(database as never);
     const touched = await service.touch(
@@ -5615,7 +5620,7 @@ Total 29 (delta 18), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (18/18), completed with 17 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    bf748b0..1028100  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     );
 
     const deliveries = await service.sendToUser({
@@ -5990,7 +5995,7 @@ Total 17 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    1028100..14bb180  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     );
     assert.equal(
       result.pushDeliveries[0]?.accepted,
@@ -6356,7 +6361,7 @@ Total 9 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    14bb180..94958db  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
 if "NotificationRetryQueueService" not in text:
     text = text.replace(
@@ -6728,7 +6733,7 @@ Total 12 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    94958db..a7873e5  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -7107,7 +7112,7 @@ Total 12 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    a7873e5..07b7201  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     assert.equal(service.get('user-1'), 0);
   });
 });
@@ -7501,7 +7506,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 Everything up-to-date
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     assert.equal(queue.size(), 1);
   });
@@ -7743,7 +7748,7 @@ src/notification/scheduler/notification-retry-scheduler.service.ts:20:28 - error
                                ~
  21           recipientId: job.recipientId,
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-... 
+...
  26           payload: job.payload,
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  27         });
@@ -8119,7 +8124,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    634808a..7638608  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -8516,7 +8521,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    7638608..fe9dbe5  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -8920,7 +8925,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    fe9dbe5..516cefb  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -9331,7 +9336,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    516cefb..ed656f3  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -9748,7 +9753,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    ed656f3..4b02749  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -10171,7 +10176,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    4b02749..1803226  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -10599,7 +10604,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    1803226..c0f94f0  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -11032,7 +11037,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    c0f94f0..63d063e  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -11471,7 +11476,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    63d063e..4a716e7  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -11916,7 +11921,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    4a716e7..67bd9f0  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -12367,7 +12372,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    67bd9f0..194ed38  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -12824,7 +12829,7 @@ Total 11 (delta 7), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    194ed38..31a7539  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -13287,7 +13292,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    31a7539..a059c72  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -13560,7 +13565,7 @@ Found 2 errors in the same file, starting at: test/notification-delivery-audit.s
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 lint: `tsc --noEmit`
 Exit status 2
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 )
 
 text = test_file.read_text()
@@ -14040,7 +14045,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 Everything up-to-date
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 )
 
 if not providers_match:
@@ -14549,7 +14554,7 @@ Total 14 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    dbeb0e5..ba32c01  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -15308,7 +15313,7 @@ Total 10 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    ba32c01..9d73b7c  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -15804,7 +15809,7 @@ Total 10 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    9d73b7c..4232187  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -16307,7 +16312,7 @@ Total 10 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    4232187..cf062e8  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -16817,7 +16822,7 @@ Total 10 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    cf062e8..8a83a73  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -17105,7 +17110,7 @@ Found 1 error in src/notification/orchestrator/push-delivery-orchestrator.servic
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 lint: `tsc --noEmit`
 Exit status 2
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
 service = Path(
     "services/api/src/notification/orchestrator/push-delivery-orchestrator.service.ts"
@@ -17622,7 +17627,7 @@ Total 10 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    8a83a73..9c84497  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -18142,7 +18147,7 @@ Total 10 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    9c84497..c53b081  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     assert.ok(signer);
   });
 });
@@ -18668,7 +18673,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    c53b081..7cc2612  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     );
   });
 });
@@ -18679,7 +18684,7 @@ text = module.read_text()
 
 if "ApnsAuthorizationService" not in text:
     text = text.replace(
-        "import { AppleJwtSignerService } from './auth/apple-jwt-signer.service';\n", 
+        "import { AppleJwtSignerService } from './auth/apple-jwt-signer.service';\n",
         "import { AppleJwtSignerService } from './auth/apple-jwt-signer.service';\n"
         "import { ApnsAuthorizationService } from './auth/apns-authorization.service';\n"
     )
@@ -19199,7 +19204,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    7cc2612..fb346ce  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   });
 });
 """)
@@ -19729,7 +19734,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    fb346ce..2913d21  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
             )
 
     transport_file.write_text(text)
@@ -20032,7 +20037,7 @@ Errors  Files
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 lint: `tsc --noEmit`
 Exit status 2
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   it('creates a transport response from APNs request metadata', async () => {
     const service = new ApnsHttp2TransportService(
       new TestRequestBuilder() as unknown as ApnsRequestBuilderService,
@@ -20564,7 +20569,7 @@ Total 10 (delta 8), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (8/8), completed with 8 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    2913d21..aa13ed6  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       accepted: true,
       endpoint: 'https://api.sandbox.push.apple.com',
     };
@@ -20877,7 +20882,7 @@ Errors  Files
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 lint: `tsc --noEmit`
 Exit status 2
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   it('delegates delivery to the APNs transport', async () => {
     const service = new PushDeliveryOrchestratorService(
       new FakeTransport() as unknown as ApnsHttp2TransportService,
@@ -21409,7 +21414,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    aa13ed6..973f0b0  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     };
 
     const service = new ApnsHttp2ClientService(connectSession);
@@ -21950,7 +21955,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    973f0b0..291cba8  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     const client = {
       connect() {
         connections++;
@@ -22248,7 +22253,7 @@ test/apns-session-manager.service.test.ts:20:20 - error TS2352: Conversion of ty
                        ~
  21       connect() {
     ~~~~~~~~~~~~~~~~~
-... 
+...
  24       },
     ~~~~~~~~
  25     } as ApnsHttp2ClientService;
@@ -22261,7 +22266,7 @@ test/apns-session-manager.service.test.ts:39:20 - error TS2352: Conversion of ty
                        ~
  40       connect() {
     ~~~~~~~~~~~~~~~~~
-... 
+...
  50       },
     ~~~~~~~~
  51     } as ApnsHttp2ClientService;
@@ -22278,7 +22283,7 @@ Found 4 errors in the same file, starting at: test/apns-session-manager.service.
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 lint: `tsc --noEmit`
 Exit status 2
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
         if (connections === 1) {
           return firstSession;
         }
@@ -22826,7 +22831,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    291cba8..f0e8aab  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       },
     };
 
@@ -23123,7 +23128,7 @@ Found 1 error in test/apns-http2-transport.service.test.ts:44
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 lint: `tsc --noEmit`
 Exit status 2
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 test = Path(
     "services/api/test/apns-http2-transport.service.test.ts"
 )
@@ -23420,7 +23425,7 @@ Found 1 error in test/apns-http2-transport.service.test.ts:44
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 lint: `tsc --noEmit`
 Exit status 1
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
         };
       },
     };
@@ -23966,7 +23971,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    f0e8aab..243e681  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       },
     };
 
@@ -24512,7 +24517,7 @@ Total 10 (delta 8), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (8/8), completed with 8 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    243e681..b8b00ba  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       {
         accepted: false,
         status: 400,
@@ -25061,7 +25066,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    b8b00ba..97d9e09  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       ),
       'temporary',
     );
@@ -25619,7 +25624,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    97d9e09..867ad5a  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     assert.equal(
       service.shouldRetry('success', 0),
       false,
@@ -26184,7 +26189,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    867ad5a..8fed533  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     """return {
       accepted,
       status,
@@ -27009,7 +27014,7 @@ pnpm --filter @neighbour/api run build
 
 tail -20 services/api/src/notification/transport/apns-http2-transport.service.ts
 ^C
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       responseParser as never,
       new ApnsErrorClassifierService(),
       new ApnsRetryPolicyService(),
@@ -27573,7 +27578,7 @@ Total 10 (delta 7), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    8fed533..1bfc605  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 import { NotificationDeliveryOutcomeMapperService } from '../src/notification/transport/notification-delivery-outcome-mapper.service';
 
 describe('NotificationDeliveryOutcomeMapperService', () => {
@@ -28143,7 +28148,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    1bfc605..e72800b  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const record = service.record({
       success: true,
@@ -28719,7 +28724,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    e72800b..99ff0b4  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
 describe('NotificationDeliveryAuditMapperService', () => {
   it('maps delivery records into audit events', () => {
@@ -29300,7 +29305,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    99ff0b4..a9859b0  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const event = {
       provider: 'apns',
@@ -29886,7 +29891,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    a9859b0..ea14e83  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const event = {
       provider: 'apns',
@@ -30477,7 +30482,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    ea14e83..456cd0e  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const received: string[] = [];
 
@@ -31073,7 +31078,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    456cd0e..e86c339  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 port/notification-delivery-event-dispatcher.service';
 
 describe('NotificationDeliveryEventDispatcherService', () => {
@@ -31674,7 +31679,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    e86c339..fed84e6  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     const bus = new NotificationDeliveryEventBusService();
     const registry = new NotificationDeliveryEventListenerRegistryService(bus);
 
@@ -32280,7 +32285,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    fed84e6..56fb71b  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   it('publishes events to registered listeners', () => {
     const bus = new NotificationDeliveryEventBusService();
     const dispatcher = new NotificationDeliveryEventDispatcherService(bus);
@@ -32905,7 +32910,7 @@ Found 1 error(s).
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 build: `nest build`
 Exit status 1
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 vent-dispatcher.service';
 import { NotificationDeliveryEventListenerRegistryService } from './notification-delivery-event-listener-registry.service';
 
@@ -33515,7 +33520,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    56fb71b..bde9e50  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
   it('resets metrics', () => {
     const service = new NotificationDeliveryMetricsCollectorService();
@@ -34132,7 +34137,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    bde9e50..b3071f6  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
         registry,
         metrics,
       );
@@ -34754,7 +34759,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    b3071f6..13104b0  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     collector.record({
       provider: 'apns',
       success: false,
@@ -35381,7 +35386,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    13104b0..6ff56e8  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       },
     );
   });
@@ -36016,7 +36021,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 Everything up-to-date
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       },
       markRead() {
         return Promise.resolve(undefined);
@@ -36653,7 +36658,7 @@ Total 12 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    b1064e9..2f49398  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     assert.equal(result.length, 1);
   });
@@ -37307,7 +37312,7 @@ Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    2f49398..89dd3f6  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
               id: 'notification-1',
               userId: 'user-1',
               notificationType: 'comment',
@@ -38013,7 +38018,7 @@ Found 6 error(s).
 /Users/jasongreaves/Documents/neighbour/services/api:
 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @neighbour/api@1.0.0-alpha.2 build: `nest build`
 Exit status 1
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
         bus,
         {
           create() {
@@ -38675,7 +38680,7 @@ Total 12 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    89dd3f6..0139914  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
               createdAt:
                 new Date('2026-01-01'),
             },
@@ -39348,7 +39353,7 @@ Total 10 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    0139914..60b3b2f  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
               status: 'unread',
             },
             {
@@ -40690,7 +40695,7 @@ Total 14 (delta 8), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (8/8), completed with 8 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    60b3b2f..187419c  main -> main
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
         findByUserId() {
           return Promise.resolve(undefined);
         },
@@ -45147,7 +45152,7 @@ Total 11 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    187419c..8a73573  main -> main
-jasongreaves@Mac api % >....                                                         
+jasongreaves@Mac api % >....
   (event: ProfileEvent) => void;
 
 @Injectable()
@@ -45181,7 +45186,7 @@ export class ProfileEventBusService {
 print("Profile event bus created")
 PY
 Profile event bus created
-jasongreaves@Mac api % >....                                                         
+jasongreaves@Mac api % >....
   }"""
 
 text = text.replace(old_create, new_create)
@@ -45215,7 +45220,7 @@ path.write_text(text)
 print("profile.service.ts patched")
 PY
 profile.service.ts patched
-jasongreaves@Mac api % >....                                                         
+jasongreaves@Mac api % >....
   | ProfileCreatedEvent
   | ProfileUpdatedEvent;
 
@@ -45629,7 +45634,7 @@ Total 10 (delta 7), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    8a73573..ed78a32  main -> main
-jasongreaves@Mac api % >....                                                         
+jasongreaves@Mac api % >....
             bio: 'hello',
             localArea: 'Manchester',
             showLocalArea: true,
@@ -46017,7 +46022,7 @@ Total 11 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    ed78a32..e67c44c  main -> main
-jasongreaves@Mac api % >....                                                         
+jasongreaves@Mac api % >....
       } as never);
 
 
@@ -46799,7 +46804,7 @@ export class MembershipService {
     return this.repository.findMembers(neighbourhoodId);
   }
 }
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 path = Path("src/neighbourhood/neighbourhood.module.ts")
 
 text = path.read_text()
@@ -48184,7 +48189,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 Everything up-to-date
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
   constructor(
     private readonly membershipRepository: MembershipRepository,
@@ -49223,7 +49228,7 @@ remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    5aa111f..3bb8c84  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 import { MembershipRepository } from './membership/membership.repository';
 
 
@@ -49915,7 +49920,7 @@ remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    3bb8c84..ad460f2  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     ((event: CommunityFeedEvent) => void)[] = [];
 
 
@@ -50626,7 +50631,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    ad460f2..c01284d  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
         id: 'event-1',
         communityId: 'community-1',
         creatorId: 'user-1',
@@ -51349,7 +51354,7 @@ remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    c01284d..196ed76  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       await service.create({
         id: 'business-1',
         communityId: 'community-1',
@@ -52084,7 +52089,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    196ed76..3847c6c  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       service.create({
         id: 'rep-1',
         userId: 'user-1',
@@ -52827,7 +52832,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    3847c6c..976635b  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const result =
       service.create({
@@ -53582,7 +53587,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    976635b..65614cd  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
   it('returns healthy status', () => {
 
@@ -54350,7 +54355,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    65614cd..8a85c68  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
         {
           id: '2',
           userId: 'user',
@@ -55541,7 +55546,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    8a85c68..71798fc  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     const result =
       service.save({
         id: 'pref-1',
@@ -55574,7 +55579,7 @@ pnpm --filter @neighbour/api run build
 echo "🎉 BUILD 0034 COMPLETE"
 
 EOF
-jasongreaves@Mac neighbour % chmod +x build-0034-communication-intelligence-engine.sh 
+jasongreaves@Mac neighbour % chmod +x build-0034-communication-intelligence-engine.sh
 jasongreaves@Mac neighbour % ./build-0034-communication-intelligence-engine.sh
 🚀 BUILD 0034 — Communication Intelligence Engine
 .github/workflows/ci.yml 9ms (unchanged)
@@ -56328,7 +56333,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    71798fc..9d5f5ac  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       targetId: 'community-1',
       createdAt: new Date(),
     });
@@ -57125,7 +57130,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    9d5f5ac..a14e6a0  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     const service =
       new MobileContextService();
 
@@ -57936,7 +57941,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    a14e6a0..edf41c9  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
         id: 'media-1',
         ownerId: 'user-1',
         ownerType: 'profile',
@@ -58755,7 +58760,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    edf41c9..569584a  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
       resource: 'profile',
       action: 'view',
       granted: true,
@@ -59586,7 +59591,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    569584a..c3859dc  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
 
     const result =
@@ -60428,7 +60433,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    c3859dc..33de55b  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const result =
       service.ask({
@@ -61281,7 +61286,7 @@ remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
 To https://github.com/QuantumCoin24/neighbour.git
    33de55b..bd498e8  main -> main
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const result =
       service.register({
@@ -62047,7 +62052,7 @@ $ node --test --import tsx "test/**/*.test.ts"
 ℹ skipped 0
 ℹ todo 0
 ℹ duration_ms 2511.384375
-jasongreaves@Mac neighbour % 
+jasongreaves@Mac neighbour %
 jasongreaves@Mac neighbour % pnpm --filter @neighbour/api run lint
 $ tsc --noEmit
 jasongreaves@Mac neighbour % pnpm --filter @neighbour/api run test
@@ -62418,7 +62423,7 @@ $ nest build
 git add .
 git commit -m "build: add integrations and partner platform engine"
 git push
- 
+
 
 
 /Users/jasongreaves/Documents/neighbour/services/api:
@@ -62430,7 +62435,7 @@ pnpm exec nest build
 
  Error  ENOTEMPTY: directory not empty, rmdir '/Users/jasongreaves/Documents/neighbour/services/api/dist/interaction 12/dto'
 
-jasongreaves@Mac api % 
+jasongreaves@Mac api %
 jasongreaves@Mac api % time pnpm exec nest build --verbose
 error: unknown option '--verbose'
 pnpm exec nest build --verbose  0.32s user 0.08s system 79% cpu 0.503 total
@@ -62482,7 +62487,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
     const result =
       service.create({
         id: 'app-1',
@@ -62922,7 +62927,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const result =
       service.record({
@@ -64921,7 +64926,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const result =
       service.record({
@@ -66555,7 +66560,7 @@ Your branch is up to date with 'origin/main'.
 nothing to commit, working tree clean
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const service = new TrustService();
 
@@ -68115,7 +68120,7 @@ ed78a32 build: add profile lifecycle event bus
 2f49398 build: add notification centre data foundation
 b1064e9 build: add notification delivery health service
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   it('calculates platform health', () => {
 
     const service =
@@ -68149,7 +68154,7 @@ echo "🎉 BUILD 0046 COMPLETE"
 
 EOF
 jasongreaves@Mac neighbour % chmod +x build-0046-platform-integration-verification-engine.sh
-jasongreaves@Mac neighbour % ./build-0046-platform-integration-verification-engine.sh 
+jasongreaves@Mac neighbour % ./build-0046-platform-integration-verification-engine.sh
 🚀 BUILD 0046 — Platform Integration Verification Engine
 $ tsc --noEmit
 $ node --test --import tsx "test/**/*.test.ts"
@@ -68562,7 +68567,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   it('returns platform health status', () => {
 
     const service =
@@ -68596,7 +68601,7 @@ echo "🎉 BUILD 0047 COMPLETE"
 
 EOF
 jasongreaves@Mac neighbour % chmod +x build-0047-platform-observability-operations-engine.sh
-jasongreaves@Mac neighbour % ./build-0047-platform-observability-operations-engine.sh 
+jasongreaves@Mac neighbour % ./build-0047-platform-observability-operations-engine.sh
 🚀 BUILD 0047 — Platform Observability Operations Engine
 $ tsc --noEmit
 $ node --test --import tsx "test/**/*.test.ts"
@@ -69007,7 +69012,7 @@ Your branch is up to date with 'origin/main'.
 
 nothing to commit, working tree clean
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
   it('creates warning state', () => {
 
     const service =
@@ -69493,7 +69498,7 @@ services/api/src/platform/verification/integration-health.service.ts
 services/api/src/platform/verification/module-health.service.ts
 services/api/src/platform/verification/system-map.service.ts
 jasongreaves@Mac neighbour % cd ~/Documents/neighbour
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const result =
       service.create({
@@ -69987,10 +69992,10 @@ jasongreaves@Mac neighbour % chmod +x build-0050-platform-event-orchestration-bu
 jasongreaves@Mac neighbour % ./build-0050-platform-event-orchestration-bus.sh
 jasongreaves@Mac neighbour % rm build-0050-platform-event-orchestration-bus.sh
 jasongreaves@Mac neighbour % cat > build-0050-platform-event-orchestration-bus.sh <<'EOF'
-heredoc> 
+heredoc>
 jasongreaves@Mac neighbour % ls build-0050-platform-event-orchestration-bus.sh
 ls: build-0050-platform-event-orchestration-bus.sh: No such file or directory
-jasongreaves@Mac neighbour % >....                                                   
+jasongreaves@Mac neighbour % >....
 
     const result =
       service.publish({
@@ -70486,7 +70491,7 @@ nothing to commit, working tree clean
 jasongreaves@Mac neighbour % mkdir -p docs
 jasongreaves@Mac neighbour % nano docs/NEIGHBOUR_MASTER_BUILD_LEDGER.md
 
-  UW PICO 5.09         File: docs/NEIGHBOUR_MASTER_BUILD_LEDGER.md         Modified  
+  UW PICO 5.09         File: docs/NEIGHBOUR_MASTER_BUILD_LEDGER.md         Modified
 
 5. Testing
 6. Build verification
@@ -70517,5 +70522,7 @@ Next Phase:
 BUILD 0051 →  BUILD 0060
 
 
-^G Get Help   ^O WriteOut   ^R Read File  ^Y Prev Pg    ^K Cut Text   ^C Cur Pos    
-^X Exit       ^J Justify    ^W Where is   ^V Next Pg    ^U UnCut Text ^T To Spell   
+^G Get Help   ^O WriteOut   ^R Read File  ^Y Prev Pg    ^K Cut Text   ^C Cur Pos
+^X Exit       ^J Justify    ^W Where is   ^V Next Pg    ^U UnCut Text ^T To Spell
+````
+`````

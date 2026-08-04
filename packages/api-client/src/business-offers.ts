@@ -1,83 +1,47 @@
-import { apiRequest } from "./index";
-
+import { apiRequest } from './index';
 
 export interface BusinessOffer {
+  id: string;
 
-id:string;
+  businessId: string;
 
-businessId:string;
+  title: string;
 
-title:string;
+  description: string;
 
-description:string;
+  active: boolean;
 
-active:boolean;
+  startsAt: string | null;
 
-startsAt:string|null;
+  endsAt: string | null;
 
-endsAt:string|null;
-
-createdAt:string;
-
+  createdAt: string;
 }
-
-
 
 export function createBusinessOffer(
-businessId:string,
-data:{
-title:string;
-description:string;
-active?:boolean;
-startsAt?:string;
-endsAt?:string;
-},
-){
-
-return apiRequest<BusinessOffer>(
-`/businesses/${businessId}/offers`,
-{
-method:"POST",
-body:JSON.stringify(data),
-},
-);
-
+  businessId: string,
+  data: {
+    title: string;
+    description: string;
+    active?: boolean;
+    startsAt?: string;
+    endsAt?: string;
+  },
+) {
+  return apiRequest<BusinessOffer>(`/businesses/${businessId}/offers`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
-
-
-
-export function getBusinessOffers(
-businessId:string,
-){
-
-return apiRequest<BusinessOffer[]>(
-`/businesses/${businessId}/offers`,
-);
-
+export function getBusinessOffers(businessId: string) {
+  return apiRequest<BusinessOffer[]>(`/businesses/${businessId}/offers`);
 }
 
-
-
-
-export function getBusinessOffer(
-id:string,
-){
-
-return apiRequest<BusinessOffer>(
-`/businesses/offers/${id}`,
-);
-
+export function getBusinessOffer(id: string) {
+  return apiRequest<BusinessOffer>(`/businesses/offers/${id}`);
 }
 
-
-
-
-export function getDiscoverOffers(){
-
-return apiRequest<BusinessOffer[]>(
-"/businesses/offers/discover",
-);
-
+export function getDiscoverOffers() {
+  return apiRequest<BusinessOffer[]>('/businesses/offers/discover');
 }
-

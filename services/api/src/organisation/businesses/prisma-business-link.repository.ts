@@ -6,109 +6,56 @@ import type { OrganisationBusinessEntity } from './business-link.entity';
 
 import { OrganisationBusinessRepository } from './business-link.repository';
 
-
 @Injectable()
-export class PrismaOrganisationBusinessRepository
-extends OrganisationBusinessRepository {
+export class PrismaOrganisationBusinessRepository extends OrganisationBusinessRepository {
+  constructor(private readonly database: DatabaseService) {
+    super();
+  }
 
+  private map(record: any): OrganisationBusinessEntity {
+    return {
+      id: record.id,
 
-constructor(
-private readonly database:DatabaseService,
-){
-super();
-}
+      organisationId: record.organisationId,
 
+      businessId: record.businessId,
 
+      createdAt: record.createdAt,
+    };
+  }
 
-private map(record:any):OrganisationBusinessEntity {
+  async save(link: OrganisationBusinessEntity): Promise<OrganisationBusinessEntity> {
+    const record = await this.database.organisationBusiness.create({
+      data: {
+        id: link.id,
 
-return {
+        organisationId: link.organisationId,
 
-id:record.id,
+        businessId: link.businessId,
+      },
+    });
 
-organisationId:record.organisationId,
+    return this.map(record);
+  }
 
-businessId:record.businessId,
+  async findByOrganisation(organisationId: string): Promise<OrganisationBusinessEntity[]> {
+    const records = await this.database.organisationBusiness.findMany({
+      where: {
+        organisationId,
+      },
+    });
 
-createdAt:record.createdAt,
+    return records.map((record) => this.map(record));
+  }
 
-};
-
-}
-
-
-
-async save(
-link:OrganisationBusinessEntity,
-):Promise<OrganisationBusinessEntity>{
-
-
-const record =
-await this.database.organisationBusiness.create({
-
-data:{
-
-id:link.id,
-
-organisationId:link.organisationId,
-
-businessId:link.businessId,
-
-},
-
-});
-
-
-return this.map(record);
-
-}
-
-
-
-async findByOrganisation(
-organisationId:string,
-):Promise<OrganisationBusinessEntity[]>{
-
-
-const records =
-await this.database.organisationBusiness.findMany({
-
-where:{
-organisationId,
-},
-
-});
-
-
-return records.map(
-record=>this.map(record),
-);
-
-}
-
-
-
-async remove(
-organisationId:string,
-businessId:string,
-):Promise<void>{
-
-
-await this.database.organisationBusiness.delete({
-
-where:{
-
-organisationId_businessId:{
-organisationId,
-businessId,
-},
-
-},
-
-});
-
-
-}
-
-
+  async remove(organisationId: string, businessId: string): Promise<void> {
+    await this.database.organisationBusiness.delete({
+      where: {
+        organisationId_businessId: {
+          organisationId,
+          businessId,
+        },
+      },
+    });
+  }
 }

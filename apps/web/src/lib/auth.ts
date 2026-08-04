@@ -1,42 +1,21 @@
-export function getAccessToken(){
+export function getAccessToken() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
 
- if(typeof window === "undefined"){
-  return null;
- }
-
- return localStorage.getItem("accessToken");
-
+  return localStorage.getItem('accessToken');
 }
 
+export function saveTokens(accessToken: string, refreshToken: string) {
+  localStorage.setItem('accessToken', accessToken);
 
-export function saveTokens(
- accessToken:string,
- refreshToken:string
-){
-
- localStorage.setItem(
-  "accessToken",
-  accessToken
- );
-
- localStorage.setItem(
-  "refreshToken",
-  refreshToken
- );
-
+  localStorage.setItem('refreshToken', refreshToken);
 }
 
+export function logout() {
+  localStorage.removeItem('accessToken');
 
-export function logout(){
+  localStorage.removeItem('refreshToken');
 
- localStorage.removeItem(
-  "accessToken"
- );
-
- localStorage.removeItem(
-  "refreshToken"
- );
-
- window.location.href="/auth";
-
+  window.location.href = '/auth';
 }

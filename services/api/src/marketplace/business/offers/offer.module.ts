@@ -8,31 +8,20 @@ import { OfferService } from './offer.service';
 import { OfferRepository } from './offer.repository';
 import { PrismaOfferRepository } from './prisma-offer.repository';
 
-
 @Module({
+  imports: [DatabaseModule],
 
-  imports:[
-    DatabaseModule,
-  ],
+  controllers: [OfferController],
 
-  controllers:[
-    OfferController,
-  ],
-
-  providers:[
-
+  providers: [
     OfferService,
 
     {
-      provide:OfferRepository,
-      useClass:PrismaOfferRepository,
+      provide: OfferRepository,
+      useClass: PrismaOfferRepository,
     },
-
   ],
 
-  exports:[
-    OfferService,
-  ],
-
+  exports: [OfferService],
 })
 export class OfferModule {}

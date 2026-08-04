@@ -4,37 +4,22 @@ import { describe, it } from 'node:test';
 
 import { ActivationPlanService } from '../../../src/platform/activation/activation-plan.service';
 
-
 describe('ActivationPlanService', () => {
-
   it('creates activation plans', () => {
+    const service = new ActivationPlanService();
 
-    const service =
-      new ActivationPlanService();
+    const result = service.create({
+      domain: 'trust',
 
+      currentState: 'FOUNDATION',
 
-    const result =
-      service.create({
+      requiredAction: 'MODULE_ACTIVATION',
 
-        domain: 'trust',
+      priority: 'HIGH',
 
-        currentState: 'FOUNDATION',
+      launchImpact: 'SAFETY',
+    });
 
-        requiredAction: 'MODULE_ACTIVATION',
-
-        priority: 'HIGH',
-
-        launchImpact: 'SAFETY',
-
-      });
-
-
-    assert.equal(
-      result.domain,
-      'trust',
-    );
-
-
+    assert.equal(result.domain, 'trust');
   });
-
 });

@@ -1,15 +1,13 @@
 export interface OrganisationVerificationEntity {
+  id: string;
 
-id:string;
+  organisationId: string;
 
-organisationId:string;
+  status: string;
 
-status:string;
+  notes?: string;
 
-notes?:string;
+  submittedAt: Date;
 
-submittedAt:Date;
-
-reviewedAt?:Date|null;
-
+  reviewedAt?: Date | null;
 }

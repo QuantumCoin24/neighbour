@@ -1,15 +1,10 @@
-"use client";
+'use client';
 
-import {
-  useEffect,
-  useState
-} from "react";
+import { useEffect, useState } from 'react';
 
-import {
-  useParams
-} from "next/navigation";
+import { useParams } from 'next/navigation';
 
-import ReportButton from "../../../components/security/ReportButton";
+import ReportButton from '../../../components/security/ReportButton';
 
 import {
   getConversation,
@@ -18,192 +13,108 @@ import {
   markConversationRead,
   type Conversation,
   type Message,
-} from "@neighbour/api-client";
+} from '@neighbour/api-client';
 
-
-export default function ConversationPage(){
-
+export default function ConversationPage() {
   const params = useParams();
 
-  const conversationId =
-    params.conversationId as string;
+  const conversationId = params.conversationId as string;
 
+  const [conversation, setConversation] = useState<Conversation | null>(null);
 
-  const [conversation,setConversation] =
-    useState<Conversation|null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const [messages,setMessages] =
-    useState<Message[]>([]);
+  const [content, setContent] = useState('');
 
-  const [content,setContent] =
-    useState("");
+  async function load() {
+    const token = localStorage.getItem('accessToken');
 
+    if (!token) return;
 
-
-  async function load(){
-
-    const token =
-      localStorage.getItem("accessToken");
-
-    if(!token)return;
-
-
-    const c =
-      await getConversation(
-        token,
-        conversationId
-      );
+    const c = await getConversation(token, conversationId);
 
     setConversation(c);
 
-
-    const feed =
-      await getMessages(
-        token,
-        conversationId
-      );
+    const feed = await getMessages(token, conversationId);
 
     setMessages(feed.items);
 
-
-    await markConversationRead(
-      token,
-      conversationId
-    );
-
+    await markConversationRead(token, conversationId);
   }
 
-
-
-  useEffect(()=>{
-
+  useEffect(() => {
     load();
+  }, []);
 
-  },[]);
+  async function send() {
+    const token = localStorage.getItem('accessToken');
 
+    if (!token) return;
 
+    if (!content.trim()) return;
 
-  async function send(){
+    await sendMessage(token, conversationId, content);
 
-    const token =
-      localStorage.getItem("accessToken");
-
-    if(!token)return;
-
-    if(!content.trim())return;
-
-
-    await sendMessage(
-      token,
-      conversationId,
-      content
-    );
-
-
-    setContent("");
+    setContent('');
 
     await load();
-
   }
 
-
-
-  if(!conversation){
-
-    return (
-      <main style={{padding:"40px"}}>
-        Loading conversation...
-      </main>
-    );
-
+  if (!conversation) {
+    return <main style={{ padding: '40px' }}>Loading conversation...</main>;
   }
-
-
 
   return (
-
     <main
       style={{
-        padding:"40px",
-        maxWidth:"800px",
-        margin:"auto"
+        padding: '40px',
+        maxWidth: '800px',
+        margin: 'auto',
       }}
     >
-
-      <h1>
-        Conversation
-      </h1>
-
+      <h1>Conversation</h1>
 
       <section>
-
-      {
-        messages.map(message=>(
-
+        {messages.map((message) => (
           <div
             key={message.id}
             style={{
-              padding:"15px",
-              margin:"10px 0",
-              background:"#fff",
-              borderRadius:"15px"
+              padding: '15px',
+              margin: '10px 0',
+              background: '#fff',
+              borderRadius: '15px',
             }}
           >
+            <strong>{message.sender.displayName}</strong>
 
-            <strong>
-              {message.sender.displayName}
-            </strong>
+            <p>{message.content}</p>
 
-            <p>
-              {message.content}
-            </p>
-
-
-            <ReportButton
-              targetType="MESSAGE"
-              targetId={message.id}
-            />
-
+            <ReportButton targetType="MESSAGE" targetId={message.id} />
           </div>
-
-        ))
-      }
-
+        ))}
       </section>
 
-
-
       <section>
-
         <textarea
           value={content}
-          onChange={
-            e=>setContent(e.target.value)
-          }
+          onChange={(e) => setContent(e.target.value)}
           placeholder="Write a message..."
           style={{
-            width:"100%",
-            minHeight:"100px"
+            width: '100%',
+            minHeight: '100px',
           }}
         />
-
 
         <button
           onClick={send}
           style={{
-            marginTop:"10px",
-            padding:"10px 25px"
+            marginTop: '10px',
+            padding: '10px 25px',
           }}
         >
           Send
         </button>
-
-
       </section>
-
-
     </main>
-
   );
-
 }

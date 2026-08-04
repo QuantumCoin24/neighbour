@@ -5,73 +5,35 @@ import { VerificationService } from '../verification/verification.service';
 import { OfferService } from '../offers/offer.service';
 import { BusinessEventService } from '../events/event.service';
 
-
 @Injectable()
 export class BusinessDashboardService {
+  constructor(
+    private readonly businessService: BusinessService,
 
+    private readonly verificationService: VerificationService,
 
-constructor(
+    private readonly offerService: OfferService,
 
-private readonly businessService:BusinessService,
+    private readonly eventService: BusinessEventService,
+  ) {}
 
-private readonly verificationService:VerificationService,
+  async getDashboard(businessId: string) {
+    const business = await this.businessService.findById(businessId);
 
-private readonly offerService:OfferService,
+    const verification = await this.verificationService.findByBusiness(businessId);
 
-private readonly eventService:BusinessEventService,
+    const offers = await this.offerService.findByBusiness(businessId);
 
-){}
+    const events = await this.eventService.findByBusiness(businessId);
 
+    return {
+      business,
 
+      verification,
 
+      offers,
 
-async getDashboard(
-businessId:string,
-){
-
-
-const business =
-await this.businessService.findById(
-businessId
-);
-
-
-
-const verification =
-await this.verificationService.findByBusiness(
-businessId
-);
-
-
-
-const offers =
-await this.offerService.findByBusiness(
-businessId
-);
-
-
-
-const events =
-await this.eventService.findByBusiness(
-businessId
-);
-
-
-
-return {
-
-business,
-
-verification,
-
-offers,
-
-events,
-
-};
-
-
-}
-
-
+      events,
+    };
+  }
 }

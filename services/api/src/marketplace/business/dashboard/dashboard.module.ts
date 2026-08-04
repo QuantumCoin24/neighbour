@@ -8,33 +8,11 @@ import { BusinessEventModule } from '../events/event.module';
 import { BusinessDashboardController } from './dashboard.controller';
 import { BusinessDashboardService } from './dashboard.service';
 
-
 @Module({
+  imports: [BusinessModule, VerificationModule, OfferModule, BusinessEventModule],
 
-imports:[
+  controllers: [BusinessDashboardController],
 
-  BusinessModule,
-
-  VerificationModule,
-
-  OfferModule,
-
-  BusinessEventModule,
-
-],
-
-controllers:[
-
-  BusinessDashboardController,
-
-],
-
-providers:[
-
-  BusinessDashboardService,
-
-],
-
+  providers: [BusinessDashboardService],
 })
-
 export class BusinessDashboardModule {}

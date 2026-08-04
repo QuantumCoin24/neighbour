@@ -1,112 +1,61 @@
-"use client";
+'use client';
 
-import {useEffect,useState} from "react";
+import { useEffect, useState } from 'react';
 
-import {
-  setReaction,
-  removeReaction,
-  getReactionSummary,
-} from "@neighbour/api-client";
+import { setReaction, removeReaction, getReactionSummary } from '@neighbour/api-client';
 
+export default function ReactionBar({ postId }: { postId: string }) {
+  const [count, setCount] = useState(0);
+  const [liked, setLiked] = useState(false);
 
-export default function ReactionBar({
-  postId
-}:{
-  postId:string;
-}){
+  async function load() {
+    const token = localStorage.getItem('accessToken');
 
-const [count,setCount]=useState(0);
-const [liked,setLiked]=useState(false);
+    if (!token) return;
 
+    const result = await getReactionSummary(token, postId);
 
-async function load(){
+    setCount(result.total);
 
-const token =
-localStorage.getItem("accessToken");
+    setLiked(Boolean(result.viewerReaction));
+  }
 
-if(!token)return;
+  useEffect(() => {
+    load();
+  }, []);
 
+  async function toggle() {
+    const token = localStorage.getItem('accessToken');
 
-const result =
-await getReactionSummary(
-token,
-postId
-);
+    if (!token) return;
 
+    if (liked) {
+      await removeReaction(token, postId);
 
-setCount(result.total);
+      setLiked(false);
 
-setLiked(
-Boolean(result.viewerReaction)
-);
+      setCount((value) => Math.max(0, value - 1));
+    } else {
+      await setReaction(token, postId, 'LIKE');
 
-}
+      setLiked(true);
 
+      setCount((value) => value + 1);
+    }
+  }
 
-useEffect(()=>{
-load();
-},[]);
-
-
-
-async function toggle(){
-
-const token =
-localStorage.getItem("accessToken");
-
-if(!token)return;
-
-
-if(liked){
-
-await removeReaction(
-token,
-postId
-);
-
-setLiked(false);
-
-setCount(
-value=>Math.max(0,value-1)
-);
-
-}
-else{
-
-await setReaction(
-token,
-postId,
-"LIKE"
-);
-
-setLiked(true);
-
-setCount(
-value=>value+1
-);
-
-}
-
-}
-
-
-return (
-
-<button
-onClick={toggle}
-style={{
-border:"none",
-background:"#f5f5f5",
-borderRadius:"20px",
-padding:"8px 18px",
-cursor:"pointer"
-}}
->
-
-{liked ? "❤️" : "🤍"} {count}
-
-</button>
-
-);
-
+  return (
+    <button
+      onClick={toggle}
+      style={{
+        border: 'none',
+        background: '#f5f5f5',
+        borderRadius: '20px',
+        padding: '8px 18px',
+        cursor: 'pointer',
+      }}
+    >
+      {liked ? '❤️' : '🤍'} {count}
+    </button>
+  );
 }

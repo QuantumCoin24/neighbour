@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class ResponseReadinessService {
-
-
-  check(
-    response: string,
-  ) {
-
+  check(response: string) {
     return {
-
       response,
 
-      ready:
-        response === 'READY',
+      ready: response === 'READY',
 
       checkedAt: new Date(),
-
     };
-
   }
-
-
 }

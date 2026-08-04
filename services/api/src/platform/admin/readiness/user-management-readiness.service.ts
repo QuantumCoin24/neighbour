@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class UserManagementReadinessService {
-
-
-  check(
-    users: string,
-  ) {
-
+  check(users: string) {
     return {
-
       users,
 
-      ready:
-        users === 'READY',
+      ready: users === 'READY',
 
       checkedAt: new Date(),
-
     };
-
   }
-
-
 }

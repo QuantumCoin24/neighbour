@@ -1,189 +1,101 @@
-"use client";
+'use client';
 
-import {
-useEffect,
-useState
-} from "react";
+import { useEffect, useState } from 'react';
 
-import {
-getComments,
-createComment
-} from "@neighbour/api-client";
+import { getComments, createComment } from '@neighbour/api-client';
 
+export default function CommentDrawer({ postId }: { postId: string }) {
+  const [open, setOpen] = useState(false);
 
-export default function CommentDrawer({
-postId
-}:{
-postId:string;
-}){
+  const [comments, setComments] = useState<any[]>([]);
 
+  const [text, setText] = useState('');
 
-const [open,setOpen]=useState(false);
+  async function load() {
+    const token = localStorage.getItem('accessToken');
 
-const [comments,setComments]=useState<any[]>([]);
+    if (!token) return;
 
-const [text,setText]=useState("");
+    const result = await getComments(token, postId);
 
+    setComments(result.items);
+  }
 
+  async function submit() {
+    const token = localStorage.getItem('accessToken');
 
-async function load(){
+    if (!token) return;
 
-const token =
-localStorage.getItem("accessToken");
+    if (!text.trim()) return;
 
-if(!token)return;
+    await createComment(token, postId, text);
 
+    setText('');
 
-const result =
-await getComments(
-token,
-postId
-);
+    await load();
+  }
 
+  async function toggle() {
+    setOpen((value) => !value);
 
-setComments(
-result.items
-);
+    if (!open) {
+      await load();
+    }
+  }
 
-}
+  return (
+    <div>
+      <button
+        onClick={toggle}
+        style={{
+          border: 'none',
+          background: '#f5f5f5',
+          borderRadius: '20px',
+          padding: '8px 18px',
+          cursor: 'pointer',
+        }}
+      >
+        💬 {comments.length}
+      </button>
 
+      {open && (
+        <div
+          style={{
+            marginTop: '15px',
+            padding: '15px',
+            background: '#fafafa',
+            borderRadius: '15px',
+          }}
+        >
+          {comments.map((comment) => (
+            <div
+              key={comment.id}
+              style={{
+                marginBottom: '12px',
+              }}
+            >
+              <strong>{comment.author.displayName}</strong>
 
+              <p>{comment.content}</p>
+            </div>
+          ))}
 
-async function submit(){
+          <textarea
+            value={text}
 
-const token =
-localStorage.getItem("accessToken");
+            onChange={(event) => setText(event.target.value)}
 
-if(!token)return;
+            placeholder="Write a comment..."
 
-if(!text.trim())return;
+            style={{
+              width: '100%',
+              minHeight: '70px',
+            }}
+          />
 
-
-await createComment(
-token,
-postId,
-text
-);
-
-
-setText("");
-
-await load();
-
-}
-
-
-
-async function toggle(){
-
-setOpen(
-value=>!value
-);
-
-if(!open){
-await load();
-}
-
-}
-
-
-
-return (
-
-<div>
-
-
-<button
-onClick={toggle}
-style={{
-border:"none",
-background:"#f5f5f5",
-borderRadius:"20px",
-padding:"8px 18px",
-cursor:"pointer"
-}}
->
-
-💬 {comments.length}
-
-</button>
-
-
-
-{
-open &&
-
-<div
-style={{
-marginTop:"15px",
-padding:"15px",
-background:"#fafafa",
-borderRadius:"15px"
-}}
->
-
-
-{
-comments.map(comment=>(
-
-<div
-key={comment.id}
-style={{
-marginBottom:"12px"
-}}
->
-
-<strong>
-{comment.author.displayName}
-</strong>
-
-<p>
-{comment.content}
-</p>
-
-</div>
-
-))
-}
-
-
-
-<textarea
-
-value={text}
-
-onChange={
-event=>setText(
-event.target.value
-)
-}
-
-placeholder="Write a comment..."
-
-style={{
-width:"100%",
-minHeight:"70px"
-}}
-
-/>
-
-
-<button
-onClick={submit}
->
-
-Post Comment
-
-</button>
-
-
-</div>
-
-}
-
-
-</div>
-
-);
-
+          <button onClick={submit}>Post Comment</button>
+        </div>
+      )}
+    </div>
+  );
 }

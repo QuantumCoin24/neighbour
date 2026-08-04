@@ -9,25 +9,15 @@ import { ReportService } from './report.service';
 
 @Controller('security/reports')
 export class ReportController {
-
-  constructor(
-    private readonly service: ReportService,
-  ) {}
+  constructor(private readonly service: ReportService) {}
 
   @Post()
-  create(
-    @CurrentUser() user: AuthUser,
-    @Body() dto: CreateReportDto,
-  ): Promise<ReportResponse> {
+  create(@CurrentUser() user: AuthUser, @Body() dto: CreateReportDto): Promise<ReportResponse> {
     return this.service.create(user.id, dto);
   }
 
-
   @Get('mine')
-  findMine(
-    @CurrentUser() user: AuthUser,
-  ): Promise<ReportResponse[]> {
+  findMine(@CurrentUser() user: AuthUser): Promise<ReportResponse[]> {
     return this.service.findMine(user.id);
   }
-
 }

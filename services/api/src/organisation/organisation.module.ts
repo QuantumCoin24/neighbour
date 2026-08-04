@@ -49,95 +49,87 @@ import { OrganisationDashboardService } from './dashboard/organisation-dashboard
 import { OrganisationVerificationController } from './verification/verification.controller';
 
 import { OrganisationVerificationService } from './verification/verification.service';
+import { OrganisationIntelligenceService } from './intelligence/organisation-intelligence.service';
 
 import { OrganisationVerificationRepository } from './verification/verification.repository';
 
 import { PrismaOrganisationVerificationRepository } from './verification/prisma-verification.repository';
 
-
-
 @Module({
+  imports: [DatabaseModule],
 
-imports:[
-DatabaseModule,
-],
+  controllers: [
+    OrganisationController,
+    OrganisationMemberController,
+    OrganisationRoleController,
+    OrganisationPermissionController,
+    OrganisationBusinessController,
+    OrganisationDashboardController,
+    OrganisationVerificationController,
+  ],
 
+  providers: [
+    OrganisationService,
 
-controllers:[
-OrganisationController,
-OrganisationMemberController,
-OrganisationRoleController,
-OrganisationPermissionController,
-OrganisationBusinessController,
-OrganisationDashboardController,
-OrganisationVerificationController,
-],
+    OrganisationMemberService,
 
+    OrganisationRoleService,
 
-providers:[
+    OrganisationPermissionService,
 
-OrganisationService,
+    OrganisationBusinessService,
 
-OrganisationMemberService,
+    OrganisationDashboardService,
 
-OrganisationRoleService,
+    OrganisationVerificationService,
+    OrganisationIntelligenceService,
 
-OrganisationPermissionService,
+    {
+      provide: OrganisationRepository,
+      useClass: PrismaOrganisationRepository,
+    },
 
-OrganisationBusinessService,
+    {
+      provide: OrganisationMemberRepository,
+      useClass: PrismaOrganisationMemberRepository,
+    },
 
-OrganisationDashboardService,
+    {
+      provide: OrganisationRoleRepository,
+      useClass: PrismaOrganisationRoleRepository,
+    },
 
-OrganisationVerificationService,
+    {
+      provide: OrganisationPermissionRepository,
+      useClass: PrismaOrganisationPermissionRepository,
+    },
 
-{
-provide:OrganisationRepository,
-useClass:PrismaOrganisationRepository,
-},
+    {
+      provide: OrganisationBusinessRepository,
+      useClass: PrismaOrganisationBusinessRepository,
+    },
 
-{
-provide:OrganisationMemberRepository,
-useClass:PrismaOrganisationMemberRepository,
-},
+    {
+      provide: OrganisationVerificationRepository,
+      useClass: PrismaOrganisationVerificationRepository,
+    },
+  ],
 
-{
-provide:OrganisationRoleRepository,
-useClass:PrismaOrganisationRoleRepository,
-},
+  exports: [
+    OrganisationService,
 
-{
-provide:OrganisationPermissionRepository,
-useClass:PrismaOrganisationPermissionRepository,
-},
+    OrganisationMemberService,
 
-{
-provide:OrganisationBusinessRepository,
-useClass:PrismaOrganisationBusinessRepository,
-},
+    OrganisationRoleService,
 
-{
-provide:OrganisationVerificationRepository,
-useClass:PrismaOrganisationVerificationRepository,
-},
+    OrganisationPermissionService,
 
-],
+    OrganisationBusinessService,
 
+    OrganisationDashboardService,
 
-exports:[
-OrganisationService,
-
-OrganisationMemberService,
-
-OrganisationRoleService,
-
-OrganisationPermissionService,
-
-OrganisationBusinessService,
-
-OrganisationDashboardService,
-
-OrganisationVerificationService,
-],
-
+    OrganisationVerificationService,
+    OrganisationIntelligenceService,
+  ],
 })
 export class OrganisationModule {}

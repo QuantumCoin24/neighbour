@@ -11,15 +11,9 @@ import { AccessTokenGuard } from './guards/access-token.guard';
 import { RolesGuard } from './guards/roles.guard';
 
 @Module({
-  imports: [
-    DatabaseModule,
-    ProfileModule,
-    JwtModule.register({}),
-  ],
+  imports: [DatabaseModule, ProfileModule, JwtModule.register({})],
 
-  controllers: [
-    AuthController,
-  ],
+  controllers: [AuthController],
 
   providers: [
     AuthService,
@@ -35,8 +29,6 @@ import { RolesGuard } from './guards/roles.guard';
     },
   ],
 
-  exports: [
-    AuthService,
-  ],
+  exports: [AuthService],
 })
 export class AuthModule {}

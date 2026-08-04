@@ -1,28 +1,17 @@
-import { apiRequest } from "./index";
-
+import { apiRequest } from './index';
 
 export interface BusinessAnalytics {
+  businessId: string;
 
-businessId:string;
+  profileViews: number;
 
-profileViews:number;
+  offerViews: number;
 
-offerViews:number;
+  eventViews: number;
 
-eventViews:number;
-
-totalReach:number;
-
+  totalReach: number;
 }
 
-
-
-export function getBusinessAnalytics(
-businessId:string,
-){
-
-return apiRequest<BusinessAnalytics>(
-`/businesses/${businessId}/analytics`,
-);
-
+export function getBusinessAnalytics(businessId: string) {
+  return apiRequest<BusinessAnalytics>(`/businesses/${businessId}/analytics`);
 }

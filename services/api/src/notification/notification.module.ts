@@ -27,6 +27,7 @@ import { NotificationDeliveryResultService } from './result/notification-deliver
 import { NotificationDeliveryStatisticsService } from './metrics/notification-delivery-statistics.service';
 import { NotificationDeliveryHealthService } from './health/notification-delivery-health.service';
 import { NotificationDeliveryAuditService } from './audit/notification-delivery-audit.service';
+import { NotificationIntelligenceService } from './intelligence/notification-intelligence.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],

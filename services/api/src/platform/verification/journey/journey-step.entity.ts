@@ -1,5 +1,4 @@
 export interface JourneyStepEntity {
-
   name: string;
 
   category: string;
@@ -7,5 +6,4 @@ export interface JourneyStepEntity {
   required: boolean;
 
   status: string;
-
 }

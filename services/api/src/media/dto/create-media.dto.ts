@@ -3,10 +3,5 @@ export class CreateMediaDto {
   mimeType: string;
   size: number;
   url: string;
-  ownerType:
-    | 'profile'
-    | 'community'
-    | 'event'
-    | 'business'
-    | 'post';
+  ownerType: 'profile' | 'community' | 'event' | 'business' | 'post';
 }

@@ -6,179 +6,89 @@ import type { OfferEntity } from './offer.entity';
 
 import { OfferRepository } from './offer.repository';
 
-
 @Injectable()
-export class PrismaOfferRepository
-extends OfferRepository {
+export class PrismaOfferRepository extends OfferRepository {
+  constructor(private readonly database: DatabaseService) {
+    super();
+  }
 
+  private map(offer: any): OfferEntity {
+    return {
+      id: offer.id,
 
-constructor(
-private readonly database:DatabaseService,
-){
-super();
-}
+      businessId: offer.businessId,
 
+      title: offer.title,
 
+      description: offer.description,
 
-private map(
-offer:any,
-):OfferEntity {
+      active: offer.active,
 
-return {
+      startsAt: offer.startsAt,
 
-id:
-offer.id,
+      endsAt: offer.endsAt,
 
-businessId:
-offer.businessId,
+      createdAt: offer.createdAt,
+    };
+  }
 
-title:
-offer.title,
+  async save(offer: OfferEntity): Promise<OfferEntity> {
+    const record = await this.database.offer.create({
+      data: {
+        id: offer.id,
 
-description:
-offer.description,
+        businessId: offer.businessId,
 
-active:
-offer.active,
+        title: offer.title,
 
-startsAt:
-offer.startsAt,
+        description: offer.description,
 
-endsAt:
-offer.endsAt,
+        active: offer.active,
 
-createdAt:
-offer.createdAt,
+        startsAt: offer.startsAt,
 
-};
+        endsAt: offer.endsAt,
+      },
+    });
 
-}
+    return this.map(record);
+  }
 
+  async findById(id: string): Promise<OfferEntity | undefined> {
+    const record = await this.database.offer.findUnique({
+      where: {
+        id,
+      },
+    });
 
+    return record ? this.map(record) : undefined;
+  }
 
-async save(
-offer:OfferEntity,
-):Promise<OfferEntity>{
+  async findByBusiness(businessId: string): Promise<OfferEntity[]> {
+    const records = await this.database.offer.findMany({
+      where: {
+        businessId,
+      },
 
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-const record =
-await this.database.offer.create({
+    return records.map((record) => this.map(record));
+  }
 
-data:{
+  async findActive(): Promise<OfferEntity[]> {
+    const records = await this.database.offer.findMany({
+      where: {
+        active: true,
+      },
 
-id:
-offer.id,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-businessId:
-offer.businessId,
-
-title:
-offer.title,
-
-description:
-offer.description,
-
-active:
-offer.active,
-
-startsAt:
-offer.startsAt,
-
-endsAt:
-offer.endsAt,
-
-},
-
-});
-
-
-return this.map(record);
-
-}
-
-
-
-
-async findById(
-id:string,
-):Promise<OfferEntity|undefined>{
-
-
-const record =
-await this.database.offer.findUnique({
-
-where:{
-id,
-},
-
-});
-
-
-return record
-?
-this.map(record)
-:
-undefined;
-
-
-}
-
-
-
-
-async findByBusiness(
-businessId:string,
-):Promise<OfferEntity[]>{
-
-
-const records =
-await this.database.offer.findMany({
-
-where:{
-businessId,
-},
-
-orderBy:{
-createdAt:"desc",
-},
-
-});
-
-
-return records.map(
-record=>this.map(record),
-);
-
-
-}
-
-
-
-
-async findActive(
-):Promise<OfferEntity[]>{
-
-
-const records =
-await this.database.offer.findMany({
-
-where:{
-active:true,
-},
-
-orderBy:{
-createdAt:"desc",
-},
-
-});
-
-
-return records.map(
-record=>this.map(record),
-);
-
-
-}
-
-
+    return records.map((record) => this.map(record));
+  }
 }

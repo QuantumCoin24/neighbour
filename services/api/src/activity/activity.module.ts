@@ -7,18 +7,9 @@ import { ActivityController } from './activity.controller';
 import { ActivityService } from './activity.service';
 
 @Module({
-  imports:[
-    PostModule,
-    CommunityModule,
-  ],
-  controllers:[
-    ActivityController,
-  ],
-  providers:[
-    ActivityService,
-  ],
-  exports:[
-    ActivityService,
-  ],
+  imports: [PostModule, CommunityModule],
+  controllers: [ActivityController],
+  providers: [ActivityService],
+  exports: [ActivityService],
 })
 export class ActivityModule {}

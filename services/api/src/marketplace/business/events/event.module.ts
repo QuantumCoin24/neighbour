@@ -8,31 +8,20 @@ import { BusinessEventService } from './event.service';
 import { BusinessEventRepository } from './event.repository';
 import { PrismaBusinessEventRepository } from './prisma-event.repository';
 
-
 @Module({
+  imports: [DatabaseModule],
 
-  imports:[
-    DatabaseModule,
-  ],
+  controllers: [BusinessEventController],
 
-  controllers:[
-    BusinessEventController,
-  ],
-
-  providers:[
-
+  providers: [
     BusinessEventService,
 
     {
-      provide:BusinessEventRepository,
-      useClass:PrismaBusinessEventRepository,
+      provide: BusinessEventRepository,
+      useClass: PrismaBusinessEventRepository,
     },
-
   ],
 
-  exports:[
-    BusinessEventService,
-  ],
-
+  exports: [BusinessEventService],
 })
 export class BusinessEventModule {}

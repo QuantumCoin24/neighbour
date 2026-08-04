@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class MigrationReadinessService {
-
-
-  check(
-    migrations: string,
-  ) {
-
+  check(migrations: string) {
     return {
-
       migrations,
 
-      available:
-        migrations === 'READY',
+      available: migrations === 'READY',
 
       checkedAt: new Date(),
-
     };
-
   }
-
-
 }

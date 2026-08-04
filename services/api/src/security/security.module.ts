@@ -7,16 +7,8 @@ import { ReportModule } from './reports/report.module';
 import { ModerationModule } from './moderation/moderation.module';
 
 @Module({
-  imports:[ReportModule, ModerationModule],
-  providers: [
-    SecurityEventBusService,
-    TrustService,
-    PrivacyService,
-  ],
-  exports: [
-    SecurityEventBusService,
-    TrustService,
-    PrivacyService,
-  ],
+  imports: [ReportModule, ModerationModule],
+  providers: [SecurityEventBusService, TrustService, PrivacyService],
+  exports: [SecurityEventBusService, TrustService, PrivacyService],
 })
 export class SecurityModule {}

@@ -1,21 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class CommandRouterService {
-
-  route(
-    type: string,
-  ) {
-
+  route(type: string) {
     return {
-
       commandType: type,
 
       routed: true,
-
     };
-
   }
-
 }

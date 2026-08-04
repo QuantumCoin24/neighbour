@@ -8,22 +8,16 @@ import { ProfileEventBusService } from './profile-event-bus.service';
 import { PrismaProfileRepository } from './prisma-profile.repository';
 import { ProfileRepository } from './profile.repository';
 @Module({
-  imports: [
-    DatabaseModule,
-  ],
-  controllers: [
-    ProfileController,
-  ],
+  imports: [DatabaseModule],
+  controllers: [ProfileController],
   providers: [
-  ProfileService,
-  ProfileEventBusService,
-  {
-    provide: ProfileRepository,
-    useClass: PrismaProfileRepository,
-  },
-],
-  exports: [
     ProfileService,
+    ProfileEventBusService,
+    {
+      provide: ProfileRepository,
+      useClass: PrismaProfileRepository,
+    },
   ],
+  exports: [ProfileService],
 })
 export class ProfileModule {}

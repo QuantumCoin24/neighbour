@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class ReleaseReadinessService {
-
-
-  check(
-    release: string,
-  ) {
-
+  check(release: string) {
     return {
-
       release,
 
-      ready:
-        release === 'READY',
+      ready: release === 'READY',
 
       checkedAt: new Date(),
-
     };
-
   }
-
-
 }

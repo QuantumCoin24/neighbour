@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class HealthReadinessService {
-
-
-  check(
-    health: string,
-  ) {
-
+  check(health: string) {
     return {
-
       health,
 
-      available:
-        health === 'READY',
+      available: health === 'READY',
 
       checkedAt: new Date(),
-
     };
-
   }
-
-
 }

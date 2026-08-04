@@ -1,14 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class ActivationMatrixService {
-
-
   generate() {
-
     return [
-
       {
         domain: 'auth',
         status: 'ACTIVE',
@@ -33,10 +28,6 @@ export class ActivationMatrixService {
         domain: 'payments',
         status: 'FOUNDATION',
       },
-
     ];
-
   }
-
-
 }

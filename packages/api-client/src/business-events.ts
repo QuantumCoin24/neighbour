@@ -1,30 +1,21 @@
-import { apiRequest } from "./index";
-
+import { apiRequest } from './index';
 
 export interface BusinessEvent {
+  id: string;
 
-id:string;
+  businessId: string;
 
-businessId:string;
+  title: string;
 
-title:string;
+  description: string;
 
-description:string;
+  startsAt: string;
 
-startsAt:string;
+  endsAt: string;
 
-endsAt:string;
-
-createdAt:string;
-
+  createdAt: string;
 }
 
-
-
-export function getDiscoverEvents(){
-
-return apiRequest<BusinessEvent[]>(
-"/businesses/events/discover",
-);
-
+export function getDiscoverEvents() {
+  return apiRequest<BusinessEvent[]>('/businesses/events/discover');
 }

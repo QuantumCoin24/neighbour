@@ -1,11 +1,9 @@
 export interface OrganisationRoleEntity {
+  id: string;
 
-id:string;
+  organisationId: string;
 
-organisationId:string;
+  name: string;
 
-name:string;
-
-createdAt:Date;
-
+  createdAt: Date;
 }

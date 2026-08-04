@@ -1,69 +1,40 @@
-import { apiRequest } from "./index";
-
+import { apiRequest } from './index';
 
 export interface Business {
+  id: string;
 
-  id:string;
+  communityId: string;
 
-  communityId:string;
+  ownerId: string;
 
-  ownerId:string;
+  name: string;
 
-  name:string;
+  description: string;
 
-  description:string;
+  category: string;
 
-  category:string;
+  verified: boolean;
 
-  verified:boolean;
-
-  createdAt:string;
-
+  createdAt: string;
 }
 
+export function createBusiness(data: {
+  communityId: string;
+  name: string;
+  description: string;
+  category: string;
+}) {
+  return apiRequest<Business>('/businesses', {
+    method: 'POST',
 
-
-export function createBusiness(
-data:{
-communityId:string;
-name:string;
-description:string;
-category:string;
-},
-){
-
-return apiRequest<Business>(
-"/businesses",
-{
-method:"POST",
-
-body:JSON.stringify(data),
-
-},
-);
-
+    body: JSON.stringify(data),
+  });
 }
 
-
-
-export function getCommunityBusinesses(
-communityId:string,
-){
-
-return apiRequest<Business[]>(
-`/businesses/community/${communityId}`,
-);
-
+export function getCommunityBusinesses(communityId: string) {
+  return apiRequest<Business[]>(`/businesses/community/${communityId}`);
 }
 
-
-
-export function searchBusinesses(
-query:string,
-){
-
-return apiRequest<Business[]>(
-`/businesses/search?q=${encodeURIComponent(query)}`,
-);
-
+export function searchBusinesses(query: string) {
+  return apiRequest<Business[]>(`/businesses/search?q=${encodeURIComponent(query)}`);
 }

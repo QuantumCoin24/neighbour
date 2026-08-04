@@ -1,5 +1,4 @@
 export interface AdminStatusEntity {
-
   domain: string;
 
   users: string;
@@ -9,5 +8,4 @@ export interface AdminStatusEntity {
   control: string;
 
   status: string;
-
 }

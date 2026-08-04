@@ -6,95 +6,49 @@ import type { OrganisationRoleEntity } from './role.entity';
 
 import { OrganisationRoleRepository } from './role.repository';
 
-
 @Injectable()
-export class PrismaOrganisationRoleRepository
-extends OrganisationRoleRepository {
+export class PrismaOrganisationRoleRepository extends OrganisationRoleRepository {
+  constructor(private readonly database: DatabaseService) {
+    super();
+  }
 
+  private map(record: any): OrganisationRoleEntity {
+    return {
+      id: record.id,
 
-constructor(
-private readonly database:DatabaseService,
-){
-super();
-}
+      organisationId: record.organisationId,
 
+      name: record.name,
 
+      createdAt: record.createdAt,
+    };
+  }
 
-private map(
-record:any,
-):OrganisationRoleEntity {
+  async save(role: OrganisationRoleEntity): Promise<OrganisationRoleEntity> {
+    const record = await this.database.organisationRole.create({
+      data: {
+        id: role.id,
 
-return {
+        organisationId: role.organisationId,
 
-id:record.id,
+        name: role.name,
+      },
+    });
 
-organisationId:record.organisationId,
+    return this.map(record);
+  }
 
-name:record.name,
+  async findByOrganisation(organisationId: string): Promise<OrganisationRoleEntity[]> {
+    const records = await this.database.organisationRole.findMany({
+      where: {
+        organisationId,
+      },
 
-createdAt:record.createdAt,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-};
-
-}
-
-
-
-async save(
-role:OrganisationRoleEntity,
-):Promise<OrganisationRoleEntity>{
-
-
-const record =
-await this.database.organisationRole.create({
-
-data:{
-
-id:role.id,
-
-organisationId:role.organisationId,
-
-name:role.name,
-
-},
-
-});
-
-
-return this.map(record);
-
-}
-
-
-
-
-
-async findByOrganisation(
-organisationId:string,
-):Promise<OrganisationRoleEntity[]>{
-
-
-const records =
-await this.database.organisationRole.findMany({
-
-where:{
-organisationId,
-},
-
-orderBy:{
-createdAt:"desc",
-},
-
-});
-
-
-return records.map(
-(record)=>this.map(record),
-);
-
-
-}
-
-
-
+    return records.map((record) => this.map(record));
+  }
 }

@@ -1,4 +1,4 @@
-import { apiRequest } from "./index";
+import { apiRequest } from './index';
 
 export interface Neighbourhood {
   id: string;
@@ -8,7 +8,7 @@ export interface Neighbourhood {
 }
 
 export function getNeighbourhoods(token: string) {
-  return apiRequest<Neighbourhood[]>("/neighbourhoods", {
+  return apiRequest<Neighbourhood[]>('/neighbourhoods', {
     headers: {
       Authorization: `Bearer ${token}`,
     },

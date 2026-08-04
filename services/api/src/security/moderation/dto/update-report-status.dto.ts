@@ -1,24 +1,12 @@
-import {
-  IsEnum,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
-import {
-  ReportStatus,
-} from '../../../generated/prisma/client.js';
-
+import { ReportStatus } from '../../../generated/prisma/client.js';
 
 export class UpdateReportStatusDto {
-
-
   @IsEnum(ReportStatus)
-  status:ReportStatus;
-
+  status: ReportStatus;
 
   @IsOptional()
   @IsString()
-  notes?:string;
-
-
+  notes?: string;
 }

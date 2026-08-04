@@ -4,20 +4,11 @@ import { ModerationController } from './moderation.controller';
 import { ModerationService } from './moderation.service';
 import { ModerationStatsService } from './moderation.stats';
 
-
 @Module({
-  controllers:[
-    ModerationController,
-  ],
+  controllers: [ModerationController],
 
-  providers:[
-    ModerationService,
-    ModerationStatsService,
-  ],
+  providers: [ModerationService, ModerationStatsService],
 
-  exports:[
-    ModerationService,
-    ModerationStatsService,
-  ],
+  exports: [ModerationService, ModerationStatsService],
 })
 export class ModerationModule {}

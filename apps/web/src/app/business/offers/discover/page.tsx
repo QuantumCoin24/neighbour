@@ -1,190 +1,93 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import {
-  getDiscoverOffers,
-} from "@neighbour/api-client";
+import { getDiscoverOffers } from '@neighbour/api-client';
 
+export default function OfferDiscoverPage() {
+  const [offers, setOffers] = useState<any[]>([]);
 
-export default function OfferDiscoverPage(){
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getDiscoverOffers();
 
-const [offers,setOffers] = useState<any[]>([]);
+        setOffers(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-const [loading,setLoading] = useState(true);
+    load();
+  }, []);
 
+  return (
+    <main style={page}>
+      <section style={hero}>
+        <h1>🏷️ Neighbour™ Offers</h1>
 
+        <p>Discover local offers from businesses in your community.</p>
+      </section>
 
-useEffect(()=>{
+      {loading && <p>Loading offers...</p>}
 
+      <section style={grid}>
+        {offers.map((offer) => (
+          <article
+            key={offer.id}
 
-async function load(){
+            style={card}
+          >
+            <h2>{offer.title}</h2>
 
-try{
+            <p>{offer.description}</p>
 
-const data =
-await getDiscoverOffers();
-
-setOffers(data);
-
-}
-catch(error){
-
-console.error(error);
-
-}
-finally{
-
-setLoading(false);
-
-}
-
-}
-
-
-load();
-
-
-},[]);
-
-
-
-return (
-
-<main style={page}>
-
-
-<section style={hero}>
-
-<h1>
-🏷️ Neighbour™ Offers
-</h1>
-
-
-<p>
-Discover local offers from businesses in your community.
-</p>
-
-
-</section>
-
-
-
-{
-loading &&
-
-<p>
-Loading offers...
-</p>
-
+            <p>🟢 Active Offer</p>
+          </article>
+        ))}
+      </section>
+    </main>
+  );
 }
 
+const page = {
+  padding: '40px',
 
+  maxWidth: '1100px',
 
-
-<section style={grid}>
-
-
-{
-offers.map(offer=>(
-
-
-<article
-
-key={offer.id}
-
-style={card}
-
->
-
-
-<h2>
-{offer.title}
-</h2>
-
-
-<p>
-{offer.description}
-</p>
-
-
-<p>
-🟢 Active Offer
-</p>
-
-
-</article>
-
-
-))
-
-}
-
-
-</section>
-
-
-</main>
-
-);
-
-}
-
-
-
-const page={
-
-padding:"40px",
-
-maxWidth:"1100px",
-
-margin:"auto",
-
+  margin: 'auto',
 };
 
+const hero = {
+  background: 'linear-gradient(135deg,#08111F,#D6A84F)',
 
+  color: '#fff',
 
-const hero={
+  padding: '40px',
 
-background:
-"linear-gradient(135deg,#08111F,#D6A84F)",
-
-color:"#fff",
-
-padding:"40px",
-
-borderRadius:"24px",
-
+  borderRadius: '24px',
 };
 
+const grid = {
+  display: 'grid',
 
+  gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))',
 
-const grid={
+  gap: '25px',
 
-display:"grid",
-
-gridTemplateColumns:
-"repeat(auto-fit,minmax(260px,1fr))",
-
-gap:"25px",
-
-marginTop:"35px",
-
+  marginTop: '35px',
 };
 
+const card = {
+  background: '#fff',
 
+  padding: '30px',
 
-const card={
+  borderRadius: '22px',
 
-background:"#fff",
-
-padding:"30px",
-
-borderRadius:"22px",
-
-boxShadow:
-"0 10px 30px rgba(0,0,0,.08)",
-
+  boxShadow: '0 10px 30px rgba(0,0,0,.08)',
 };
-

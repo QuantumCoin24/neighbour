@@ -4,42 +4,24 @@ import { describe, it } from 'node:test';
 
 import { ActivationAuditService } from '../../../../src/platform/audit/activation/activation-audit.service';
 
-
 describe('ActivationAuditService', () => {
-
-
   it('identifies active domains', () => {
+    const service = new ActivationAuditService();
 
+    const result = service.analyse({
+      domain: 'auth',
 
-    const service =
-      new ActivationAuditService();
+      service: true,
 
+      module: true,
 
-    const result =
-      service.analyse({
+      controller: true,
 
-        domain: 'auth',
+      database: true,
 
-        service: true,
+      status: '',
+    });
 
-        module: true,
-
-        controller: true,
-
-        database: true,
-
-        status: '',
-
-      });
-
-
-    assert.equal(
-      result.status,
-      'ACTIVE',
-    );
-
-
+    assert.equal(result.status, 'ACTIVE');
   });
-
-
 });

@@ -15,10 +15,7 @@ import { ProfileService } from './profile.service';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
   @Post()
-  create(
-    @CurrentUser() user: AuthUser,
-    @Body() dto: CreateProfileDto,
-  ) {
+  create(@CurrentUser() user: AuthUser, @Body() dto: CreateProfileDto) {
     return this.profileService.create({
       id: crypto.randomUUID(),
       userId: user.id,

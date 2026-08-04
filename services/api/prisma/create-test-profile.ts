@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  const userId = "d3d98823-bdb7-4b12-b43f-13791e16559b";
+  const userId = 'd3d98823-bdb7-4b12-b43f-13791e16559b';
 
   const existing = await prisma.userProfile.findUnique({
     where: {
@@ -12,14 +12,14 @@ async function main() {
   });
 
   if (existing) {
-    console.log("Profile already exists:", existing);
+    console.log('Profile already exists:', existing);
     return;
   }
 
   const profile = await prisma.userProfile.create({
     data: {
       userId,
-      username: "jason",
+      username: 'jason',
       bio: null,
       avatarUrl: null,
       localArea: null,
@@ -27,7 +27,7 @@ async function main() {
     },
   });
 
-  console.log("Created profile:", profile);
+  console.log('Created profile:', profile);
 }
 
 main()

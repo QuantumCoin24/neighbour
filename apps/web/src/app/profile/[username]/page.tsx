@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState } from 'react';
 
-import ReportButton from "../../../components/security/ReportButton";
+import ReportButton from '../../../components/security/ReportButton';
 
 import {
   getPublicProfile,
@@ -10,8 +10,7 @@ import {
   getRelationshipStatus,
   sendConnectionRequest,
   type PublicProfile,
-} from "@neighbour/api-client";
-
+} from '@neighbour/api-client';
 
 export default function PublicProfilePage({
   params,
@@ -20,196 +19,122 @@ export default function PublicProfilePage({
     username: string;
   }>;
 }) {
-
   const { username } = use(params);
 
-  const [profile,setProfile] =
-    useState<PublicProfile | null>(null);
+  const [profile, setProfile] = useState<PublicProfile | null>(null);
 
-  const [message,setMessage] =
-    useState("Loading profile...");
+  const [message, setMessage] = useState('Loading profile...');
 
-  const [posts,setPosts] =
-    useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
 
-  const [relationship,setRelationship] =
-    useState<any>(null);
+  const [relationship, setRelationship] = useState<any>(null);
 
-
-  useEffect(()=>{
-
-    async function load(){
-
+  useEffect(() => {
+    async function load() {
       try {
-
-        const result =
-          await getPublicProfile(
-            username
-          );
+        const result = await getPublicProfile(username);
 
         setProfile(result);
 
-        const profilePosts =
-          await getPostsByProfile(
-            username
-          );
+        const profilePosts = await getPostsByProfile(username);
 
         setPosts(profilePosts.items);
 
-        const relation =
-          await getRelationshipStatus(
-            localStorage.getItem("accessToken") ?? "",
-            result.userId
-          );
-
-        setRelationship(relation);
-
-      } catch {
-
-        setMessage(
-          "Profile not found."
+        const relation = await getRelationshipStatus(
+          localStorage.getItem('accessToken') ?? '',
+          result.userId,
         );
 
+        setRelationship(relation);
+      } catch {
+        setMessage('Profile not found.');
       }
-
     }
 
     load();
+  }, [username]);
 
-  },[username]);
+  async function connect() {
+    const token = localStorage.getItem('accessToken');
 
+    if (!token) return;
 
+    await sendConnectionRequest(token, profile?.userId);
 
-async function connect(){
+    const updated = await getRelationshipStatus(token, profile?.userId);
 
-const token =
-localStorage.getItem("accessToken");
-
-if(!token)return;
-
-await sendConnectionRequest(
- token,
- profile?.userId
-);
-
-const updated =
-await getRelationshipStatus(
- token,
- profile?.userId
-);
-
-setRelationship(updated);
-
-}
-
-
-  if(!profile){
-
-    return (
-      <main style={{padding:"40px"}}>
-        {message}
-      </main>
-    );
-
+    setRelationship(updated);
   }
 
+  if (!profile) {
+    return <main style={{ padding: '40px' }}>{message}</main>;
+  }
 
   return (
     <main
       style={{
-        padding:"40px",
-        background:"#f5f7fb",
-        minHeight:"100vh"
+        padding: '40px',
+        background: '#f5f7fb',
+        minHeight: '100vh',
       }}
     >
-
       <section
         style={{
-          background:"#fff",
-          padding:"30px",
-          borderRadius:"24px"
+          background: '#fff',
+          padding: '30px',
+          borderRadius: '24px',
         }}
       >
+        <h1>{profile.displayName}</h1>
 
-        <h1>
-          {profile.displayName}
-        </h1>
-
-        <p>
-          @{profile.username}
-        </p>
+        <p>@{profile.username}</p>
 
         <button
           onClick={connect}
           disabled={
-            relationship?.status === "CONNECTED" ||
-            relationship?.status === "OUTGOING_REQUEST"
+            relationship?.status === 'CONNECTED' || relationship?.status === 'OUTGOING_REQUEST'
           }
           style={{
-            marginTop:"15px",
-            padding:"10px 20px",
-            borderRadius:"20px",
-            border:"none",
-            cursor:"pointer"
+            marginTop: '15px',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            border: 'none',
+            cursor: 'pointer',
           }}
         >
-          {
-            relationship?.status === "CONNECTED"
-              ? "Connected"
-              :
-            relationship?.status === "OUTGOING_REQUEST"
-              ? "Request Sent"
-              :
-              "Add Neighbour"
-          }
+          {relationship?.status === 'CONNECTED'
+            ? 'Connected'
+            : relationship?.status === 'OUTGOING_REQUEST'
+              ? 'Request Sent'
+              : 'Add Neighbour'}
         </button>
 
+        <ReportButton targetType="USER" targetId={profile.userId} />
 
-        <ReportButton
-          targetType="USER"
-          targetId={profile.userId}
-        />
+        <p>📍 {profile.localArea ?? 'Location hidden'}</p>
 
+        <p>{profile.bio ?? 'No bio yet'}</p>
 
-        <p>
-          📍 {profile.localArea ?? "Location hidden"}
-        </p>
-
-        <p>
-          {profile.bio ?? "No bio yet"}
-        </p>
-
-        <p>
-          Profile created:
-          {" "}
-          {new Date(profile.createdAt).toLocaleDateString()}
-        </p>
+        <p>Profile created: {new Date(profile.createdAt).toLocaleDateString()}</p>
 
         <hr />
 
-        <h2>
-          Posts
-        </h2>
+        <h2>Posts</h2>
 
-        {
-          posts.map(post => (
-            <div
-              key={post.id}
-              style={{
-                marginTop:"15px",
-                padding:"15px",
-                background:"#f5f5f5",
-                borderRadius:"15px"
-              }}
-            >
-              {post.content}
-            </div>
-          ))
-        }
-
+        {posts.map((post) => (
+          <div
+            key={post.id}
+            style={{
+              marginTop: '15px',
+              padding: '15px',
+              background: '#f5f5f5',
+              borderRadius: '15px',
+            }}
+          >
+            {post.content}
+          </div>
+        ))}
       </section>
-
     </main>
   );
-
 }
