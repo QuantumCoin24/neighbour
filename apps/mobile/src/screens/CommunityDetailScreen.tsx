@@ -1,4 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -28,6 +29,10 @@ const SECTIONS: {
   label: string;
 }[] = [
   {
+    id: 'overview',
+    label: 'Overview',
+  },
+  {
     id: 'feed',
     label: 'Feed',
   },
@@ -49,7 +54,7 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
   const { theme } = useNeighbourTheme();
   const detail = useCommunityDetail(route.params.slug);
 
-  const [section, setSection] = React.useState<CommunityDetailSection>('feed');
+  const [section, setSection] = useState<CommunityDetailSection>('overview');
 
   if (detail.loading) {
     return (
@@ -133,7 +138,7 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
           </AppText>
 
           <AppText variant="caption" tone="secondary">
-            @{detail.community.slug}
+            @{detail.community.handle}
           </AppText>
         </View>
       </View>
@@ -156,9 +161,13 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
           community={detail.community}
           eventCount={detail.events.length}
           joining={detail.joining}
+          leaving={detail.leaving}
           membership={detail.membership}
           onJoin={() => {
             void detail.join();
+          }}
+          onLeave={() => {
+            void detail.leave();
           }}
           postCount={detail.posts.length}
         />
@@ -228,6 +237,84 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
             );
           })}
         </ScrollView>
+
+        {section === 'overview' ? (
+          <View style={styles.section}>
+            {detail.community.welcomeMessage ? (
+              <Card style={styles.welcomeCard}>
+                <AppText variant="overline" tone="brand">
+                  Welcome
+                </AppText>
+
+                <AppText variant="subheading">A message from the community</AppText>
+
+                <AppText tone="secondary">{detail.community.welcomeMessage}</AppText>
+              </Card>
+            ) : null}
+
+            <View style={styles.sectionHeader}>
+              <AppText variant="subheading">Community tools</AppText>
+
+              <AppText variant="caption" tone="secondary">
+                {detail.enabledFeatures.length} enabled
+              </AppText>
+            </View>
+
+            <View style={styles.featureGrid}>
+              {detail.enabledFeatures.map((feature) => (
+                <Card key={feature} variant="muted" style={styles.featureCard}>
+                  <AppText variant="caption" tone="brand">
+                    Available
+                  </AppText>
+
+                  <AppText variant="bodyStrong">{feature}</AppText>
+                </Card>
+              ))}
+            </View>
+
+            <Card style={styles.snapshotCard}>
+              <AppText variant="subheading">Community snapshot</AppText>
+
+              <View style={styles.snapshotRows}>
+                <View style={styles.snapshotRow}>
+                  <AppText tone="secondary">Category</AppText>
+
+                  <AppText variant="bodyStrong">
+                    {detail.community.category.replaceAll('_', ' ').toLowerCase()}
+                  </AppText>
+                </View>
+
+                <View style={styles.snapshotRow}>
+                  <AppText tone="secondary">Joining</AppText>
+
+                  <AppText variant="bodyStrong">
+                    {detail.community.joinPolicy.replaceAll('_', ' ').toLowerCase()}
+                  </AppText>
+                </View>
+
+                <View style={styles.snapshotRow}>
+                  <AppText tone="secondary">Location</AppText>
+
+                  <AppText variant="bodyStrong">
+                    {[detail.community.city, detail.community.postcode]
+                      .filter(Boolean)
+                      .join(' · ') || 'Not set'}
+                  </AppText>
+                </View>
+
+                <View style={styles.snapshotRow}>
+                  <AppText tone="secondary">Your status</AppText>
+
+                  <AppText variant="bodyStrong">
+                    {detail.membership?.status === 'INVITED'
+                      ? 'Pending approval'
+                      : (detail.roleLabel ?? 'Not connected')}
+                  </AppText>
+                </View>
+              </View>
+            </Card>
+          </View>
+        ) : null}
 
         {section === 'feed' ? (
           <View style={styles.section}>
@@ -306,6 +393,12 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
 
               <View style={styles.aboutRows}>
                 <View style={styles.aboutRow}>
+                  <AppText tone="secondary">Handle</AppText>
+
+                  <AppText variant="bodyStrong">@{detail.community.handle}</AppText>
+                </View>
+
+                <View style={styles.aboutRow}>
                   <AppText tone="secondary">Visibility</AppText>
 
                   <AppText variant="bodyStrong">{detail.community.visibility}</AppText>
@@ -323,6 +416,55 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
                   <AppText variant="bodyStrong">{detail.roleLabel ?? 'Not joined'}</AppText>
                 </View>
               </View>
+
+              {detail.community.tags.length > 0 ? (
+                <View style={styles.tagList}>
+                  {detail.community.tags.map((tag) => (
+                    <View
+                      key={tag}
+                      style={[
+                        styles.tag,
+                        {
+                          backgroundColor: theme.colors.primarySoft,
+                          borderRadius: theme.radius.pill,
+                        },
+                      ]}
+                    >
+                      <AppText variant="caption" tone="brand">
+                        #{tag}
+                      </AppText>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
+              {detail.community.rules.length > 0 ? (
+                <View style={styles.rules}>
+                  <AppText variant="subheading">Community rules</AppText>
+
+                  {detail.community.rules.map((rule, index) => (
+                    <View key={`${rule}-${index}`} style={styles.rule}>
+                      <View
+                        style={[
+                          styles.ruleNumber,
+                          {
+                            backgroundColor: theme.colors.primarySoft,
+                            borderRadius: theme.radius.pill,
+                          },
+                        ]}
+                      >
+                        <AppText variant="caption" tone="brand">
+                          {index + 1}
+                        </AppText>
+                      </View>
+
+                      <AppText tone="secondary" style={styles.ruleCopy}>
+                        {rule}
+                      </AppText>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </Card>
           </View>
         ) : null}
@@ -330,8 +472,6 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
     </SafeAreaView>
   );
 }
-
-const React = require('react') as typeof import('react');
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -385,6 +525,30 @@ const styles = StyleSheet.create({
   section: {
     gap: 14,
   },
+  welcomeCard: {
+    gap: 8,
+  },
+  featureGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  featureCard: {
+    gap: 4,
+    width: '48%',
+  },
+  snapshotCard: {
+    gap: 14,
+  },
+  snapshotRows: {
+    gap: 12,
+  },
+  snapshotRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
   sectionHeader: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -405,6 +569,33 @@ const styles = StyleSheet.create({
   aboutRow: {
     alignItems: 'center',
     flexDirection: 'row',
+    gap: 16,
     justifyContent: 'space-between',
+  },
+  tagList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tag: {
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+  },
+  rules: {
+    gap: 12,
+  },
+  rule: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  ruleNumber: {
+    alignItems: 'center',
+    height: 26,
+    justifyContent: 'center',
+    width: 26,
+  },
+  ruleCopy: {
+    flex: 1,
   },
 });

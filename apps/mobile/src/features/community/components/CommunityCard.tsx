@@ -12,11 +12,61 @@ interface CommunityCardProps {
   onJoin: () => void;
 }
 
+const CATEGORY_LABELS: Record<Community['category'], string> = {
+  LOCAL_AREA: 'Local area',
+  STREET: 'Street',
+  ESTATE: 'Estate',
+  VILLAGE: 'Village',
+  TOWN: 'Town',
+  CITY: 'City',
+  SCHOOL: 'School',
+  PARENTS: 'Parents',
+  SPORTS: 'Sports',
+  CHARITY: 'Charity',
+  BUSINESS_NETWORK: 'Business network',
+  HOBBY: 'Hobby',
+  FAITH: 'Faith',
+  OTHER: 'Community',
+};
+
+const CATEGORY_SYMBOLS: Record<Community['category'], string> = {
+  LOCAL_AREA: '⌖',
+  STREET: '↔',
+  ESTATE: '▦',
+  VILLAGE: '⌂',
+  TOWN: '◎',
+  CITY: '▥',
+  SCHOOL: '◇',
+  PARENTS: '◉',
+  SPORTS: '●',
+  CHARITY: '♡',
+  BUSINESS_NETWORK: '▣',
+  HOBBY: '✦',
+  FAITH: '✧',
+  OTHER: '○',
+};
+
 function formatMemberCount(value: number): string {
   return new Intl.NumberFormat('en-GB', {
     notation: value >= 1_000 ? 'compact' : 'standard',
     maximumFractionDigits: 1,
   }).format(value);
+}
+
+function formatRole(membership: CommunityMembership): string {
+  if (membership.role === 'OWNER') {
+    return 'Owner';
+  }
+
+  if (membership.role === 'ADMIN') {
+    return 'Admin';
+  }
+
+  if (membership.role === 'MODERATOR') {
+    return 'Moderator';
+  }
+
+  return membership.status === 'INVITED' ? 'Pending' : 'Member';
 }
 
 export function CommunityCard({
@@ -28,14 +78,16 @@ export function CommunityCard({
 }: CommunityCardProps) {
   const { theme } = useNeighbourTheme();
 
-  const joined = membership?.status === 'ACTIVE' || membership?.status === 'INVITED';
+  const connected = membership?.status === 'ACTIVE' || membership?.status === 'INVITED';
+
+  const location = [community.city, community.postcode].filter(Boolean).join(' · ');
 
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onOpen}
       style={({ pressed }) => ({
-        opacity: pressed ? 0.78 : 1,
+        opacity: pressed ? 0.8 : 1,
       })}
     >
       <Card style={styles.card}>
@@ -52,11 +104,11 @@ export function CommunityCard({
             <AppText
               style={{
                 color: theme.colors.community,
-                fontSize: 27,
-                lineHeight: 31,
+                fontSize: 26,
+                lineHeight: 30,
               }}
             >
-              ◎
+              {CATEGORY_SYMBOLS[community.category]}
             </AppText>
           </View>
 
@@ -65,8 +117,8 @@ export function CommunityCard({
               {community.name}
             </AppText>
 
-            <AppText variant="caption" tone="secondary">
-              @{community.slug}
+            <AppText variant="caption" tone="brand" numberOfLines={1}>
+              @{community.handle}
             </AppText>
           </View>
 
@@ -80,18 +132,80 @@ export function CommunityCard({
             ]}
           >
             <AppText variant="caption" tone="secondary">
-              {community.visibility === 'PUBLIC' ? 'Public' : 'Private'}
+              {community.visibility === 'PUBLIC'
+                ? 'Public'
+                : community.visibility === 'INVITE_ONLY'
+                  ? 'Invite'
+                  : 'Private'}
             </AppText>
           </View>
         </View>
 
-        {community.description ? (
-          <AppText tone="secondary" numberOfLines={3}>
-            {community.description}
-          </AppText>
-        ) : (
-          <AppText tone="muted">A Neighbour community for local connection.</AppText>
-        )}
+        <View style={styles.meta}>
+          <View
+            style={[
+              styles.metaPill,
+              {
+                backgroundColor: theme.colors.primarySoft,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <AppText variant="caption" tone="brand">
+              {CATEGORY_LABELS[community.category]}
+            </AppText>
+          </View>
+
+          {location ? (
+            <View
+              style={[
+                styles.metaPill,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  borderRadius: theme.radius.pill,
+                },
+              ]}
+            >
+              <AppText variant="caption" tone="secondary">
+                ⌖ {location}
+              </AppText>
+            </View>
+          ) : null}
+
+          <View
+            style={[
+              styles.metaPill,
+              {
+                backgroundColor: theme.colors.surfaceMuted,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <AppText variant="caption" tone="secondary">
+              {community.joinPolicy === 'OPEN'
+                ? 'Open joining'
+                : community.joinPolicy === 'APPROVAL'
+                  ? 'Approval required'
+                  : 'Invite only'}
+            </AppText>
+          </View>
+        </View>
+
+        <AppText tone="secondary" numberOfLines={3}>
+          {community.shortDescription ??
+            community.description ??
+            'A Neighbour community for trusted local connection.'}
+        </AppText>
+
+        {community.tags.length > 0 ? (
+          <View style={styles.tags}>
+            {community.tags.slice(0, 3).map((tag) => (
+              <AppText key={tag} variant="caption" tone="muted">
+                #{tag}
+              </AppText>
+            ))}
+          </View>
+        ) : null}
 
         <View style={styles.footer}>
           <View style={styles.metrics}>
@@ -112,13 +226,13 @@ export function CommunityCard({
                 ]}
               >
                 <AppText variant="caption" tone="brand">
-                  {membership.role}
+                  {formatRole(membership)}
                 </AppText>
               </View>
             ) : null}
           </View>
 
-          {joined ? (
+          {connected ? (
             <View
               style={[
                 styles.joined,
@@ -129,7 +243,21 @@ export function CommunityCard({
               ]}
             >
               <AppText variant="label" tone="brand">
-                Joined ✓
+                {membership?.status === 'INVITED' ? 'Pending' : 'Connected ✓'}
+              </AppText>
+            </View>
+          ) : community.joinPolicy === 'INVITE_ONLY' ? (
+            <View
+              style={[
+                styles.inviteOnly,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  borderRadius: theme.radius.pill,
+                },
+              ]}
+            >
+              <AppText variant="label" tone="secondary">
+                Invite only
               </AppText>
             </View>
           ) : (
@@ -157,7 +285,7 @@ export function CommunityCard({
                 <ActivityIndicator color={theme.colors.inverseText} size="small" />
               ) : (
                 <AppText variant="label" tone="inverse">
-                  Join
+                  {community.joinPolicy === 'APPROVAL' ? 'Request' : 'Join'}
                 </AppText>
               )}
             </Pressable>
@@ -170,7 +298,7 @@ export function CommunityCard({
 
 const styles = StyleSheet.create({
   card: {
-    gap: 15,
+    gap: 14,
   },
   header: {
     alignItems: 'center',
@@ -191,14 +319,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
+  meta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7,
+  },
+  metaPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  tags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
   footer: {
     alignItems: 'center',
     flexDirection: 'row',
+    gap: 12,
     justifyContent: 'space-between',
   },
   metrics: {
     alignItems: 'center',
+    flex: 1,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 7,
   },
   role: {
@@ -210,11 +355,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 9,
   },
+  inviteOnly: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
   joinButton: {
     alignItems: 'center',
-    minHeight: 40,
-    minWidth: 76,
     justifyContent: 'center',
+    minHeight: 40,
+    minWidth: 82,
     paddingHorizontal: 17,
     paddingVertical: 9,
   },

@@ -1,6 +1,6 @@
 import type { Community, CommunityMembership } from '@neighbour/api-client';
 
-export type CommunityDetailSection = 'feed' | 'events' | 'businesses' | 'about';
+export type CommunityDetailSection = 'overview' | 'feed' | 'events' | 'businesses' | 'about';
 
 export interface CommunityDirectoryItem {
   community: Community;
