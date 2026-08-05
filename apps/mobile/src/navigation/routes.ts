@@ -6,11 +6,15 @@ export const ROUTES = {
   MESSAGES: 'Messages',
   NOTIFICATIONS: 'Notifications',
   PROFILE: 'Profile',
+  CONVERSATION: 'Conversation',
 } as const;
 
 export type RootStackParamList = {
   Login: undefined;
   App: undefined;
+  Conversation: {
+    conversationId: string;
+  };
 };
 
 export type AppTabParamList = {

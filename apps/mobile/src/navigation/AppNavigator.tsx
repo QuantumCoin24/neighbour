@@ -9,6 +9,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '../auth/auth-context';
 import { AppText } from '../components';
+import ConversationScreen from '../screens/ConversationScreen';
 import LoginScreen from '../screens/LoginScreen';
 import { useNeighbourTheme } from '../theme';
 
@@ -87,7 +88,11 @@ export default function AppNavigator() {
         }}
       >
         {user ? (
-          <Stack.Screen name={ROUTES.APP} component={AppTabs} />
+          <>
+            <Stack.Screen name={ROUTES.APP} component={AppTabs} />
+
+            <Stack.Screen name={ROUTES.CONVERSATION} component={ConversationScreen} />
+          </>
         ) : (
           <Stack.Screen name={ROUTES.LOGIN} component={LoginScreen} />
         )}

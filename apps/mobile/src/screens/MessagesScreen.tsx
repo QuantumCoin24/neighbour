@@ -1,13 +1,30 @@
-import { StyleSheet, View } from 'react-native';
+import type { NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
 
-import { AppText, Card, Screen } from '../components';
+import { AppText, Screen } from '../components';
+import { ConversationList, useMessages } from '../features/messages';
+import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
 export default function MessagesScreen() {
   const { theme } = useNeighbourTheme();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const messages = useMessages();
 
   return (
-    <Screen>
+    <Screen
+      contentStyle={styles.screen}
+      refreshControl={
+        <RefreshControl
+          refreshing={messages.refreshing}
+          onRefresh={() => {
+            void messages.refresh();
+          }}
+          tintColor={theme.colors.primary}
+        />
+      }
+    >
       <View style={styles.header}>
         <AppText variant="overline" tone="brand">
           Private conversations
@@ -18,56 +35,33 @@ export default function MessagesScreen() {
         <AppText variant="bodyLarge" tone="secondary">
           Stay connected with neighbours, communities and trusted local organisations.
         </AppText>
+
+        <AppText variant="caption" tone="secondary">
+          {messages.unreadCount === 0
+            ? 'No unread messages'
+            : messages.unreadCount === 1
+              ? '1 unread message'
+              : `${messages.unreadCount} unread messages`}
+        </AppText>
       </View>
 
-      <Card variant="muted" style={styles.card}>
-        <View
-          style={[
-            styles.icon,
-            {
-              backgroundColor: `${theme.colors.information}18`,
-              borderRadius: theme.radius.pill,
-            },
-          ]}
-        >
-          <AppText
-            style={{
-              color: theme.colors.information,
-              fontSize: 24,
-            }}
-          >
-            ◌
-          </AppText>
-        </View>
-
-        <View style={styles.copy}>
-          <AppText variant="subheading">No conversations yet</AppText>
-
-          <AppText tone="secondary">Your secure Neighbour conversations will appear here.</AppText>
-        </View>
-      </Card>
+      <ConversationList
+        onOpenConversation={(conversationId) => {
+          navigation.navigate('Conversation', {
+            conversationId,
+          });
+        }}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    gap: 24,
+    paddingBottom: 40,
+  },
   header: {
     gap: 10,
-  },
-  card: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 32,
-  },
-  icon: {
-    alignItems: 'center',
-    height: 54,
-    justifyContent: 'center',
-    width: 54,
-  },
-  copy: {
-    flex: 1,
-    gap: 6,
   },
 });

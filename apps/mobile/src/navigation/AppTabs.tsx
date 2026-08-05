@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '../components';
+import { useMessages } from '../features/messages';
 import { useNotifications } from '../features/notifications';
 import CommunitiesScreen from '../screens/CommunitiesScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -47,6 +48,7 @@ function TabIcon({ symbol, focused }: TabIconProps) {
 
 export default function AppTabs() {
   const { theme } = useNeighbourTheme();
+  const messages = useMessages();
   const notifications = useNotifications();
 
   return (
@@ -95,6 +97,18 @@ export default function AppTabs() {
         component={MessagesScreen}
         options={{
           title: 'Messages',
+          tabBarBadge:
+            messages.unreadCount > 0
+              ? messages.unreadCount > 99
+                ? '99+'
+                : messages.unreadCount
+              : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: theme.colors.danger,
+            color: theme.colors.inverseText,
+            fontSize: 10,
+            fontWeight: '700',
+          },
           tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="◌" />,
         }}
       />
