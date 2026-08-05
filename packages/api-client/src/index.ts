@@ -58,3 +58,5 @@ export type {
   BusinessVerification as MarketplaceBusinessVerification,
   BusinessVerificationStatus as MarketplaceBusinessVerificationStatus,
 } from './marketplace';
+
+export * from './trust';

@@ -2,45 +2,16 @@ import { apiRequest } from './client';
 
 export interface CreateProfileInput {
   username: string;
-  localArea: string;
+  localArea?: string;
   bio?: string;
 }
 
-export interface Profile {
-  id: string;
-  userId: string;
-  username: string;
-  localArea: string | null;
-  bio?: string | null;
-}
-
-export function createProfile(data: CreateProfileInput, token: string) {
-  return apiRequest<Profile>('/profiles', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
-  });
-}
-
-export function updateMyProfile(data: Partial<CreateProfileInput>, token: string) {
-  return apiRequest<Profile>('/profiles/me', {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
-  });
-}
-
-export function getMyProfile(token: string) {
-  return apiRequest<Profile>('/profiles/me', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export interface UpdateProfileInput {
+  username?: string;
+  bio?: string;
+  avatarUrl?: string;
+  localArea?: string;
+  showLocalArea?: boolean;
 }
 
 export interface PublicProfile {
@@ -55,8 +26,54 @@ export interface PublicProfile {
   updatedAt: string;
 }
 
-export function getPublicProfile(username: string) {
-  return apiRequest<PublicProfile>(`/profiles/${username}`, {
-    method: 'GET',
+export interface PrivateProfile extends PublicProfile {
+  showLocalArea: boolean;
+}
+
+export type Profile = PrivateProfile;
+
+function tokenHeaders(token?: string): HeadersInit | undefined {
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : undefined;
+}
+
+export function createProfile(data: CreateProfileInput): Promise<PrivateProfile>;
+
+export function createProfile(data: CreateProfileInput, token: string): Promise<PrivateProfile>;
+
+export function createProfile(data: CreateProfileInput, token?: string): Promise<PrivateProfile> {
+  return apiRequest<PrivateProfile>('/profiles', {
+    method: 'POST',
+    headers: tokenHeaders(token),
+    body: JSON.stringify(data),
   });
+}
+
+export function updateMyProfile(data: UpdateProfileInput): Promise<PrivateProfile>;
+
+export function updateMyProfile(data: UpdateProfileInput, token: string): Promise<PrivateProfile>;
+
+export function updateMyProfile(data: UpdateProfileInput, token?: string): Promise<PrivateProfile> {
+  return apiRequest<PrivateProfile>('/profiles/me', {
+    method: 'PATCH',
+    headers: tokenHeaders(token),
+    body: JSON.stringify(data),
+  });
+}
+
+export function getMyProfile(): Promise<PrivateProfile>;
+
+export function getMyProfile(token: string): Promise<PrivateProfile>;
+
+export function getMyProfile(token?: string): Promise<PrivateProfile> {
+  return apiRequest<PrivateProfile>('/profiles/me', {
+    headers: tokenHeaders(token),
+  });
+}
+
+export function getPublicProfile(username: string): Promise<PublicProfile> {
+  return apiRequest<PublicProfile>(`/profiles/${encodeURIComponent(username)}`);
 }
