@@ -2,7 +2,7 @@
   "name": "@neighbour/api",
   "version": "1.0.0-rc.1",
   "private": true,
-  "description": "Neighbour\u2122 shared platform API.",
+  "description": "Neighbour™ shared platform API.",
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
@@ -22,6 +22,8 @@
     "test:acceptance": "node --test --import tsx \"acceptance/**/*.acceptance.ts\""
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1103.0",
+    "@aws-sdk/s3-request-presigner": "^3.1103.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",

@@ -447,6 +447,7 @@ model Post {
   comments        Comment[]
   reactions       PostReaction[]
   notifications   Notification[]
+  media           PostMedia[]
   title           String?
   type            PostType       @default(STANDARD)
   isPinned        Boolean        @default(false)
@@ -722,22 +723,56 @@ model ModerationAction {
   @@map("moderation_actions")
 }
 
+enum MediaAssetStatus {
+  PENDING
+  UPLOADED
+  READY
+  FAILED
+  DELETED
+}
+
 model MediaAsset {
-  id         String   @id @default(uuid()) @db.Uuid
-  ownerId    String   @db.Uuid
-  storageKey String
+  id         String           @id @default(uuid()) @db.Uuid
+  ownerId    String           @db.Uuid
+  storageKey String           @unique
+  publicUrl  String?
   fileName   String
   mimeType   String
   sizeBytes  Int
   width      Int?
   height     Int?
   durationMs Int?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  checksum   String?
+  status     MediaAssetStatus @default(PENDING)
+  uploadedAt DateTime?
+  readyAt    DateTime?
+  failedAt   DateTime?
+  deletedAt  DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  postLinks  PostMedia[]
 
-  @@index([ownerId])
-  @@index([storageKey])
+  @@index([ownerId, status, createdAt])
+  @@index([status, createdAt])
+  @@index([deletedAt])
   @@map("media_assets")
+}
+
+model PostMedia {
+  id        String     @id @default(uuid()) @db.Uuid
+  postId    String     @db.Uuid
+  mediaId   String     @db.Uuid
+  position  Int        @default(0)
+  altText   String?
+  createdAt DateTime   @default(now())
+  post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  media     MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, mediaId])
+  @@unique([postId, position])
+  @@index([postId, position])
+  @@index([mediaId])
+  @@map("post_media")
 }
 
 model Event {

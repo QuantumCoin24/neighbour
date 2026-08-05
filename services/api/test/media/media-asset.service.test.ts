@@ -3,67 +3,73 @@ import { describe, it } from 'node:test';
 
 import type { DatabaseService } from '../../src/database/database.service';
 import { MediaAssetService } from '../../src/media/assets/media-asset.service';
-
-interface FakeMediaAssetRecord {
-  id: string;
-  ownerId: string;
-  storageKey: string;
-  fileName: string;
-  mimeType: string;
-  sizeBytes: number;
-  createdAt: Date;
-}
-
-interface FakeDatabase {
-  mediaAsset: {
-    create(args: {
-      data: {
-        ownerId: string;
-        storageKey: string;
-        fileName: string;
-        mimeType: string;
-        sizeBytes: number;
-      };
-    }): Promise<FakeMediaAssetRecord>;
-  };
-}
+import type { ObjectStorageService } from '../../src/media/storage/object-storage.service';
 
 describe('MediaAssetService', () => {
-  it('creates media assets', async () => {
-    const createdAt = new Date('2026-08-04T00:00:00.000Z');
+  it('creates a signed image upload session', async () => {
+    const timestamp = new Date('2026-08-06T00:00:00.000Z');
 
-    const database: FakeDatabase = {
+    const database = {
       mediaAsset: {
-        async create({ data }) {
-          return {
-            id: 'media-1',
-            ownerId: data.ownerId,
-            storageKey: data.storageKey,
-            fileName: data.fileName,
-            mimeType: data.mimeType,
-            sizeBytes: data.sizeBytes,
-            createdAt,
+        create: async ({
+          data,
+        }: {
+          data: {
+            id: string;
+            ownerId: string;
+            storageKey: string;
+            fileName: string;
+            mimeType: string;
+            sizeBytes: number;
+            width: number | null;
+            height: number | null;
+            status: 'PENDING';
           };
-        },
+        }) => ({
+          ...data,
+          publicUrl: null,
+          durationMs: null,
+          checksum: null,
+          uploadedAt: null,
+          readyAt: null,
+          failedAt: null,
+          deletedAt: null,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        }),
       },
     };
 
-    const service = new MediaAssetService(database as unknown as DatabaseService);
+    const storage = {
+      createUploadUrl: async () => 'https://storage.example.test/upload',
+      resolvePublicUrl: () => null,
+    };
 
-    const result = await service.create({
-      id: 'media-1',
-      ownerId: 'user-1',
-      ownerType: 'profile',
-      fileName: 'avatar.png',
-      mimeType: 'image/png',
-      size: 1000,
-      url: '/media/avatar.png',
-      createdAt,
+    const service = new MediaAssetService(
+      database as unknown as DatabaseService,
+      storage as unknown as ObjectStorageService,
+    );
+
+    const result = await service.createUpload('11111111-1111-4111-8111-111111111111', {
+      fileName: 'community-photo.jpg',
+      mimeType: 'image/jpeg',
+      sizeBytes: 1_500_000,
+      width: 1600,
+      height: 1200,
     });
 
-    assert.equal(result.id, 'media-1');
-    assert.equal(result.fileName, 'avatar.png');
-    assert.equal(result.url, '/media/avatar.png');
-    assert.equal(result.size, 1000);
+    assert.equal(result.asset.ownerId, '11111111-1111-4111-8111-111111111111');
+
+    assert.equal(result.asset.fileName, 'community-photo.jpg');
+
+    assert.equal(result.asset.mimeType, 'image/jpeg');
+
+    assert.equal(result.asset.status, 'PENDING');
+
+    assert.equal(result.upload.method, 'PUT');
+
+    assert.equal(result.upload.url, 'https://storage.example.test/upload');
+
+    assert.equal(result.upload.headers['Content-Type'], 'image/jpeg');
   });
 });
