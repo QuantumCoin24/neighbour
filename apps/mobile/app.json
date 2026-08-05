@@ -3,7 +3,7 @@
     "name": "Neighbour",
     "slug": "neighbour",
     "owner": "gender90",
-    "version": "1.0.0-rc.1",
+    "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "neighbour",
     "icon": "./assets/icon.png",
@@ -14,7 +14,8 @@
       "bundleIdentifier": "com.quantumcoin24.neighbour",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
