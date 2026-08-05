@@ -13,6 +13,7 @@ import BusinessDetailScreen from '../screens/BusinessDetailScreen';
 import CommunityDetailScreen from '../screens/CommunityDetailScreen';
 import ConversationScreen from '../screens/ConversationScreen';
 import LoginScreen from '../screens/LoginScreen';
+import PremiumScreen from '../screens/PremiumScreen';
 import { useNeighbourTheme } from '../theme';
 
 import AppTabs from './AppTabs';
@@ -98,6 +99,8 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.COMMUNITY_DETAIL} component={CommunityDetailScreen} />
 
             <Stack.Screen name={ROUTES.BUSINESS_DETAIL} component={BusinessDetailScreen} />
+
+            <Stack.Screen name={ROUTES.PREMIUM} component={PremiumScreen} />
           </>
         ) : (
           <Stack.Screen name={ROUTES.LOGIN} component={LoginScreen} />

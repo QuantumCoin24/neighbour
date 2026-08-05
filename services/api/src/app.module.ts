@@ -29,8 +29,10 @@ import { SecurityModule } from './security/security.module';
 import { BusinessModule } from './marketplace/business/business.module';
 import { OrganisationModule } from './organisation/organisation.module';
 
+import { SubscriptionModule } from './payments/subscription/subscription.module';
 @Module({
   imports: [
+    SubscriptionModule,
     GeoModule,
     ConfigModule.forRoot({
       isGlobal: true,

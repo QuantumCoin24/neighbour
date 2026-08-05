@@ -12,6 +12,7 @@ export const ROUTES = {
   CONVERSATION: 'Conversation',
   COMMUNITY_DETAIL: 'CommunityDetail',
   BUSINESS_DETAIL: 'BusinessDetail',
+  PREMIUM: 'Premium',
 } as const;
 
 export type RootStackParamList = {
@@ -26,6 +27,7 @@ export type RootStackParamList = {
   BusinessDetail: {
     business: import('@neighbour/api-client').MarketplaceBusiness;
   };
+  Premium: undefined;
 };
 
 export type AppTabParamList = {

@@ -7,6 +7,25 @@ datasource db {
   provider = "postgresql"
 }
 
+
+enum SubscriptionPlan {
+  FREE
+  PLUS
+  BUSINESS
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum SubscriptionProvider {
+  INTERNAL
+  APPLE
+  STRIPE
+}
+
 enum PlatformRole {
   USER
   BUSINESS
@@ -163,6 +182,7 @@ model User {
   organisations            Organisation[]
   organisationMemberships   OrganisationMember[]
   businessVerifications    BusinessVerification[]    @relation("BusinessVerificationReviewer")
+  subscriptions            Subscription[]
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
 
@@ -186,6 +206,32 @@ model UserProfile {
   @@index([username])
   @@index([showLocalArea])
   @@map("user_profiles")
+}
+
+
+model Subscription {
+  id String @id @default(uuid()) @db.Uuid
+
+  ownerId String @db.Uuid
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  plan     SubscriptionPlan     @default(FREE)
+  status   SubscriptionStatus   @default(ACTIVE)
+  provider SubscriptionProvider @default(INTERNAL)
+
+  externalReference String?
+  startedAt          DateTime @default(now())
+  currentPeriodEnd   DateTime?
+  cancelledAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([plan])
+  @@index([provider])
+  @@map("subscriptions")
 }
 
 model Neighbourhood {

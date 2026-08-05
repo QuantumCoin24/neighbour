@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,6 +15,7 @@ import {
 import { useAuth } from '../auth/auth-context';
 import { AppText, Button, Card, Screen } from '../components';
 import { ProfileHero, ProfileStats, useProfileHub, type ProfileSection } from '../features/profile';
+import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
 const SECTIONS: {
@@ -43,6 +46,7 @@ const SECTIONS: {
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { theme } = useNeighbourTheme();
   const profile = useProfileHub();
 
@@ -415,6 +419,14 @@ export default function ProfileScreen() {
               }}
             />
           </Card>
+
+          <Button
+            label="Neighbour Premium"
+            onPress={() => {
+              navigation.navigate('Premium');
+            }}
+            variant="secondary"
+          />
 
           <Button
             label="Sign out"

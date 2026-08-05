@@ -60,3 +60,5 @@ export type {
 } from './marketplace';
 
 export * from './trust';
+
+export * from './premium';
