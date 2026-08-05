@@ -1,3 +1,5 @@
+export { PostTypeBadge } from './PostTypeBadge';
+export { CommunityPostComposer } from './CommunityPostComposer';
 export { CommentBar } from './CommentBar';
 export { CommentSheet } from './CommentSheet';
 export { CommunityBadge } from './CommunityBadge';

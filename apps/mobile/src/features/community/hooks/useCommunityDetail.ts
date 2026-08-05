@@ -125,6 +125,10 @@ export function useCommunityDetail(slug: string) {
     }
   }, [community, leaving, membership]);
 
+  const prependPost = useCallback((post: FeedPost) => {
+    setPosts((current) => [post, ...current.filter((existing) => existing.id !== post.id)]);
+  }, []);
+
   const roleLabel = useMemo(() => {
     if (!membership) {
       return null;
@@ -157,6 +161,7 @@ export function useCommunityDetail(slug: string) {
     joining,
     leaving,
     error,
+    prependPost,
     refresh: () => load(true),
     retry: () => load(false),
     join,

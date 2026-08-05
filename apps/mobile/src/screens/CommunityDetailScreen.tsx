@@ -18,7 +18,7 @@ import {
   useCommunityDetail,
   type CommunityDetailSection,
 } from '../features/community';
-import { FeedList } from '../features/feed';
+import { CommunityPostComposer, FeedList } from '../features/feed';
 import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
@@ -318,6 +318,42 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
 
         {section === 'feed' ? (
           <View style={styles.section}>
+            {detail.membership?.status === 'ACTIVE' && detail.community.allowMemberPosts ? (
+              <CommunityPostComposer
+                canPin={
+                  detail.membership.role === 'OWNER' ||
+                  detail.membership.role === 'ADMIN' ||
+                  detail.membership.role === 'MODERATOR'
+                }
+                communityId={detail.community.id}
+                communityName={detail.community.name}
+                onCreated={detail.prependPost}
+              />
+            ) : detail.membership?.status === 'INVITED' ? (
+              <Card variant="muted" style={styles.feedNotice}>
+                <AppText variant="bodyStrong">Membership pending</AppText>
+
+                <AppText variant="caption" tone="secondary">
+                  You can publish once your membership is approved.
+                </AppText>
+              </Card>
+            ) : !detail.membership ? (
+              <Card variant="muted" style={styles.feedNotice}>
+                <AppText variant="bodyStrong">Join to contribute</AppText>
+
+                <AppText variant="caption" tone="secondary">
+                  Connect with this community to create posts, comment and participate.
+                </AppText>
+              </Card>
+            ) : !detail.community.allowMemberPosts ? (
+              <Card variant="muted" style={styles.feedNotice}>
+                <AppText variant="bodyStrong">Owner publishing only</AppText>
+
+                <AppText variant="caption" tone="secondary">
+                  Member posts are currently disabled by the community owner.
+                </AppText>
+              </Card>
+            ) : null}
             <View style={styles.sectionHeader}>
               <AppText variant="subheading">Community Feed</AppText>
 
@@ -524,6 +560,9 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: 14,
+  },
+  feedNotice: {
+    gap: 6,
   },
   welcomeCard: {
     gap: 8,
