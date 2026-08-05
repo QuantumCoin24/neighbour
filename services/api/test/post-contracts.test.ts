@@ -15,6 +15,9 @@ describe('post contracts', () => {
 
   it('supports a privacy-safe post response', () => {
     const post: PostResponse = {
+      type: 'STANDARD',
+      isPinned: false,
+      metadata: null,
       id: 'post-id',
       title: 'Welcome',
       content: 'Hello, neighbours.',

@@ -51,6 +51,14 @@ export class PostService {
       neighbourhoodId: dto.neighbourhoodId ?? null,
       title: this.normaliseOptionalText(dto.title),
       content: dto.content.trim(),
+      type: dto.type,
+      isPinned: dto.isPinned,
+      ...(dto.metadata !== undefined
+        ? {
+            metadata: dto.metadata as Prisma.InputJsonValue,
+          }
+        : {}),
+
       status,
       visibility,
       publishedAt: status === PostStatus.PUBLISHED ? new Date() : null,
@@ -90,6 +98,12 @@ export class PostService {
 
     const contentChanged = dto.content !== undefined && dto.content.trim() !== existing.content;
 
+    const typeChanged = dto.type !== undefined && dto.type !== existing.type;
+
+    const metadataChanged = dto.metadata !== undefined;
+
+    const pinChanged = dto.isPinned !== undefined && dto.isPinned !== existing.isPinned;
+
     const titleChanged =
       dto.title !== undefined && this.normaliseOptionalText(dto.title) !== existing.title;
 
@@ -101,7 +115,15 @@ export class PostService {
         : nextStatus === PostStatus.DRAFT
           ? null
           : existing.publishedAt,
-      editedAt: contentChanged || titleChanged || placementChanged ? new Date() : existing.editedAt,
+      editedAt:
+        contentChanged ||
+        titleChanged ||
+        placementChanged ||
+        typeChanged ||
+        metadataChanged ||
+        pinChanged
+          ? new Date()
+          : existing.editedAt,
     };
 
     if (dto.title !== undefined) {
@@ -110,6 +132,19 @@ export class PostService {
 
     if (dto.content !== undefined) {
       data.content = dto.content.trim();
+    }
+
+    if (dto.type !== undefined) {
+      data.type = dto.type;
+    }
+
+    if (dto.isPinned !== undefined) {
+      data.isPinned = dto.isPinned;
+    }
+
+    if (dto.metadata !== undefined) {
+      data.metadata =
+        dto.metadata === null ? Prisma.JsonNull : (dto.metadata as Prisma.InputJsonValue);
     }
 
     if (dto.communityId !== undefined) {
@@ -620,6 +655,12 @@ export class PostService {
       id: post.id,
       title: post.title,
       content: post.content,
+      type: post.type,
+      isPinned: post.isPinned,
+      metadata:
+        post.metadata && typeof post.metadata === 'object' && !Array.isArray(post.metadata)
+          ? (post.metadata as Record<string, unknown>)
+          : null,
       status: post.status,
       visibility: post.visibility,
       author: {

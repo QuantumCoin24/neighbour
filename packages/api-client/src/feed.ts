@@ -1,9 +1,28 @@
 import { apiRequest } from './client';
 
+export type FeedPostType =
+  | 'STANDARD'
+  | 'ANNOUNCEMENT'
+  | 'QUESTION'
+  | 'RECOMMENDATION'
+  | 'HELP_REQUEST'
+  | 'LOST_FOUND'
+  | 'SAFETY_ALERT'
+  | 'ROAD_CLOSURE'
+  | 'LOCAL_UPDATE'
+  | 'POLL'
+  | 'EVENT_SHARE'
+  | 'MARKETPLACE_SHARE'
+  | 'BUSINESS_UPDATE'
+  | 'VOLUNTEER_REQUEST';
+
 export interface FeedPost {
   id: string;
   title: string | null;
   content: string;
+  type: FeedPostType;
+  isPinned: boolean;
+  metadata: Record<string, unknown> | null;
   status: 'DRAFT' | 'PUBLISHED';
   visibility: 'PUBLIC' | 'CONNECTIONS' | 'COMMUNITY' | 'PRIVATE';
   publishedAt: string | null;

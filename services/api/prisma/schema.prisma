@@ -87,6 +87,23 @@ enum ConnectionStatus {
   DECLINED
 }
 
+enum PostType {
+  STANDARD
+  ANNOUNCEMENT
+  QUESTION
+  RECOMMENDATION
+  HELP_REQUEST
+  LOST_FOUND
+  SAFETY_ALERT
+  ROAD_CLOSURE
+  LOCAL_UPDATE
+  POLL
+  EVENT_SHARE
+  MARKETPLACE_SHARE
+  BUSINESS_UPDATE
+  VOLUNTEER_REQUEST
+}
+
 enum PostStatus {
   DRAFT
   PUBLISHED
@@ -431,6 +448,9 @@ model Post {
   reactions       PostReaction[]
   notifications   Notification[]
   title           String?
+  type            PostType       @default(STANDARD)
+  isPinned        Boolean        @default(false)
+  metadata        Json?
   content         String
   status          PostStatus     @default(DRAFT)
   visibility      PostVisibility @default(PUBLIC)
@@ -445,6 +465,8 @@ model Post {
 
   @@index([authorId, status, publishedAt])
   @@index([communityId, status, publishedAt])
+  @@index([communityId, type, status, publishedAt])
+  @@index([communityId, isPinned, publishedAt])
   @@index([neighbourhoodId, status, publishedAt])
   @@index([status, visibility, publishedAt])
   @@index([deletedAt])
