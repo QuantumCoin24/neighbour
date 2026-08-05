@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { CommunityService } from './community.service';
 import { CreateCommunityDto } from './dto/create-community.dto';
+import { SearchCommunityDto } from './dto/search-community.dto';
 import type {
   CommunityMembershipResponse,
   CommunitySummary,
@@ -29,8 +30,8 @@ export class CommunityController {
 
   @Public()
   @Get()
-  findPublic(): Promise<CommunitySummary[]> {
-    return this.communityService.findPublic();
+  findPublic(@Query() query: SearchCommunityDto): Promise<CommunitySummary[]> {
+    return this.communityService.findPublic(query);
   }
 
   @Post(':slug/join')
@@ -39,6 +40,14 @@ export class CommunityController {
     @Param('slug') slug: string,
   ): Promise<CommunityMembershipResponse> {
     return this.communityService.join(user.id, slug);
+  }
+
+  @Delete(':slug/leave')
+  leave(
+    @CurrentUser() user: AuthUser,
+    @Param('slug') slug: string,
+  ): Promise<{ left: true; communityId: string }> {
+    return this.communityService.leave(user.id, slug);
   }
 
   @Public()

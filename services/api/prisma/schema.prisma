@@ -7,7 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 enum SubscriptionPlan {
   FREE
   PLUS
@@ -38,6 +37,29 @@ enum UserStatus {
   ACTIVE
   SUSPENDED
   DELETED
+}
+
+enum CommunityCategory {
+  LOCAL_AREA
+  STREET
+  ESTATE
+  VILLAGE
+  TOWN
+  CITY
+  SCHOOL
+  PARENTS
+  SPORTS
+  CHARITY
+  BUSINESS_NETWORK
+  HOBBY
+  FAITH
+  OTHER
+}
+
+enum CommunityJoinPolicy {
+  OPEN
+  APPROVAL
+  INVITE_ONLY
 }
 
 enum CommunityVisibility {
@@ -180,7 +202,7 @@ model User {
   createdEvents            Event[]
   businesses               Business[]
   organisations            Organisation[]
-  organisationMemberships   OrganisationMember[]
+  organisationMemberships  OrganisationMember[]
   businessVerifications    BusinessVerification[]    @relation("BusinessVerificationReviewer")
   subscriptions            Subscription[]
   createdAt                DateTime                  @default(now())
@@ -208,7 +230,6 @@ model UserProfile {
   @@map("user_profiles")
 }
 
-
 model Subscription {
   id String @id @default(uuid()) @db.Uuid
 
@@ -220,9 +241,9 @@ model Subscription {
   provider SubscriptionProvider @default(INTERNAL)
 
   externalReference String?
-  startedAt          DateTime @default(now())
-  currentPeriodEnd   DateTime?
-  cancelledAt        DateTime?
+  startedAt         DateTime  @default(now())
+  currentPeriodEnd  DateTime?
+  cancelledAt       DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -295,27 +316,43 @@ model RefreshToken {
 }
 
 model Community {
-  id              String              @id @default(uuid()) @db.Uuid
-  neighbourhoodId String?             @db.Uuid
-  name            String
-  slug            String              @unique
-  description     String?
+  id               String              @id @default(uuid()) @db.Uuid
+  neighbourhoodId  String?             @db.Uuid
+  name             String
+  slug             String              @unique
+  description      String?
+  shortDescription String?
+  handle           String              @unique
+  category         CommunityCategory   @default(LOCAL_AREA)
+  tags             String[]            @default([])
+  welcomeMessage   String?
+  rules            String[]            @default([])
+  logoUrl          String?
+  bannerUrl        String?
+  accentColour     String?
+  joinPolicy       CommunityJoinPolicy @default(OPEN)
+  approvalRequired Boolean             @default(false)
+  allowMemberPosts Boolean             @default(true)
+  allowBusinesses  Boolean             @default(true)
+  allowMarketplace Boolean             @default(true)
+  allowEvents      Boolean             @default(true)
+  discoverable     Boolean             @default(true)
 
-  latitude           Decimal?           @db.Decimal(9, 6)
-  longitude          Decimal?           @db.Decimal(9, 6)
+  latitude           Decimal?            @db.Decimal(9, 6)
+  longitude          Decimal?            @db.Decimal(9, 6)
   locationAccuracyM  Int?
   addressLine1       String?
   addressLine2       String?
   city               String?
   postcode           String?
-  locationVisibility LocationVisibility @default(PUBLIC)
-  visibility      CommunityVisibility @default(PUBLIC)
-  memberships     Membership[]
-  notifications   Notification[]
-  conversations   Conversation[]
-  posts           Post[]
-  events          Event[]
-  businesses      Business[]
+  locationVisibility LocationVisibility  @default(PUBLIC)
+  visibility         CommunityVisibility @default(PUBLIC)
+  memberships        Membership[]
+  notifications      Notification[]
+  conversations      Conversation[]
+  posts              Post[]
+  events             Event[]
+  businesses         Business[]
 
   neighbourhood Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: Cascade)
 
@@ -323,6 +360,10 @@ model Community {
   updatedAt DateTime @updatedAt
 
   @@index([visibility])
+  @@index([category])
+  @@index([handle])
+  @@index([discoverable])
+  @@index([city, postcode])
   @@index([latitude, longitude])
   @@index([postcode])
   @@index([locationVisibility])
@@ -698,8 +739,8 @@ model Event {
   city               String?
   postcode           String?
   locationVisibility LocationVisibility @default(PUBLIC)
-  attendances Attendance[]
-  createdAt   DateTime     @default(now())
+  attendances        Attendance[]
+  createdAt          DateTime           @default(now())
 
   @@index([communityId])
   @@index([creatorId])
@@ -757,7 +798,7 @@ model Business {
 
   offers Offer[]
 
-  businessEvents BusinessEvent[]
+  businessEvents    BusinessEvent[]
   organisationLinks OrganisationBusiness[]
 
   @@index([communityId])
@@ -870,9 +911,7 @@ model Organisation {
   @@map("organisations")
 }
 
-
 model OrganisationMember {
-
   id String @id @default(uuid()) @db.Uuid
 
   organisationId String @db.Uuid
@@ -883,26 +922,17 @@ model OrganisationMember {
 
   createdAt DateTime @default(now())
 
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 
-  organisation Organisation @relation(fields:[organisationId], references:[id], onDelete:Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
-
-
-  @@unique([organisationId,userId])
-
+  @@unique([organisationId, userId])
   @@index([organisationId])
-
   @@index([userId])
-
   @@map("organisation_members")
-
 }
 
-
-
 model OrganisationRole {
-
   id String @id @default(uuid()) @db.Uuid
 
   organisationId String @db.Uuid
@@ -911,22 +941,15 @@ model OrganisationRole {
 
   createdAt DateTime @default(now())
 
-
-  organisation Organisation @relation(fields:[organisationId], references:[id], onDelete:Cascade)
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 
   permissions OrganisationPermission[]
 
-
   @@index([organisationId])
-
   @@map("organisation_roles")
-
 }
 
-
-
 model OrganisationPermission {
-
   id String @id @default(uuid()) @db.Uuid
 
   roleId String @db.Uuid
@@ -935,20 +958,13 @@ model OrganisationPermission {
 
   createdAt DateTime @default(now())
 
-
-  role OrganisationRole @relation(fields:[roleId], references:[id], onDelete:Cascade)
-
+  role OrganisationRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@index([roleId])
-
   @@map("organisation_permissions")
-
 }
 
-
-
 model OrganisationBusiness {
-
   id String @id @default(uuid()) @db.Uuid
 
   organisationId String @db.Uuid
@@ -957,26 +973,17 @@ model OrganisationBusiness {
 
   createdAt DateTime @default(now())
 
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 
-  organisation Organisation @relation(fields:[organisationId], references:[id], onDelete:Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
-  business Business @relation(fields:[businessId], references:[id], onDelete:Cascade)
-
-
-  @@unique([organisationId,businessId])
-
+  @@unique([organisationId, businessId])
   @@index([organisationId])
-
   @@index([businessId])
-
   @@map("organisation_businesses")
-
 }
 
-
-
 model OrganisationVerification {
-
   id String @id @default(uuid()) @db.Uuid
 
   organisationId String @unique @db.Uuid
@@ -989,13 +996,8 @@ model OrganisationVerification {
 
   reviewedAt DateTime?
 
-
-  organisation Organisation @relation(fields:[organisationId], references:[id], onDelete:Cascade)
-
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 
   @@index([status])
-
   @@map("organisation_verifications")
-
 }
-
