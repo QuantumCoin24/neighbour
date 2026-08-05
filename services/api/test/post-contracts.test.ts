@@ -32,6 +32,33 @@ describe('post contracts', () => {
       },
       community: null,
       neighbourhood: null,
+      engagement: {
+        commentCount: 0,
+        reactionCounts: [
+          {
+            type: 'LIKE',
+            count: 0,
+          },
+          {
+            type: 'LOVE',
+            count: 0,
+          },
+          {
+            type: 'SUPPORT',
+            count: 0,
+          },
+          {
+            type: 'CELEBRATE',
+            count: 0,
+          },
+          {
+            type: 'INSIGHTFUL',
+            count: 0,
+          },
+        ],
+        reactionTotal: 0,
+        viewerReaction: null,
+      },
       publishedAt: new Date('2026-07-28T00:00:00.000Z'),
       editedAt: null,
       createdAt: new Date('2026-07-28T00:00:00.000Z'),
@@ -46,5 +73,7 @@ describe('post contracts', () => {
     assert.equal(feed.items[0]?.content, 'Hello, neighbours.');
     assert.equal(feed.items[0]?.author.localArea, null);
     assert.equal(feed.items[0]?.neighbourhood, null);
+    assert.equal(feed.items[0]?.engagement.commentCount, 0);
+    assert.equal(feed.items[0]?.engagement.reactionTotal, 0);
   });
 });

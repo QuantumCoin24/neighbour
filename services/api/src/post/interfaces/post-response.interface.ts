@@ -1,3 +1,5 @@
+import type { ReactionType } from '../../generated/prisma/client';
+
 export type PostStatusResponse = 'DRAFT' | 'PUBLISHED';
 
 export type PostVisibilityResponse = 'PUBLIC' | 'CONNECTIONS' | 'COMMUNITY' | 'PRIVATE';
@@ -38,6 +40,18 @@ export interface PostNeighbourhoodResponse {
   localArea: string | null;
 }
 
+export interface PostReactionCountResponse {
+  type: ReactionType;
+  count: number;
+}
+
+export interface PostEngagementResponse {
+  commentCount: number;
+  reactionCounts: PostReactionCountResponse[];
+  reactionTotal: number;
+  viewerReaction: ReactionType | null;
+}
+
 export interface PostResponse {
   id: string;
   title: string | null;
@@ -50,6 +64,7 @@ export interface PostResponse {
   author: PostAuthorResponse;
   community: PostCommunityResponse | null;
   neighbourhood: PostNeighbourhoodResponse | null;
+  engagement: PostEngagementResponse;
   publishedAt: Date | null;
   editedAt: Date | null;
   createdAt: Date;

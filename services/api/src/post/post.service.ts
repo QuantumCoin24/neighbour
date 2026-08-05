@@ -6,12 +6,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { MembershipStatus, PostStatus, PostVisibility, Prisma } from '../generated/prisma/client';
+import {
+  MembershipStatus,
+  PostStatus,
+  PostVisibility,
+  Prisma,
+  ReactionType,
+} from '../generated/prisma/client';
 import { DatabaseService } from '../database/database.service';
 import type { CreatePostDto } from './dto/create-post.dto';
 import type { FeedQueryDto } from './dto/feed-query.dto';
 import type { UpdatePostDto } from './dto/update-post.dto';
-import type { FeedResponse, PostResponse } from './interfaces/post-response.interface';
+import type {
+  FeedResponse,
+  PostEngagementResponse,
+  PostResponse,
+} from './interfaces/post-response.interface';
 import { createCursorPagination, extractPage } from './utils/feed-pagination.util';
 
 const postInclude = {
@@ -73,7 +83,7 @@ export class PostService {
 
     const post = await this.requirePostWithRelations(createdPost.id);
 
-    return this.toPostResponse(post);
+    return this.toPostResponse(post, await this.getPostEngagement(post.id, currentUserId));
   }
 
   async update(currentUserId: string, postId: string, dto: UpdatePostDto): Promise<PostResponse> {
@@ -168,7 +178,7 @@ export class PostService {
 
     const post = await this.requirePostWithRelations(postId);
 
-    return this.toPostResponse(post);
+    return this.toPostResponse(post, await this.getPostEngagement(post.id, currentUserId));
   }
 
   async softDelete(currentUserId: string, postId: string): Promise<void> {
@@ -203,7 +213,7 @@ export class PostService {
       throw new NotFoundException('Post not found.');
     }
 
-    return this.toPostResponse(post);
+    return this.toPostResponse(post, await this.getPostEngagement(post.id, currentUserId));
   }
 
   async getHomeFeed(currentUserId: string, query: FeedQueryDto): Promise<FeedResponse> {
@@ -302,7 +312,7 @@ export class PostService {
       ...pagination,
     });
 
-    return this.toFeedResponse(posts, query.limit);
+    return this.toFeedResponse(posts, query.limit, currentUserId);
   }
 
   async getCommunityFeed(
@@ -377,7 +387,7 @@ export class PostService {
       ...pagination,
     });
 
-    return this.toFeedResponse(posts, query.limit);
+    return this.toFeedResponse(posts, query.limit, currentUserId);
   }
 
   async getProfilePosts(
@@ -465,7 +475,7 @@ export class PostService {
       ...pagination,
     });
 
-    return this.toFeedResponse(posts, query.limit);
+    return this.toFeedResponse(posts, query.limit, currentUserId);
   }
 
   async getMyDrafts(currentUserId: string, query: FeedQueryDto): Promise<FeedResponse> {
@@ -489,7 +499,7 @@ export class PostService {
       ...pagination,
     });
 
-    return this.toFeedResponse(posts, query.limit);
+    return this.toFeedResponse(posts, query.limit, currentUserId);
   }
 
   private async canViewPost(currentUserId: string, post: PostWithRelations): Promise<boolean> {
@@ -641,16 +651,140 @@ export class PostService {
     return trimmed.length > 0 ? trimmed : null;
   }
 
-  private toFeedResponse(posts: PostWithRelations[], limit: number): FeedResponse {
+  private async toFeedResponse(
+    posts: PostWithRelations[],
+    limit: number,
+    currentUserId: string,
+  ): Promise<FeedResponse> {
     const page = extractPage(posts, limit);
 
+    const engagementByPost = await this.getPostEngagementMap(
+      page.items.map((post) => post.id),
+      currentUserId,
+    );
+
     return {
-      items: page.items.map((post) => this.toPostResponse(post)),
+      items: page.items.map((post) =>
+        this.toPostResponse(post, engagementByPost.get(post.id) ?? this.createEmptyEngagement()),
+      ),
       nextCursor: page.nextCursor,
     };
   }
 
-  private toPostResponse(post: PostWithRelations): PostResponse {
+  private async getPostEngagement(
+    postId: string,
+    currentUserId: string,
+  ): Promise<PostEngagementResponse> {
+    const engagementByPost = await this.getPostEngagementMap([postId], currentUserId);
+
+    return engagementByPost.get(postId) ?? this.createEmptyEngagement();
+  }
+
+  private async getPostEngagementMap(
+    postIds: string[],
+    currentUserId: string,
+  ): Promise<Map<string, PostEngagementResponse>> {
+    const engagementByPost = new Map<string, PostEngagementResponse>();
+
+    for (const postId of postIds) {
+      engagementByPost.set(postId, this.createEmptyEngagement());
+    }
+
+    if (postIds.length === 0) {
+      return engagementByPost;
+    }
+
+    const [commentGroups, reactionGroups, viewerReactions] = await Promise.all([
+      this.database.comment.groupBy({
+        by: ['postId'],
+        where: {
+          postId: {
+            in: postIds,
+          },
+          deletedAt: null,
+        },
+        _count: {
+          _all: true,
+        },
+      }),
+
+      this.database.postReaction.groupBy({
+        by: ['postId', 'type'],
+        where: {
+          postId: {
+            in: postIds,
+          },
+        },
+        _count: {
+          _all: true,
+        },
+      }),
+
+      this.database.postReaction.findMany({
+        where: {
+          postId: {
+            in: postIds,
+          },
+          userId: currentUserId,
+        },
+        select: {
+          postId: true,
+          type: true,
+        },
+      }),
+    ]);
+
+    for (const group of commentGroups) {
+      const engagement = engagementByPost.get(group.postId);
+
+      if (engagement) {
+        engagement.commentCount = group._count._all;
+      }
+    }
+
+    for (const group of reactionGroups) {
+      const engagement = engagementByPost.get(group.postId);
+
+      if (!engagement) {
+        continue;
+      }
+
+      const reactionCount = engagement.reactionCounts.find((entry) => entry.type === group.type);
+
+      if (reactionCount) {
+        reactionCount.count = group._count._all;
+      }
+
+      engagement.reactionTotal += group._count._all;
+    }
+
+    for (const reaction of viewerReactions) {
+      const engagement = engagementByPost.get(reaction.postId);
+
+      if (engagement) {
+        engagement.viewerReaction = reaction.type;
+      }
+    }
+
+    return engagementByPost;
+  }
+
+  private createEmptyEngagement(): PostEngagementResponse {
+    return {
+      commentCount: 0,
+      reactionCounts: Object.values(ReactionType).map((type) => ({
+        type,
+        count: 0,
+      })),
+      reactionTotal: 0,
+      viewerReaction: null,
+    };
+  }
+
+  private toPostResponse(
+    post: PostWithRelations,
+    engagement: PostEngagementResponse,
+  ): PostResponse {
     return {
       id: post.id,
       title: post.title,
@@ -685,6 +819,7 @@ export class PostService {
             localArea: post.neighbourhood.localArea,
           }
         : null,
+      engagement,
       publishedAt: post.publishedAt,
       editedAt: post.editedAt,
       createdAt: post.createdAt,

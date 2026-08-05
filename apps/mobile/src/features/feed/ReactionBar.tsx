@@ -1,18 +1,18 @@
 import {
-  getReactionSummary,
   removeReaction,
   setReaction,
-  type ReactionSummary,
+  type FeedPostEngagement,
   type ReactionType,
 } from '@neighbour/api-client';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText } from '../../components';
 import { useNeighbourTheme } from '../../theme';
 
 interface ReactionBarProps {
   postId: string;
+  initialEngagement: FeedPostEngagement;
 }
 
 interface ReactionOption {
@@ -34,285 +34,215 @@ const REACTIONS: ReactionOption[] = [
   },
   {
     type: 'SUPPORT',
-    symbol: '🤝',
-    label: 'Support',
+    symbol: '🏡',
+    label: 'Helpful',
   },
   {
     type: 'CELEBRATE',
-    symbol: '🎉',
-    label: 'Celebrate',
+    symbol: '👏',
+    label: 'Thanks',
   },
   {
     type: 'INSIGHTFUL',
     symbol: '💡',
-    label: 'Insightful',
+    label: 'Useful',
   },
 ];
 
-function emptySummary(): ReactionSummary {
-  return {
-    counts: [],
-    total: 0,
-    viewerReaction: null,
+function createCountMap(engagement: FeedPostEngagement): Record<ReactionType, number> {
+  const result: Record<ReactionType, number> = {
+    LIKE: 0,
+    LOVE: 0,
+    SUPPORT: 0,
+    CELEBRATE: 0,
+    INSIGHTFUL: 0,
   };
-}
 
-function getReactionCount(summary: ReactionSummary, type: ReactionType): number {
-  return summary.counts.find((count) => count.type === type)?.count ?? 0;
-}
-
-function updateReactionCount(
-  summary: ReactionSummary,
-  type: ReactionType,
-  adjustment: number,
-): ReactionSummary {
-  const existingCount = getReactionCount(summary, type);
-  const updatedCount = Math.max(0, existingCount + adjustment);
-
-  const otherCounts = summary.counts.filter((count) => count.type !== type);
-
-  return {
-    ...summary,
-    counts:
-      updatedCount > 0
-        ? [
-            ...otherCounts,
-            {
-              type,
-              count: updatedCount,
-            },
-          ]
-        : otherCounts,
-    total: Math.max(0, summary.total + adjustment),
-  };
-}
-
-function applyOptimisticReaction(
-  summary: ReactionSummary,
-  nextReaction: ReactionType,
-): ReactionSummary {
-  const currentReaction = summary.viewerReaction;
-
-  if (currentReaction === nextReaction) {
-    return {
-      ...updateReactionCount(summary, currentReaction, -1),
-      viewerReaction: null,
-    };
+  for (const entry of engagement.reactionCounts) {
+    result[entry.type] = entry.count;
   }
 
-  let nextSummary = summary;
-
-  if (currentReaction) {
-    nextSummary = updateReactionCount(nextSummary, currentReaction, -1);
-  }
-
-  nextSummary = updateReactionCount(nextSummary, nextReaction, 1);
-
-  return {
-    ...nextSummary,
-    viewerReaction: nextReaction,
-  };
+  return result;
 }
 
-export function ReactionBar({ postId }: ReactionBarProps) {
+export function ReactionBar({ postId, initialEngagement }: ReactionBarProps) {
   const { theme } = useNeighbourTheme();
 
-  const [summary, setSummary] = useState<ReactionSummary>(emptySummary);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadSummary = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await getReactionSummary(postId);
-
-      setSummary(response);
-    } catch {
-      setError('Reactions unavailable');
-    } finally {
-      setLoading(false);
-    }
-  }, [postId]);
-
-  useEffect(() => {
-    void loadSummary();
-  }, [loadSummary]);
-
-  const visibleReactions = useMemo(
-    () =>
-      REACTIONS.map((reaction) => ({
-        ...reaction,
-        count: getReactionCount(summary, reaction.type),
-        selected: summary.viewerReaction === reaction.type,
-      })),
-    [summary],
+  const [counts, setCounts] = useState<Record<ReactionType, number>>(() =>
+    createCountMap(initialEngagement),
   );
 
-  const handleReaction = useCallback(
-    async (reaction: ReactionType) => {
-      if (updating) {
-        return;
-      }
+  const [viewerReaction, setViewerReaction] = useState<ReactionType | null>(
+    initialEngagement.viewerReaction,
+  );
 
-      const previousSummary = summary;
-      const removing = summary.viewerReaction === reaction;
-      const optimisticSummary = applyOptimisticReaction(summary, reaction);
+  const [updating, setUpdating] = useState<ReactionType | null>(null);
 
-      setSummary(optimisticSummary);
-      setUpdating(true);
-      setError(null);
+  const total = useMemo(
+    () => Object.values(counts).reduce((sum, count) => sum + count, 0),
+    [counts],
+  );
+
+  const react = async (type: ReactionType) => {
+    if (updating) {
+      return;
+    }
+
+    const previousReaction = viewerReaction;
+    const previousCounts = {
+      ...counts,
+    };
+
+    setUpdating(type);
+
+    if (previousReaction === type) {
+      setViewerReaction(null);
+      setCounts((current) => ({
+        ...current,
+        [type]: Math.max(0, current[type] - 1),
+      }));
 
       try {
-        if (removing) {
-          await removeReaction(postId);
-        } else {
-          await setReaction(postId, reaction);
-        }
+        await removeReaction(postId);
       } catch {
-        setSummary(previousSummary);
-        setError('Reaction could not be saved');
+        setViewerReaction(previousReaction);
+        setCounts(previousCounts);
       } finally {
-        setUpdating(false);
+        setUpdating(null);
       }
-    },
-    [postId, summary, updating],
-  );
 
-  if (loading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={theme.colors.primary} size="small" />
+      return;
+    }
 
-        <AppText variant="caption" tone="muted">
-          Loading reactions…
-        </AppText>
-      </View>
-    );
-  }
+    setViewerReaction(type);
+
+    setCounts((current) => {
+      const next = {
+        ...current,
+      };
+
+      if (previousReaction) {
+        next[previousReaction] = Math.max(0, next[previousReaction] - 1);
+      }
+
+      next[type] += 1;
+
+      return next;
+    });
+
+    try {
+      await setReaction(postId, type);
+    } catch {
+      setViewerReaction(previousReaction);
+      setCounts(previousCounts);
+    } finally {
+      setUpdating(null);
+    }
+  };
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          borderTopColor: theme.colors.border,
-        },
-      ]}
-    >
-      <View style={styles.summary}>
-        <AppText variant="caption" tone="secondary">
-          {summary.total === 1 ? '1 reaction' : `${summary.total} reactions`}
-        </AppText>
+    <View style={styles.container}>
+      {total > 0 ? (
+        <View style={styles.summary}>
+          <View style={styles.summarySymbols}>
+            {REACTIONS.filter((reaction) => counts[reaction.type] > 0)
+              .slice(0, 3)
+              .map((reaction) => (
+                <AppText key={reaction.type} style={styles.summarySymbol}>
+                  {reaction.symbol}
+                </AppText>
+              ))}
+          </View>
 
-        {updating ? <ActivityIndicator color={theme.colors.primary} size="small" /> : null}
-      </View>
-
-      <View style={styles.options}>
-        {visibleReactions.map((reaction) => (
-          <Pressable
-            key={reaction.type}
-            accessibilityLabel={`${reaction.label}, ${reaction.count} reactions`}
-            accessibilityRole="button"
-            accessibilityState={{
-              selected: reaction.selected,
-              disabled: updating,
-            }}
-            disabled={updating}
-            onPress={() => {
-              void handleReaction(reaction.type);
-            }}
-            style={({ pressed }) => [
-              styles.option,
-              {
-                backgroundColor: reaction.selected
-                  ? theme.colors.primarySoft
-                  : theme.colors.surfaceMuted,
-                borderColor: reaction.selected ? theme.colors.primary : theme.colors.border,
-                borderRadius: theme.radius.pill,
-                opacity: updating ? 0.62 : pressed ? 0.76 : 1,
-              },
-            ]}
-          >
-            <AppText style={styles.symbol}>{reaction.symbol}</AppText>
-
-            {reaction.count > 0 ? (
-              <AppText
-                variant="caption"
-                style={{
-                  color: reaction.selected ? theme.colors.primary : theme.colors.textSecondary,
-                  fontWeight: '600',
-                }}
-              >
-                {reaction.count}
-              </AppText>
-            ) : null}
-          </Pressable>
-        ))}
-      </View>
-
-      {error ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            void loadSummary();
-          }}
-          style={styles.error}
-        >
-          <AppText
-            variant="caption"
-            style={{
-              color: theme.colors.danger,
-            }}
-          >
-            {error}. Tap to retry.
+          <AppText variant="caption" tone="secondary">
+            {total} {total === 1 ? 'reaction' : 'reactions'}
           </AppText>
-        </Pressable>
+        </View>
       ) : null}
+
+      <ScrollView
+        contentContainerStyle={styles.reactions}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
+        {REACTIONS.map((reaction) => {
+          const selected = viewerReaction === reaction.type;
+
+          const count = counts[reaction.type];
+
+          return (
+            <Pressable
+              accessibilityLabel={`${reaction.label}${count > 0 ? `, ${count}` : ''}`}
+              accessibilityRole="button"
+              accessibilityState={{
+                selected,
+                busy: updating === reaction.type,
+              }}
+              disabled={updating !== null}
+              key={reaction.type}
+              onPress={() => {
+                void react(reaction.type);
+              }}
+              style={({ pressed }) => [
+                styles.reaction,
+                {
+                  backgroundColor: selected ? theme.colors.primarySoft : theme.colors.surfaceMuted,
+                  borderColor: selected ? theme.colors.primary : theme.colors.border,
+                  borderRadius: theme.radius.pill,
+                  opacity: pressed || updating !== null ? 0.68 : 1,
+                },
+              ]}
+            >
+              {updating === reaction.type ? (
+                <ActivityIndicator color={theme.colors.primary} size="small" />
+              ) : (
+                <>
+                  <AppText style={styles.symbol}>{reaction.symbol}</AppText>
+
+                  <AppText variant="caption" tone={selected ? 'brand' : 'secondary'}>
+                    {count > 0 ? `${reaction.label} ${count}` : reaction.label}
+                  </AppText>
+                </>
+              )}
+            </Pressable>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: 12,
-    paddingTop: 14,
-  },
-  loading: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-    minHeight: 38,
+    gap: 9,
   },
   summary: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'space-between',
+    gap: 7,
   },
-  options: {
+  summarySymbols: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
   },
-  option: {
+  summarySymbol: {
+    fontSize: 14,
+    lineHeight: 18,
+    marginRight: -2,
+  },
+  reactions: {
+    gap: 7,
+  },
+  reaction: {
     alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    gap: 5,
+    gap: 6,
     minHeight: 38,
     paddingHorizontal: 11,
-    paddingVertical: 7,
+    paddingVertical: 8,
   },
   symbol: {
-    fontSize: 17,
-    lineHeight: 21,
-  },
-  error: {
-    alignSelf: 'flex-start',
-    paddingVertical: 2,
+    fontSize: 15,
+    lineHeight: 18,
   },
 });

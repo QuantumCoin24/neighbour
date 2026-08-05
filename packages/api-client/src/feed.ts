@@ -16,6 +16,18 @@ export type FeedPostType =
   | 'BUSINESS_UPDATE'
   | 'VOLUNTEER_REQUEST';
 
+export interface FeedPostReactionCount {
+  type: 'LIKE' | 'LOVE' | 'SUPPORT' | 'CELEBRATE' | 'INSIGHTFUL';
+  count: number;
+}
+
+export interface FeedPostEngagement {
+  commentCount: number;
+  reactionCounts: FeedPostReactionCount[];
+  reactionTotal: number;
+  viewerReaction: 'LIKE' | 'LOVE' | 'SUPPORT' | 'CELEBRATE' | 'INSIGHTFUL' | null;
+}
+
 export interface FeedPost {
   id: string;
   title: string | null;
@@ -36,6 +48,7 @@ export interface FeedPost {
     avatarUrl: string | null;
     localArea: string | null;
   };
+  engagement: FeedPostEngagement;
   community: {
     id: string;
     name: string;

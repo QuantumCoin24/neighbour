@@ -1,6 +1,5 @@
-import { getComments } from '@neighbour/api-client';
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet } from 'react-native';
 
 import { AppText } from '../../components';
 import { useNeighbourTheme } from '../../theme';
@@ -9,38 +8,21 @@ import { CommentSheet } from './CommentSheet';
 
 interface CommentBarProps {
   postId: string;
+  initialCount: number;
 }
 
-export function CommentBar({ postId }: CommentBarProps) {
+export function CommentBar({ postId, initialCount }: CommentBarProps) {
   const { theme } = useNeighbourTheme();
 
   const [open, setOpen] = useState(false);
-  const [loadedCount, setLoadedCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const loadPreview = useCallback(async () => {
-    setLoading(true);
-
-    try {
-      const response = await getComments(postId, {
-        limit: 30,
-      });
-
-      setLoadedCount(response.items.length);
-    } catch {
-      // The full comment sheet contains its own retry state.
-    } finally {
-      setLoading(false);
-    }
-  }, [postId]);
-
-  useEffect(() => {
-    void loadPreview();
-  }, [loadPreview]);
+  const [commentCount, setCommentCount] = useState(initialCount);
 
   return (
     <>
       <Pressable
+        accessibilityLabel={
+          commentCount === 0 ? 'Comment on this post' : `View ${commentCount} comments`
+        }
         accessibilityRole="button"
         onPress={() => {
           setOpen(true);
@@ -57,13 +39,11 @@ export function CommentBar({ postId }: CommentBarProps) {
       >
         <AppText style={styles.symbol}>💬</AppText>
 
-        {loading ? (
-          <ActivityIndicator color={theme.colors.primary} size="small" />
-        ) : (
-          <AppText variant="caption" tone="secondary">
-            {loadedCount > 0 ? `${loadedCount} comments` : 'Comment'}
-          </AppText>
-        )}
+        <AppText variant="caption" tone="secondary">
+          {commentCount > 0
+            ? `${commentCount} ${commentCount === 1 ? 'comment' : 'comments'}`
+            : 'Comment'}
+        </AppText>
       </Pressable>
 
       <CommentSheet
@@ -71,7 +51,7 @@ export function CommentBar({ postId }: CommentBarProps) {
           setOpen(false);
         }}
         onCommentCreated={() => {
-          setLoadedCount((value) => value + 1);
+          setCommentCount((value) => value + 1);
         }}
         postId={postId}
         visible={open}
@@ -83,16 +63,15 @@ export function CommentBar({ postId }: CommentBarProps) {
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
-    alignSelf: 'flex-start',
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     gap: 7,
-    minHeight: 40,
-    paddingHorizontal: 13,
+    minHeight: 38,
+    paddingHorizontal: 12,
     paddingVertical: 8,
   },
   symbol: {
-    fontSize: 17,
-    lineHeight: 21,
+    fontSize: 15,
+    lineHeight: 18,
   },
 });

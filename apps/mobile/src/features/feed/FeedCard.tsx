@@ -52,9 +52,9 @@ export function FeedCard({ post }: FeedCardProps) {
         </AppText>
       ) : null}
 
-      <ReactionBar postId={post.id} />
+      <ReactionBar initialEngagement={post.engagement} postId={post.id} />
 
-      <CommentBar postId={post.id} />
+      <CommentBar initialCount={post.engagement.commentCount} postId={post.id} />
     </Card>
   );
 }
