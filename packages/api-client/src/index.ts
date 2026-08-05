@@ -25,3 +25,36 @@ export * from './business-analytics';
 export * from './dashboard';
 
 export * from './geo';
+
+export {
+  createMarketplaceBusiness,
+  getCommunityMarketplaceBusinesses,
+  getMyMarketplaceBusiness,
+  searchMarketplaceBusinesses,
+  createMarketplaceOffer,
+  getMarketplaceOffer,
+  createMarketplaceBusinessEvent,
+  getMarketplaceBusinessEvent,
+} from './marketplace';
+
+export {
+  getBusinessOffers as getMarketplaceBusinessOffers,
+  getBusinessMarketplaceEvents,
+  getBusinessDashboard as getMarketplaceBusinessDashboard,
+  getBusinessAnalytics as getMarketplaceBusinessAnalytics,
+  getBusinessVerification as getMarketplaceBusinessVerification,
+  submitBusinessVerification as submitMarketplaceBusinessVerification,
+} from './marketplace';
+
+export type {
+  MarketplaceBusiness,
+  MarketplaceOffer,
+  MarketplaceBusinessEvent,
+  CreateMarketplaceBusinessRequest,
+  CreateMarketplaceOfferRequest,
+  CreateMarketplaceBusinessEventRequest,
+  BusinessAnalytics as MarketplaceBusinessAnalytics,
+  BusinessDashboard as MarketplaceBusinessDashboard,
+  BusinessVerification as MarketplaceBusinessVerification,
+  BusinessVerificationStatus as MarketplaceBusinessVerificationStatus,
+} from './marketplace';

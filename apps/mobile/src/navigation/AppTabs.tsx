@@ -7,6 +7,7 @@ import { useNotifications } from '../features/notifications';
 import CommunitiesScreen from '../screens/CommunitiesScreen';
 import HomeScreen from '../screens/HomeScreen';
 import MapsScreen from '../screens/MapsScreen';
+import MarketplaceScreen from '../screens/MarketplaceScreen';
 import MessagesScreen from '../screens/MessagesScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -109,6 +110,15 @@ export default function AppTabs() {
         options={{
           title: 'Maps',
           tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="⌖" />,
+        }}
+      />
+
+      <Tabs.Screen
+        name={ROUTES.MARKETPLACE}
+        component={MarketplaceScreen}
+        options={{
+          title: 'Market',
+          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="▣" />,
         }}
       />
 
