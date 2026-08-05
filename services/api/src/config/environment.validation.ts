@@ -11,4 +11,7 @@ export const environmentValidationSchema = Joi.object({
   JWT_REFRESH_SECRET: Joi.string().min(32).required(),
   JWT_ACCESS_TTL_SECONDS: Joi.number().integer().positive().default(900),
   JWT_REFRESH_TTL_SECONDS: Joi.number().integer().positive().default(2_592_000),
+  CORS_ORIGINS: Joi.string().allow('').optional(),
+  RATE_LIMIT_WINDOW_MS: Joi.number().integer().positive().default(60_000),
+  RATE_LIMIT_MAX: Joi.number().integer().positive().default(300),
 });

@@ -16,37 +16,56 @@ concurrency:
 
 jobs:
   quality:
-    name: Quality
+    name: Quality and Production Gate
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: neighbour
+          POSTGRES_USER: neighbour
+          POSTGRES_PASSWORD: neighbour_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U neighbour -d neighbour"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://neighbour:neighbour_ci_password@localhost:5432/neighbour
+      JWT_ACCESS_SECRET: ci-access-secret-that-is-at-least-thirty-two-characters
+      JWT_REFRESH_SECRET: ci-refresh-secret-that-is-at-least-thirty-two-characters
+      CORS_ORIGINS: http://localhost:3000
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'pnpm'
+          node-version: 24
+          cache: pnpm
 
-      - name: Enable Corepack
-        run: corepack enable
+      - run: corepack enable
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
-      - name: Check formatting
-        run: pnpm format:check
+      - run: pnpm production:check
 
-      - name: Lint
-        run: pnpm lint
+      - run: pnpm --filter @neighbour/api db:generate
 
-      - name: Type-check
-        run: pnpm typecheck
+      - run: pnpm --filter @neighbour/api db:deploy
 
-      - name: Test
-        run: pnpm test
+      - run: pnpm format:check
 
-      - name: Build
-        run: pnpm build
+      - run: pnpm lint
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      - run: pnpm build

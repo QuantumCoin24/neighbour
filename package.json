@@ -2,7 +2,7 @@
   "name": "@neighbour/platform",
   "version": "1.0.0-alpha.1",
   "private": true,
-  "description": "Neighbour™ — community-first platform for iPhone and web.",
+  "description": "Neighbour\u2122 \u2014 community-first platform for iPhone and web.",
   "license": "UNLICENSED",
   "packageManager": "pnpm@11.17.0",
   "engines": {
@@ -18,7 +18,8 @@
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "production:check": "node scripts/production-check.mjs && pnpm --filter @neighbour/api exec prisma validate"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

@@ -9,6 +9,9 @@ export interface Environment {
   jwtRefreshSecret: string;
   jwtAccessTtlSeconds: number;
   jwtRefreshTtlSeconds: number;
+  corsOrigins: string;
+  rateLimitWindowMs: number;
+  rateLimitMax: number;
 }
 
 export const environment = registerAs('app', (): Environment => ({
@@ -20,4 +23,7 @@ export const environment = registerAs('app', (): Environment => ({
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET ?? '',
   jwtAccessTtlSeconds: Number(process.env.JWT_ACCESS_TTL_SECONDS ?? 900),
   jwtRefreshTtlSeconds: Number(process.env.JWT_REFRESH_TTL_SECONDS ?? 2_592_000),
+  corsOrigins: process.env.CORS_ORIGINS ?? '',
+  rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS ?? 60_000),
+  rateLimitMax: Number(process.env.RATE_LIMIT_MAX ?? 300),
 }));

@@ -30,8 +30,10 @@ import { BusinessModule } from './marketplace/business/business.module';
 import { OrganisationModule } from './organisation/organisation.module';
 
 import { SubscriptionModule } from './payments/subscription/subscription.module';
+import { ReadinessModule } from './operations/readiness/readiness.module';
 @Module({
   imports: [
+    ReadinessModule,
     SubscriptionModule,
     GeoModule,
     ConfigModule.forRoot({
