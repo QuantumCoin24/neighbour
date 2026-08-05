@@ -7,6 +7,7 @@ import { environmentValidationSchema } from './config/environment.validation';
 
 import { AuthModule } from './auth/auth.module';
 import { ActivityModule } from './activity/activity.module';
+import { GeoModule } from './geo/geo.module';
 import { CommunityModule } from './community/community.module';
 import { DatabaseHealthModule } from './database/database-health.module';
 import { DatabaseModule } from './database/database.module';
@@ -30,6 +31,7 @@ import { OrganisationModule } from './organisation/organisation.module';
 
 @Module({
   imports: [
+    GeoModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: path.resolve(__dirname, '../../../.env'),

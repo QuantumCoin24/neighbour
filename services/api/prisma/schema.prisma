@@ -122,6 +122,12 @@ enum BusinessVerificationStatus {
   REJECTED
 }
 
+enum LocationVisibility {
+  PUBLIC
+  COMMUNITY
+  PRIVATE
+}
+
 model User {
   id                       String                    @id @default(uuid()) @db.Uuid
   email                    String                    @unique
@@ -188,6 +194,15 @@ model Neighbourhood {
   description String
   localArea   String?
 
+  latitude           Decimal?           @db.Decimal(9, 6)
+  longitude          Decimal?           @db.Decimal(9, 6)
+  locationAccuracyM  Int?
+  addressLine1       String?
+  addressLine2       String?
+  city               String?
+  postcode           String?
+  locationVisibility LocationVisibility @default(PUBLIC)
+
   memberships NeighbourhoodMembership[]
   posts       Post[]
   communities Community[]
@@ -196,6 +211,9 @@ model Neighbourhood {
   updatedAt DateTime @updatedAt
 
   @@index([localArea])
+  @@index([latitude, longitude])
+  @@index([postcode])
+  @@index([locationVisibility])
   @@map("neighbourhoods")
 }
 
@@ -236,6 +254,15 @@ model Community {
   name            String
   slug            String              @unique
   description     String?
+
+  latitude           Decimal?           @db.Decimal(9, 6)
+  longitude          Decimal?           @db.Decimal(9, 6)
+  locationAccuracyM  Int?
+  addressLine1       String?
+  addressLine2       String?
+  city               String?
+  postcode           String?
+  locationVisibility LocationVisibility @default(PUBLIC)
   visibility      CommunityVisibility @default(PUBLIC)
   memberships     Membership[]
   notifications   Notification[]
@@ -250,6 +277,9 @@ model Community {
   updatedAt DateTime @updatedAt
 
   @@index([visibility])
+  @@index([latitude, longitude])
+  @@index([postcode])
+  @@index([locationVisibility])
   @@map("communities")
 }
 
@@ -613,12 +643,24 @@ model Event {
   description String
   startsAt    DateTime
   endsAt      DateTime
+
+  latitude           Decimal?           @db.Decimal(9, 6)
+  longitude          Decimal?           @db.Decimal(9, 6)
+  locationAccuracyM  Int?
+  addressLine1       String?
+  addressLine2       String?
+  city               String?
+  postcode           String?
+  locationVisibility LocationVisibility @default(PUBLIC)
   attendances Attendance[]
   createdAt   DateTime     @default(now())
 
   @@index([communityId])
   @@index([creatorId])
   @@index([startsAt])
+  @@index([latitude, longitude])
+  @@index([postcode])
+  @@index([locationVisibility])
   @@map("events")
 }
 
@@ -647,6 +689,15 @@ model Business {
   description String
   category    String
 
+  latitude           Decimal?           @db.Decimal(9, 6)
+  longitude          Decimal?           @db.Decimal(9, 6)
+  locationAccuracyM  Int?
+  addressLine1       String?
+  addressLine2       String?
+  city               String?
+  postcode           String?
+  locationVisibility LocationVisibility @default(PUBLIC)
+
   verified Boolean @default(false)
 
   createdAt DateTime @default(now())
@@ -666,6 +717,9 @@ model Business {
   @@index([communityId])
   @@index([ownerId])
   @@index([category])
+  @@index([latitude, longitude])
+  @@index([postcode])
+  @@index([locationVisibility])
   @@map("businesses")
 }
 

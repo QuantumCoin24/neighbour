@@ -23,3 +23,5 @@ export * from './business-me';
 export * from './business-events';
 export * from './business-analytics';
 export * from './dashboard';
+
+export * from './geo';
