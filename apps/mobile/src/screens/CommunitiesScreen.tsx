@@ -1,13 +1,37 @@
-import { StyleSheet, View } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { AppText, Card, Screen } from '../components';
+import { CommunityCard, useCommunityDirectory } from '../features/community';
+import type { AppTabParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
-export default function CommunitiesScreen() {
+type CommunitiesScreenProps = BottomTabScreenProps<AppTabParamList, 'Communities'>;
+
+export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps) {
   const { theme } = useNeighbourTheme();
+  const directory = useCommunityDirectory();
 
   return (
-    <Screen>
+    <Screen
+      contentStyle={styles.screen}
+      refreshControl={
+        <RefreshControl
+          refreshing={directory.refreshing}
+          onRefresh={() => {
+            void directory.refresh();
+          }}
+          tintColor={theme.colors.primary}
+        />
+      }
+    >
       <View style={styles.header}>
         <AppText variant="overline" tone="brand">
           Local connections
@@ -20,56 +44,246 @@ export default function CommunitiesScreen() {
         </AppText>
       </View>
 
-      <Card variant="muted" style={styles.card}>
-        <View
+      <View
+        style={[
+          styles.search,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.borderStrong,
+            borderRadius: theme.radius.xl,
+          },
+          theme.shadows.subtle,
+        ]}
+      >
+        <AppText tone="brand" style={styles.searchIcon}>
+          ⌕
+        </AppText>
+
+        <TextInput
+          accessibilityLabel="Search communities"
+          autoCapitalize="none"
+          autoCorrect={false}
+          onChangeText={directory.setQuery}
+          placeholder="Search communities"
+          placeholderTextColor={theme.colors.textMuted}
+          selectionColor={theme.colors.primary}
           style={[
-            styles.icon,
+            styles.input,
             {
-              backgroundColor: theme.colors.primarySoft,
-              borderRadius: theme.radius.pill,
+              color: theme.colors.text,
             },
           ]}
+          value={directory.query}
+        />
+      </View>
+
+      {directory.error ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            void directory.retry();
+          }}
         >
-          <AppText
-            style={{
-              color: theme.colors.primary,
-              fontSize: 24,
-            }}
+          <Card
+            variant="muted"
+            style={[
+              styles.errorCard,
+              {
+                borderColor: theme.colors.danger,
+              },
+            ]}
           >
-            ◎
-          </AppText>
-        </View>
+            <AppText
+              variant="bodyStrong"
+              style={{
+                color: theme.colors.danger,
+              }}
+            >
+              Communities unavailable
+            </AppText>
 
-        <View style={styles.copy}>
-          <AppText variant="subheading">Find your community</AppText>
+            <AppText tone="secondary">{directory.error}</AppText>
 
-          <AppText tone="secondary">
-            Local community discovery will connect here to the existing Neighbour community service.
-          </AppText>
+            <AppText variant="label" tone="brand">
+              Tap to retry
+            </AppText>
+          </Card>
+        </Pressable>
+      ) : null}
+
+      {directory.loading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator color={theme.colors.primary} size="large" />
+
+          <AppText tone="secondary">Opening your communities…</AppText>
         </View>
-      </Card>
+      ) : (
+        <>
+          {directory.joinedItems.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionCopy}>
+                  <AppText variant="subheading">My Communities</AppText>
+
+                  <AppText variant="caption" tone="secondary">
+                    Groups you are connected to.
+                  </AppText>
+                </View>
+
+                <AppText variant="caption" tone="brand">
+                  {directory.joinedItems.length}
+                </AppText>
+              </View>
+
+              <View style={styles.cards}>
+                {directory.joinedItems.map(({ community, membership }) => (
+                  <CommunityCard
+                    key={community.id}
+                    community={community}
+                    membership={membership}
+                    onJoin={() => {
+                      void directory.join(community);
+                    }}
+                    onOpen={() => {
+                      navigation.getParent()?.navigate('CommunityDetail', {
+                        slug: community.slug,
+                      });
+                    }}
+                  />
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionCopy}>
+                <AppText variant="subheading">Discover Communities</AppText>
+
+                <AppText variant="caption" tone="secondary">
+                  Join public communities across Neighbour.
+                </AppText>
+              </View>
+
+              <AppText variant="caption" tone="brand">
+                {directory.discoverItems.length}
+              </AppText>
+            </View>
+
+            {directory.discoverItems.length > 0 ? (
+              <View style={styles.cards}>
+                {directory.discoverItems.map(({ community, membership }) => (
+                  <CommunityCard
+                    key={community.id}
+                    community={community}
+                    membership={membership}
+                    joining={directory.joiningSlug === community.slug}
+                    onJoin={() => {
+                      void directory.join(community);
+                    }}
+                    onOpen={() => {
+                      navigation.getParent()?.navigate('CommunityDetail', {
+                        slug: community.slug,
+                      });
+                    }}
+                  />
+                ))}
+              </View>
+            ) : (
+              <Card variant="muted" style={styles.emptyCard}>
+                <View
+                  style={[
+                    styles.emptyIcon,
+                    {
+                      backgroundColor: theme.colors.primarySoft,
+                      borderRadius: theme.radius.pill,
+                    },
+                  ]}
+                >
+                  <AppText
+                    style={{
+                      color: theme.colors.community,
+                      fontSize: 27,
+                    }}
+                  >
+                    ◎
+                  </AppText>
+                </View>
+
+                <View style={styles.emptyCopy}>
+                  <AppText variant="subheading">No matching communities</AppText>
+
+                  <AppText tone="secondary">Try a different name or clear your search.</AppText>
+                </View>
+              </Card>
+            )}
+          </View>
+        </>
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    gap: 24,
+    paddingBottom: 48,
+  },
   header: {
     gap: 10,
   },
-  card: {
+  search: {
+    alignItems: 'center',
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    minHeight: 56,
+    paddingHorizontal: 16,
+  },
+  searchIcon: {
+    fontSize: 21,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    minHeight: 52,
+  },
+  errorCard: {
+    gap: 8,
+  },
+  loading: {
+    alignItems: 'center',
+    gap: 13,
+    paddingVertical: 60,
+  },
+  section: {
+    gap: 14,
+  },
+  sectionHeader: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  sectionCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  cards: {
+    gap: 13,
+  },
+  emptyCard: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 32,
+    gap: 14,
   },
-  icon: {
+  emptyIcon: {
     alignItems: 'center',
-    height: 54,
+    height: 55,
     justifyContent: 'center',
-    width: 54,
+    width: 55,
   },
-  copy: {
+  emptyCopy: {
     flex: 1,
-    gap: 6,
+    gap: 5,
   },
 });

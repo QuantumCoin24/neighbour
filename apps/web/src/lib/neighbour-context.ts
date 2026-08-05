@@ -37,8 +37,8 @@ export async function getNeighbourContext(
 
     const community = communities.find(
       (item) =>
-        item.name?.toLowerCase() === localArea.toLowerCase() ||
-        item.slug?.toLowerCase() === localArea.toLowerCase(),
+        item.community.name.toLowerCase() === localArea.toLowerCase() ||
+        item.community.slug.toLowerCase() === localArea.toLowerCase(),
     );
 
     return {
@@ -48,11 +48,11 @@ export async function getNeighbourContext(
 
       communityId: community?.id ?? null,
 
-      communityName: community?.name ?? null,
+      communityName: community?.community.name ?? null,
 
-      communitySlug: community?.slug ?? null,
+      communitySlug: community?.community.slug ?? null,
 
-      communityMemberCount: community?.memberCount ?? null,
+      communityMemberCount: community?.community.memberCount ?? null,
     };
   } catch {
     return empty;

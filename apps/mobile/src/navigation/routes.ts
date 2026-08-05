@@ -9,6 +9,7 @@ export const ROUTES = {
   NOTIFICATIONS: 'Notifications',
   PROFILE: 'Profile',
   CONVERSATION: 'Conversation',
+  COMMUNITY_DETAIL: 'CommunityDetail',
 } as const;
 
 export type RootStackParamList = {
@@ -16,6 +17,9 @@ export type RootStackParamList = {
   App: undefined;
   Conversation: {
     conversationId: string;
+  };
+  CommunityDetail: {
+    slug: string;
   };
 };
 
