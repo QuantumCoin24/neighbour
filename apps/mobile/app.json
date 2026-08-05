@@ -28,7 +28,23 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-dev-client", "expo-secure-store"],
+    "plugins": [
+      "expo-dev-client",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Neighbour to use your location while you explore nearby public communities, events and businesses."
+        }
+      ],
+      [
+        "expo-maps",
+        {
+          "requestLocationPermission": true,
+          "locationPermission": "Allow Neighbour to use your location while you explore nearby public communities, events and businesses."
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "6de7552c-2d55-4eaf-920b-94ab96948bef"

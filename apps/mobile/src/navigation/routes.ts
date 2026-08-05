@@ -4,6 +4,7 @@ export const ROUTES = {
   HOME: 'Home',
   COMMUNITIES: 'Communities',
   SEARCH: 'Search',
+  MAPS: 'Maps',
   MESSAGES: 'Messages',
   NOTIFICATIONS: 'Notifications',
   PROFILE: 'Profile',
@@ -22,6 +23,7 @@ export type AppTabParamList = {
   Home: undefined;
   Communities: undefined;
   Search: undefined;
+  Maps: undefined;
   Messages: undefined;
   Notifications: undefined;
   Profile: undefined;

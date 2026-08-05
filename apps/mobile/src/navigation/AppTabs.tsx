@@ -6,6 +6,7 @@ import { useMessages } from '../features/messages';
 import { useNotifications } from '../features/notifications';
 import CommunitiesScreen from '../screens/CommunitiesScreen';
 import HomeScreen from '../screens/HomeScreen';
+import MapsScreen from '../screens/MapsScreen';
 import MessagesScreen from '../screens/MessagesScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -99,6 +100,15 @@ export default function AppTabs() {
         options={{
           title: 'Search',
           tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="⌕" />,
+        }}
+      />
+
+      <Tabs.Screen
+        name={ROUTES.MAPS}
+        component={MapsScreen}
+        options={{
+          title: 'Maps',
+          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="⌖" />,
         }}
       />
 
