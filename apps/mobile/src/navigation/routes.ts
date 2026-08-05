@@ -3,6 +3,7 @@ export const ROUTES = {
   APP: 'App',
   HOME: 'Home',
   COMMUNITIES: 'Communities',
+  SEARCH: 'Search',
   MESSAGES: 'Messages',
   NOTIFICATIONS: 'Notifications',
   PROFILE: 'Profile',
@@ -20,6 +21,7 @@ export type RootStackParamList = {
 export type AppTabParamList = {
   Home: undefined;
   Communities: undefined;
+  Search: undefined;
   Messages: undefined;
   Notifications: undefined;
   Profile: undefined;

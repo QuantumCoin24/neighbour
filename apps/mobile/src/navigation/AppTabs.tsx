@@ -9,6 +9,7 @@ import HomeScreen from '../screens/HomeScreen';
 import MessagesScreen from '../screens/MessagesScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import SearchScreen from '../screens/SearchScreen';
 import { useNeighbourTheme } from '../theme';
 
 import { type AppTabParamList, ROUTES } from './routes';
@@ -89,6 +90,15 @@ export default function AppTabs() {
         options={{
           title: 'Community',
           tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="◎" />,
+        }}
+      />
+
+      <Tabs.Screen
+        name={ROUTES.SEARCH}
+        component={SearchScreen}
+        options={{
+          title: 'Search',
+          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="⌕" />,
         }}
       />
 
