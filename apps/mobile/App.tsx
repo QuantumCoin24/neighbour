@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { initialiseMobileApiClient } from './src/api/configure-api-client';
 import { AuthProvider } from './src/auth/auth-provider';
+import { NotificationProvider } from './src/features/notifications';
 import AppNavigator from './src/navigation/AppNavigator';
 import { RealtimeProvider } from './src/realtime';
 import { NeighbourThemeProvider, useNeighbourTheme } from './src/theme';
@@ -25,7 +26,9 @@ export default function App() {
     <NeighbourThemeProvider>
       <AuthProvider>
         <RealtimeProvider>
-          <NeighbourApplication />
+          <NotificationProvider>
+            <NeighbourApplication />
+          </NotificationProvider>
         </RealtimeProvider>
       </AuthProvider>
     </NeighbourThemeProvider>

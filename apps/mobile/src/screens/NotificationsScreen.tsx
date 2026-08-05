@@ -1,75 +1,96 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
-import { AppText, Card, Screen } from '../components';
+import { AppText, Screen } from '../components';
+import { NotificationList, useNotifications } from '../features/notifications';
 import { useNeighbourTheme } from '../theme';
 
 export default function NotificationsScreen() {
   const { theme } = useNeighbourTheme();
+  const notifications = useNotifications();
 
   return (
-    <Screen>
+    <Screen
+      contentStyle={styles.screen}
+      refreshControl={
+        <RefreshControl
+          refreshing={notifications.refreshing}
+          onRefresh={() => {
+            void notifications.refresh();
+          }}
+          tintColor={theme.colors.primary}
+        />
+      }
+    >
       <View style={styles.header}>
-        <AppText variant="overline" tone="brand">
-          Stay informed
-        </AppText>
+        <View style={styles.heading}>
+          <AppText variant="overline" tone="brand">
+            Stay informed
+          </AppText>
 
-        <AppText variant="title">Notifications</AppText>
+          <AppText variant="title">Notifications</AppText>
 
-        <AppText variant="bodyLarge" tone="secondary">
-          Important community updates, messages and local alerts will be collected here.
+          <AppText variant="bodyLarge" tone="secondary">
+            Important community activity, messages and local alerts from across Neighbour.
+          </AppText>
+        </View>
+
+        {notifications.unreadCount > 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              void notifications.markAllRead();
+            }}
+            style={({ pressed }) => [
+              styles.markAllButton,
+              {
+                backgroundColor: theme.colors.primarySoft,
+                borderRadius: theme.radius.pill,
+                opacity: pressed ? 0.72 : 1,
+              },
+            ]}
+          >
+            <AppText variant="label" tone="brand">
+              Mark all read
+            </AppText>
+          </Pressable>
+        ) : null}
+      </View>
+
+      <View style={styles.summary}>
+        <AppText variant="caption" tone="secondary">
+          {notifications.unreadCount === 0
+            ? 'No unread notifications'
+            : notifications.unreadCount === 1
+              ? '1 unread notification'
+              : `${notifications.unreadCount} unread notifications`}
         </AppText>
       </View>
 
-      <Card variant="muted" style={styles.card}>
-        <View
-          style={[
-            styles.icon,
-            {
-              backgroundColor: `${theme.colors.event}18`,
-              borderRadius: theme.radius.pill,
-            },
-          ]}
-        >
-          <AppText
-            style={{
-              color: theme.colors.event,
-              fontSize: 24,
-            }}
-          >
-            ◇
-          </AppText>
-        </View>
-
-        <View style={styles.copy}>
-          <AppText variant="subheading">You are all caught up</AppText>
-
-          <AppText tone="secondary">
-            New activity from across your neighbourhood will appear here.
-          </AppText>
-        </View>
-      </Card>
+      <NotificationList />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    gap: 22,
+    paddingBottom: 40,
+  },
   header: {
+    gap: 18,
+  },
+  heading: {
     gap: 10,
   },
-  card: {
+  markAllButton: {
+    alignSelf: 'flex-start',
+    minHeight: 42,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  summary: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 32,
-  },
-  icon: {
-    alignItems: 'center',
-    height: 54,
-    justifyContent: 'center',
-    width: 54,
-  },
-  copy: {
-    flex: 1,
-    gap: 6,
+    justifyContent: 'space-between',
   },
 });
