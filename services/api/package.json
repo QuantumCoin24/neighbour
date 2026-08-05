@@ -1,8 +1,8 @@
 {
   "name": "@neighbour/api",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-rc.1",
   "private": true,
-  "description": "Neighbour™ shared platform API.",
+  "description": "Neighbour\u2122 shared platform API.",
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",

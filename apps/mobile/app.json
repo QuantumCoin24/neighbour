@@ -3,7 +3,7 @@
     "name": "Neighbour",
     "slug": "neighbour",
     "owner": "gender90",
-    "version": "1.0.0",
+    "version": "1.0.0-rc.1",
     "orientation": "portrait",
     "scheme": "neighbour",
     "icon": "./assets/icon.png",

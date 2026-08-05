@@ -1,0 +1,77 @@
+name: Release Candidate
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*-rc.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-candidate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-candidate:
+    name: Validate Release Candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: neighbour
+          POSTGRES_USER: neighbour
+          POSTGRES_PASSWORD: neighbour_release_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U neighbour -d neighbour"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      APP_VERSION: 1.0.0-rc.1
+      DATABASE_URL: postgresql://neighbour:neighbour_release_password@localhost:5432/neighbour
+      JWT_ACCESS_SECRET: release-access-secret-that-is-at-least-thirty-two-characters
+      JWT_REFRESH_SECRET: release-refresh-secret-that-is-at-least-thirty-two-characters
+      CORS_ORIGINS: https://neighbour.example
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate release metadata
+        run: pnpm release:check
+
+      - name: Validate production structure
+        run: pnpm production:check
+
+      - name: Generate Prisma client
+        run: pnpm --filter @neighbour/api db:generate
+
+      - name: Deploy migrations
+        run: pnpm --filter @neighbour/api db:deploy
+
+      - name: Run release gate
+        run: pnpm release:gate
+
+      - name: Print release manifest
+        run: cat release/RELEASE_MANIFEST.json

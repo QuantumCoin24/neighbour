@@ -1,6 +1,6 @@
 {
   "name": "@neighbour/platform",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-rc.1",
   "private": true,
   "description": "Neighbour\u2122 \u2014 community-first platform for iPhone and web.",
   "license": "UNLICENSED",
@@ -19,7 +19,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "production:check": "node scripts/production-check.mjs && pnpm --filter @neighbour/api exec prisma validate"
+    "production:check": "node scripts/production-check.mjs && pnpm --filter @neighbour/api exec prisma validate",
+    "release:check": "node scripts/release-check.mjs",
+    "release:gate": "pnpm release:check && pnpm production:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

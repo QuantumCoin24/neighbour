@@ -1,0 +1,22 @@
+{
+  "release": "1.0.0-rc.1",
+  "rollbackStrategy": "git-tag-and-database-migration-review",
+  "previousStableCommit": null,
+  "databaseRollback": {
+    "automatic": false,
+    "policy": "forward-fix-preferred",
+    "requiresManualApproval": true
+  },
+  "applicationRollback": {
+    "api": "redeploy previous stable image or commit",
+    "web": "redeploy previous stable build",
+    "mobile": "halt submission or publish corrective build"
+  },
+  "requiredEvidence": [
+    "failing release gate",
+    "incident request IDs",
+    "health and readiness output",
+    "database migration status",
+    "operator approval"
+  ]
+}
