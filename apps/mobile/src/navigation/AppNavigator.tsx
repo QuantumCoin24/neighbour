@@ -11,6 +11,7 @@ import { useAuth } from '../auth/auth-context';
 import { AppText } from '../components';
 import BusinessDetailScreen from '../screens/BusinessDetailScreen';
 import CommunityDetailScreen from '../screens/CommunityDetailScreen';
+import CreateCommunityScreen from '../screens/CreateCommunityScreen';
 import ConversationScreen from '../screens/ConversationScreen';
 import LoginScreen from '../screens/LoginScreen';
 import PremiumScreen from '../screens/PremiumScreen';
@@ -97,6 +98,8 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.CONVERSATION} component={ConversationScreen} />
 
             <Stack.Screen name={ROUTES.COMMUNITY_DETAIL} component={CommunityDetailScreen} />
+
+            <Stack.Screen name={ROUTES.CREATE_COMMUNITY} component={CreateCommunityScreen} />
 
             <Stack.Screen name={ROUTES.BUSINESS_DETAIL} component={BusinessDetailScreen} />
 

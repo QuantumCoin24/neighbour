@@ -1,4 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { useCallback } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -18,6 +20,12 @@ type CommunitiesScreenProps = BottomTabScreenProps<AppTabParamList, 'Communities
 export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps) {
   const { theme } = useNeighbourTheme();
   const directory = useCommunityDirectory();
+
+  useFocusEffect(
+    useCallback(() => {
+      void directory.refresh();
+    }, [directory.refresh]),
+  );
 
   return (
     <Screen
@@ -42,6 +50,61 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
         <AppText variant="bodyLarge" tone="secondary">
           Discover trusted groups built around the places and interests that matter to you.
         </AppText>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            navigation.getParent()?.navigate('CreateCommunity');
+          }}
+          style={[
+            styles.createButton,
+            {
+              backgroundColor: theme.colors.primary,
+              borderRadius: theme.radius.pill,
+            },
+            theme.shadows.subtle,
+          ]}
+        >
+          <View
+            style={[
+              styles.createIcon,
+              {
+                backgroundColor: theme.colors.inverseText,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <AppText
+              style={{
+                color: theme.colors.primary,
+                fontSize: 20,
+                fontWeight: '800',
+              }}
+            >
+              +
+            </AppText>
+          </View>
+
+          <View style={styles.createCopy}>
+            <AppText variant="bodyStrong" tone="inverse">
+              Create a Community
+            </AppText>
+
+            <AppText
+              variant="caption"
+              style={{
+                color: theme.colors.inverseText,
+                opacity: 0.82,
+              }}
+            >
+              Start a new local space
+            </AppText>
+          </View>
+
+          <AppText tone="inverse" style={styles.createArrow}>
+            ›
+          </AppText>
+        </Pressable>
       </View>
 
       <View
@@ -231,6 +294,29 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 10,
+  },
+  createButton: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 13,
+    marginTop: 8,
+    minHeight: 72,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+  },
+  createIcon: {
+    alignItems: 'center',
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  createCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  createArrow: {
+    fontSize: 28,
+    lineHeight: 30,
   },
   search: {
     alignItems: 'center',

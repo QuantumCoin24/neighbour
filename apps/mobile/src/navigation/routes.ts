@@ -11,6 +11,7 @@ export const ROUTES = {
   PROFILE: 'Profile',
   CONVERSATION: 'Conversation',
   COMMUNITY_DETAIL: 'CommunityDetail',
+  CREATE_COMMUNITY: 'CreateCommunity',
   BUSINESS_DETAIL: 'BusinessDetail',
   PREMIUM: 'Premium',
 } as const;
@@ -24,6 +25,7 @@ export type RootStackParamList = {
   CommunityDetail: {
     slug: string;
   };
+  CreateCommunity: undefined;
   BusinessDetail: {
     business: import('@neighbour/api-client').MarketplaceBusiness;
   };
