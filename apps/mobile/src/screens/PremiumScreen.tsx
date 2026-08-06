@@ -1,6 +1,9 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   ActivityIndicator,
+  Alert,
+  Linking,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -10,15 +13,55 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText, Card } from '../components';
-import { PremiumPlanCard, usePremium } from '../features/premium';
+import { usePremium } from '../features/premium';
+import {
+  APPLE_PRODUCT_LABELS,
+  APPLE_SUBSCRIPTION_PRODUCT_IDS,
+  type AppleSubscriptionProductId,
+  useStoreKitSubscriptions,
+} from '../features/storekit';
 import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
 type PremiumScreenProps = NativeStackScreenProps<RootStackParamList, 'Premium'>;
 
+function displayStorePrice(
+  productId: AppleSubscriptionProductId,
+  products: Array<{
+    id: string;
+    displayPrice?: string | null;
+    localizedPrice?: string | null;
+  }>,
+): string {
+  const product = products.find((candidate) => candidate.id === productId);
+
+  return (
+    product?.displayPrice ??
+    product?.localizedPrice ??
+    APPLE_PRODUCT_LABELS[productId].fallbackPrice
+  );
+}
+
 export default function PremiumScreen({ navigation }: PremiumScreenProps) {
   const { theme } = useNeighbourTheme();
   const premium = usePremium();
+
+  const storeKit = useStoreKitSubscriptions(async () => {
+    await premium.refresh();
+  });
+
+  async function manageSubscription(): Promise<void> {
+    const url = 'https://apps.apple.com/account/subscriptions';
+
+    const supported = await Linking.canOpenURL(url);
+
+    if (!supported) {
+      Alert.alert('Manage subscription', 'Open Apple ID settings and choose Subscriptions.');
+      return;
+    }
+
+    await Linking.openURL(url);
+  }
 
   return (
     <SafeAreaView
@@ -50,7 +93,7 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
           <AppText variant="bodyStrong">Neighbour Premium</AppText>
 
           <AppText variant="caption" tone="secondary">
-            Plans and entitlements
+            Secure subscriptions through Apple
           </AppText>
         </View>
       </View>
@@ -59,9 +102,9 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={premium.refreshing}
+            refreshing={premium.refreshing || storeKit.loadingProducts}
             onRefresh={() => {
-              void premium.refresh();
+              void Promise.all([premium.refresh(), storeKit.reloadProducts()]);
             }}
             tintColor={theme.colors.primary}
           />
@@ -84,8 +127,8 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
           </AppText>
 
           <AppText tone="inverse">
-            Upgrade your personal or business experience while keeping the complete core platform
-            free.
+            Upgrade through Apple and unlock premium personal or business tools while the core
+            Neighbour experience remains free.
           </AppText>
         </Card>
 
@@ -93,39 +136,8 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
           <View style={styles.loading}>
             <ActivityIndicator color={theme.colors.primary} size="large" />
 
-            <AppText tone="secondary">Loading premium plans…</AppText>
+            <AppText tone="secondary">Loading your subscription…</AppText>
           </View>
-        ) : null}
-
-        {premium.error ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              void premium.retry();
-            }}
-          >
-            <Card
-              variant="muted"
-              style={[
-                styles.error,
-                {
-                  borderColor: theme.colors.danger,
-                },
-              ]}
-            >
-              <AppText
-                style={{
-                  color: theme.colors.danger,
-                }}
-              >
-                {premium.error}
-              </AppText>
-
-              <AppText variant="label" tone="brand">
-                Tap to retry
-              </AppText>
-            </Card>
-          </Pressable>
         ) : null}
 
         {premium.overview ? (
@@ -150,27 +162,172 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
           </Card>
         ) : null}
 
+        {!storeKit.connected ? (
+          <Card variant="muted" style={styles.notice}>
+            <AppText variant="bodyStrong">Connecting securely to the App Store</AppText>
+
+            <AppText variant="caption" tone="secondary">
+              Apple purchasing becomes available when the StoreKit connection is ready.
+            </AppText>
+          </Card>
+        ) : null}
+
+        {storeKit.error || premium.error ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              storeKit.clearMessages();
+              void premium.retry();
+            }}
+          >
+            <Card
+              variant="muted"
+              style={[
+                styles.notice,
+                {
+                  borderColor: theme.colors.danger,
+                },
+              ]}
+            >
+              <AppText
+                style={{
+                  color: theme.colors.danger,
+                }}
+              >
+                {storeKit.error ?? premium.error}
+              </AppText>
+
+              <AppText variant="label" tone="brand">
+                Tap to retry
+              </AppText>
+            </Card>
+          </Pressable>
+        ) : null}
+
+        {storeKit.successMessage ? (
+          <Card variant="muted" style={styles.success}>
+            <AppText variant="bodyStrong">Subscription updated</AppText>
+
+            <AppText variant="caption" tone="secondary">
+              {storeKit.successMessage}
+            </AppText>
+          </Card>
+        ) : null}
+
         <View style={styles.plans}>
-          {premium.plans.map((plan) => (
-            <PremiumPlanCard
-              key={plan.id}
-              activating={premium.activating === plan.id}
-              currentPlan={premium.overview?.subscription.plan ?? 'FREE'}
-              onActivate={() => {
-                void premium.activate(plan.id);
-              }}
-              plan={plan}
-            />
-          ))}
+          {APPLE_SUBSCRIPTION_PRODUCT_IDS.map((productId) => {
+            const details = APPLE_PRODUCT_LABELS[productId];
+            const isPurchasing = storeKit.purchasingProductId === productId;
+            const isCurrent = premium.overview?.subscription.plan === details.plan;
+
+            return (
+              <Card key={productId} style={styles.planCard}>
+                <View style={styles.planHeader}>
+                  <View style={styles.planCopy}>
+                    <AppText variant="bodyStrong">{details.title}</AppText>
+
+                    <AppText variant="heading" tone="brand">
+                      {displayStorePrice(productId, storeKit.products)}
+                    </AppText>
+                  </View>
+
+                  {isCurrent ? (
+                    <View
+                      style={[
+                        styles.currentBadge,
+                        {
+                          backgroundColor: theme.colors.primary,
+                          borderRadius: theme.radius.pill,
+                        },
+                      ]}
+                    >
+                      <AppText variant="caption" tone="inverse">
+                        Current
+                      </AppText>
+                    </View>
+                  ) : null}
+                </View>
+
+                <AppText tone="secondary">
+                  {details.plan === 'BUSINESS'
+                    ? 'Business analytics, marketplace boosts, scheduled offers and priority support.'
+                    : 'Advanced discovery, premium profile tools, enhanced storage and community boosts.'}
+                </AppText>
+
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={!storeKit.connected || isPurchasing || storeKit.restoring || isCurrent}
+                  onPress={() => {
+                    void storeKit.purchase(productId);
+                  }}
+                  style={[
+                    styles.primaryButton,
+                    {
+                      backgroundColor: theme.colors.primary,
+                      borderRadius: theme.radius.lg,
+                      opacity:
+                        !storeKit.connected || isPurchasing || storeKit.restoring || isCurrent
+                          ? 0.55
+                          : 1,
+                    },
+                  ]}
+                >
+                  {isPurchasing ? (
+                    <ActivityIndicator color="#ffffff" size="small" />
+                  ) : (
+                    <AppText variant="label" tone="inverse">
+                      {isCurrent ? 'Active plan' : 'Subscribe with Apple'}
+                    </AppText>
+                  )}
+                </Pressable>
+              </Card>
+            );
+          })}
         </View>
 
+        <Pressable
+          accessibilityRole="button"
+          disabled={storeKit.restoring}
+          onPress={() => {
+            void storeKit.restore();
+          }}
+          style={[
+            styles.secondaryButton,
+            {
+              borderColor: theme.colors.border,
+              borderRadius: theme.radius.lg,
+            },
+          ]}
+        >
+          {storeKit.restoring ? (
+            <ActivityIndicator color={theme.colors.primary} size="small" />
+          ) : (
+            <AppText variant="label" tone="brand">
+              Restore Apple purchases
+            </AppText>
+          )}
+        </Pressable>
+
+        {Platform.OS === 'ios' ? (
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => {
+              void manageSubscription();
+            }}
+            style={styles.manageButton}
+          >
+            <AppText variant="label" tone="brand">
+              Manage subscription with Apple
+            </AppText>
+          </Pressable>
+        ) : null}
+
         <Card variant="muted" style={styles.notice}>
-          <AppText variant="bodyStrong">Development subscription mode</AppText>
+          <AppText variant="bodyStrong">Apple-secured billing</AppText>
 
           <AppText variant="caption" tone="secondary">
-            These internal plan controls validate the subscription and entitlement architecture.
-            Store purchases will replace internal activation after the App Store products and server
-            verification credentials are configured.
+            Purchases are processed by Apple. Premium access is granted only after the signed
+            StoreKit transaction is accepted by the Neighbour backend.
           </AppText>
         </Card>
       </ScrollView>
@@ -212,9 +369,6 @@ const styles = StyleSheet.create({
     gap: 13,
     paddingVertical: 40,
   },
-  error: {
-    gap: 8,
-  },
   summary: {
     gap: 12,
   },
@@ -226,7 +380,44 @@ const styles = StyleSheet.create({
   plans: {
     gap: 14,
   },
+  planCard: {
+    gap: 16,
+  },
+  planHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  planCopy: {
+    flex: 1,
+    gap: 5,
+  },
+  currentBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  primaryButton: {
+    alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  secondaryButton: {
+    alignItems: 'center',
+    borderWidth: 1,
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  manageButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
   notice: {
+    gap: 7,
+  },
+  success: {
     gap: 7,
   },
 });
