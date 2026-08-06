@@ -49,6 +49,18 @@ export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps
         <Pressable
           accessibilityRole="button"
           onPress={() => {
+            navigation.getParent()?.navigate('MarketplaceOffers');
+          }}
+          style={styles.marketplaceMode}
+        >
+          <AppText variant="subheading">Offers & Transactions</AppText>
+
+          <AppText tone="secondary">Review offers you have sent and received.</AppText>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
             navigation.getParent()?.navigate('MarketplaceListings');
           }}
           style={[

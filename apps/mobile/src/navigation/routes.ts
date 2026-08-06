@@ -11,6 +11,10 @@ export const ROUTES = {
   MARKETPLACE_LISTING_DETAIL: 'MarketplaceListingDetail',
   MY_MARKETPLACE_LISTINGS: 'MyMarketplaceListings',
   SAVED_MARKETPLACE_LISTINGS: 'SavedMarketplaceListings',
+  MARKETPLACE_OFFERS: 'MarketplaceOffers',
+  MAKE_MARKETPLACE_OFFER: 'MakeMarketplaceOffer',
+  MARKETPLACE_OFFER_DETAIL: 'MarketplaceOfferDetail',
+  MARKETPLACE_TRANSACTION_DETAIL: 'MarketplaceTransactionDetail',
   MESSAGES: 'Messages',
   NOTIFICATIONS: 'Notifications',
   PROFILE: 'Profile',
@@ -41,6 +45,18 @@ export type RootStackParamList = {
   };
   MyMarketplaceListings: undefined;
   SavedMarketplaceListings: undefined;
+  MarketplaceOffers: undefined;
+  MakeMarketplaceOffer: {
+    listingId: string;
+    listingTitle: string;
+    askingPricePence: number | null;
+  };
+  MarketplaceOfferDetail: {
+    offerId: string;
+  };
+  MarketplaceTransactionDetail: {
+    transactionId: string;
+  };
   Premium: undefined;
 };
 

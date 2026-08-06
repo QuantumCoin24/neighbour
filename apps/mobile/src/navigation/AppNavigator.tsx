@@ -20,6 +20,12 @@ import MarketplaceListingDetailScreen from '../features/marketplace-listings/scr
 import MarketplaceListingsScreen from '../features/marketplace-listings/screens/MarketplaceListingsScreen';
 import MyMarketplaceListingsScreen from '../features/marketplace-listings/screens/MyMarketplaceListingsScreen';
 import SavedMarketplaceListingsScreen from '../features/marketplace-listings/screens/SavedMarketplaceListingsScreen';
+import {
+  MakeMarketplaceOfferScreen,
+  MarketplaceOfferDetailScreen,
+  MarketplaceOffersScreen,
+  MarketplaceTransactionDetailScreen,
+} from '../features/marketplace-transactions';
 import { useNeighbourTheme } from '../theme';
 
 import AppTabs from './AppTabs';
@@ -131,6 +137,23 @@ export default function AppNavigator() {
             <Stack.Screen
               name={ROUTES.SAVED_MARKETPLACE_LISTINGS}
               component={SavedMarketplaceListingsScreen}
+            />
+
+            <Stack.Screen name={ROUTES.MARKETPLACE_OFFERS} component={MarketplaceOffersScreen} />
+
+            <Stack.Screen
+              name={ROUTES.MAKE_MARKETPLACE_OFFER}
+              component={MakeMarketplaceOfferScreen}
+            />
+
+            <Stack.Screen
+              name={ROUTES.MARKETPLACE_OFFER_DETAIL}
+              component={MarketplaceOfferDetailScreen}
+            />
+
+            <Stack.Screen
+              name={ROUTES.MARKETPLACE_TRANSACTION_DETAIL}
+              component={MarketplaceTransactionDetailScreen}
             />
 
             <Stack.Screen name={ROUTES.PREMIUM} component={PremiumScreen} />
