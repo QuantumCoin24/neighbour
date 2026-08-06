@@ -134,6 +134,11 @@ enum NotificationType {
   COMMUNITY_INVITE
   COMMUNITY_ROLE_CHANGED
   SYSTEM
+  MARKETPLACE_OFFER
+  MARKETPLACE_OFFER_ACCEPTED
+  MARKETPLACE_OFFER_DECLINED
+  MARKETPLACE_OFFER_COUNTERED
+  MARKETPLACE_TRANSACTION
 }
 
 enum ConversationType {
@@ -204,6 +209,24 @@ enum MarketplaceListingCondition {
   NOT_APPLICABLE
 }
 
+enum MarketplaceOfferStatus {
+  PENDING
+  COUNTERED
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+  EXPIRED
+  CANCELLED
+}
+
+enum MarketplaceTransactionStatus {
+  RESERVED
+  COLLECTION_PENDING
+  DELIVERY_PENDING
+  COMPLETED
+  CANCELLED
+}
+
 enum MarketplaceListingCategory {
   ELECTRONICS
   HOME_GARDEN
@@ -263,8 +286,12 @@ model User {
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
 
-  marketplaceListings      MarketplaceListing[]
-  savedMarketplaceListings SavedMarketplaceListing[]
+  marketplaceListings             MarketplaceListing[]
+  savedMarketplaceListings        SavedMarketplaceListing[]
+  marketplaceOffersMade           MarketplaceOffer[]        @relation("MarketplaceOfferBuyer")
+  marketplaceOffersReceived       MarketplaceOffer[]        @relation("MarketplaceOfferSeller")
+  marketplaceTransactionsAsBuyer  MarketplaceTransaction[]  @relation("MarketplaceTransactionBuyer")
+  marketplaceTransactionsAsSeller MarketplaceTransaction[]  @relation("MarketplaceTransactionSeller")
 
   @@index([status])
   @@index([role])
@@ -1135,6 +1162,8 @@ model MarketplaceListing {
   community           Community?                  @relation(fields: [communityId], references: [id], onDelete: SetNull)
   media               MarketplaceListingMedia[]
   savedBy             SavedMarketplaceListing[]
+  offers              MarketplaceOffer[]
+  transaction         MarketplaceTransaction?
 
   @@index([sellerId, status, createdAt])
   @@index([communityId, status, createdAt])
@@ -1174,4 +1203,82 @@ model SavedMarketplaceListing {
   @@index([userId, createdAt])
   @@index([listingId])
   @@map("saved_marketplace_listings")
+}
+
+model MarketplaceOffer {
+  id            String                 @id @default(uuid()) @db.Uuid
+  listingId     String                 @db.Uuid
+  buyerId       String                 @db.Uuid
+  sellerId      String                 @db.Uuid
+  parentOfferId String?                @db.Uuid
+  status        MarketplaceOfferStatus @default(PENDING)
+  amountPence   Int
+  message       String?
+  expiresAt     DateTime?
+  acceptedAt    DateTime?
+  declinedAt    DateTime?
+  withdrawnAt   DateTime?
+  cancelledAt   DateTime?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  listing       MarketplaceListing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyer         User                      @relation("MarketplaceOfferBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller        User                      @relation("MarketplaceOfferSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  parentOffer   MarketplaceOffer?         @relation("MarketplaceOfferThread", fields: [parentOfferId], references: [id], onDelete: SetNull)
+  counterOffers MarketplaceOffer[]        @relation("MarketplaceOfferThread")
+  history       MarketplaceOfferHistory[]
+  transaction   MarketplaceTransaction?
+
+  @@index([listingId, status, createdAt])
+  @@index([buyerId, status, createdAt])
+  @@index([sellerId, status, createdAt])
+  @@index([parentOfferId])
+  @@index([expiresAt])
+  @@map("marketplace_offers")
+}
+
+model MarketplaceOfferHistory {
+  id          String                  @id @default(uuid()) @db.Uuid
+  offerId     String                  @db.Uuid
+  actorId     String                  @db.Uuid
+  fromStatus  MarketplaceOfferStatus?
+  toStatus    MarketplaceOfferStatus
+  amountPence Int?
+  note        String?
+  createdAt   DateTime                @default(now())
+
+  offer MarketplaceOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@index([offerId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("marketplace_offer_history")
+}
+
+model MarketplaceTransaction {
+  id               String                       @id @default(uuid()) @db.Uuid
+  listingId        String                       @unique @db.Uuid
+  acceptedOfferId  String                       @unique @db.Uuid
+  buyerId          String                       @db.Uuid
+  sellerId         String                       @db.Uuid
+  conversationId   String?                      @db.Uuid
+  status           MarketplaceTransactionStatus @default(RESERVED)
+  agreedPricePence Int
+  reservedAt       DateTime                     @default(now())
+  expiresAt        DateTime?
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+
+  listing       MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  acceptedOffer MarketplaceOffer   @relation(fields: [acceptedOfferId], references: [id], onDelete: Restrict)
+  buyer         User               @relation("MarketplaceTransactionBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller        User               @relation("MarketplaceTransactionSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+
+  @@index([buyerId, status, createdAt])
+  @@index([sellerId, status, createdAt])
+  @@index([conversationId])
+  @@index([expiresAt])
+  @@map("marketplace_transactions")
 }

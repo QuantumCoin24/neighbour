@@ -32,6 +32,7 @@ import { OrganisationModule } from './organisation/organisation.module';
 import { SubscriptionModule } from './payments/subscription/subscription.module';
 import { ReadinessModule } from './operations/readiness/readiness.module';
 import { MarketplaceListingModule } from './marketplace/listings/marketplace-listing.module';
+import { MarketplaceTransactionModule } from './marketplace/transactions/marketplace-transaction.module';
 @Module({
   imports: [
     ReadinessModule,
@@ -67,6 +68,7 @@ import { MarketplaceListingModule } from './marketplace/listings/marketplace-lis
     BusinessModule,
     OrganisationModule,
     MarketplaceListingModule,
+    MarketplaceTransactionModule,
   ],
 })
 export class AppModule {}
