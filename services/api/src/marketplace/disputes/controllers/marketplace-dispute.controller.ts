@@ -1,8 +1,9 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
+import { Roles } from '../../../auth/decorators/roles.decorator';
 import type { AuthUser } from '../../../auth/interfaces/auth-user.interface';
-import type { MarketplaceDisputeStatus } from '../../../generated/prisma/client';
+import { PlatformRole, type MarketplaceDisputeStatus } from '../../../generated/prisma/client';
 
 import { AddMarketplaceDisputeEvidenceDto } from '../dto/add-marketplace-dispute-evidence.dto';
 import { AddMarketplaceDisputeMessageDto } from '../dto/add-marketplace-dispute-message.dto';
@@ -44,6 +45,7 @@ export class MarketplaceDisputeController {
     return this.disputes.listMine(user.id);
   }
 
+  @Roles(PlatformRole.MODERATOR, PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN)
   @Post('process-overdue')
   processOverdue() {
     return this.disputes.processOverdueResponses();

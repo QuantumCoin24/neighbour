@@ -1,10 +1,12 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
+import { Roles } from '../../../auth/decorators/roles.decorator';
 import type { AuthUser } from '../../../auth/interfaces/auth-user.interface';
-import type {
-  MarketplaceModerationPriority,
-  MarketplaceModerationStatus,
+import {
+  PlatformRole,
+  type MarketplaceModerationPriority,
+  type MarketplaceModerationStatus,
 } from '../../../generated/prisma/client';
 
 import { AddMarketplaceFraudSignalDto } from '../dto/add-marketplace-fraud-signal.dto';
@@ -52,11 +54,13 @@ export class MarketplaceModerationController {
     return this.moderation.createCase(user.id, dto);
   }
 
+  @Roles(PlatformRole.MODERATOR, PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN)
   @Get('cases')
   listQueue() {
     return this.moderation.listQueue();
   }
 
+  @Roles(PlatformRole.MODERATOR, PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN)
   @Get('cases/:caseId')
   findOne(
     @Param('caseId')
@@ -65,6 +69,7 @@ export class MarketplaceModerationController {
     return this.moderation.findOne(caseId);
   }
 
+  @Roles(PlatformRole.MODERATOR, PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN)
   @Post('cases/:caseId/assign')
   assign(
     @CurrentUser() user: AuthUser,
@@ -76,6 +81,7 @@ export class MarketplaceModerationController {
     return this.moderation.assign(user.id, caseId, dto);
   }
 
+  @Roles(PlatformRole.MODERATOR, PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN)
   @Post('cases/:caseId/fraud-signals')
   addFraudSignal(
     @CurrentUser() user: AuthUser,
@@ -87,6 +93,7 @@ export class MarketplaceModerationController {
     return this.moderation.addFraudSignal(user.id, caseId, dto);
   }
 
+  @Roles(PlatformRole.MODERATOR, PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN)
   @Patch('cases/:caseId/status')
   updateStatus(
     @CurrentUser() user: AuthUser,
@@ -98,6 +105,7 @@ export class MarketplaceModerationController {
     return this.moderation.updateStatus(user.id, caseId, dto);
   }
 
+  @Roles(PlatformRole.MODERATOR, PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN)
   @Post('cases/:caseId/recalculate-risk')
   recalculateRisk(
     @CurrentUser() user: AuthUser,
