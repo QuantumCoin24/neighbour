@@ -32,6 +32,8 @@ import { OrganisationModule } from './organisation/organisation.module';
 import { SubscriptionModule } from './payments/subscription/subscription.module';
 import { ReadinessModule } from './operations/readiness/readiness.module';
 import { MarketplaceListingModule } from './marketplace/listings/marketplace-listing.module';
+import { MarketplaceDisputeModule } from './marketplace/disputes/marketplace-dispute.module';
+import { MarketplaceReputationModule } from './marketplace/reputation/marketplace-reputation.module';
 import { MarketplacePaymentModule } from './marketplace/payments/marketplace-payment.module';
 import { FulfilmentModule } from './marketplace/fulfilment/fulfilment.module';
 import { MarketplaceTransactionModule } from './marketplace/transactions/marketplace-transaction.module';
@@ -73,6 +75,8 @@ import { MarketplaceTransactionModule } from './marketplace/transactions/marketp
     MarketplaceTransactionModule,
     FulfilmentModule,
     MarketplacePaymentModule,
+    MarketplaceReputationModule,
+    MarketplaceDisputeModule,
   ],
 })
 export class AppModule {}

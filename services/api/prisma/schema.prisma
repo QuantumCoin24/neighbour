@@ -227,6 +227,117 @@ enum MarketplaceTransactionStatus {
   CANCELLED
 }
 
+enum MarketplaceDisputeStatus {
+  OPEN
+  AWAITING_RESPONSE
+  UNDER_REVIEW
+  ESCALATED
+  RESOLVED
+  CLOSED
+  CANCELLED
+}
+
+enum MarketplaceDisputePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum MarketplaceDisputeReason {
+  ITEM_NOT_RECEIVED
+  ITEM_NOT_AS_DESCRIBED
+  DAMAGED_ITEM
+  PAYMENT_NOT_RECEIVED
+  COLLECTION_NO_SHOW
+  DELIVERY_PROBLEM
+  UNAUTHORISED_PAYMENT
+  REFUND_NOT_RECEIVED
+  SAFETY_CONCERN
+  OTHER
+}
+
+enum MarketplaceDisputeResolution {
+  NO_ACTION
+  BUYER_REFUND
+  PARTIAL_REFUND
+  SELLER_PAYMENT_RELEASE
+  RETURN_ITEM
+  REPLACEMENT
+  MUTUAL_AGREEMENT
+  ACCOUNT_RESTRICTION
+}
+
+enum MarketplaceDisputeEvidenceType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  RECEIPT
+  TRACKING
+  CONVERSATION
+  PAYMENT_RECORD
+  OTHER
+}
+
+enum MarketplaceDisputeEventType {
+  CREATED
+  RESPONSE_REQUESTED
+  RESPONSE_ADDED
+  MESSAGE_ADDED
+  EVIDENCE_ADDED
+  REVIEW_STARTED
+  ESCALATED
+  ASSIGNED
+  RESOLUTION_PROPOSED
+  RESOLVED
+  CLOSED
+  CANCELLED
+  REFUND_REQUESTED
+  REFUND_COMPLETED
+  REPUTATION_UPDATED
+}
+
+enum MarketplaceReviewStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+  REMOVED
+}
+
+enum MarketplaceReputationLevel {
+  NEW
+  DEVELOPING
+  TRUSTED
+  HIGHLY_TRUSTED
+  EXCEPTIONAL
+}
+
+enum MarketplaceReputationEventType {
+  REVIEW_CREATED
+  REVIEW_UPDATED
+  REVIEW_PUBLISHED
+  REVIEW_RESPONDED
+  REVIEW_REPORTED
+  REVIEW_HIDDEN
+  REVIEW_REMOVED
+  SCORE_RECALCULATED
+  BADGE_AWARDED
+  BADGE_REVOKED
+}
+
+enum MarketplaceReputationBadgeCode {
+  FIRST_TRADE
+  VERIFIED_TRADER
+  RELIABLE_BUYER
+  RELIABLE_SELLER
+  TEN_SUCCESSFUL_TRADES
+  FIFTY_SUCCESSFUL_TRADES
+  HUNDRED_SUCCESSFUL_TRADES
+  FIVE_STAR_TRADER
+  FAST_RESPONDER
+  COMMUNITY_TRUSTED
+}
+
 enum MarketplacePaymentProvider {
   MANUAL
   STRIPE
@@ -401,6 +512,21 @@ model User {
   marketplacePaymentsAsSeller MarketplacePayment[]      @relation("MarketplacePaymentSeller")
   marketplacePaymentEvents    MarketplacePaymentEvent[]
   marketplaceRefundRequests   MarketplaceRefund[]       @relation("MarketplaceRefundRequestedBy")
+
+  marketplaceReviewsWritten    MarketplaceReview[]           @relation("MarketplaceReviewReviewer")
+  marketplaceReviewsReceived   MarketplaceReview[]           @relation("MarketplaceReviewSubject")
+  marketplaceReputationProfile MarketplaceReputationProfile?
+  marketplaceReputationEvents  MarketplaceReputationEvent[]
+  marketplaceReputationBadges  MarketplaceReputationBadge[]
+  marketplaceReviewReports     MarketplaceReviewReport[]
+
+  marketplaceDisputesOpened   MarketplaceDispute[]         @relation("MarketplaceDisputeOpenedBy")
+  marketplaceDisputesAsBuyer  MarketplaceDispute[]         @relation("MarketplaceDisputeBuyer")
+  marketplaceDisputesAsSeller MarketplaceDispute[]         @relation("MarketplaceDisputeSeller")
+  marketplaceDisputesAssigned MarketplaceDispute[]         @relation("MarketplaceDisputeAssignee")
+  marketplaceDisputeEvidence  MarketplaceDisputeEvidence[]
+  marketplaceDisputeMessages  MarketplaceDisputeMessage[]
+  marketplaceDisputeEvents    MarketplaceDisputeEvent[]
 
   @@index([status])
   @@index([role])
@@ -934,6 +1060,8 @@ model MediaAsset {
 
   marketplaceListingLinks MarketplaceListingMedia[]
 
+  marketplaceDisputeEvidence MarketplaceDisputeEvidence[]
+
   @@index([ownerId, status, createdAt])
   @@index([status, createdAt])
   @@index([deletedAt])
@@ -1389,6 +1517,10 @@ model MarketplaceTransaction {
 
   payments MarketplacePayment[]
 
+  reviews MarketplaceReview[]
+
+  disputes MarketplaceDispute[]
+
   @@index([buyerId, status, createdAt])
   @@index([sellerId, status, createdAt])
   @@index([conversationId])
@@ -1413,12 +1545,13 @@ model MarketplaceFulfilment {
   createdAt         DateTime                    @default(now())
   updatedAt         DateTime                    @updatedAt
 
-  transaction   MarketplaceTransaction              @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  collection    MarketplaceCollection?
-  delivery      MarketplaceDelivery?
-  events        MarketplaceFulfilmentEvent[]
-  verifications MarketplaceFulfilmentVerification[]
-  proofs        MarketplaceFulfilmentProof[]
+  transaction         MarketplaceTransaction              @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  collection          MarketplaceCollection?
+  delivery            MarketplaceDelivery?
+  events              MarketplaceFulfilmentEvent[]
+  verifications       MarketplaceFulfilmentVerification[]
+  proofs              MarketplaceFulfilmentProof[]
+  marketplaceDisputes MarketplaceDispute[]
 
   @@index([status, createdAt])
   @@index([method, status])
@@ -1552,11 +1685,12 @@ model MarketplacePayment {
   createdAt           DateTime                   @default(now())
   updatedAt           DateTime                   @updatedAt
 
-  transaction MarketplaceTransaction    @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  buyer       User                      @relation("MarketplacePaymentBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
-  seller      User                      @relation("MarketplacePaymentSeller", fields: [sellerId], references: [id], onDelete: Restrict)
-  refunds     MarketplaceRefund[]
-  events      MarketplacePaymentEvent[]
+  transaction         MarketplaceTransaction    @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  buyer               User                      @relation("MarketplacePaymentBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller              User                      @relation("MarketplacePaymentSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  refunds             MarketplaceRefund[]
+  events              MarketplacePaymentEvent[]
+  marketplaceDisputes MarketplaceDispute[]
 
   @@unique([transactionId, id])
   @@index([transactionId, status, createdAt])
@@ -1610,4 +1744,232 @@ model MarketplacePaymentEvent {
   @@index([actorId, createdAt])
   @@index([type, createdAt])
   @@map("marketplace_payment_events")
+}
+
+model MarketplaceReview {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  transactionId       String                  @db.Uuid
+  reviewerId          String                  @db.Uuid
+  subjectId           String                  @db.Uuid
+  rating              Int
+  comment             String?
+  response            String?
+  status              MarketplaceReviewStatus @default(PENDING)
+  verifiedTransaction Boolean                 @default(true)
+  reportCount         Int                     @default(0)
+  publishedAt         DateTime?
+  respondedAt         DateTime?
+  hiddenAt            DateTime?
+  removedAt           DateTime?
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+
+  transaction MarketplaceTransaction    @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  reviewer    User                      @relation("MarketplaceReviewReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  subject     User                      @relation("MarketplaceReviewSubject", fields: [subjectId], references: [id], onDelete: Restrict)
+  reports     MarketplaceReviewReport[]
+
+  @@unique([transactionId, reviewerId])
+  @@index([subjectId, status, createdAt])
+  @@index([reviewerId, createdAt])
+  @@index([rating, status])
+  @@map("marketplace_reviews")
+}
+
+model MarketplaceReviewReport {
+  id          String    @id @default(uuid()) @db.Uuid
+  reviewId    String    @db.Uuid
+  reporterId  String    @db.Uuid
+  reason      String
+  description String
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  review   MarketplaceReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reporter User              @relation(fields: [reporterId], references: [id], onDelete: Restrict)
+
+  @@unique([reviewId, reporterId])
+  @@index([reviewId, createdAt])
+  @@index([reporterId, createdAt])
+  @@map("marketplace_review_reports")
+}
+
+model MarketplaceReputationProfile {
+  id                     String                     @id @default(uuid()) @db.Uuid
+  userId                 String                     @unique @db.Uuid
+  score                  Int                        @default(100)
+  riskScore              Int                        @default(0)
+  level                  MarketplaceReputationLevel @default(NEW)
+  completedTransactions  Int                        @default(0)
+  successfulPurchases    Int                        @default(0)
+  successfulSales        Int                        @default(0)
+  cancelledTransactions  Int                        @default(0)
+  disputedTransactions   Int                        @default(0)
+  verifiedReviews        Int                        @default(0)
+  positiveReviews        Int                        @default(0)
+  neutralReviews         Int                        @default(0)
+  negativeReviews        Int                        @default(0)
+  averageRating          Float?
+  completionRate         Float?
+  cancellationRate       Float?
+  disputeRate            Float?
+  responseRate           Float?
+  averageResponseMinutes Int?
+  calculatedAt           DateTime                   @default(now())
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([score, calculatedAt])
+  @@index([riskScore, calculatedAt])
+  @@index([level, score])
+  @@map("marketplace_reputation_profiles")
+}
+
+model MarketplaceReputationBadge {
+  id          String                         @id @default(uuid()) @db.Uuid
+  userId      String                         @db.Uuid
+  code        MarketplaceReputationBadgeCode
+  title       String
+  description String
+  awardedAt   DateTime                       @default(now())
+  revokedAt   DateTime?
+  createdAt   DateTime                       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, code])
+  @@index([userId, awardedAt])
+  @@index([code, awardedAt])
+  @@map("marketplace_reputation_badges")
+}
+
+model MarketplaceReputationEvent {
+  id          String                         @id @default(uuid()) @db.Uuid
+  userId      String                         @db.Uuid
+  actorId     String?                        @db.Uuid
+  type        MarketplaceReputationEventType
+  scoreBefore Int?
+  scoreAfter  Int?
+  metadata    Json?
+  createdAt   DateTime                       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@map("marketplace_reputation_events")
+}
+
+model MarketplaceDispute {
+  id                     String                        @id @default(uuid()) @db.Uuid
+  transactionId          String                        @db.Uuid
+  paymentId              String?                       @db.Uuid
+  fulfilmentId           String?                       @db.Uuid
+  openedById             String                        @db.Uuid
+  buyerId                String                        @db.Uuid
+  sellerId               String                        @db.Uuid
+  assignedToId           String?                       @db.Uuid
+  reason                 MarketplaceDisputeReason
+  status                 MarketplaceDisputeStatus      @default(OPEN)
+  priority               MarketplaceDisputePriority    @default(NORMAL)
+  title                  String
+  description            String
+  requestedResolution    String?
+  proposedResolution     String?
+  resolution             MarketplaceDisputeResolution?
+  resolutionDecision     String?
+  resolutionInstructions String?
+  refundAmountPence      Int?
+  responseDueAt          DateTime?
+  firstResponseAt        DateTime?
+  reviewStartedAt        DateTime?
+  escalatedAt            DateTime?
+  resolvedAt             DateTime?
+  closedAt               DateTime?
+  cancelledAt            DateTime?
+  createdAt              DateTime                      @default(now())
+  updatedAt              DateTime                      @updatedAt
+
+  transaction MarketplaceTransaction       @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  payment     MarketplacePayment?          @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  fulfilment  MarketplaceFulfilment?       @relation(fields: [fulfilmentId], references: [id], onDelete: SetNull)
+  openedBy    User                         @relation("MarketplaceDisputeOpenedBy", fields: [openedById], references: [id], onDelete: Restrict)
+  buyer       User                         @relation("MarketplaceDisputeBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller      User                         @relation("MarketplaceDisputeSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  assignedTo  User?                        @relation("MarketplaceDisputeAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  evidence    MarketplaceDisputeEvidence[]
+  messages    MarketplaceDisputeMessage[]
+  events      MarketplaceDisputeEvent[]
+
+  @@index([transactionId, status, createdAt])
+  @@index([buyerId, status, createdAt])
+  @@index([sellerId, status, createdAt])
+  @@index([openedById, createdAt])
+  @@index([assignedToId, status])
+  @@index([status, priority, createdAt])
+  @@index([responseDueAt, status])
+  @@index([paymentId])
+  @@index([fulfilmentId])
+  @@map("marketplace_disputes")
+}
+
+model MarketplaceDisputeEvidence {
+  id           String                         @id @default(uuid()) @db.Uuid
+  disputeId    String                         @db.Uuid
+  uploadedById String                         @db.Uuid
+  mediaId      String                         @db.Uuid
+  type         MarketplaceDisputeEvidenceType
+  description  String?
+  createdAt    DateTime                       @default(now())
+
+  dispute    MarketplaceDispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  uploadedBy User               @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  media      MediaAsset         @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@unique([disputeId, mediaId])
+  @@index([disputeId, createdAt])
+  @@index([uploadedById, createdAt])
+  @@index([mediaId])
+  @@index([type, createdAt])
+  @@map("marketplace_dispute_evidence")
+}
+
+model MarketplaceDisputeMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  disputeId String   @db.Uuid
+  authorId  String   @db.Uuid
+  message   String
+  internal  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dispute MarketplaceDispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  author  User               @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([disputeId, createdAt])
+  @@index([authorId, createdAt])
+  @@map("marketplace_dispute_messages")
+}
+
+model MarketplaceDisputeEvent {
+  id         String                      @id @default(uuid()) @db.Uuid
+  disputeId  String                      @db.Uuid
+  actorId    String?                     @db.Uuid
+  type       MarketplaceDisputeEventType
+  fromStatus MarketplaceDisputeStatus?
+  toStatus   MarketplaceDisputeStatus
+  note       String?
+  metadata   Json?
+  createdAt  DateTime                    @default(now())
+
+  dispute MarketplaceDispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  actor   User?              @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([disputeId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([type, createdAt])
+  @@index([toStatus, createdAt])
+  @@map("marketplace_dispute_events")
 }

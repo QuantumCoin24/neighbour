@@ -66,3 +66,5 @@ export * from './marketplace/listings';
 export * from './marketplace/transactions';
 export * from './marketplace/fulfilment';
 export * from './marketplace/payments';
+export * from './marketplace/reputation';
+export * from './marketplace/disputes';
