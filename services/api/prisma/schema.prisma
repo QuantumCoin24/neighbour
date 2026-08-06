@@ -227,6 +227,52 @@ enum MarketplaceTransactionStatus {
   CANCELLED
 }
 
+enum MarketplacePaymentProvider {
+  MANUAL
+  STRIPE
+  ADYEN
+  QFN
+}
+
+enum MarketplacePaymentMethod {
+  CASH_ON_COLLECTION
+  BANK_TRANSFER
+  CARD
+  APPLE_PAY
+  QFN
+}
+
+enum MarketplacePaymentStatus {
+  PENDING
+  REQUIRES_ACTION
+  AUTHORISED
+  CAPTURED
+  FAILED
+  CANCELLED
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+enum MarketplaceRefundStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum MarketplacePaymentEventType {
+  CREATED
+  ACTION_REQUIRED
+  AUTHORISED
+  CAPTURED
+  FAILED
+  CANCELLED
+  REFUND_REQUESTED
+  REFUND_COMPLETED
+  REFUND_FAILED
+}
+
 enum MarketplaceFulfilmentMethod {
   COLLECTION
   DELIVERY
@@ -350,6 +396,11 @@ model User {
   marketplaceTransactionsAsSeller MarketplaceTransaction[]     @relation("MarketplaceTransactionSeller")
   marketplaceFulfilmentEvents     MarketplaceFulfilmentEvent[]
   marketplaceFulfilmentProofs     MarketplaceFulfilmentProof[]
+
+  marketplacePaymentsAsBuyer  MarketplacePayment[]      @relation("MarketplacePaymentBuyer")
+  marketplacePaymentsAsSeller MarketplacePayment[]      @relation("MarketplacePaymentSeller")
+  marketplacePaymentEvents    MarketplacePaymentEvent[]
+  marketplaceRefundRequests   MarketplaceRefund[]       @relation("MarketplaceRefundRequestedBy")
 
   @@index([status])
   @@index([role])
@@ -1336,6 +1387,8 @@ model MarketplaceTransaction {
   seller        User                   @relation("MarketplaceTransactionSeller", fields: [sellerId], references: [id], onDelete: Restrict)
   fulfilment    MarketplaceFulfilment?
 
+  payments MarketplacePayment[]
+
   @@index([buyerId, status, createdAt])
   @@index([sellerId, status, createdAt])
   @@index([conversationId])
@@ -1474,4 +1527,87 @@ model MarketplaceFulfilmentProof {
   @@index([uploadedById, createdAt])
   @@index([mediaId])
   @@map("marketplace_fulfilment_proofs")
+}
+
+model MarketplacePayment {
+  id                  String                     @id @default(uuid()) @db.Uuid
+  transactionId       String                     @db.Uuid
+  buyerId             String                     @db.Uuid
+  sellerId            String                     @db.Uuid
+  provider            MarketplacePaymentProvider
+  method              MarketplacePaymentMethod
+  status              MarketplacePaymentStatus   @default(PENDING)
+  amountPence         Int
+  currency            String                     @default("GBP")
+  providerReference   String?
+  clientSecret        String?
+  manualReference     String?
+  idempotencyKey      String                     @unique
+  failureReason       String?
+  authorisedAt        DateTime?
+  capturedAt          DateTime?
+  cancelledAt         DateTime?
+  refundedAmountPence Int                        @default(0)
+  expiresAt           DateTime?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+
+  transaction MarketplaceTransaction    @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  buyer       User                      @relation("MarketplacePaymentBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller      User                      @relation("MarketplacePaymentSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  refunds     MarketplaceRefund[]
+  events      MarketplacePaymentEvent[]
+
+  @@unique([transactionId, id])
+  @@index([transactionId, status, createdAt])
+  @@index([buyerId, status, createdAt])
+  @@index([sellerId, status, createdAt])
+  @@index([provider, providerReference])
+  @@index([status, expiresAt])
+  @@map("marketplace_payments")
+}
+
+model MarketplaceRefund {
+  id                String                  @id @default(uuid()) @db.Uuid
+  paymentId         String                  @db.Uuid
+  requestedById     String                  @db.Uuid
+  status            MarketplaceRefundStatus @default(PENDING)
+  amountPence       Int
+  reason            String?
+  providerReference String?
+  failureReason     String?
+  requestedAt       DateTime                @default(now())
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  payment     MarketplacePayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  requestedBy User               @relation("MarketplaceRefundRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+
+  @@index([paymentId, status, createdAt])
+  @@index([requestedById, createdAt])
+  @@index([status, requestedAt])
+  @@map("marketplace_refunds")
+}
+
+model MarketplacePaymentEvent {
+  id          String                      @id @default(uuid()) @db.Uuid
+  paymentId   String                      @db.Uuid
+  actorId     String                      @db.Uuid
+  type        MarketplacePaymentEventType
+  fromStatus  MarketplacePaymentStatus?
+  toStatus    MarketplacePaymentStatus
+  amountPence Int?
+  note        String?
+  metadata    Json?
+  createdAt   DateTime                    @default(now())
+
+  payment MarketplacePayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  actor   User               @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([paymentId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([type, createdAt])
+  @@map("marketplace_payment_events")
 }

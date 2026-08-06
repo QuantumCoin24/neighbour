@@ -6,3 +6,4 @@ export * from './types';
 export * from './listings';
 export * from './transactions';
 export * from './fulfilment';
+export * from './payments';
