@@ -146,3 +146,13 @@ export function updateMarketplaceTransactionStatus(
     },
   );
 }
+
+export function processExpiredMarketplaceTransactions(): Promise<{
+  processed: boolean;
+}> {
+  return apiRequest<{
+    processed: boolean;
+  }>('/marketplace/transactions/process-expired', {
+    method: 'POST',
+  });
+}

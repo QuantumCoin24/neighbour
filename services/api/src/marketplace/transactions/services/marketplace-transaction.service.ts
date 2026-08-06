@@ -86,6 +86,7 @@ export class MarketplaceTransactionService {
     listingId: string,
     dto: CreateMarketplaceOfferDto,
   ): Promise<MarketplaceOfferResponse> {
+    await this.expireStaleMarketplaceState();
     const listing = await this.database.marketplaceListing.findFirst({
       where: {
         id: listingId,
@@ -521,6 +522,7 @@ export class MarketplaceTransactionService {
     userId: string,
     query: MarketplaceOfferQueryDto,
   ): Promise<MarketplaceOfferListResponse> {
+    await this.expireStaleMarketplaceState();
     const offers = await this.database.marketplaceOffer.findMany({
       where: {
         buyerId: userId,
@@ -546,6 +548,7 @@ export class MarketplaceTransactionService {
     userId: string,
     query: MarketplaceOfferQueryDto,
   ): Promise<MarketplaceOfferListResponse> {
+    await this.expireStaleMarketplaceState();
     const offers = await this.database.marketplaceOffer.findMany({
       where: {
         sellerId: userId,
@@ -602,10 +605,22 @@ export class MarketplaceTransactionService {
   }
 
   async getOffer(userId: string, offerId: string): Promise<MarketplaceOfferResponse> {
+    await this.expireStaleMarketplaceState();
     return this.mapOffer(await this.requireParticipatingOffer(userId, offerId));
   }
 
+  async processExpiredState(): Promise<{
+    processed: boolean;
+  }> {
+    await this.expireStaleMarketplaceState();
+
+    return {
+      processed: true,
+    };
+  }
+
   async listTransactions(userId: string): Promise<MarketplaceTransactionResponse[]> {
+    await this.expireStaleMarketplaceState();
     return this.database.marketplaceTransaction.findMany({
       where: {
         OR: [
@@ -698,6 +713,7 @@ export class MarketplaceTransactionService {
     userId: string,
     transactionId: string,
   ): Promise<MarketplaceTransactionResponse> {
+    await this.expireStaleMarketplaceState();
     const transaction = await this.database.marketplaceTransaction.findFirst({
       where: {
         id: transactionId,
@@ -843,6 +859,125 @@ export class MarketplaceTransactionService {
       });
 
       return updated;
+    });
+  }
+
+  private async expireStaleMarketplaceState(): Promise<void> {
+    const now = new Date();
+
+    await this.database.$transaction(async (transaction) => {
+      const expiredOffers = await transaction.marketplaceOffer.findMany({
+        where: {
+          status: {
+            in: ACTIVE_OFFER_STATUSES,
+          },
+          expiresAt: {
+            lte: now,
+          },
+        },
+        select: {
+          id: true,
+          buyerId: true,
+          status: true,
+          amountPence: true,
+        },
+      });
+
+      for (const offer of expiredOffers) {
+        await transaction.marketplaceOffer.update({
+          where: {
+            id: offer.id,
+          },
+          data: {
+            status: MarketplaceOfferStatus.EXPIRED,
+          },
+        });
+
+        await transaction.marketplaceOfferHistory.create({
+          data: {
+            offerId: offer.id,
+            actorId: offer.buyerId,
+            fromStatus: offer.status,
+            toStatus: MarketplaceOfferStatus.EXPIRED,
+            amountPence: offer.amountPence,
+            note: 'Offer expired automatically.',
+          },
+        });
+      }
+
+      const expiredTransactions = await transaction.marketplaceTransaction.findMany({
+        where: {
+          status: {
+            notIn: [MarketplaceTransactionStatus.COMPLETED, MarketplaceTransactionStatus.CANCELLED],
+          },
+          expiresAt: {
+            lte: now,
+          },
+        },
+        select: {
+          id: true,
+          listingId: true,
+          acceptedOfferId: true,
+          buyerId: true,
+        },
+      });
+
+      for (const marketplaceTransaction of expiredTransactions) {
+        await transaction.marketplaceTransaction.update({
+          where: {
+            id: marketplaceTransaction.id,
+          },
+          data: {
+            status: MarketplaceTransactionStatus.CANCELLED,
+            cancelledAt: now,
+          },
+        });
+
+        const acceptedOffer = await transaction.marketplaceOffer.findUnique({
+          where: {
+            id: marketplaceTransaction.acceptedOfferId,
+          },
+          select: {
+            status: true,
+            amountPence: true,
+          },
+        });
+
+        if (acceptedOffer && acceptedOffer.status !== MarketplaceOfferStatus.CANCELLED) {
+          await transaction.marketplaceOffer.update({
+            where: {
+              id: marketplaceTransaction.acceptedOfferId,
+            },
+            data: {
+              status: MarketplaceOfferStatus.CANCELLED,
+              cancelledAt: now,
+            },
+          });
+
+          await transaction.marketplaceOfferHistory.create({
+            data: {
+              offerId: marketplaceTransaction.acceptedOfferId,
+              actorId: marketplaceTransaction.buyerId,
+              fromStatus: acceptedOffer.status,
+              toStatus: MarketplaceOfferStatus.CANCELLED,
+              amountPence: acceptedOffer.amountPence,
+              note: 'Reservation expired automatically.',
+            },
+          });
+        }
+
+        await transaction.marketplaceListing.updateMany({
+          where: {
+            id: marketplaceTransaction.listingId,
+            status: MarketplaceListingStatus.RESERVED,
+            deletedAt: null,
+          },
+          data: {
+            status: MarketplaceListingStatus.PUBLISHED,
+            reservedAt: null,
+          },
+        });
+      }
     });
   }
 

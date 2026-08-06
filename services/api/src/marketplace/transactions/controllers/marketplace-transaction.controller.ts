@@ -66,6 +66,11 @@ export class MarketplaceTransactionController {
     return this.service.withdrawOffer(user.id, offerId);
   }
 
+  @Post('transactions/process-expired')
+  processExpiredState() {
+    return this.service.processExpiredState();
+  }
+
   @Get('transactions')
   listTransactions(@CurrentUser() user: AuthUser) {
     return this.service.listTransactions(user.id);
