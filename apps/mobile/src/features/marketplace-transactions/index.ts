@@ -4,3 +4,4 @@ export { default as MakeMarketplaceOfferScreen } from './screens/MakeMarketplace
 export { default as MarketplaceOfferDetailScreen } from './screens/MarketplaceOfferDetailScreen';
 export { default as MarketplaceOffersScreen } from './screens/MarketplaceOffersScreen';
 export { default as MarketplaceTransactionDetailScreen } from './screens/MarketplaceTransactionDetailScreen';
+export { default as MarketplaceTransactionsScreen } from './screens/MarketplaceTransactionsScreen';

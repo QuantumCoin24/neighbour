@@ -127,3 +127,22 @@ export function cancelMarketplaceTransaction(
     },
   );
 }
+
+export function getMarketplaceTransactions(): Promise<MarketplaceTransaction[]> {
+  return apiRequest<MarketplaceTransaction[]>('/marketplace/transactions');
+}
+
+export function updateMarketplaceTransactionStatus(
+  transactionId: string,
+  status: 'COLLECTION_PENDING' | 'DELIVERY_PENDING',
+): Promise<MarketplaceTransaction> {
+  return apiRequest<MarketplaceTransaction>(
+    `/marketplace/transactions/${encodeURIComponent(transactionId)}/status`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status,
+      }),
+    },
+  );
+}

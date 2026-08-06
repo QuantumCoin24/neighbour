@@ -6,6 +6,7 @@ import type { AuthUser } from '../../../auth/interfaces/auth-user.interface';
 import { CounterMarketplaceOfferDto } from '../dto/counter-marketplace-offer.dto';
 import { CreateMarketplaceOfferDto } from '../dto/create-marketplace-offer.dto';
 import { MarketplaceOfferQueryDto } from '../dto/marketplace-offer-query.dto';
+import { UpdateMarketplaceTransactionStatusDto } from '../dto/update-marketplace-transaction-status.dto';
 import { MarketplaceTransactionService } from '../services/marketplace-transaction.service';
 
 @Controller('marketplace')
@@ -65,6 +66,11 @@ export class MarketplaceTransactionController {
     return this.service.withdrawOffer(user.id, offerId);
   }
 
+  @Get('transactions')
+  listTransactions(@CurrentUser() user: AuthUser) {
+    return this.service.listTransactions(user.id);
+  }
+
   @Get('transactions/:transactionId')
   getTransaction(
     @CurrentUser() user: AuthUser,
@@ -72,6 +78,17 @@ export class MarketplaceTransactionController {
     transactionId: string,
   ) {
     return this.service.getTransaction(user.id, transactionId);
+  }
+
+  @Patch('transactions/:transactionId/status')
+  updateTransactionStatus(
+    @CurrentUser() user: AuthUser,
+    @Param('transactionId')
+    transactionId: string,
+    @Body()
+    dto: UpdateMarketplaceTransactionStatusDto,
+  ) {
+    return this.service.updateTransactionStatus(user.id, transactionId, dto.status);
   }
 
   @Patch('transactions/:transactionId/complete')

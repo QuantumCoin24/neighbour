@@ -25,6 +25,7 @@ import {
   MarketplaceOfferDetailScreen,
   MarketplaceOffersScreen,
   MarketplaceTransactionDetailScreen,
+  MarketplaceTransactionsScreen,
 } from '../features/marketplace-transactions';
 import { useNeighbourTheme } from '../theme';
 
@@ -140,6 +141,11 @@ export default function AppNavigator() {
             />
 
             <Stack.Screen name={ROUTES.MARKETPLACE_OFFERS} component={MarketplaceOffersScreen} />
+
+            <Stack.Screen
+              name={ROUTES.MARKETPLACE_TRANSACTIONS}
+              component={MarketplaceTransactionsScreen}
+            />
 
             <Stack.Screen
               name={ROUTES.MAKE_MARKETPLACE_OFFER}

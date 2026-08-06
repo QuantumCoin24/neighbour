@@ -605,6 +605,95 @@ export class MarketplaceTransactionService {
     return this.mapOffer(await this.requireParticipatingOffer(userId, offerId));
   }
 
+  async listTransactions(userId: string): Promise<MarketplaceTransactionResponse[]> {
+    return this.database.marketplaceTransaction.findMany({
+      where: {
+        OR: [
+          {
+            buyerId: userId,
+          },
+          {
+            sellerId: userId,
+          },
+        ],
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async updateTransactionStatus(
+    userId: string,
+    transactionId: string,
+    status: MarketplaceTransactionStatus,
+  ): Promise<MarketplaceTransactionResponse> {
+    const transaction = await this.database.marketplaceTransaction.findFirst({
+      where: {
+        id: transactionId,
+        OR: [
+          {
+            buyerId: userId,
+          },
+          {
+            sellerId: userId,
+          },
+        ],
+      },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Marketplace transaction not found.');
+    }
+
+    if (
+      transaction.status === MarketplaceTransactionStatus.COMPLETED ||
+      transaction.status === MarketplaceTransactionStatus.CANCELLED
+    ) {
+      throw new ConflictException('This transaction can no longer be updated.');
+    }
+
+    if (
+      status === MarketplaceTransactionStatus.COMPLETED ||
+      status === MarketplaceTransactionStatus.CANCELLED ||
+      status === MarketplaceTransactionStatus.RESERVED
+    ) {
+      throw new BadRequestException('Use the dedicated completion or cancellation action.');
+    }
+
+    if (
+      status === MarketplaceTransactionStatus.COLLECTION_PENDING &&
+      userId !== transaction.sellerId
+    ) {
+      throw new ForbiddenException('Only the seller may mark collection as pending.');
+    }
+
+    if (
+      status === MarketplaceTransactionStatus.DELIVERY_PENDING &&
+      userId !== transaction.sellerId
+    ) {
+      throw new ForbiddenException('Only the seller may mark delivery as pending.');
+    }
+
+    const updated = await this.database.marketplaceTransaction.update({
+      where: {
+        id: transaction.id,
+      },
+      data: {
+        status,
+      },
+    });
+
+    await this.createMarketplaceNotification(
+      userId === transaction.buyerId ? transaction.sellerId : transaction.buyerId,
+      userId,
+      NotificationType.MARKETPLACE_TRANSACTION,
+      `marketplace-transaction-status:${transaction.id}:${status}`,
+    );
+
+    return updated;
+  }
+
   async getTransaction(
     userId: string,
     transactionId: string,
