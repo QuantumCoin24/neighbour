@@ -25,9 +25,53 @@ export type MarketplaceDisputeResolution =
   | 'MUTUAL_AGREEMENT'
   | 'ACCOUNT_RESTRICTION';
 
+export type MarketplaceDisputeEvidenceType =
+  | 'IMAGE'
+  | 'VIDEO'
+  | 'DOCUMENT'
+  | 'RECEIPT'
+  | 'TRACKING'
+  | 'CONVERSATION'
+  | 'PAYMENT_RECORD'
+  | 'OTHER';
+
+export interface MarketplaceDisputeEvidence {
+  id: string;
+  disputeId: string;
+  uploadedById: string;
+  mediaId: string;
+  type: MarketplaceDisputeEvidenceType;
+  description: string | null;
+  publicUrl: string | null;
+  createdAt: string;
+}
+
+export interface MarketplaceDisputeMessage {
+  id: string;
+  disputeId: string;
+  authorId: string;
+  message: string;
+  internal: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MarketplaceDisputeEvent {
+  id: string;
+  actorId: string | null;
+  type: string;
+  fromStatus: MarketplaceDisputeStatus | null;
+  toStatus: MarketplaceDisputeStatus;
+  note: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
 export interface MarketplaceDispute {
   id: string;
   transactionId: string;
+  paymentId: string | null;
+  fulfilmentId: string | null;
   openedById: string;
   buyerId: string;
   sellerId: string;
@@ -41,19 +85,18 @@ export interface MarketplaceDispute {
   proposedResolution: string | null;
   resolution: MarketplaceDisputeResolution | null;
   resolutionDecision: string | null;
+  resolutionInstructions: string | null;
   refundAmountPence: number | null;
   responseDueAt: string | null;
+  firstResponseAt: string | null;
+  reviewStartedAt: string | null;
   escalatedAt: string | null;
   resolvedAt: string | null;
   closedAt: string | null;
+  cancelledAt: string | null;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface MarketplaceDisputeHealth {
-  service: 'Marketplace DisputeOS';
-  status: 'READY';
-  architecture: 'AUDIT_DRIVEN';
-  evidenceEnabled: true;
-  mediationEnabled: true;
+  evidence: MarketplaceDisputeEvidence[];
+  messages: MarketplaceDisputeMessage[];
+  events: MarketplaceDisputeEvent[];
 }
