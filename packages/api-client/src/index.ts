@@ -69,3 +69,4 @@ export * from './marketplace/payments';
 export * from './marketplace/reputation';
 export * from './marketplace/disputes';
 export * from './marketplace/moderation';
+export * from './nearby';

@@ -38,8 +38,10 @@ import { MarketplaceReputationModule } from './marketplace/reputation/marketplac
 import { MarketplacePaymentModule } from './marketplace/payments/marketplace-payment.module';
 import { FulfilmentModule } from './marketplace/fulfilment/fulfilment.module';
 import { MarketplaceTransactionModule } from './marketplace/transactions/marketplace-transaction.module';
+import { NearbyModule } from './nearby/nearby.module';
 @Module({
   imports: [
+    NearbyModule,
     ReadinessModule,
     SubscriptionModule,
     GeoModule,
