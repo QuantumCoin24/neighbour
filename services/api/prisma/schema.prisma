@@ -186,6 +186,43 @@ enum LocationVisibility {
   PRIVATE
 }
 
+enum MarketplaceListingStatus {
+  DRAFT
+  PUBLISHED
+  RESERVED
+  SOLD
+  ARCHIVED
+}
+
+enum MarketplaceListingCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  POOR
+  NOT_APPLICABLE
+}
+
+enum MarketplaceListingCategory {
+  ELECTRONICS
+  HOME_GARDEN
+  FURNITURE
+  CLOTHING
+  BABY_KIDS
+  SPORTS
+  HOBBIES
+  COLLECTABLES
+  PETS
+  VEHICLE_PARTS
+  PROPERTY
+  JOBS
+  SERVICES
+  TICKETS
+  FREE_ITEMS
+  WANTED
+  OTHER
+}
+
 model User {
   id                       String                    @id @default(uuid()) @db.Uuid
   email                    String                    @unique
@@ -224,6 +261,9 @@ model User {
   subscriptions            Subscription[]
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
+
+  marketplaceListings      MarketplaceListing[]
+  savedMarketplaceListings SavedMarketplaceListing[]
 
   @@index([status])
   @@index([role])
@@ -375,6 +415,8 @@ model Community {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  marketplaceListings MarketplaceListing[]
 
   @@index([visibility])
   @@index([category])
@@ -752,6 +794,8 @@ model MediaAsset {
   updatedAt  DateTime         @updatedAt
   postLinks  PostMedia[]
 
+  marketplaceListingLinks MarketplaceListingMedia[]
+
   @@index([ownerId, status, createdAt])
   @@index([status, createdAt])
   @@index([deletedAt])
@@ -1057,4 +1101,76 @@ model OrganisationVerification {
 
   @@index([status])
   @@map("organisation_verifications")
+}
+
+model MarketplaceListing {
+  id                  String                      @id @default(uuid()) @db.Uuid
+  sellerId            String                      @db.Uuid
+  communityId         String?                     @db.Uuid
+  title               String
+  description         String
+  category            MarketplaceListingCategory
+  condition           MarketplaceListingCondition
+  status              MarketplaceListingStatus    @default(DRAFT)
+  pricePence          Int?
+  isFree              Boolean                     @default(false)
+  acceptsOffers       Boolean                     @default(false)
+  collectionAvailable Boolean                     @default(true)
+  deliveryAvailable   Boolean                     @default(false)
+  postageAvailable    Boolean                     @default(false)
+  localArea           String?
+  postcodeDistrict    String?
+  latitude            Decimal?                    @db.Decimal(9, 6)
+  longitude           Decimal?                    @db.Decimal(9, 6)
+  viewCount           Int                         @default(0)
+  publishedAt         DateTime?
+  reservedAt          DateTime?
+  soldAt              DateTime?
+  archivedAt          DateTime?
+  deletedAt           DateTime?
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+  seller              User                        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  community           Community?                  @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  media               MarketplaceListingMedia[]
+  savedBy             SavedMarketplaceListing[]
+
+  @@index([sellerId, status, createdAt])
+  @@index([communityId, status, createdAt])
+  @@index([category, status, createdAt])
+  @@index([status, publishedAt])
+  @@index([postcodeDistrict, status])
+  @@index([deletedAt])
+  @@map("marketplace_listings")
+}
+
+model MarketplaceListingMedia {
+  id        String             @id @default(uuid()) @db.Uuid
+  listingId String             @db.Uuid
+  mediaId   String             @db.Uuid
+  position  Int                @default(0)
+  altText   String?
+  createdAt DateTime           @default(now())
+  listing   MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  media     MediaAsset         @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, mediaId])
+  @@unique([listingId, position])
+  @@index([listingId, position])
+  @@index([mediaId])
+  @@map("marketplace_listing_media")
+}
+
+model SavedMarketplaceListing {
+  id        String             @id @default(uuid()) @db.Uuid
+  userId    String             @db.Uuid
+  listingId String             @db.Uuid
+  createdAt DateTime           @default(now())
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@index([userId, createdAt])
+  @@index([listingId])
+  @@map("saved_marketplace_listings")
 }
