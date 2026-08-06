@@ -407,6 +407,28 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
         </Pressable>
       </View>
 
+      {listing.status === 'RESERVED' ? (
+        <Card variant="muted" style={styles.lifecycleCard}>
+          <AppText variant="label" tone="brand">
+            Reserved
+          </AppText>
+
+          <AppText variant="caption" tone="secondary">
+            This item is currently reserved through TransactionOS.
+          </AppText>
+        </Card>
+      ) : null}
+
+      {listing.status === 'SOLD' ? (
+        <Card variant="muted" style={styles.lifecycleCard}>
+          <AppText variant="label">Sold</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            This TransactionOS sale has been completed.
+          </AppText>
+        </Card>
+      ) : null}
+
       <MediaGallery items={galleryItems} />
 
       <View style={styles.heading}>
@@ -535,6 +557,58 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
         ) : null}
       </Card>
 
+      {listing.seller.id !== user?.id &&
+      listing.status === 'PUBLISHED' &&
+      listing.acceptsOffers &&
+      !listing.isFree ? (
+        <Card variant="muted" style={styles.offerCard}>
+          <AppText variant="subheading">Interested in this item?</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            Send the seller a structured offer. They can accept, decline or counter.
+          </AppText>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              navigation.navigate('MakeMarketplaceOffer', {
+                listingId: listing.id,
+                listingTitle: listing.title,
+                askingPricePence: listing.pricePence,
+              });
+            }}
+            style={[
+              styles.offerButton,
+              {
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <AppText variant="label">Make an Offer</AppText>
+          </Pressable>
+        </Card>
+      ) : null}
+
+      {listing.seller.id === user?.id && listing.acceptsOffers ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            navigation.navigate('MarketplaceOffers');
+          }}
+          style={[
+            styles.ownerOfferButton,
+            {
+              borderColor: theme.colors.borderStrong,
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText variant="label" tone="brand">
+            View Offers for This Listing
+          </AppText>
+        </Pressable>
+      ) : null}
+
       {listing.seller.id === user?.id ? (
         <Card variant="muted" style={styles.ownerNotice}>
           <AppText variant="bodyStrong">This is your listing</AppText>
@@ -604,6 +678,26 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
 }
 
 const styles = StyleSheet.create({
+  offerCard: {
+    gap: 10,
+  },
+  offerButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+    paddingHorizontal: 18,
+  },
+  ownerOfferButton: {
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: 16,
+  },
+  lifecycleCard: {
+    gap: 6,
+  },
+
   screen: {
     gap: 18,
     paddingBottom: 52,
