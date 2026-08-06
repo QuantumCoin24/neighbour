@@ -223,6 +223,85 @@ export class SubscriptionService {
     return this.overview(subscription);
   }
 
+  async syncAppleSubscriptionTransaction(input: {
+    originalTransactionId: string;
+    plan: Exclude<SubscriptionPlan, 'FREE'>;
+    currentPeriodEnd: Date;
+    purchasedAt: Date;
+    revokedAt?: Date | null;
+  }): Promise<boolean> {
+    const existing = await this.database.subscription.findFirst({
+      where: {
+        provider: 'APPLE',
+        externalReference: input.originalTransactionId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (!existing) {
+      return false;
+    }
+
+    const revokedAt = input.revokedAt ?? null;
+
+    const status =
+      revokedAt !== null
+        ? 'CANCELLED'
+        : input.currentPeriodEnd <= new Date()
+          ? 'EXPIRED'
+          : 'ACTIVE';
+
+    await this.database.subscription.update({
+      where: {
+        id: existing.id,
+      },
+      data: {
+        plan: input.plan,
+        status,
+        currentPeriodEnd: input.currentPeriodEnd,
+        startedAt: input.purchasedAt,
+        cancelledAt: revokedAt,
+      },
+    });
+
+    return true;
+  }
+
+  async expireAppleSubscription(originalTransactionId: string, expiredAt: Date): Promise<boolean> {
+    const result = await this.database.subscription.updateMany({
+      where: {
+        provider: 'APPLE',
+        externalReference: originalTransactionId,
+      },
+      data: {
+        status: 'EXPIRED',
+        currentPeriodEnd: expiredAt,
+      },
+    });
+
+    return result.count > 0;
+  }
+
+  async cancelAppleSubscription(
+    originalTransactionId: string,
+    cancelledAt: Date,
+  ): Promise<boolean> {
+    const result = await this.database.subscription.updateMany({
+      where: {
+        provider: 'APPLE',
+        externalReference: originalTransactionId,
+      },
+      data: {
+        status: 'CANCELLED',
+        cancelledAt,
+      },
+    });
+
+    return result.count > 0;
+  }
+
   async hasEntitlement(ownerId: string, entitlement: PremiumEntitlement): Promise<boolean> {
     const subscription = await this.findCurrent(ownerId);
 
