@@ -34,10 +34,6 @@ export default function CommunityPage() {
 
     const feed = await getCommunityFeed(token, slug);
 
-    console.log('FEED RESPONSE:', feed);
-    console.log('FEED ITEMS:', feed.items);
-    console.log('FEED FULL JSON:', JSON.stringify(feed, null, 2));
-
     setPosts(feed.items);
   }
 

@@ -22,7 +22,6 @@ export default function CommunityPage() {
 
   useEffect(() => {
     const storedToken = localStorage.getItem('accessToken');
-    console.log('COMMUNITY ACCESS TOKEN:', storedToken);
     setToken(storedToken);
   }, []);
 

@@ -8,10 +8,6 @@ export class MembershipController {
 
   @Post('join')
   async join(@Req() req: any, @Body() body: { neighbourhoodId: string }) {
-    console.log('JOIN REQUEST USER:', req.user);
-
-    console.log('JOIN REQUEST BODY:', body);
-
     if (!req.user?.id) {
       throw new Error('No authenticated user found');
     }
