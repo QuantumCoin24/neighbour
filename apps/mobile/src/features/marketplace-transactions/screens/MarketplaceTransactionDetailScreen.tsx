@@ -21,7 +21,7 @@ function formatPrice(value: number): string {
   }).format(value / 100);
 }
 
-export default function MarketplaceTransactionDetailScreen({ route }: Props) {
+export default function MarketplaceTransactionDetailScreen({ navigation, route }: Props) {
   const { user } = useAuth();
 
   const [transaction, setTransaction] = useState<MarketplaceTransaction | null>(null);
@@ -140,6 +140,18 @@ export default function MarketplaceTransactionDetailScreen({ route }: Props) {
       {acting ? <ActivityIndicator /> : null}
 
       {error ? <AppText style={styles.error}>{error}</AppText> : null}
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => {
+          navigation.navigate('MarketplaceFulfilment', {
+            transactionId: transaction.id,
+            sellerId: transaction.sellerId,
+          });
+        }}
+        style={styles.actionButton}
+      >
+        <AppText variant="label">Open Fulfilment</AppText>
+      </Pressable>
     </Screen>
   );
 }

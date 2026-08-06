@@ -20,6 +20,7 @@ import MarketplaceListingDetailScreen from '../features/marketplace-listings/scr
 import MarketplaceListingsScreen from '../features/marketplace-listings/screens/MarketplaceListingsScreen';
 import MyMarketplaceListingsScreen from '../features/marketplace-listings/screens/MyMarketplaceListingsScreen';
 import SavedMarketplaceListingsScreen from '../features/marketplace-listings/screens/SavedMarketplaceListingsScreen';
+import { FulfilmentScreen } from '../features/marketplace-fulfilment';
 import {
   MakeMarketplaceOfferScreen,
   MarketplaceOfferDetailScreen,
@@ -161,6 +162,8 @@ export default function AppNavigator() {
               name={ROUTES.MARKETPLACE_TRANSACTION_DETAIL}
               component={MarketplaceTransactionDetailScreen}
             />
+
+            <Stack.Screen name={ROUTES.MARKETPLACE_FULFILMENT} component={FulfilmentScreen} />
 
             <Stack.Screen name={ROUTES.PREMIUM} component={PremiumScreen} />
           </>

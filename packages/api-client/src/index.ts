@@ -64,3 +64,4 @@ export * from './trust';
 export * from './premium';
 export * from './marketplace/listings';
 export * from './marketplace/transactions';
+export * from './marketplace/fulfilment';

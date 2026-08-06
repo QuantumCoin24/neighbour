@@ -16,6 +16,7 @@ export const ROUTES = {
   MAKE_MARKETPLACE_OFFER: 'MakeMarketplaceOffer',
   MARKETPLACE_OFFER_DETAIL: 'MarketplaceOfferDetail',
   MARKETPLACE_TRANSACTION_DETAIL: 'MarketplaceTransactionDetail',
+  MARKETPLACE_FULFILMENT: 'MarketplaceFulfilment',
   MESSAGES: 'Messages',
   NOTIFICATIONS: 'Notifications',
   PROFILE: 'Profile',
@@ -58,6 +59,10 @@ export type RootStackParamList = {
   };
   MarketplaceTransactionDetail: {
     transactionId: string;
+  };
+  MarketplaceFulfilment: {
+    transactionId: string;
+    sellerId: string;
   };
   Premium: undefined;
 };

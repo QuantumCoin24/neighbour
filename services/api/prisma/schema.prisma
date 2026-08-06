@@ -227,6 +227,62 @@ enum MarketplaceTransactionStatus {
   CANCELLED
 }
 
+enum MarketplaceFulfilmentMethod {
+  COLLECTION
+  DELIVERY
+  POSTAGE
+}
+
+enum MarketplaceFulfilmentStatus {
+  PENDING
+  SCHEDULED
+  READY
+  IN_PROGRESS
+  AWAITING_CONFIRMATION
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum MarketplaceFulfilmentEventType {
+  CREATED
+  METHOD_SELECTED
+  COLLECTION_SCHEDULED
+  DELIVERY_SCHEDULED
+  PIN_GENERATED
+  QR_GENERATED
+  READY_FOR_HANDOVER
+  HANDOVER_VERIFIED
+  DISPATCHED
+  DELIVERED
+  BUYER_CONFIRMED
+  SELLER_CONFIRMED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+  PROOF_ADDED
+}
+
+enum MarketplaceVerificationType {
+  PIN
+  QR
+}
+
+enum MarketplaceVerificationStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  EXPIRED
+}
+
+enum MarketplaceProofType {
+  COLLECTION_PHOTO
+  DELIVERY_PHOTO
+  RECEIPT
+  SIGNATURE
+  OTHER
+}
+
 enum MarketplaceListingCategory {
   ELECTRONICS
   HOME_GARDEN
@@ -288,10 +344,12 @@ model User {
 
   marketplaceListings             MarketplaceListing[]
   savedMarketplaceListings        SavedMarketplaceListing[]
-  marketplaceOffersMade           MarketplaceOffer[]        @relation("MarketplaceOfferBuyer")
-  marketplaceOffersReceived       MarketplaceOffer[]        @relation("MarketplaceOfferSeller")
-  marketplaceTransactionsAsBuyer  MarketplaceTransaction[]  @relation("MarketplaceTransactionBuyer")
-  marketplaceTransactionsAsSeller MarketplaceTransaction[]  @relation("MarketplaceTransactionSeller")
+  marketplaceOffersMade           MarketplaceOffer[]           @relation("MarketplaceOfferBuyer")
+  marketplaceOffersReceived       MarketplaceOffer[]           @relation("MarketplaceOfferSeller")
+  marketplaceTransactionsAsBuyer  MarketplaceTransaction[]     @relation("MarketplaceTransactionBuyer")
+  marketplaceTransactionsAsSeller MarketplaceTransaction[]     @relation("MarketplaceTransactionSeller")
+  marketplaceFulfilmentEvents     MarketplaceFulfilmentEvent[]
+  marketplaceFulfilmentProofs     MarketplaceFulfilmentProof[]
 
   @@index([status])
   @@index([role])
@@ -802,25 +860,26 @@ enum MediaAssetStatus {
 }
 
 model MediaAsset {
-  id         String           @id @default(uuid()) @db.Uuid
-  ownerId    String           @db.Uuid
-  storageKey String           @unique
-  publicUrl  String?
-  fileName   String
-  mimeType   String
-  sizeBytes  Int
-  width      Int?
-  height     Int?
-  durationMs Int?
-  checksum   String?
-  status     MediaAssetStatus @default(PENDING)
-  uploadedAt DateTime?
-  readyAt    DateTime?
-  failedAt   DateTime?
-  deletedAt  DateTime?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  postLinks  PostMedia[]
+  id               String                       @id @default(uuid()) @db.Uuid
+  ownerId          String                       @db.Uuid
+  storageKey       String                       @unique
+  publicUrl        String?
+  fileName         String
+  mimeType         String
+  sizeBytes        Int
+  width            Int?
+  height           Int?
+  durationMs       Int?
+  checksum         String?
+  status           MediaAssetStatus             @default(PENDING)
+  uploadedAt       DateTime?
+  readyAt          DateTime?
+  failedAt         DateTime?
+  deletedAt        DateTime?
+  fulfilmentProofs MarketplaceFulfilmentProof[]
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+  postLinks        PostMedia[]
 
   marketplaceListingLinks MarketplaceListingMedia[]
 
@@ -1271,14 +1330,148 @@ model MarketplaceTransaction {
   createdAt        DateTime                     @default(now())
   updatedAt        DateTime                     @updatedAt
 
-  listing       MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  acceptedOffer MarketplaceOffer   @relation(fields: [acceptedOfferId], references: [id], onDelete: Restrict)
-  buyer         User               @relation("MarketplaceTransactionBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
-  seller        User               @relation("MarketplaceTransactionSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  listing       MarketplaceListing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  acceptedOffer MarketplaceOffer       @relation(fields: [acceptedOfferId], references: [id], onDelete: Restrict)
+  buyer         User                   @relation("MarketplaceTransactionBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller        User                   @relation("MarketplaceTransactionSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  fulfilment    MarketplaceFulfilment?
 
   @@index([buyerId, status, createdAt])
   @@index([sellerId, status, createdAt])
   @@index([conversationId])
   @@index([expiresAt])
   @@map("marketplace_transactions")
+}
+
+model MarketplaceFulfilment {
+  id                String                      @id @default(uuid()) @db.Uuid
+  transactionId     String                      @unique @db.Uuid
+  method            MarketplaceFulfilmentMethod
+  status            MarketplaceFulfilmentStatus @default(PENDING)
+  buyerConfirmedAt  DateTime?
+  sellerConfirmedAt DateTime?
+  scheduledAt       DateTime?
+  readyAt           DateTime?
+  dispatchedAt      DateTime?
+  deliveredAt       DateTime?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  expiresAt         DateTime?
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+
+  transaction   MarketplaceTransaction              @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  collection    MarketplaceCollection?
+  delivery      MarketplaceDelivery?
+  events        MarketplaceFulfilmentEvent[]
+  verifications MarketplaceFulfilmentVerification[]
+  proofs        MarketplaceFulfilmentProof[]
+
+  @@index([status, createdAt])
+  @@index([method, status])
+  @@index([expiresAt])
+  @@map("marketplace_fulfilments")
+}
+
+model MarketplaceCollection {
+  id                 String    @id @default(uuid()) @db.Uuid
+  fulfilmentId       String    @unique @db.Uuid
+  addressLine1       String
+  addressLine2       String?
+  city               String
+  postcode           String
+  instructions       String?
+  scheduledFor       DateTime
+  collectorArrivedAt DateTime?
+  handoverVerifiedAt DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  fulfilment MarketplaceFulfilment @relation(fields: [fulfilmentId], references: [id], onDelete: Cascade)
+
+  @@index([scheduledFor])
+  @@index([postcode])
+  @@map("marketplace_collections")
+}
+
+model MarketplaceDelivery {
+  id             String    @id @default(uuid()) @db.Uuid
+  fulfilmentId   String    @unique @db.Uuid
+  addressLine1   String
+  addressLine2   String?
+  city           String
+  postcode       String
+  courier        String?
+  trackingNumber String?
+  instructions   String?
+  scheduledFor   DateTime?
+  dispatchedAt   DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  fulfilment MarketplaceFulfilment @relation(fields: [fulfilmentId], references: [id], onDelete: Cascade)
+
+  @@index([trackingNumber])
+  @@index([scheduledFor])
+  @@index([postcode])
+  @@map("marketplace_deliveries")
+}
+
+model MarketplaceFulfilmentEvent {
+  id           String                         @id @default(uuid()) @db.Uuid
+  fulfilmentId String                         @db.Uuid
+  actorId      String                         @db.Uuid
+  type         MarketplaceFulfilmentEventType
+  note         String?
+  metadata     Json?
+  createdAt    DateTime                       @default(now())
+
+  fulfilment MarketplaceFulfilment @relation(fields: [fulfilmentId], references: [id], onDelete: Cascade)
+  actor      User                  @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([fulfilmentId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([type, createdAt])
+  @@map("marketplace_fulfilment_events")
+}
+
+model MarketplaceFulfilmentVerification {
+  id           String                        @id @default(uuid()) @db.Uuid
+  fulfilmentId String                        @db.Uuid
+  type         MarketplaceVerificationType
+  status       MarketplaceVerificationStatus @default(PENDING)
+  tokenHash    String                        @unique
+  attemptCount Int                           @default(0)
+  expiresAt    DateTime
+  verifiedAt   DateTime?
+  createdAt    DateTime                      @default(now())
+  updatedAt    DateTime                      @updatedAt
+
+  fulfilment MarketplaceFulfilment @relation(fields: [fulfilmentId], references: [id], onDelete: Cascade)
+
+  @@index([fulfilmentId, type, status])
+  @@index([expiresAt])
+  @@map("marketplace_fulfilment_verifications")
+}
+
+model MarketplaceFulfilmentProof {
+  id           String               @id @default(uuid()) @db.Uuid
+  fulfilmentId String               @db.Uuid
+  uploadedById String               @db.Uuid
+  mediaId      String               @db.Uuid
+  type         MarketplaceProofType
+  note         String?
+  createdAt    DateTime             @default(now())
+
+  fulfilment MarketplaceFulfilment @relation(fields: [fulfilmentId], references: [id], onDelete: Cascade)
+  uploadedBy User                  @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  media      MediaAsset            @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@unique([fulfilmentId, mediaId])
+  @@index([fulfilmentId, createdAt])
+  @@index([uploadedById, createdAt])
+  @@index([mediaId])
+  @@map("marketplace_fulfilment_proofs")
 }
