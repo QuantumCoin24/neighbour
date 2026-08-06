@@ -52,6 +52,36 @@ export interface PostEngagementResponse {
   viewerReaction: ReactionType | null;
 }
 
+export interface PostMediaAssetResponse {
+  id: string;
+  ownerId: string;
+  storageKey: string;
+  url: string | null;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
+  durationMs: number | null;
+  status:
+    | 'PENDING'
+    | 'UPLOADED'
+    | 'READY'
+    | 'FAILED'
+    | 'DELETED';
+  uploadedAt: Date | null;
+  readyAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PostMediaResponse {
+  id: string;
+  position: number;
+  altText: string | null;
+  asset: PostMediaAssetResponse;
+}
+
 export interface PostResponse {
   id: string;
   title: string | null;
@@ -65,6 +95,7 @@ export interface PostResponse {
   community: PostCommunityResponse | null;
   neighbourhood: PostNeighbourhoodResponse | null;
   engagement: PostEngagementResponse;
+  media: PostMediaResponse[];
   publishedAt: Date | null;
   editedAt: Date | null;
   createdAt: Date;

@@ -1,4 +1,10 @@
-import { ApiClientError, createPost, type FeedPost, type PostType } from '@neighbour/api-client';
+import {
+  ApiClientError,
+  attachMediaToPost,
+  createPost,
+  type FeedPost,
+  type PostType,
+} from '@neighbour/api-client';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,6 +16,7 @@ import {
 } from 'react-native';
 
 import { AppText, Card } from '../../components';
+import { MediaPicker, type PendingMedia, useMediaUpload } from '../media';
 import { useNeighbourTheme } from '../../theme';
 
 interface CommunityPostComposerProps {
@@ -100,6 +107,10 @@ function requiresTitle(type: PostType): boolean {
   );
 }
 
+function progressLabel(progress: number): string {
+  return `${Math.round(progress * 100)}%`;
+}
+
 export function CommunityPostComposer({
   communityId,
   communityName,
@@ -109,18 +120,31 @@ export function CommunityPostComposer({
   const { theme } = useNeighbourTheme();
 
   const [expanded, setExpanded] = useState(false);
+
   const [type, setType] = useState<PostType>('STANDARD');
+
   const [title, setTitle] = useState('');
+
   const [content, setContent] = useState('');
+
+  const [media, setMedia] = useState<PendingMedia[]>([]);
+
   const [isPinned, setIsPinned] = useState(false);
+
   const [publishing, setPublishing] = useState(false);
+
   const [savingDraft, setSavingDraft] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
+
+  const mediaUpload = useMediaUpload();
 
   const selectedType = POST_TYPES.find((option) => option.type === type) ?? POST_TYPES[0];
 
   const trimmedTitle = title.trim();
   const trimmedContent = content.trim();
+
+  const busy = publishing || savingDraft || mediaUpload.uploading;
 
   const validationMessage = useMemo(() => {
     if (trimmedContent.length === 0) {
@@ -139,12 +163,14 @@ export function CommunityPostComposer({
     setType('STANDARD');
     setTitle('');
     setContent('');
+    setMedia([]);
     setIsPinned(false);
     setError(null);
+    mediaUpload.reset();
   };
 
   const submit = async (status: 'DRAFT' | 'PUBLISHED') => {
-    if (publishing || savingDraft) {
+    if (busy) {
       return;
     }
 
@@ -162,6 +188,8 @@ export function CommunityPostComposer({
     setError(null);
 
     try {
+      const uploadedMedia = media.length > 0 ? await mediaUpload.upload(media) : [];
+
       const created = await createPost({
         communityId,
         content: trimmedContent,
@@ -180,14 +208,29 @@ export function CommunityPostComposer({
           : {}),
       });
 
+      const attachedMedia =
+        uploadedMedia.length > 0
+          ? await attachMediaToPost(
+              created.id,
+              uploadedMedia.map((item) => item.asset.id),
+            )
+          : [];
+
+      const completedPost: FeedPost = {
+        ...created,
+        media: attachedMedia,
+      };
+
       if (status === 'PUBLISHED') {
-        onCreated(created);
+        onCreated(completedPost);
       }
 
       reset();
     } catch (caughtError) {
       if (caughtError instanceof ApiClientError) {
         setError(caughtError.message || 'The post could not be saved.');
+      } else if (caughtError instanceof Error) {
+        setError(caughtError.message);
       } else {
         setError('The post could not be saved. Please try again.');
       }
@@ -254,13 +297,14 @@ export function CommunityPostComposer({
         <Pressable
           accessibilityLabel="Close post composer"
           accessibilityRole="button"
-          disabled={publishing || savingDraft}
+          disabled={busy}
           onPress={reset}
           style={[
             styles.close,
             {
               backgroundColor: theme.colors.surfaceMuted,
               borderRadius: theme.radius.pill,
+              opacity: busy ? 0.5 : 1,
             },
           ]}
         >
@@ -282,6 +326,7 @@ export function CommunityPostComposer({
               accessibilityState={{
                 selected,
               }}
+              disabled={busy}
               key={option.type}
               onPress={() => {
                 setType(option.type);
@@ -293,6 +338,7 @@ export function CommunityPostComposer({
                   backgroundColor: selected ? theme.colors.primary : theme.colors.surfaceMuted,
                   borderColor: selected ? theme.colors.primary : theme.colors.border,
                   borderRadius: theme.radius.pill,
+                  opacity: busy ? 0.6 : 1,
                 },
               ]}
             >
@@ -321,6 +367,7 @@ export function CommunityPostComposer({
 
       {requiresTitle(type) ? (
         <TextInput
+          editable={!busy}
           maxLength={160}
           onChangeText={setTitle}
           placeholder="Post title"
@@ -340,6 +387,7 @@ export function CommunityPostComposer({
       ) : null}
 
       <TextInput
+        editable={!busy}
         maxLength={10000}
         multiline
         onChangeText={setContent}
@@ -369,12 +417,71 @@ export function CommunityPostComposer({
         </AppText>
       </View>
 
+      <MediaPicker
+        disabled={busy}
+        items={media}
+        maximum={9}
+        onChange={(items) => {
+          setMedia(items);
+          setError(null);
+        }}
+      />
+
+      {mediaUpload.uploading ? (
+        <View
+          style={[
+            styles.uploadPanel,
+            {
+              backgroundColor: theme.colors.surfaceMuted,
+              borderColor: theme.colors.border,
+              borderRadius: theme.radius.lg,
+            },
+          ]}
+        >
+          <View style={styles.uploadHeading}>
+            <View style={styles.uploadCopy}>
+              <AppText variant="bodyStrong">Uploading photos</AppText>
+
+              <AppText variant="caption" tone="secondary">
+                Preparing and securely uploading your images.
+              </AppText>
+            </View>
+
+            <AppText variant="label" tone="brand">
+              {progressLabel(mediaUpload.overallProgress)}
+            </AppText>
+          </View>
+
+          <View
+            style={[
+              styles.progressTrack,
+              {
+                backgroundColor: theme.colors.border,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  backgroundColor: theme.colors.primary,
+                  borderRadius: theme.radius.pill,
+                  width: `${Math.max(2, mediaUpload.overallProgress * 100)}%`,
+                },
+              ]}
+            />
+          </View>
+        </View>
+      ) : null}
+
       {canPin ? (
         <Pressable
           accessibilityRole="switch"
           accessibilityState={{
             checked: isPinned,
           }}
+          disabled={busy}
           onPress={() => {
             setIsPinned((value) => !value);
           }}
@@ -384,6 +491,7 @@ export function CommunityPostComposer({
               backgroundColor: isPinned ? theme.colors.primarySoft : theme.colors.surfaceMuted,
               borderColor: isPinned ? theme.colors.primary : theme.colors.border,
               borderRadius: theme.radius.lg,
+              opacity: busy ? 0.6 : 1,
             },
           ]}
         >
@@ -426,7 +534,7 @@ export function CommunityPostComposer({
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
-          disabled={publishing || savingDraft}
+          disabled={busy}
           onPress={() => {
             void submit('DRAFT');
           }}
@@ -435,7 +543,7 @@ export function CommunityPostComposer({
             {
               borderColor: theme.colors.borderStrong,
               borderRadius: theme.radius.pill,
-              opacity: publishing || savingDraft ? 0.6 : 1,
+              opacity: busy ? 0.6 : 1,
             },
           ]}
         >
@@ -450,7 +558,7 @@ export function CommunityPostComposer({
 
         <Pressable
           accessibilityRole="button"
-          disabled={publishing || savingDraft}
+          disabled={busy}
           onPress={() => {
             void submit('PUBLISHED');
           }}
@@ -461,7 +569,7 @@ export function CommunityPostComposer({
               backgroundColor: theme.colors.primary,
               borderColor: theme.colors.primary,
               borderRadius: theme.radius.pill,
-              opacity: publishing || savingDraft ? 0.6 : 1,
+              opacity: busy ? 0.6 : 1,
             },
           ]}
         >
@@ -469,7 +577,9 @@ export function CommunityPostComposer({
             <ActivityIndicator color={theme.colors.inverseText} size="small" />
           ) : (
             <AppText variant="label" tone="inverse">
-              Publish Post
+              {media.length > 0
+                ? `Publish ${media.length} Photo${media.length === 1 ? '' : 's'}`
+                : 'Publish Post'}
             </AppText>
           )}
         </Pressable>
@@ -493,8 +603,8 @@ const styles = StyleSheet.create({
   placeholder: {
     borderWidth: StyleSheet.hairlineWidth,
     flex: 1,
-    minHeight: 46,
     justifyContent: 'center',
+    minHeight: 46,
     paddingHorizontal: 16,
   },
   composer: {
@@ -546,6 +656,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  uploadPanel: {
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 10,
+    padding: 13,
+  },
+  uploadHeading: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  uploadCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  progressTrack: {
+    height: 7,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  progressFill: {
+    height: '100%',
   },
   pinRow: {
     alignItems: 'center',

@@ -2,6 +2,7 @@ import type { FeedPost } from '@neighbour/api-client';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText, Card } from '../../components';
+import { MediaGallery } from '../media';
 
 import { CommentBar } from './CommentBar';
 import { CommunityBadge } from './CommunityBadge';
@@ -45,6 +46,8 @@ export function FeedCard({ post }: FeedCardProps) {
 
         <AppText tone="secondary">{post.content}</AppText>
       </View>
+
+      <MediaGallery items={post.media ?? []} />
 
       {post.editedAt ? (
         <AppText variant="caption" tone="muted">

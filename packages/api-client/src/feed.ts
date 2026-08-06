@@ -1,3 +1,5 @@
+import type { PostMedia } from './media';
+
 import { apiRequest } from './client';
 
 export type FeedPostType =
@@ -29,6 +31,7 @@ export interface FeedPostEngagement {
 }
 
 export interface FeedPost {
+  media?: PostMedia[];
   id: string;
   title: string | null;
   content: string;

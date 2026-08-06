@@ -15,12 +15,12 @@ describe('post contracts', () => {
 
   it('supports a privacy-safe post response', () => {
     const post: PostResponse = {
-      type: 'STANDARD',
-      isPinned: false,
-      metadata: null,
       id: 'post-id',
       title: 'Welcome',
       content: 'Hello, neighbours.',
+      type: 'STANDARD',
+      isPinned: false,
+      metadata: null,
       status: 'PUBLISHED',
       visibility: 'PUBLIC',
       author: {
@@ -32,6 +32,7 @@ describe('post contracts', () => {
       },
       community: null,
       neighbourhood: null,
+      media: [],
       engagement: {
         commentCount: 0,
         reactionCounts: [
@@ -71,9 +72,15 @@ describe('post contracts', () => {
     };
 
     assert.equal(feed.items[0]?.content, 'Hello, neighbours.');
+
     assert.equal(feed.items[0]?.author.localArea, null);
+
     assert.equal(feed.items[0]?.neighbourhood, null);
+
+    assert.equal(feed.items[0]?.media.length, 0);
+
     assert.equal(feed.items[0]?.engagement.commentCount, 0);
+
     assert.equal(feed.items[0]?.engagement.reactionTotal, 0);
   });
 });

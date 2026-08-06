@@ -32,6 +32,19 @@ const postInclude = {
   },
   community: true,
   neighbourhood: true,
+  media: {
+    where: {
+      media: {
+        status: 'READY',
+      },
+    },
+    include: {
+      media: true,
+    },
+    orderBy: {
+      position: 'asc',
+    },
+  },
 } satisfies Prisma.PostInclude;
 
 type PostWithRelations = Prisma.PostGetPayload<{
@@ -819,6 +832,28 @@ export class PostService {
             localArea: post.neighbourhood.localArea,
           }
         : null,
+      media: post.media.map((link) => ({
+        id: link.id,
+        position: link.position,
+        altText: link.altText,
+        asset: {
+          id: link.media.id,
+          ownerId: link.media.ownerId,
+          storageKey: link.media.storageKey,
+          url: link.media.publicUrl,
+          fileName: link.media.fileName,
+          mimeType: link.media.mimeType,
+          sizeBytes: link.media.sizeBytes,
+          width: link.media.width,
+          height: link.media.height,
+          durationMs: link.media.durationMs,
+          status: link.media.status,
+          uploadedAt: link.media.uploadedAt,
+          readyAt: link.media.readyAt,
+          createdAt: link.media.createdAt,
+          updatedAt: link.media.updatedAt,
+        },
+      })),
       engagement,
       publishedAt: post.publishedAt,
       editedAt: post.editedAt,
