@@ -29,6 +29,7 @@ import { SecurityModule } from './security/security.module';
 import { BusinessModule } from './marketplace/business/business.module';
 import { OrganisationModule } from './organisation/organisation.module';
 
+import { AppleCommerceModule } from './payments/apple/apple-commerce.module';
 import { SubscriptionModule } from './payments/subscription/subscription.module';
 import { ReadinessModule } from './operations/readiness/readiness.module';
 import { MarketplaceListingModule } from './marketplace/listings/marketplace-listing.module';
@@ -44,6 +45,7 @@ import { NearbyModule } from './nearby/nearby.module';
     NearbyModule,
     ReadinessModule,
     SubscriptionModule,
+    AppleCommerceModule,
     GeoModule,
     ConfigModule.forRoot({
       isGlobal: true,

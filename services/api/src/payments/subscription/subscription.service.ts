@@ -24,6 +24,16 @@ export interface PremiumEntitlements {
   prioritySupport: boolean;
 }
 
+export type PremiumEntitlement = keyof PremiumEntitlements;
+
+export interface ActivateAppleSubscriptionInput {
+  plan: Exclude<SubscriptionPlan, 'FREE'>;
+  originalTransactionId: string;
+  currentPeriodEnd: Date;
+  purchasedAt: Date;
+  revokedAt?: Date | null;
+}
+
 @Injectable()
 export class SubscriptionService {
   constructor(private readonly database: DatabaseService) {}
@@ -77,7 +87,10 @@ export class SubscriptionService {
   ];
 
   getPlans(): PremiumPlan[] {
-    return this.plans;
+    return this.plans.map((plan) => ({
+      ...plan,
+      features: [...plan.features],
+    }));
   }
 
   async findCurrent(ownerId: string): Promise<SubscriptionEntity> {
@@ -92,7 +105,18 @@ export class SubscriptionService {
     });
 
     if (record) {
-      return record;
+      if (record.currentPeriodEnd && record.currentPeriodEnd < new Date()) {
+        await this.database.subscription.update({
+          where: {
+            id: record.id,
+          },
+          data: {
+            status: 'EXPIRED',
+          },
+        });
+      } else {
+        return record;
+      }
     }
 
     return this.database.subscription.create({
@@ -116,16 +140,7 @@ export class SubscriptionService {
   }
 
   async activateInternalPlan(ownerId: string, plan: SubscriptionPlan) {
-    await this.database.subscription.updateMany({
-      where: {
-        ownerId,
-        status: 'ACTIVE',
-      },
-      data: {
-        status: 'CANCELLED',
-        cancelledAt: new Date(),
-      },
-    });
+    await this.cancelActiveSubscriptions(ownerId);
 
     const subscription = await this.database.subscription.create({
       data: {
@@ -133,18 +148,88 @@ export class SubscriptionService {
         plan,
         status: 'ACTIVE',
         provider: 'INTERNAL',
-        currentPeriodEnd: plan === 'FREE' ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        currentPeriodEnd: plan === 'FREE' ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1_000),
       },
     });
 
-    return {
-      subscription,
-      plan: this.plans.find((item) => item.id === subscription.plan) ?? this.plans[0],
-      entitlements: this.getEntitlements(subscription.plan),
-    };
+    return this.overview(subscription);
   }
 
-  private getEntitlements(plan: SubscriptionPlan): PremiumEntitlements {
+  async activateAppleSubscription(ownerId: string, input: ActivateAppleSubscriptionInput) {
+    const existing = await this.database.subscription.findFirst({
+      where: {
+        ownerId,
+        provider: 'APPLE',
+        externalReference: input.originalTransactionId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    const revokedAt = input.revokedAt ?? null;
+
+    const isRevoked = revokedAt !== null;
+
+    const isExpired = input.currentPeriodEnd <= new Date();
+
+    const status = isRevoked ? 'CANCELLED' : isExpired ? 'EXPIRED' : 'ACTIVE';
+
+    await this.database.subscription.updateMany({
+      where: {
+        ownerId,
+        status: 'ACTIVE',
+        ...(existing
+          ? {
+              id: {
+                not: existing.id,
+              },
+            }
+          : {}),
+      },
+      data: {
+        status: 'CANCELLED',
+        cancelledAt: new Date(),
+      },
+    });
+
+    const subscription = existing
+      ? await this.database.subscription.update({
+          where: {
+            id: existing.id,
+          },
+          data: {
+            plan: input.plan,
+            status,
+            provider: 'APPLE',
+            currentPeriodEnd: input.currentPeriodEnd,
+            startedAt: input.purchasedAt,
+            cancelledAt: isRevoked ? revokedAt : null,
+          },
+        })
+      : await this.database.subscription.create({
+          data: {
+            ownerId,
+            plan: input.plan,
+            status,
+            provider: 'APPLE',
+            externalReference: input.originalTransactionId,
+            currentPeriodEnd: input.currentPeriodEnd,
+            startedAt: input.purchasedAt,
+            cancelledAt: isRevoked ? revokedAt : null,
+          },
+        });
+
+    return this.overview(subscription);
+  }
+
+  async hasEntitlement(ownerId: string, entitlement: PremiumEntitlement): Promise<boolean> {
+    const subscription = await this.findCurrent(ownerId);
+
+    return this.getEntitlements(subscription.plan)[entitlement];
+  }
+
+  getEntitlements(plan: SubscriptionPlan): PremiumEntitlements {
     if (plan === 'BUSINESS') {
       return {
         premiumProfile: true,
@@ -180,6 +265,27 @@ export class SubscriptionService {
       businessAnalytics: false,
       scheduledOffers: false,
       prioritySupport: false,
+    };
+  }
+
+  private async cancelActiveSubscriptions(ownerId: string): Promise<void> {
+    await this.database.subscription.updateMany({
+      where: {
+        ownerId,
+        status: 'ACTIVE',
+      },
+      data: {
+        status: 'CANCELLED',
+        cancelledAt: new Date(),
+      },
+    });
+  }
+
+  private overview(subscription: SubscriptionEntity) {
+    return {
+      subscription,
+      plan: this.plans.find((item) => item.id === subscription.plan) ?? this.plans[0],
+      entitlements: this.getEntitlements(subscription.plan),
     };
   }
 }
