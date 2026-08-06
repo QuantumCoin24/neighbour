@@ -45,6 +45,42 @@ export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps
         </AppText>
       </View>
 
+      <View style={styles.marketplaceModes}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            navigation.getParent()?.navigate('MarketplaceListings');
+          }}
+          style={[
+            styles.marketplaceMode,
+            {
+              backgroundColor: theme.colors.primary,
+              borderRadius: theme.radius.xl,
+            },
+          ]}
+        >
+          <AppText variant="subheading" tone="inverse">
+            Community Listings
+          </AppText>
+
+          <AppText variant="caption" tone="inverse">
+            Buy, sell, give away and discover local items.
+          </AppText>
+
+          <AppText variant="label" tone="inverse">
+            Open Listings ›
+          </AppText>
+        </Pressable>
+
+        <Card variant="muted" style={styles.marketplaceMode}>
+          <AppText variant="subheading">Local Businesses</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            Browse trusted businesses, offers and events below.
+          </AppText>
+        </Card>
+      </View>
+
       <View
         style={[
           styles.search,
@@ -213,6 +249,14 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 9,
+  },
+  marketplaceModes: {
+    gap: 10,
+  },
+  marketplaceMode: {
+    gap: 7,
+    minHeight: 118,
+    justifyContent: 'center',
   },
   search: {
     alignItems: 'center',

@@ -15,6 +15,10 @@ import CreateCommunityScreen from '../screens/CreateCommunityScreen';
 import ConversationScreen from '../screens/ConversationScreen';
 import LoginScreen from '../screens/LoginScreen';
 import PremiumScreen from '../screens/PremiumScreen';
+import CreateMarketplaceListingScreen from '../features/marketplace-listings/screens/CreateMarketplaceListingScreen';
+import MarketplaceListingDetailScreen from '../features/marketplace-listings/screens/MarketplaceListingDetailScreen';
+import MarketplaceListingsScreen from '../features/marketplace-listings/screens/MarketplaceListingsScreen';
+import MyMarketplaceListingsScreen from '../features/marketplace-listings/screens/MyMarketplaceListingsScreen';
 import { useNeighbourTheme } from '../theme';
 
 import AppTabs from './AppTabs';
@@ -102,6 +106,26 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.CREATE_COMMUNITY} component={CreateCommunityScreen} />
 
             <Stack.Screen name={ROUTES.BUSINESS_DETAIL} component={BusinessDetailScreen} />
+
+            <Stack.Screen
+              name={ROUTES.MARKETPLACE_LISTINGS}
+              component={MarketplaceListingsScreen}
+            />
+
+            <Stack.Screen
+              name={ROUTES.CREATE_MARKETPLACE_LISTING}
+              component={CreateMarketplaceListingScreen}
+            />
+
+            <Stack.Screen
+              name={ROUTES.MARKETPLACE_LISTING_DETAIL}
+              component={MarketplaceListingDetailScreen}
+            />
+
+            <Stack.Screen
+              name={ROUTES.MY_MARKETPLACE_LISTINGS}
+              component={MyMarketplaceListingsScreen}
+            />
 
             <Stack.Screen name={ROUTES.PREMIUM} component={PremiumScreen} />
           </>

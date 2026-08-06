@@ -6,6 +6,10 @@ export const ROUTES = {
   SEARCH: 'Search',
   MAPS: 'Maps',
   MARKETPLACE: 'Marketplace',
+  MARKETPLACE_LISTINGS: 'MarketplaceListings',
+  CREATE_MARKETPLACE_LISTING: 'CreateMarketplaceListing',
+  MARKETPLACE_LISTING_DETAIL: 'MarketplaceListingDetail',
+  MY_MARKETPLACE_LISTINGS: 'MyMarketplaceListings',
   MESSAGES: 'Messages',
   NOTIFICATIONS: 'Notifications',
   PROFILE: 'Profile',
@@ -29,6 +33,12 @@ export type RootStackParamList = {
   BusinessDetail: {
     business: import('@neighbour/api-client').MarketplaceBusiness;
   };
+  MarketplaceListings: undefined;
+  CreateMarketplaceListing: undefined;
+  MarketplaceListingDetail: {
+    listingId: string;
+  };
+  MyMarketplaceListings: undefined;
   Premium: undefined;
 };
 
