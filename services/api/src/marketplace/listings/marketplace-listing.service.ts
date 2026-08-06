@@ -123,9 +123,37 @@ export class MarketplaceListingService {
     currentUserId: string,
     query: SearchMarketplaceListingsDto,
   ): Promise<MarketplaceListingPageResponse> {
+    const blocks = await this.database.userBlock.findMany({
+      where: {
+        OR: [
+          {
+            blockerId: currentUserId,
+          },
+          {
+            blockedId: currentUserId,
+          },
+        ],
+      },
+      select: {
+        blockerId: true,
+        blockedId: true,
+      },
+    });
+
+    const blockedSellerIds = blocks.map((block) =>
+      block.blockerId === currentUserId ? block.blockedId : block.blockerId,
+    );
+
     const where: Prisma.MarketplaceListingWhereInput = {
       status: MarketplaceListingStatus.PUBLISHED,
       deletedAt: null,
+      ...(blockedSellerIds.length > 0
+        ? {
+            sellerId: {
+              notIn: blockedSellerIds,
+            },
+          }
+        : {}),
       ...(query.communityId
         ? {
             communityId: query.communityId,

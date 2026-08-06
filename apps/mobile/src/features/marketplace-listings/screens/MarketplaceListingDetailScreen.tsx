@@ -1,4 +1,8 @@
 import {
+  unblockSocialGraphUser,
+  createSecurityReport,
+  blockSocialGraphUser,
+  ApiClientError,
   sendMessage,
   createConversation,
   getMarketplaceListing,
@@ -6,10 +10,11 @@ import {
   type MarketplaceListing,
 } from '@neighbour/api-client';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 
 import { useAuth } from '../../../auth/auth-context';
+import { getSessionAccessToken } from '../../../auth/session';
 import { AppText, Card, Screen } from '../../../components';
 import { MediaGallery } from '../../media';
 import type { RootStackParamList } from '../../../navigation/routes';
@@ -34,6 +39,12 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
   const [saving, setSaving] = useState(false);
 
   const [contacting, setContacting] = useState(false);
+
+  const [reporting, setReporting] = useState(false);
+
+  const [blocking, setBlocking] = useState(false);
+
+  const [sellerBlocked, setSellerBlocked] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -119,6 +130,178 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
     } finally {
       setContacting(false);
     }
+  };
+
+  const submitListingReport = async (reason: string) => {
+    if (!listing || reporting) {
+      return;
+    }
+
+    const token = getSessionAccessToken();
+
+    if (!token) {
+      setError('Your session has expired. Please sign in again.');
+      return;
+    }
+
+    setReporting(true);
+    setError(null);
+
+    try {
+      await createSecurityReport(token, {
+        targetType: 'MARKETPLACE_LISTING',
+        targetId: listing.id,
+        reason,
+        description: `Marketplace listing: ${listing.title}`,
+      });
+
+      Alert.alert('Report submitted', 'Neighbour’s moderation team will review this listing.');
+    } catch (caughtError) {
+      if (caughtError instanceof ApiClientError && caughtError.status === 409) {
+        setError('You have already submitted an active report for this listing.');
+      } else {
+        setError(
+          caughtError instanceof Error ? caughtError.message : 'The report could not be submitted.',
+        );
+      }
+    } finally {
+      setReporting(false);
+    }
+  };
+
+  const openReportMenu = () => {
+    Alert.alert('Report Listing', 'Why are you reporting this listing?', [
+      {
+        text: 'Suspected scam',
+        onPress: () => {
+          void submitListingReport('SUSPECTED_SCAM');
+        },
+      },
+      {
+        text: 'Prohibited item',
+        onPress: () => {
+          void submitListingReport('PROHIBITED_ITEM');
+        },
+      },
+      {
+        text: 'Misleading information',
+        onPress: () => {
+          void submitListingReport('MISLEADING_INFORMATION');
+        },
+      },
+      {
+        text: 'Harassment or abuse',
+        onPress: () => {
+          void submitListingReport('HARASSMENT_OR_ABUSE');
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
+  const reportSeller = async () => {
+    if (!listing || reporting) {
+      return;
+    }
+
+    const token = getSessionAccessToken();
+
+    if (!token) {
+      setError('Your session has expired. Please sign in again.');
+      return;
+    }
+
+    setReporting(true);
+    setError(null);
+
+    try {
+      await createSecurityReport(token, {
+        targetType: 'USER',
+        targetId: listing.seller.id,
+        reason: 'MARKETPLACE_SELLER_CONDUCT',
+        description: `Seller connected to listing: ${listing.title}`,
+      });
+
+      Alert.alert('Seller reported', 'The report has been sent to Neighbour’s moderation team.');
+    } catch (caughtError) {
+      if (caughtError instanceof ApiClientError && caughtError.status === 409) {
+        setError('You have already submitted an active report for this seller.');
+      } else {
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : 'The seller report could not be submitted.',
+        );
+      }
+    } finally {
+      setReporting(false);
+    }
+  };
+
+  const toggleSellerBlock = async () => {
+    if (!listing || blocking || listing.seller.id === user?.id) {
+      return;
+    }
+
+    setBlocking(true);
+    setError(null);
+
+    try {
+      if (sellerBlocked) {
+        await unblockSocialGraphUser(listing.seller.id);
+
+        setSellerBlocked(false);
+
+        Alert.alert('Seller unblocked', 'Their listings may appear in Marketplace again.');
+      } else {
+        await blockSocialGraphUser(listing.seller.id);
+
+        setSellerBlocked(true);
+
+        Alert.alert('Seller blocked', 'Their listings will no longer appear in Marketplace.');
+      }
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'The seller block could not be changed.',
+      );
+    } finally {
+      setBlocking(false);
+    }
+  };
+
+  const openSafetyMenu = () => {
+    if (!listing || listing.seller.id === user?.id) {
+      return;
+    }
+
+    Alert.alert('Listing Safety', 'Choose an action.', [
+      {
+        text: 'Report Listing',
+        onPress: openReportMenu,
+      },
+      {
+        text: 'Report Seller',
+        onPress: () => {
+          void reportSeller();
+        },
+      },
+      {
+        text: sellerBlocked ? 'Unblock Seller' : 'Block Seller',
+        style: sellerBlocked ? 'default' : 'destructive',
+        onPress: () => {
+          void toggleSellerBlock();
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
   };
 
   if (loading) {
@@ -320,6 +503,38 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
         </View>
       </Card>
 
+      <Card variant="muted" style={styles.safetyCard}>
+        <AppText variant="subheading">Marketplace Safety</AppText>
+
+        <AppText variant="caption" tone="secondary">
+          Meet in a public place, inspect the item before paying and never share passwords or
+          verification codes.
+        </AppText>
+
+        {listing.seller.id !== user?.id ? (
+          <Pressable
+            accessibilityRole="button"
+            disabled={reporting || blocking}
+            onPress={openSafetyMenu}
+            style={[
+              styles.safetyButton,
+              {
+                borderColor: theme.colors.borderStrong,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            {reporting || blocking ? (
+              <ActivityIndicator color={theme.colors.primary} />
+            ) : (
+              <AppText variant="label" tone="brand">
+                Safety & Reporting
+              </AppText>
+            )}
+          </Pressable>
+        ) : null}
+      </Card>
+
       {listing.seller.id === user?.id ? (
         <Card variant="muted" style={styles.ownerNotice}>
           <AppText variant="bodyStrong">This is your listing</AppText>
@@ -449,6 +664,15 @@ const styles = StyleSheet.create({
   sellerCopy: {
     flex: 1,
     gap: 3,
+  },
+  safetyCard: {
+    gap: 10,
+  },
+  safetyButton: {
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    minHeight: 46,
   },
   ownerNotice: {
     gap: 8,

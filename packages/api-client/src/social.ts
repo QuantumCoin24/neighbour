@@ -64,3 +64,21 @@ export function getRelationshipStatus(token: string, userId: string) {
     },
   });
 }
+
+export interface UserBlockResponse {
+  blocked: boolean;
+  blockerId: string;
+  blockedId: string;
+}
+
+export function blockSocialGraphUser(targetUserId: string): Promise<UserBlockResponse> {
+  return apiRequest<UserBlockResponse>(`/social-graph/blocks/${encodeURIComponent(targetUserId)}`, {
+    method: 'POST',
+  });
+}
+
+export function unblockSocialGraphUser(targetUserId: string): Promise<UserBlockResponse> {
+  return apiRequest<UserBlockResponse>(`/social-graph/blocks/${encodeURIComponent(targetUserId)}`, {
+    method: 'DELETE',
+  });
+}
