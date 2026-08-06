@@ -1,4 +1,6 @@
 import {
+  sendMessage,
+  createConversation,
   getMarketplaceListing,
   toggleMarketplaceListingSaved,
   type MarketplaceListing,
@@ -7,6 +9,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 
+import { useAuth } from '../../../auth/auth-context';
 import { AppText, Card, Screen } from '../../../components';
 import { MediaGallery } from '../../media';
 import type { RootStackParamList } from '../../../navigation/routes';
@@ -22,12 +25,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MarketplaceListingDetai
 
 export default function MarketplaceListingDetailScreen({ navigation, route }: Props) {
   const { theme } = useNeighbourTheme();
+  const { user } = useAuth();
 
   const [listing, setListing] = useState<MarketplaceListing | null>(null);
 
   const [loading, setLoading] = useState(true);
 
   const [saving, setSaving] = useState(false);
+
+  const [contacting, setContacting] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -67,6 +73,51 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
       setError('The saved-listing status could not be changed.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const contactSeller = async () => {
+    if (!listing || !user || contacting || listing.seller.id === user.id) {
+      return;
+    }
+
+    setContacting(true);
+    setError(null);
+
+    try {
+      const conversation = await createConversation({
+        type: 'DIRECT',
+        memberIds: [listing.seller.id],
+      });
+
+      if (!conversation.lastMessage) {
+        await sendMessage(conversation.id, {
+          content: `Hi, I am interested in your marketplace listing: ${listing.title}`,
+          clientNonce: `marketplace-${listing.id}-${user.id}`,
+          metadata: {
+            source: 'MARKETPLACE_LISTING',
+            listingId: listing.id,
+            listingTitle: listing.title,
+            listingPricePence: listing.pricePence,
+            listingIsFree: listing.isFree,
+            listingCategory: listing.category,
+            sellerId: listing.seller.id,
+            imageUrl: listing.media[0]?.asset.url ?? null,
+          },
+        });
+      }
+
+      navigation.navigate('Conversation', {
+        conversationId: conversation.id,
+      });
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'The seller conversation could not be opened.',
+      );
+    } finally {
+      setContacting(false);
     }
   };
 
@@ -269,23 +320,50 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
         </View>
       </Card>
 
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => {
-          setError('Seller messaging will open through MessagingOS in the next marketplace push.');
-        }}
-        style={[
-          styles.contactButton,
-          {
-            backgroundColor: theme.colors.primary,
-            borderRadius: theme.radius.pill,
-          },
-        ]}
-      >
-        <AppText variant="label" tone="inverse">
-          Contact Seller
-        </AppText>
-      </Pressable>
+      {listing.seller.id === user?.id ? (
+        <Card variant="muted" style={styles.ownerNotice}>
+          <AppText variant="bodyStrong">This is your listing</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            Manage its status from My Listings.
+          </AppText>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              navigation.navigate('MyMarketplaceListings');
+            }}
+          >
+            <AppText variant="label" tone="brand">
+              Open My Listings
+            </AppText>
+          </Pressable>
+        </Card>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          disabled={contacting}
+          onPress={() => {
+            void contactSeller();
+          }}
+          style={[
+            styles.contactButton,
+            {
+              backgroundColor: theme.colors.primary,
+              borderRadius: theme.radius.pill,
+              opacity: contacting ? 0.65 : 1,
+            },
+          ]}
+        >
+          {contacting ? (
+            <ActivityIndicator color={theme.colors.inverseText} />
+          ) : (
+            <AppText variant="label" tone="inverse">
+              Contact Seller
+            </AppText>
+          )}
+        </Pressable>
+      )}
 
       {error ? (
         <Card
@@ -371,6 +449,9 @@ const styles = StyleSheet.create({
   sellerCopy: {
     flex: 1,
     gap: 3,
+  },
+  ownerNotice: {
+    gap: 8,
   },
   contactButton: {
     alignItems: 'center',
