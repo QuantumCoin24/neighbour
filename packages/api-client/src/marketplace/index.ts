@@ -9,3 +9,4 @@ export * from './fulfilment';
 export * from './payments';
 export * from './reputation';
 export * from './disputes';
+export * from './moderation';

@@ -227,6 +227,106 @@ enum MarketplaceTransactionStatus {
   CANCELLED
 }
 
+enum MarketplaceModerationSubjectType {
+  LISTING
+  USER
+  TRANSACTION
+  PAYMENT
+  FULFILMENT
+  REVIEW
+  DISPUTE
+  MESSAGE
+}
+
+enum MarketplaceModerationStatus {
+  OPEN
+  TRIAGED
+  UNDER_REVIEW
+  AWAITING_INFORMATION
+  ACTION_REQUIRED
+  RESOLVED
+  DISMISSED
+  APPEALED
+  CLOSED
+}
+
+enum MarketplaceModerationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+  CRITICAL
+}
+
+enum MarketplaceModerationReason {
+  FRAUD_SUSPECTED
+  PROHIBITED_ITEM
+  MISLEADING_LISTING
+  COUNTERFEIT_ITEM
+  PAYMENT_ABUSE
+  HARASSMENT
+  THREAT_OR_SAFETY
+  SPAM
+  REVIEW_ABUSE
+  REPEAT_CANCELLATION
+  DISPUTE_ABUSE
+  IDENTITY_RISK
+  OTHER
+}
+
+enum MarketplaceFraudSignalType {
+  PAYMENT_PATTERN
+  ACCOUNT_PATTERN
+  LISTING_PATTERN
+  MESSAGE_PATTERN
+  DEVICE_PATTERN
+  IDENTITY_PATTERN
+  DISPUTE_PATTERN
+  REVIEW_PATTERN
+  VELOCITY_PATTERN
+  MANUAL_REPORT
+}
+
+enum MarketplaceModerationActionType {
+  NO_ACTION
+  WARNING
+  CONTENT_HIDDEN
+  CONTENT_REMOVED
+  LISTING_SUSPENDED
+  LISTING_REMOVED
+  MARKETPLACE_RESTRICTED
+  ACCOUNT_SUSPENDED
+  ACCOUNT_TERMINATED
+  PAYMENT_HOLD
+  REFUND_REQUIRED
+  IDENTITY_REVERIFICATION
+}
+
+enum MarketplaceModerationAppealDecision {
+  UPHELD
+  PARTIALLY_UPHELD
+  OVERTURNED
+  DISMISSED
+}
+
+enum MarketplaceModerationEventType {
+  CASE_CREATED
+  RISK_RECALCULATED
+  FRAUD_SIGNAL_ADDED
+  TRIAGED
+  ASSIGNED
+  REVIEW_STARTED
+  INFORMATION_REQUESTED
+  STATUS_CHANGED
+  ACTION_APPLIED
+  ACTION_REVOKED
+  APPEAL_CREATED
+  APPEAL_RESOLVED
+  CASE_RESOLVED
+  CASE_DISMISSED
+  CASE_CLOSED
+}
+
 enum MarketplaceDisputeStatus {
   OPEN
   AWAITING_RESPONSE
@@ -527,6 +627,14 @@ model User {
   marketplaceDisputeEvidence  MarketplaceDisputeEvidence[]
   marketplaceDisputeMessages  MarketplaceDisputeMessage[]
   marketplaceDisputeEvents    MarketplaceDisputeEvent[]
+
+  marketplaceModerationCasesOpened   MarketplaceModerationCase[]   @relation("MarketplaceModerationOpenedBy")
+  marketplaceModerationCasesReported MarketplaceModerationCase[]   @relation("MarketplaceModerationReportedUser")
+  marketplaceModerationCasesAssigned MarketplaceModerationCase[]   @relation("MarketplaceModerationAssignee")
+  marketplaceModerationActions       MarketplaceModerationAction[]
+  marketplaceModerationAppeals       MarketplaceModerationAppeal[]
+  marketplaceModerationEvents        MarketplaceModerationEvent[]
+  marketplaceFraudSignalsCreated     MarketplaceFraudSignal[]
 
   @@index([status])
   @@index([role])
@@ -1972,4 +2080,136 @@ model MarketplaceDisputeEvent {
   @@index([type, createdAt])
   @@index([toStatus, createdAt])
   @@map("marketplace_dispute_events")
+}
+
+model MarketplaceModerationCase {
+  id                   String                           @id @default(uuid()) @db.Uuid
+  subjectType          MarketplaceModerationSubjectType
+  subjectId            String                           @db.Uuid
+  reportedUserId       String?                          @db.Uuid
+  openedById           String?                          @db.Uuid
+  assignedToId         String?                          @db.Uuid
+  status               MarketplaceModerationStatus      @default(OPEN)
+  priority             MarketplaceModerationPriority    @default(NORMAL)
+  reason               MarketplaceModerationReason
+  title                String
+  description          String
+  riskScore            Int                              @default(0)
+  fraudScore           Int                              @default(0)
+  requiresManualReview Boolean                          @default(false)
+  openedAt             DateTime                         @default(now())
+  triagedAt            DateTime?
+  reviewStartedAt      DateTime?
+  resolvedAt           DateTime?
+  dismissedAt          DateTime?
+  closedAt             DateTime?
+  createdAt            DateTime                         @default(now())
+  updatedAt            DateTime                         @updatedAt
+
+  openedBy     User?                         @relation("MarketplaceModerationOpenedBy", fields: [openedById], references: [id], onDelete: SetNull)
+  reportedUser User?                         @relation("MarketplaceModerationReportedUser", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  assignedTo   User?                         @relation("MarketplaceModerationAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  fraudSignals MarketplaceFraudSignal[]
+  actions      MarketplaceModerationAction[]
+  appeals      MarketplaceModerationAppeal[]
+  events       MarketplaceModerationEvent[]
+
+  @@index([subjectType, subjectId])
+  @@index([reportedUserId, status, createdAt])
+  @@index([openedById, createdAt])
+  @@index([assignedToId, status, priority])
+  @@index([status, priority, createdAt])
+  @@index([riskScore, status])
+  @@index([fraudScore, status])
+  @@map("marketplace_moderation_cases")
+}
+
+model MarketplaceFraudSignal {
+  id          String                     @id @default(uuid()) @db.Uuid
+  caseId      String                     @db.Uuid
+  createdById String?                    @db.Uuid
+  type        MarketplaceFraudSignalType
+  subjectId   String                     @db.Uuid
+  weight      Int
+  description String
+  metadata    Json?
+  confirmedAt DateTime?
+  dismissedAt DateTime?
+  createdAt   DateTime                   @default(now())
+
+  moderationCase MarketplaceModerationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy      User?                     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([caseId, createdAt])
+  @@index([subjectId, type])
+  @@index([type, weight])
+  @@map("marketplace_fraud_signals")
+}
+
+model MarketplaceModerationAction {
+  id               String                          @id @default(uuid()) @db.Uuid
+  caseId           String                          @db.Uuid
+  appliedById      String                          @db.Uuid
+  type             MarketplaceModerationActionType
+  decision         String
+  instructions     String?
+  durationHours    Int?
+  startsAt         DateTime                        @default(now())
+  expiresAt        DateTime?
+  revokedAt        DateTime?
+  revocationReason String?
+  createdAt        DateTime                        @default(now())
+
+  moderationCase MarketplaceModerationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  appliedBy      User                      @relation(fields: [appliedById], references: [id], onDelete: Restrict)
+
+  @@index([caseId, createdAt])
+  @@index([appliedById, createdAt])
+  @@index([type, startsAt])
+  @@index([expiresAt, revokedAt])
+  @@map("marketplace_moderation_actions")
+}
+
+model MarketplaceModerationAppeal {
+  id               String                               @id @default(uuid()) @db.Uuid
+  caseId           String                               @db.Uuid
+  appellantId      String                               @db.Uuid
+  grounds          String
+  requestedOutcome String
+  decision         MarketplaceModerationAppealDecision?
+  decisionReasons  String?
+  reviewedById     String?                              @db.Uuid
+  resolvedAt       DateTime?
+  createdAt        DateTime                             @default(now())
+  updatedAt        DateTime                             @updatedAt
+
+  moderationCase MarketplaceModerationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  appellant      User                      @relation(fields: [appellantId], references: [id], onDelete: Restrict)
+
+  @@unique([caseId, appellantId])
+  @@index([caseId, createdAt])
+  @@index([appellantId, createdAt])
+  @@index([decision, resolvedAt])
+  @@map("marketplace_moderation_appeals")
+}
+
+model MarketplaceModerationEvent {
+  id         String                         @id @default(uuid()) @db.Uuid
+  caseId     String                         @db.Uuid
+  actorId    String?                        @db.Uuid
+  type       MarketplaceModerationEventType
+  fromStatus MarketplaceModerationStatus?
+  toStatus   MarketplaceModerationStatus
+  note       String?
+  metadata   Json?
+  createdAt  DateTime                       @default(now())
+
+  moderationCase MarketplaceModerationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  actor          User?                     @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([caseId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([type, createdAt])
+  @@index([toStatus, createdAt])
+  @@map("marketplace_moderation_events")
 }

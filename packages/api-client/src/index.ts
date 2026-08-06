@@ -68,3 +68,4 @@ export * from './marketplace/fulfilment';
 export * from './marketplace/payments';
 export * from './marketplace/reputation';
 export * from './marketplace/disputes';
+export * from './marketplace/moderation';
