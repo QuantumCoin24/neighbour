@@ -32,6 +32,11 @@ export class MarketplaceListingController {
     return this.service.search(user.id, query);
   }
 
+  @Get('saved')
+  findSaved(@CurrentUser() user: AuthUser) {
+    return this.service.findSaved(user.id);
+  }
+
   @Get('mine')
   findMine(@CurrentUser() user: AuthUser) {
     return this.service.findMine(user.id);

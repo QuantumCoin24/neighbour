@@ -262,6 +262,28 @@ export class MarketplaceListingService {
     return this.map(listing, currentUserId);
   }
 
+  async findSaved(userId: string): Promise<MarketplaceListingResponse[]> {
+    const saved = await this.database.savedMarketplaceListing.findMany({
+      where: {
+        userId,
+        listing: {
+          status: MarketplaceListingStatus.PUBLISHED,
+          deletedAt: null,
+        },
+      },
+      include: {
+        listing: {
+          include: listingInclude,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return saved.map((item) => this.map(item.listing, userId));
+  }
+
   async findMine(sellerId: string): Promise<MarketplaceListingResponse[]> {
     const listings = await this.database.marketplaceListing.findMany({
       where: {

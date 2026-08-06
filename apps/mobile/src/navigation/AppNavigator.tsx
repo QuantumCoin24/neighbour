@@ -19,6 +19,7 @@ import CreateMarketplaceListingScreen from '../features/marketplace-listings/scr
 import MarketplaceListingDetailScreen from '../features/marketplace-listings/screens/MarketplaceListingDetailScreen';
 import MarketplaceListingsScreen from '../features/marketplace-listings/screens/MarketplaceListingsScreen';
 import MyMarketplaceListingsScreen from '../features/marketplace-listings/screens/MyMarketplaceListingsScreen';
+import SavedMarketplaceListingsScreen from '../features/marketplace-listings/screens/SavedMarketplaceListingsScreen';
 import { useNeighbourTheme } from '../theme';
 
 import AppTabs from './AppTabs';
@@ -125,6 +126,11 @@ export default function AppNavigator() {
             <Stack.Screen
               name={ROUTES.MY_MARKETPLACE_LISTINGS}
               component={MyMarketplaceListingsScreen}
+            />
+
+            <Stack.Screen
+              name={ROUTES.SAVED_MARKETPLACE_LISTINGS}
+              component={SavedMarketplaceListingsScreen}
             />
 
             <Stack.Screen name={ROUTES.PREMIUM} component={PremiumScreen} />

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { DatabaseService } from '../../database/database.service';
 import { SecurityEventBusService } from '../events/security-event-bus.service';
@@ -28,6 +28,40 @@ export class ReportService {
   }
 
   async create(userId: string, dto: CreateReportDto): Promise<ReportResponse> {
+    if (dto.targetType === 'MARKETPLACE_LISTING') {
+      const listing = await this.database.marketplaceListing.findFirst({
+        where: {
+          id: dto.targetId,
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!listing) {
+        throw new NotFoundException('Marketplace listing not found.');
+      }
+    }
+
+    const existing = await this.database.report.findFirst({
+      where: {
+        reporterId: userId,
+        targetType: dto.targetType,
+        targetId: dto.targetId,
+        status: {
+          in: ['PENDING', 'UNDER_REVIEW'],
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException('You have already submitted an active report for this item.');
+    }
+
     const report = await this.database.report.create({
       data: {
         reporterId: userId,

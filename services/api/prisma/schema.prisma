@@ -172,6 +172,7 @@ enum ReportTargetType {
   COMMENT
   MESSAGE
   EVENT
+  MARKETPLACE_LISTING
 }
 
 enum BusinessVerificationStatus {

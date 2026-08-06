@@ -41,6 +41,10 @@ export function getMarketplaceListing(listingId: string): Promise<MarketplaceLis
   return apiRequest<MarketplaceListing>(`/marketplace/listings/${encodeURIComponent(listingId)}`);
 }
 
+export function getSavedMarketplaceListings(): Promise<MarketplaceListing[]> {
+  return apiRequest<MarketplaceListing[]>('/marketplace/listings/saved');
+}
+
 export function getMyMarketplaceListings(): Promise<MarketplaceListing[]> {
   return apiRequest<MarketplaceListing[]>('/marketplace/listings/mine');
 }

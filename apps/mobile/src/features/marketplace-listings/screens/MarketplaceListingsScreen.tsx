@@ -85,6 +85,24 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
         <Pressable
           accessibilityRole="button"
           onPress={() => {
+            navigation.navigate('SavedMarketplaceListings');
+          }}
+          style={[
+            styles.secondaryAction,
+            {
+              borderColor: theme.colors.borderStrong,
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText variant="label" tone="brand">
+            Saved Listings
+          </AppText>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
             navigation.navigate('MyMarketplaceListings');
           }}
           style={[

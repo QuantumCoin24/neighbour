@@ -125,6 +125,36 @@ export class ModerationService {
           },
         });
 
+      case 'MARKETPLACE_LISTING':
+        return this.database.marketplaceListing.findUnique({
+          where: {
+            id,
+          },
+          include: {
+            seller: {
+              select: {
+                id: true,
+                displayName: true,
+              },
+            },
+            community: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            media: {
+              include: {
+                media: true,
+              },
+              orderBy: {
+                position: 'asc',
+              },
+            },
+          },
+        });
+
       case 'USER':
         return this.database.user.findUnique({
           where: { id },
