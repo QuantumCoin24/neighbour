@@ -31,15 +31,18 @@ function TabIcon({ symbol, focused }: TabIconProps) {
       style={[
         styles.iconContainer,
         {
-          backgroundColor: focused ? theme.colors.primarySoft : 'transparent',
+          backgroundColor: focused ? theme.colors.primary : 'transparent',
+          borderColor: focused ? theme.colors.primary : 'transparent',
           borderRadius: theme.radius.pill,
         },
+        focused ? theme.shadows.subtle : null,
       ]}
     >
       <AppText
         style={{
-          color: focused ? theme.colors.primary : theme.colors.textMuted,
-          fontSize: 19,
+          color: focused ? theme.colors.inverseText : theme.colors.textMuted,
+          fontSize: focused ? 20 : 18,
+          fontWeight: '800',
           lineHeight: 22,
         }}
       >
@@ -62,8 +65,8 @@ export default function AppTabs() {
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textMuted,
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
+          fontSize: 10,
+          fontWeight: '700',
           marginBottom: 3,
         },
         tabBarStyle: {
@@ -71,9 +74,12 @@ export default function AppTabs() {
           borderTopColor: theme.colors.border,
           borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
-          height: 82,
+          height: 86,
           paddingBottom: 10,
           paddingTop: 7,
+        },
+        tabBarItemStyle: {
+          paddingHorizontal: 1,
         },
       }}
     >
@@ -179,8 +185,9 @@ export default function AppTabs() {
 const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
-    height: 30,
+    borderWidth: 1,
+    height: 36,
     justifyContent: 'center',
-    width: 44,
+    width: 48,
   },
 });

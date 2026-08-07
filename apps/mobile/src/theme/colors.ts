@@ -1,75 +1,107 @@
 export const brandColors = {
-  primary: '#315C4C',
-  primaryStrong: '#214438',
-  primarySoft: '#DDECE5',
-  secondary: '#C98D55',
-  secondarySoft: '#F6E8D8',
-  community: '#4E7667',
-  business: '#A36C3E',
-  organisation: '#596B8C',
-  event: '#8A6B9E',
-  marketplace: '#B2784A',
-  safety: '#B64F4F',
-  trust: '#35725B',
+  primary: '#0E5B3A',
+  primaryStrong: '#063F2A',
+  primarySoft: '#E1F3E8',
+
+  secondary: '#22C55E',
+  secondarySoft: '#EAFBEF',
+
+  mint: '#A7F3D0',
+  warmCream: '#FAF7F2',
+  charcoal: '#111827',
+  stone: '#64748B',
+
+  community: '#158A59',
+  business: '#D97706',
+  organisation: '#475569',
+  event: '#7C3AED',
+  marketplace: '#2563EB',
+
+  safety: '#C24141',
+  trust: '#0F766E',
 } as const;
 
 export const lightColors = {
-  background: '#F6F8F5',
+  background: '#FAF7F2',
   backgroundElevated: '#FFFFFF',
+
   surface: '#FFFFFF',
-  surfaceMuted: '#EEF2EE',
-  surfaceStrong: '#E4EBE6',
-  glass: 'rgba(255, 255, 255, 0.86)',
-  glassStrong: 'rgba(255, 255, 255, 0.96)',
-  border: '#DDE4DF',
-  borderStrong: '#C8D3CC',
-  text: '#17231D',
-  textSecondary: '#526159',
-  textMuted: '#7E8B84',
+  surfaceMuted: '#F2F6F3',
+  surfaceStrong: '#E7F0EA',
+
+  glass: 'rgba(255, 255, 255, 0.88)',
+  glassStrong: 'rgba(255, 255, 255, 0.97)',
+
+  border: '#E2E8E4',
+  borderStrong: '#C9D8CF',
+
+  text: '#102019',
+  textSecondary: '#516158',
+  textMuted: '#7B8A82',
+
   inverseText: '#FFFFFF',
-  overlay: 'rgba(17, 28, 22, 0.42)',
-  success: '#2F7D57',
-  warning: '#A66A1F',
-  danger: '#B54444',
-  information: '#3F6F9F',
-  inputBackground: '#F2F5F2',
-  shadow: '#17231D',
+  overlay: 'rgba(6, 36, 24, 0.46)',
+
+  success: '#158A59',
+  warning: '#B86B10',
+  danger: '#C24141',
+  information: '#2563EB',
+
+  inputBackground: '#F2F6F3',
+  shadow: '#063F2A',
+
   ...brandColors,
 } as const;
 
 export const darkColors = {
-  background: '#101713',
-  backgroundElevated: '#16201A',
-  surface: '#19241E',
-  surfaceMuted: '#202D26',
-  surfaceStrong: '#29382F',
-  glass: 'rgba(25, 36, 30, 0.86)',
-  glassStrong: 'rgba(25, 36, 30, 0.96)',
-  border: '#304038',
-  borderStrong: '#405248',
-  text: '#F4F7F5',
-  textSecondary: '#B8C4BD',
-  textMuted: '#84938A',
-  inverseText: '#142019',
-  overlay: 'rgba(0, 0, 0, 0.58)',
-  success: '#65B88B',
-  warning: '#D7A15A',
-  danger: '#E37A7A',
-  information: '#79A9D7',
-  inputBackground: '#202D26',
+  background: '#07110C',
+  backgroundElevated: '#0B1A12',
+
+  surface: '#102219',
+  surfaceMuted: '#173126',
+  surfaceStrong: '#1E3D30',
+
+  glass: 'rgba(16, 34, 25, 0.88)',
+  glassStrong: 'rgba(16, 34, 25, 0.97)',
+
+  border: '#284A39',
+  borderStrong: '#356047',
+
+  text: '#F7FBF8',
+  textSecondary: '#BED0C4',
+  textMuted: '#8DA398',
+
+  inverseText: '#07110C',
+  overlay: 'rgba(0, 0, 0, 0.62)',
+
+  success: '#48C786',
+  warning: '#E4A64D',
+  danger: '#EF8585',
+  information: '#82B6F4',
+
+  inputBackground: '#173126',
   shadow: '#000000',
-  primary: '#72A18E',
-  primaryStrong: '#91B9A8',
-  primarySoft: '#253D33',
-  secondary: '#D9A16E',
-  secondarySoft: '#3D3024',
-  community: '#80AA99',
-  business: '#D7A06F',
-  organisation: '#91A4CC',
-  event: '#B59AC4',
-  marketplace: '#D1A078',
-  safety: '#E17B7B',
-  trust: '#73B798',
+
+  primary: '#4ACF86',
+  primaryStrong: '#81E3AA',
+  primarySoft: '#123825',
+
+  secondary: '#22C55E',
+  secondarySoft: '#11341F',
+
+  mint: '#63DFA0',
+  warmCream: '#F6F0E6',
+  charcoal: '#F7FBF8',
+  stone: '#A1B2AA',
+
+  community: '#63DFA0',
+  business: '#E8A95D',
+  organisation: '#A8B4C7',
+  event: '#C2A2EA',
+  marketplace: '#8AB8FF',
+
+  safety: '#EF8585',
+  trust: '#69D8CA',
 } as const;
 
 export type ThemeColors = typeof lightColors | typeof darkColors;

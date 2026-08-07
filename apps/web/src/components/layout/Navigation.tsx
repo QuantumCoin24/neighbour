@@ -4,51 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const links = [
-  {
-    href: '/home',
-    label: 'Home',
-    icon: '🏠',
-  },
-  {
-    href: '/community',
-    label: 'Communities',
-    icon: '👥',
-  },
-  {
-    href: '/my-community',
-    label: 'My Area',
-    icon: '🏘️',
-  },
-  {
-    href: '/messages',
-    label: 'Messages',
-    icon: '💬',
-  },
-  {
-    href: '/business/discover',
-    label: 'Discover',
-    icon: '🔎',
-  },
-  {
-    href: '/notifications',
-    label: 'Notifications',
-    icon: '🔔',
-  },
-  {
-    href: '/search',
-    label: 'Search',
-    icon: '🔍',
-  },
-  {
-    href: '/profile/setup',
-    label: 'Profile',
-    icon: '👤',
-  },
-  {
-    href: '/business/dashboard',
-    label: 'Business Centre',
-    icon: '💼',
-  },
+  { href: '/home', label: 'Home', icon: '⌂' },
+  { href: '/community', label: 'Communities', icon: '◉' },
+  { href: '/my-community', label: 'Nearby', icon: '⌖' },
+  { href: '/messages', label: 'Messages', icon: '▢' },
+  { href: '/business/discover', label: 'Discover', icon: '⌕' },
+  { href: '/notifications', label: 'Notifications', icon: '◇' },
+  { href: '/search', label: 'Search', icon: '◌' },
+  { href: '/profile/setup', label: 'Profile', icon: '◎' },
+  { href: '/business/dashboard', label: 'Business Centre', icon: '▣' },
 ];
 
 export default function Navigation() {
@@ -59,11 +23,11 @@ export default function Navigation() {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        gap: '7px',
       }}
     >
       {links.map((link) => {
-        const active = pathname === link.href;
+        const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
 
         return (
           <Link
@@ -72,17 +36,37 @@ export default function Navigation() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              borderRadius: '16px',
+              gap: '13px',
+              padding: '12px 14px',
+              borderRadius: '18px',
               textDecoration: 'none',
-              color: active ? '#08111F' : '#FFFFFF',
-              background: active ? '#D6A84F' : 'transparent',
-              fontWeight: 600,
-              transition: 'all .2s ease',
+
+              color: active ? '#063F2A' : 'rgba(255,255,255,.82)',
+
+              background: active ? '#E1F3E8' : 'transparent',
+
+              fontWeight: active ? 800 : 650,
+
+              transition: 'all .18s ease',
             }}
           >
-            <span>{link.icon}</span>
+            <span
+              style={{
+                width: '31px',
+                height: '31px',
+
+                borderRadius: '12px',
+
+                display: 'grid',
+                placeItems: 'center',
+
+                background: active ? '#FFFFFF' : 'rgba(255,255,255,.08)',
+
+                fontSize: '17px',
+              }}
+            >
+              {link.icon}
+            </span>
 
             <span>{link.label}</span>
           </Link>
