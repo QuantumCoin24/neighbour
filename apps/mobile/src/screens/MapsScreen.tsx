@@ -36,16 +36,57 @@ export default function MapsScreen() {
         },
       ]}
     >
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.colors.primaryStrong,
+            borderRadius: theme.radius.xl,
+          },
+          theme.shadows.card,
+        ]}
+      >
         <View style={styles.heading}>
-          <AppText variant="overline" tone="brand">
-            Neighbour Maps™
-          </AppText>
+          <View style={styles.mapsBrandRow}>
+            <View
+              style={[
+                styles.mapsGlyph,
+                {
+                  backgroundColor: 'rgba(255,255,255,0.14)',
+                  borderRadius: theme.radius.lg,
+                },
+              ]}
+            >
+              <AppText tone="inverse" style={styles.mapsGlyphText}>
+                ⌖
+              </AppText>
+            </View>
 
-          <AppText variant="title">Explore nearby</AppText>
+            <View style={styles.mapsTitleCopy}>
+              <AppText
+                variant="overline"
+                style={{
+                  color: theme.colors.inverseText,
+                  opacity: 0.72,
+                }}
+              >
+                NEIGHBOUR MAPS™
+              </AppText>
 
-          <AppText variant="bodyLarge" tone="secondary">
-            Discover communities, events, businesses and neighbourhoods around you.
+              <AppText variant="title" tone="inverse">
+                Explore nearby
+              </AppText>
+            </View>
+          </View>
+
+          <AppText
+            variant="bodyLarge"
+            style={{
+              color: theme.colors.inverseText,
+              opacity: 0.84,
+            }}
+          >
+            Your neighbourhood, mapped around you.
           </AppText>
         </View>
 
@@ -474,5 +515,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 8,
     paddingBottom: 4,
+  },
+  mapsBrandRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  mapsGlyph: {
+    alignItems: 'center',
+    height: 52,
+    justifyContent: 'center',
+    width: 52,
+  },
+  mapsGlyphText: {
+    fontSize: 29,
+    lineHeight: 34,
+  },
+  mapsTitleCopy: {
+    flex: 1,
+    gap: 2,
   },
 });

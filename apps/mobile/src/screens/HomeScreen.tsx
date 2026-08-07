@@ -163,14 +163,22 @@ export default function HomeScreen() {
             style={[
               styles.brandMark,
               {
-                backgroundColor: theme.colors.primary,
-                borderRadius: theme.radius.md,
+                backgroundColor: theme.colors.primaryStrong,
+                borderRadius: theme.radius.lg,
               },
+              theme.shadows.subtle,
             ]}
           >
-            <AppText variant="bodyStrong" tone="inverse">
-              N
-            </AppText>
+            <View style={styles.brandPeople}>
+              <View style={styles.brandPerson} />
+              <View style={[styles.brandPerson, styles.brandPersonMiddle]} />
+              <View style={styles.brandPerson} />
+            </View>
+
+            <View style={styles.brandHome}>
+              <View style={styles.brandRoofLeft} />
+              <View style={styles.brandRoofRight} />
+            </View>
           </View>
 
           <View>
@@ -199,7 +207,32 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View style={styles.hero}>
+      <View
+        style={[
+          styles.hero,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+            borderRadius: theme.radius.xl,
+          },
+          theme.shadows.subtle,
+        ]}
+      >
+        <View style={styles.heroStatus}>
+          <View
+            style={[
+              styles.liveDot,
+              {
+                backgroundColor: theme.colors.community,
+              },
+            ]}
+          />
+
+          <AppText variant="overline" tone="brand">
+            YOUR NEIGHBOURHOOD IS LIVE
+          </AppText>
+        </View>
+
         <AppText variant="title">
           {greeting}, {firstName}.
         </AppText>
@@ -527,5 +560,58 @@ const styles = StyleSheet.create({
   emptyCopy: {
     flex: 1,
     gap: 5,
+  },
+  brandPeople: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: 2,
+    height: 12,
+    justifyContent: 'center',
+    position: 'absolute',
+    top: 8,
+  },
+  brandPerson: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    height: 7,
+    width: 7,
+  },
+  brandPersonMiddle: {
+    height: 10,
+    width: 8,
+  },
+  brandHome: {
+    bottom: 7,
+    height: 9,
+    position: 'absolute',
+    width: 21,
+  },
+  brandRoofLeft: {
+    backgroundColor: '#FFFFFF',
+    height: 3,
+    left: 1,
+    position: 'absolute',
+    top: 3,
+    transform: [{ rotate: '-32deg' }],
+    width: 12,
+  },
+  brandRoofRight: {
+    backgroundColor: '#FFFFFF',
+    height: 3,
+    position: 'absolute',
+    right: 1,
+    top: 3,
+    transform: [{ rotate: '32deg' }],
+    width: 12,
+  },
+  heroStatus: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 7,
+  },
+  liveDot: {
+    borderRadius: 5,
+    height: 7,
+    width: 7,
   },
 });

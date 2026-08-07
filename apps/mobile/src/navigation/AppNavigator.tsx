@@ -51,21 +51,37 @@ function SessionLoadingScreen() {
         style={[
           styles.loadingMark,
           {
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.primaryStrong,
             borderRadius: theme.radius.xl,
           },
           theme.shadows.floating,
         ]}
       >
-        <AppText variant="heading" tone="inverse">
+        <AppText
+          style={{
+            color: theme.colors.inverseText,
+            fontSize: 28,
+            fontWeight: '900',
+          }}
+        >
           N
         </AppText>
       </View>
 
+      <AppText
+        style={{
+          color: theme.colors.primaryStrong,
+          fontSize: 22,
+          fontWeight: '800',
+        }}
+      >
+        Neighbour™
+      </AppText>
+
       <ActivityIndicator color={theme.colors.primary} size="small" />
 
       <AppText variant="caption" tone="muted">
-        Opening your neighbourhood…
+        Stronger together. Local forever.
       </AppText>
     </View>
   );

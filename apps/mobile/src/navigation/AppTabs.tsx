@@ -74,7 +74,7 @@ export default function AppTabs() {
           borderTopColor: theme.colors.border,
           borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
-          height: 86,
+          height: 88,
           paddingBottom: 10,
           paddingTop: 7,
         },
@@ -96,17 +96,8 @@ export default function AppTabs() {
         name={ROUTES.COMMUNITIES}
         component={CommunitiesScreen}
         options={{
-          title: 'Community',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="◎" />,
-        }}
-      />
-
-      <Tabs.Screen
-        name={ROUTES.SEARCH}
-        component={SearchScreen}
-        options={{
-          title: 'Search',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="⌕" />,
+          title: 'Communities',
+          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="◉" />,
         }}
       />
 
@@ -114,17 +105,30 @@ export default function AppTabs() {
         name={ROUTES.MAPS}
         component={MapsScreen}
         options={{
-          title: 'Maps',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="⌖" />,
-        }}
-      />
-
-      <Tabs.Screen
-        name={ROUTES.MARKETPLACE}
-        component={MarketplaceScreen}
-        options={{
-          title: 'Market',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="▣" />,
+          title: 'Nearby',
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={[
+                styles.nearbyIcon,
+                {
+                  backgroundColor: theme.colors.primary,
+                  borderRadius: theme.radius.pill,
+                },
+                theme.shadows.floating,
+              ]}
+            >
+              <AppText
+                style={{
+                  color: theme.colors.inverseText,
+                  fontSize: 24,
+                  fontWeight: '900',
+                  lineHeight: 28,
+                }}
+              >
+                ⌖
+              </AppText>
+            </View>
+          ),
         }}
       />
 
@@ -145,28 +149,7 @@ export default function AppTabs() {
             fontSize: 10,
             fontWeight: '700',
           },
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="◌" />,
-        }}
-      />
-
-      <Tabs.Screen
-        name={ROUTES.NOTIFICATIONS}
-        component={NotificationsScreen}
-        options={{
-          title: 'Alerts',
-          tabBarBadge:
-            notifications.unreadCount > 0
-              ? notifications.unreadCount > 99
-                ? '99+'
-                : notifications.unreadCount
-              : undefined,
-          tabBarBadgeStyle: {
-            backgroundColor: theme.colors.danger,
-            color: theme.colors.inverseText,
-            fontSize: 10,
-            fontWeight: '700',
-          },
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="◇" />,
+          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="▢" />,
         }}
       />
 
@@ -175,7 +158,7 @@ export default function AppTabs() {
         component={ProfileScreen}
         options={{
           title: 'Profile',
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="◉" />,
+          tabBarIcon: ({ focused }) => <TabIcon focused={focused} symbol="◎" />,
         }}
       />
     </Tabs.Navigator>
@@ -189,5 +172,13 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: 'center',
     width: 48,
+  },
+
+  nearbyIcon: {
+    alignItems: 'center',
+    height: 54,
+    justifyContent: 'center',
+    marginTop: -17,
+    width: 54,
   },
 });

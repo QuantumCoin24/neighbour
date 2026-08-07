@@ -40,15 +40,56 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
         />
       }
     >
-      <View style={styles.header}>
-        <AppText variant="overline" tone="brand">
-          Local connections
-        </AppText>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.colors.primaryStrong,
+            borderRadius: theme.radius.xl,
+          },
+          theme.shadows.card,
+        ]}
+      >
+        <View style={styles.communityIdentity}>
+          <View
+            style={[
+              styles.communityGlyph,
+              {
+                backgroundColor: 'rgba(255,255,255,0.14)',
+                borderRadius: theme.radius.lg,
+              },
+            ]}
+          >
+            <AppText tone="inverse" style={styles.communityGlyphText}>
+              ◎
+            </AppText>
+          </View>
 
-        <AppText variant="title">Communities</AppText>
+          <View style={styles.communityIdentityCopy}>
+            <AppText
+              variant="overline"
+              style={{
+                color: theme.colors.inverseText,
+                opacity: 0.72,
+              }}
+            >
+              NEIGHBOUR COMMUNITIES™
+            </AppText>
 
-        <AppText variant="bodyLarge" tone="secondary">
-          Discover trusted groups built around the places and interests that matter to you.
+            <AppText variant="title" tone="inverse">
+              Communities
+            </AppText>
+          </View>
+        </View>
+
+        <AppText
+          variant="bodyLarge"
+          style={{
+            color: theme.colors.inverseText,
+            opacity: 0.86,
+          }}
+        >
+          Find your people. Build trusted local spaces. Make your neighbourhood stronger.
         </AppText>
 
         <Pressable
@@ -371,5 +412,24 @@ const styles = StyleSheet.create({
   emptyCopy: {
     flex: 1,
     gap: 5,
+  },
+  communityIdentity: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 13,
+  },
+  communityIdentityCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  communityGlyph: {
+    alignItems: 'center',
+    height: 54,
+    justifyContent: 'center',
+    width: 54,
+  },
+  communityGlyphText: {
+    fontSize: 30,
+    lineHeight: 34,
   },
 });

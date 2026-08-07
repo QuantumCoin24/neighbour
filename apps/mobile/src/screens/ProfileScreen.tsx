@@ -90,12 +90,73 @@ export default function ProfileScreen() {
         />
       }
     >
-      <View style={styles.header}>
-        <AppText variant="overline" tone="brand">
-          Your Neighbour identity
-        </AppText>
+      <View
+        style={[
+          styles.identityHeader,
+          {
+            backgroundColor: theme.colors.primaryStrong,
+            borderRadius: theme.radius.xl,
+          },
+          theme.shadows.card,
+        ]}
+      >
+        <View
+          style={[
+            styles.identityMark,
+            {
+              backgroundColor: 'rgba(255,255,255,0.14)',
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText tone="inverse" style={styles.identityMarkText}>
+            {user?.displayName?.slice(0, 1).toUpperCase() ?? 'N'}
+          </AppText>
+        </View>
 
-        <AppText variant="title">Profile</AppText>
+        <View style={styles.identityCopy}>
+          <AppText
+            variant="overline"
+            style={{
+              color: theme.colors.inverseText,
+              opacity: 0.7,
+            }}
+          >
+            NEIGHBOUR IDENTITY™
+          </AppText>
+
+          <AppText variant="title" tone="inverse">
+            Profile
+          </AppText>
+
+          <AppText
+            variant="caption"
+            style={{
+              color: theme.colors.inverseText,
+              opacity: 0.82,
+            }}
+          >
+            Your identity, reputation and local connections.
+          </AppText>
+        </View>
+
+        <View
+          style={[
+            styles.trustBadge,
+            {
+              backgroundColor: theme.colors.inverseText,
+              borderRadius: theme.radius.lg,
+            },
+          ]}
+        >
+          <AppText variant="overline" tone="brand">
+            TRUST
+          </AppText>
+
+          <AppText variant="heading" tone="brand">
+            {trustScore}
+          </AppText>
+        </View>
       </View>
 
       <ProfileHero
@@ -494,5 +555,33 @@ const styles = StyleSheet.create({
   copy: {
     flex: 1,
     gap: 4,
+  },
+  identityHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 13,
+    padding: 16,
+  },
+  identityMark: {
+    alignItems: 'center',
+    height: 58,
+    justifyContent: 'center',
+    width: 58,
+  },
+  identityMarkText: {
+    fontSize: 25,
+    fontWeight: '800',
+    lineHeight: 30,
+  },
+  identityCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  trustBadge: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 64,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
 });

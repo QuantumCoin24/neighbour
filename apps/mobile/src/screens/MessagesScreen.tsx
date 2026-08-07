@@ -25,23 +25,70 @@ export default function MessagesScreen() {
         />
       }
     >
-      <View style={styles.header}>
-        <AppText variant="overline" tone="brand">
-          Private conversations
-        </AppText>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.colors.primaryStrong,
+            borderRadius: theme.radius.xl,
+          },
+          theme.shadows.card,
+        ]}
+      >
+        <View style={styles.messageBrand}>
+          <View
+            style={[
+              styles.messageGlyph,
+              {
+                backgroundColor: 'rgba(255,255,255,0.14)',
+                borderRadius: theme.radius.lg,
+              },
+            ]}
+          >
+            <AppText tone="inverse" style={styles.messageGlyphText}>
+              ◌
+            </AppText>
+          </View>
 
-        <AppText variant="title">Messages</AppText>
+          <View style={styles.messageCopy}>
+            <AppText
+              variant="overline"
+              style={{
+                color: theme.colors.inverseText,
+                opacity: 0.72,
+              }}
+            >
+              PRIVATE & LOCAL
+            </AppText>
 
-        <AppText variant="bodyLarge" tone="secondary">
-          Stay connected with neighbours, communities and trusted local organisations.
-        </AppText>
+            <AppText variant="title" tone="inverse">
+              Messages
+            </AppText>
+          </View>
 
-        <AppText variant="caption" tone="secondary">
-          {messages.unreadCount === 0
-            ? 'No unread messages'
-            : messages.unreadCount === 1
-              ? '1 unread message'
-              : `${messages.unreadCount} unread messages`}
+          <View
+            style={[
+              styles.unreadBadge,
+              {
+                backgroundColor: theme.colors.inverseText,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <AppText variant="label" tone="brand">
+              {messages.unreadCount}
+            </AppText>
+          </View>
+        </View>
+
+        <AppText
+          variant="bodyLarge"
+          style={{
+            color: theme.colors.inverseText,
+            opacity: 0.84,
+          }}
+        >
+          Conversations with the people and places around you.
         </AppText>
       </View>
 
@@ -63,5 +110,31 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 10,
+  },
+  messageBrand: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  messageGlyph: {
+    alignItems: 'center',
+    height: 52,
+    justifyContent: 'center',
+    width: 52,
+  },
+  messageGlyphText: {
+    fontSize: 30,
+    lineHeight: 34,
+  },
+  messageCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  unreadBadge: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 34,
+    minWidth: 34,
+    paddingHorizontal: 9,
   },
 });
