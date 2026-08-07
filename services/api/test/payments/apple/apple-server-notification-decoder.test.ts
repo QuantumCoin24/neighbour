@@ -26,7 +26,7 @@ test('decodes an App Store Server Notification V2 payload', () => {
       version: '2.0',
       signedDate: Date.now(),
       data: {
-        bundleId: 'com.neighbour.app',
+        bundleId: 'com.quantumcoin24.neighbour',
         environment: 'Sandbox',
         signedTransactionInfo: 'header.payload.signature',
       },
@@ -35,7 +35,7 @@ test('decodes an App Store Server Notification V2 payload', () => {
 
   assert.equal(notification.notificationType, 'DID_RENEW');
 
-  assert.equal(notification.data.bundleId, 'com.neighbour.app');
+  assert.equal(notification.data.bundleId, 'com.quantumcoin24.neighbour');
 
   assert.equal(notification.data.environment, 'Sandbox');
 });

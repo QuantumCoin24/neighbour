@@ -8,7 +8,6 @@
     "scheme": "neighbour",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.quantumcoin24.neighbour",

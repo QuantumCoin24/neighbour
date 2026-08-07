@@ -156,7 +156,7 @@ export class AppleServerNotificationService {
   }
 
   private validateApplication(notification: AppleServerNotificationPayload): void {
-    const expectedBundleId = process.env.APPLE_BUNDLE_ID ?? 'com.neighbour.app';
+    const expectedBundleId = process.env.APPLE_BUNDLE_ID ?? 'com.quantumcoin24.neighbour';
 
     if (notification.data.bundleId !== expectedBundleId) {
       throw new BadRequestException(
