@@ -165,6 +165,9 @@ export function useCommunityDirectory() {
     [joiningSlug, load, membershipByCommunityId],
   );
 
+  const refresh = useCallback(() => load(true), [load]);
+  const retry = useCallback(() => load(false), [load]);
+
   return {
     query,
     setQuery,
@@ -176,8 +179,8 @@ export function useCommunityDirectory() {
     refreshing,
     joiningSlug,
     error,
-    refresh: () => load(true),
-    retry: () => load(false),
+    refresh,
+    retry,
     join,
   };
 }
