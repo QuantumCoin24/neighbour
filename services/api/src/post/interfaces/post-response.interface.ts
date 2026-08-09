@@ -63,12 +63,7 @@ export interface PostMediaAssetResponse {
   width: number | null;
   height: number | null;
   durationMs: number | null;
-  status:
-    | 'PENDING'
-    | 'UPLOADED'
-    | 'READY'
-    | 'FAILED'
-    | 'DELETED';
+  status: 'PENDING' | 'UPLOADED' | 'READY' | 'FAILED' | 'DELETED';
   uploadedAt: Date | null;
   readyAt: Date | null;
   createdAt: Date;
