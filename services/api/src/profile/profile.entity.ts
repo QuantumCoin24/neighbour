@@ -3,7 +3,7 @@ export interface ProfileEntity {
   userId: string;
   username: string;
   displayName: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   bio?: string;
   localArea: string | null;
   showLocalArea: boolean;
