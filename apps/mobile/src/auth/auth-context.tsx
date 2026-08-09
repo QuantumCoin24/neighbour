@@ -47,10 +47,12 @@ function getAuthenticationError(error: unknown): string {
     if (error.status >= 500) {
       return 'Neighbour is temporarily unavailable. Please try again shortly.';
     }
+
+    return `Neighbour could not complete the request (HTTP ${error.status}).`;
   }
 
   if (error instanceof TypeError) {
-    return 'The Neighbour service could not be reached. Check that the API is running and both devices are connected to the same network.';
+    return 'The Neighbour service could not be reached. Please check your internet connection and try again.';
   }
 
   return 'Something went wrong. Please try again.';

@@ -3,11 +3,15 @@ import Constants from 'expo-constants';
 
 import { getSessionAccessToken } from '../auth/session';
 
-function getDevelopmentApiUrl(): string {
-  const configuredUrl = process.env.EXPO_PUBLIC_NEIGHBOUR_API_URL;
+function getMobileApiUrl(): string {
+  const configuredUrl = process.env.EXPO_PUBLIC_NEIGHBOUR_API_URL?.trim();
 
   if (configuredUrl) {
     return configuredUrl;
+  }
+
+  if (!__DEV__) {
+    throw new Error('EXPO_PUBLIC_NEIGHBOUR_API_URL is required for production Neighbour builds.');
   }
 
   const hostUri = Constants.expoConfig?.hostUri;
@@ -27,7 +31,7 @@ function getDevelopmentApiUrl(): string {
 
 export function initialiseMobileApiClient(): void {
   configureApiClient({
-    baseUrl: getDevelopmentApiUrl(),
+    baseUrl: getMobileApiUrl(),
     getAccessToken: getSessionAccessToken,
   });
 }
