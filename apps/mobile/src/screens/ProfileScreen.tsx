@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -14,6 +15,7 @@ import {
 
 import { useAuth } from '../auth/auth-context';
 import { AppText, Button, Card, Screen } from '../components';
+import { useMediaPicker, useMediaUpload } from '../features/media';
 import { ProfileStats, useProfileHub, type ProfileSection } from '../features/profile';
 import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
@@ -56,6 +58,8 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { theme } = useNeighbourTheme();
   const profile = useProfileHub();
+  const mediaPicker = useMediaPicker();
+  const mediaUpload = useMediaUpload();
 
   useEffect(() => {
     if (__DEV__ && profile.error) {
@@ -423,12 +427,6 @@ export default function ProfileScreen() {
                 placeholder: 'A little about you and your connection to the area',
               },
               {
-                label: 'Avatar URL',
-                value: avatarUrl,
-                setter: setAvatarUrl,
-                placeholder: 'https://…',
-              },
-              {
                 label: 'Local area',
                 value: localArea,
                 setter: setLocalArea,
@@ -459,6 +457,120 @@ export default function ProfileScreen() {
               </View>
             ))}
 
+            <View style={styles.profilePhotoSection}>
+              <AppText variant="caption" tone="secondary">
+                Profile photo
+              </AppText>
+
+              <View
+                style={[
+                  styles.profilePhotoPreview,
+                  {
+                    backgroundColor: theme.colors.surfaceMuted,
+                    borderColor: theme.colors.border,
+                    borderRadius: theme.radius.pill,
+                  },
+                ]}
+              >
+                {avatarUrl ? (
+                  <Image
+                    accessibilityLabel="Your profile photo"
+                    resizeMode="cover"
+                    source={{ uri: avatarUrl }}
+                    style={styles.profilePhotoImage}
+                  />
+                ) : (
+                  <AppText variant="heading" tone="brand">
+                    {user?.displayName?.slice(0, 1).toUpperCase() ?? 'N'}
+                  </AppText>
+                )}
+              </View>
+
+              <View style={styles.profilePhotoActions}>
+                <Button
+                  disabled={mediaPicker.opening || mediaUpload.uploading}
+                  label={avatarUrl ? 'Change photo' : 'Choose from Photos'}
+                  loading={mediaUpload.uploading}
+                  onPress={() => {
+                    void (async () => {
+                      try {
+                        const selection = await mediaPicker.pickFromLibrary();
+                        const selected = selection.items[0];
+
+                        if (!selected) {
+                          return;
+                        }
+
+                        const uploaded = await mediaUpload.upload([selected]);
+                        const url = uploaded[0]?.asset.url;
+
+                        if (!url) {
+                          throw new Error('The uploaded profile photo is not available yet.');
+                        }
+
+                        setAvatarUrl(url);
+                      } catch (error) {
+                        console.warn('[Neighbour/Profile] profile photo upload failed:', error);
+                      }
+                    })();
+                  }}
+                  variant="secondary"
+                />
+
+                <Button
+                  disabled={mediaPicker.opening || mediaUpload.uploading}
+                  label="Take photo"
+                  onPress={() => {
+                    void (async () => {
+                      try {
+                        const selection = await mediaPicker.takePhoto();
+                        const selected = selection.items[0];
+
+                        if (!selected) {
+                          return;
+                        }
+
+                        const uploaded = await mediaUpload.upload([selected]);
+                        const url = uploaded[0]?.asset.url;
+
+                        if (!url) {
+                          throw new Error('The uploaded profile photo is not available yet.');
+                        }
+
+                        setAvatarUrl(url);
+                      } catch (error) {
+                        console.warn('[Neighbour/Profile] profile photo upload failed:', error);
+                      }
+                    })();
+                  }}
+                  variant="secondary"
+                />
+
+                {avatarUrl ? (
+                  <Button
+                    disabled={mediaUpload.uploading}
+                    label="Remove photo"
+                    onPress={() => {
+                      setAvatarUrl('');
+                    }}
+                    variant="ghost"
+                  />
+                ) : null}
+              </View>
+
+              {mediaPicker.error ? (
+                <AppText variant="caption" tone="secondary">
+                  {mediaPicker.error}
+                </AppText>
+              ) : null}
+
+              {mediaUpload.uploading ? (
+                <AppText variant="caption" tone="secondary">
+                  Uploading profile photo… {Math.round(mediaUpload.overallProgress * 100)}%
+                </AppText>
+              ) : null}
+            </View>
+
             <View style={styles.row}>
               <View style={styles.copy}>
                 <AppText variant="bodyStrong">Show local area</AppText>
@@ -487,7 +599,7 @@ export default function ProfileScreen() {
                 void profile.save({
                   username: username.trim(),
                   ...(bio.trim() ? { bio: bio.trim() } : {}),
-                  ...(avatarUrl.trim() ? { avatarUrl: avatarUrl.trim() } : {}),
+                  avatarUrl: avatarUrl.trim() || null,
                   ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
                   showLocalArea,
                 });
@@ -619,5 +731,24 @@ const styles = StyleSheet.create({
     minWidth: 62,
     paddingHorizontal: 10,
     paddingVertical: 7,
+  },
+  profilePhotoSection: {
+    gap: 12,
+  },
+  profilePhotoPreview: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    borderWidth: 1,
+    height: 112,
+    justifyContent: 'center',
+    overflow: 'hidden',
+    width: 112,
+  },
+  profilePhotoImage: {
+    height: '100%',
+    width: '100%',
+  },
+  profilePhotoActions: {
+    gap: 8,
   },
 });

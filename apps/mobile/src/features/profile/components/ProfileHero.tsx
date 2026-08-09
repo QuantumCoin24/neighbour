@@ -1,5 +1,5 @@
 import type { AuthUser, PrivateProfile } from '@neighbour/api-client';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 
 import { AppText, Card } from '../../../components';
 import { useNeighbourTheme } from '../../../theme';
@@ -45,9 +45,18 @@ export function ProfileHero({ user, profile, trustScore, badges }: ProfileHeroPr
           },
         ]}
       >
-        <AppText variant="heading" tone="inverse">
-          {getInitials(displayName)}
-        </AppText>
+        {profile?.avatarUrl ? (
+          <Image
+            accessibilityLabel={`${displayName} profile photo`}
+            resizeMode="cover"
+            source={{ uri: profile.avatarUrl }}
+            style={styles.avatarImage}
+          />
+        ) : (
+          <AppText variant="heading" tone="inverse">
+            {getInitials(displayName)}
+          </AppText>
+        )}
       </View>
 
       <View style={styles.identity}>
@@ -108,6 +117,10 @@ const styles = StyleSheet.create({
     height: 88,
     justifyContent: 'center',
     width: 88,
+  },
+  avatarImage: {
+    height: '100%',
+    width: '100%',
   },
   identity: {
     alignItems: 'center',

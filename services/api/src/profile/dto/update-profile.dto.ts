@@ -37,7 +37,7 @@ export class UpdateProfileDto {
     },
   )
   @MaxLength(2048)
-  avatarUrl?: string;
+  avatarUrl?: string | null;
 
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsOptional()

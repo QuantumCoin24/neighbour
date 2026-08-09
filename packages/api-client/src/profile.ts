@@ -9,7 +9,7 @@ export interface CreateProfileInput {
 export interface UpdateProfileInput {
   username?: string;
   bio?: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   localArea?: string;
   showLocalArea?: boolean;
 }
