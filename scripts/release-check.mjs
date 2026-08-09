@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import process from 'node:process';
 
 const EXPECTED_VERSION = '1.0.0-rc.1';
+const EXPECTED_NATIVE_VERSION = '1.0.0';
 
 const jsonFiles = [
   'package.json',
@@ -75,10 +76,13 @@ const versionSources = [
   ['apps/mobile/app.json', JSON.parse(await readFile('apps/mobile/app.json', 'utf8')).expo.version],
 ];
 
+const expectedVersionForSource = (source) =>
+  source === 'apps/mobile/app.json' ? EXPECTED_NATIVE_VERSION : EXPECTED_VERSION;
+
 for (const [source, version] of versionSources) {
   checks.push({
     check: `version:${source}`,
-    passed: version === EXPECTED_VERSION,
+    passed: version === expectedVersionForSource(source),
     value: version,
   });
 }
