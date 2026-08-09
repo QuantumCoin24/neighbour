@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../../auth/auth-context';
 import { AppText, Card, Screen } from '../../../components';
 import type { RootStackParamList } from '../../../navigation/routes';
+import { useNeighbourTheme } from '../../../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MarketplaceTransactionDetail'>;
 
@@ -22,6 +23,7 @@ function formatPrice(value: number): string {
 }
 
 export default function MarketplaceTransactionDetailScreen({ navigation, route }: Props) {
+  const { theme } = useNeighbourTheme();
   const { user } = useAuth();
 
   const [transaction, setTransaction] = useState<MarketplaceTransaction | null>(null);

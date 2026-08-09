@@ -5,10 +5,12 @@ import { useMemo, useState } from 'react';
 
 import { AppText, Card, Screen } from '../../../components';
 import type { RootStackParamList } from '../../../navigation/routes';
+import { useNeighbourTheme } from '../../../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MakeMarketplaceOffer'>;
 
 export default function MakeMarketplaceOfferScreen({ navigation, route }: Props) {
+  const { theme } = useNeighbourTheme();
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);

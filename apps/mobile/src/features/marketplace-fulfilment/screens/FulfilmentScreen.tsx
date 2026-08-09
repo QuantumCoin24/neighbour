@@ -16,10 +16,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../../auth/auth-context';
 import { AppText, Card, Screen } from '../../../components';
 import type { RootStackParamList } from '../../../navigation/routes';
+import { useNeighbourTheme } from '../../../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MarketplaceFulfilment'>;
 
 export default function FulfilmentScreen({ route }: Props) {
+  const { theme } = useNeighbourTheme();
   const { user } = useAuth();
 
   const [fulfilment, setFulfilment] = useState<MarketplaceFulfilment | null>(null);

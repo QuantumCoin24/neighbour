@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { AppText, Card, Screen } from '../../../components';
 import type { RootStackParamList } from '../../../navigation/routes';
+import { useNeighbourTheme } from '../../../theme';
 
 import { MarketplaceOfferCard } from '../components/MarketplaceOfferCard';
 
@@ -17,6 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MarketplaceOffers'>;
 type OfferView = 'RECEIVED' | 'SENT';
 
 export default function MarketplaceOffersScreen({ navigation }: Props) {
+  const { theme } = useNeighbourTheme();
   const [view, setView] = useState<OfferView>('RECEIVED');
   const [items, setItems] = useState<MarketplacePeerOffer[]>([]);
   const [loading, setLoading] = useState(true);
