@@ -73,6 +73,7 @@ export default function ProfileScreen() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [localArea, setLocalArea] = useState('');
   const [showLocalArea, setShowLocalArea] = useState(false);
+  const [profilePhotoError, setProfilePhotoError] = useState<string | null>(null);
 
   useEffect(() => {
     setUsername(profile.profile?.username ?? '');
@@ -493,6 +494,8 @@ export default function ProfileScreen() {
                   loading={mediaUpload.uploading}
                   onPress={() => {
                     void (async () => {
+                      setProfilePhotoError(null);
+
                       try {
                         const selection = await mediaPicker.pickFromLibrary();
                         const selected = selection.items[0];
@@ -510,6 +513,12 @@ export default function ProfileScreen() {
 
                         setAvatarUrl(url);
                       } catch (error) {
+                        const message =
+                          error instanceof Error
+                            ? error.message
+                            : 'The profile photo could not be uploaded.';
+
+                        setProfilePhotoError(message);
                         console.warn('[Neighbour/Profile] profile photo upload failed:', error);
                       }
                     })();
@@ -522,6 +531,8 @@ export default function ProfileScreen() {
                   label="Take photo"
                   onPress={() => {
                     void (async () => {
+                      setProfilePhotoError(null);
+
                       try {
                         const selection = await mediaPicker.takePhoto();
                         const selected = selection.items[0];
@@ -539,6 +550,12 @@ export default function ProfileScreen() {
 
                         setAvatarUrl(url);
                       } catch (error) {
+                        const message =
+                          error instanceof Error
+                            ? error.message
+                            : 'The profile photo could not be uploaded.';
+
+                        setProfilePhotoError(message);
                         console.warn('[Neighbour/Profile] profile photo upload failed:', error);
                       }
                     })();
@@ -561,6 +578,12 @@ export default function ProfileScreen() {
               {mediaPicker.error ? (
                 <AppText variant="caption" tone="secondary">
                   {mediaPicker.error}
+                </AppText>
+              ) : null}
+
+              {profilePhotoError ? (
+                <AppText variant="caption" tone="secondary">
+                  {profilePhotoError}
                 </AppText>
               ) : null}
 

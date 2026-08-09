@@ -35,7 +35,7 @@ function mapAssets(assets: ImagePicker.ImagePickerAsset[]): MediaSelectionResult
     }
 
     items.push({
-      localId: `${Date.now()}-${crypto.randomUUID()}`,
+      localId: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       uri: asset.uri,
       fileName: asset.fileName ?? `neighbour-${Date.now()}.jpg`,
       mimeType: normalizeMimeType(asset),
