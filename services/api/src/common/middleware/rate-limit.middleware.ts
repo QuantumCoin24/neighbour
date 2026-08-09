@@ -48,7 +48,7 @@ function resolvePolicy(request: Request): RateLimitPolicy {
 
   if (request.method === 'POST' && path.endsWith('/auth/register')) {
     return {
-      limit: 3,
+      limit: 50,
       windowMs: 3_600_000,
       name: 'authentication-register',
     };
