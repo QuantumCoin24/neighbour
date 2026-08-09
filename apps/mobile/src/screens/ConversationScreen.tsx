@@ -98,7 +98,7 @@ function MessageBubble({
 
       <View style={[styles.messageColumn, mine ? styles.messageColumnMine : undefined]}>
         {!mine ? (
-          <AppText variant="caption" tone="secondary">
+          <AppText variant="caption" tone="secondary" style={styles.senderName}>
             {message.sender.displayName}
           </AppText>
         ) : null}
@@ -106,8 +106,10 @@ function MessageBubble({
         <View
           style={[
             styles.bubble,
+            mine ? styles.bubbleMine : styles.bubbleReceived,
             {
-              backgroundColor: mine ? theme.colors.primary : theme.colors.surfaceMuted,
+              backgroundColor: mine ? theme.colors.primary : theme.colors.surface,
+              borderColor: mine ? theme.colors.primary : theme.colors.border,
               borderRadius: theme.radius.xl,
             },
           ]}
@@ -122,18 +124,18 @@ function MessageBubble({
           </AppText>
         </View>
 
-        <View style={styles.messageMeta}>
+        <View style={[styles.messageMeta, mine ? styles.messageMetaMine : undefined]}>
           <RelativeTime date={message.createdAt} />
 
           {message.editedAt ? (
             <AppText variant="caption" tone="muted">
-              Edited
+              · Edited
             </AppText>
           ) : null}
 
           {optimistic ? (
             <AppText variant="caption" tone="muted">
-              Sending…
+              · Sending…
             </AppText>
           ) : null}
         </View>
@@ -178,6 +180,18 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
       .filter((member) => typingUserIds.includes(member.user.id) && member.user.id !== user?.id)
       .map((member) => member.user.displayName);
   }, [conversation, typingUserIds, user?.id]);
+
+  const primaryParticipant = useMemo(() => {
+    if (!conversation) {
+      return null;
+    }
+
+    return (
+      conversation.members.find((member) => member.user.id !== user?.id)?.user ??
+      conversation.members[0]?.user ??
+      null
+    );
+  }, [conversation, user?.id]);
 
   const loadConversation = useCallback(async () => {
     setLoading(true);
@@ -524,33 +538,73 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
             <AppText variant="bodyStrong">‹</AppText>
           </Pressable>
 
+          {primaryParticipant ? (
+            <FeedAvatar
+              avatarUrl={primaryParticipant.avatarUrl}
+              displayName={primaryParticipant.displayName}
+            />
+          ) : null}
+
           <View style={styles.headerCopy}>
-            <AppText variant="subheading" numberOfLines={1}>
+            <AppText variant="bodyStrong" numberOfLines={1}>
               {title}
             </AppText>
 
-            <AppText variant="caption" tone="secondary">
-              {realtime.connected ? 'Connected securely' : 'Reconnecting…'}
-            </AppText>
+            <View style={styles.connectionRow}>
+              <View
+                style={[
+                  styles.connectionDot,
+                  {
+                    backgroundColor: realtime.connected
+                      ? theme.colors.success
+                      : theme.colors.textMuted,
+                  },
+                ]}
+              />
+
+              <AppText variant="caption" tone="secondary" numberOfLines={1}>
+                {typingNames.length > 0
+                  ? typingNames.length === 1
+                    ? `${typingNames[0]} is typing…`
+                    : 'Several neighbours are typing…'
+                  : realtime.connected
+                    ? 'Secure conversation'
+                    : 'Reconnecting…'}
+              </AppText>
+            </View>
           </View>
         </View>
 
         {error ? (
           <Pressable
+            accessibilityLabel="Retry conversation"
             accessibilityRole="button"
             onPress={() => {
               void loadConversation();
             }}
-            style={styles.error}
+            style={[
+              styles.error,
+              {
+                backgroundColor: theme.colors.surfaceMuted,
+                borderColor: theme.colors.border,
+                borderRadius: theme.radius.lg,
+              },
+            ]}
           >
-            <AppText
-              variant="caption"
-              style={{
-                color: theme.colors.danger,
-              }}
-            >
-              {error} Tap to retry.
-            </AppText>
+            <View style={styles.errorCopy}>
+              <AppText
+                variant="caption"
+                style={{
+                  color: theme.colors.danger,
+                }}
+              >
+                {error}
+              </AppText>
+
+              <AppText variant="caption" tone="brand">
+                Tap to retry
+              </AppText>
+            </View>
           </Pressable>
         ) : null}
 
@@ -562,9 +616,32 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             <Card variant="muted" style={styles.empty}>
-              <AppText variant="subheading">Start the conversation</AppText>
+              <View
+                style={[
+                  styles.emptyIcon,
+                  {
+                    backgroundColor: `${theme.colors.primary}14`,
+                    borderRadius: theme.radius.pill,
+                  },
+                ]}
+              >
+                <AppText
+                  style={{
+                    color: theme.colors.primary,
+                    fontSize: 24,
+                  }}
+                >
+                  ◌
+                </AppText>
+              </View>
 
-              <AppText tone="secondary">Send a secure message to your neighbour.</AppText>
+              <View style={styles.emptyCopy}>
+                <AppText variant="subheading">Start the conversation</AppText>
+
+                <AppText tone="secondary">
+                  Send a message and start connecting with your neighbour.
+                </AppText>
+              </View>
             </Card>
           }
           ListHeaderComponent={
@@ -587,7 +664,7 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
                   <ActivityIndicator color={theme.colors.primary} size="small" />
                 ) : (
                   <AppText variant="label" tone="brand">
-                    Load older messages
+                    Earlier messages
                   </AppText>
                 )}
               </Pressable>
@@ -603,16 +680,6 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
           renderItem={({ item }) => <MessageBubble currentUserId={user?.id} message={item} />}
           showsVerticalScrollIndicator={false}
         />
-
-        {typingNames.length > 0 ? (
-          <View style={styles.typing}>
-            <AppText variant="caption" tone="brand">
-              {typingNames.length === 1
-                ? `${typingNames[0]} is typing…`
-                : 'Several neighbours are typing…'}
-            </AppText>
-          </View>
-        ) : null}
 
         <View
           style={[
@@ -645,6 +712,7 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
           />
 
           <Pressable
+            accessibilityLabel="Send message"
             accessibilityRole="button"
             accessibilityState={{
               disabled: !text.trim() || sending,
@@ -658,16 +726,22 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
               styles.sendButton,
               {
                 backgroundColor: theme.colors.primary,
-                borderRadius: theme.radius.lg,
-                opacity: !text.trim() || sending ? 0.45 : pressed ? 0.78 : 1,
+                borderRadius: theme.radius.pill,
+                opacity: !text.trim() || sending ? 0.42 : pressed ? 0.78 : 1,
               },
             ]}
           >
             {sending ? (
               <ActivityIndicator color={theme.colors.inverseText} size="small" />
             ) : (
-              <AppText variant="label" tone="inverse">
-                Send
+              <AppText
+                tone="inverse"
+                style={{
+                  fontSize: 20,
+                  fontWeight: '700',
+                }}
+              >
+                ↑
               </AppText>
             )}
           </Pressable>
@@ -687,53 +761,89 @@ const styles = StyleSheet.create({
   loading: {
     alignItems: 'center',
     flex: 1,
-    gap: 14,
+    gap: 12,
     justifyContent: 'center',
   },
   header: {
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    gap: 10,
+    minHeight: 64,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
   backButton: {
     alignItems: 'center',
-    height: 42,
+    height: 38,
     justifyContent: 'center',
-    width: 42,
+    width: 38,
   },
   headerCopy: {
     flex: 1,
-    gap: 2,
+    gap: 3,
+    minWidth: 0,
+  },
+  connectionRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  connectionDot: {
+    borderRadius: 4,
+    height: 7,
+    width: 7,
   },
   error: {
+    borderWidth: StyleSheet.hairlineWidth,
+    marginHorizontal: 14,
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  errorCopy: {
     alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 8,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
   },
   messageList: {
     flexGrow: 1,
-    gap: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 18,
+    gap: 9,
+    paddingBottom: 14,
+    paddingHorizontal: 14,
+    paddingTop: 16,
   },
   empty: {
-    gap: 8,
-    marginTop: 40,
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    gap: 14,
+    marginTop: 34,
+  },
+  emptyIcon: {
+    alignItems: 'center',
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
+  },
+  emptyCopy: {
+    flex: 1,
+    gap: 5,
   },
   loadOlder: {
     alignItems: 'center',
+    alignSelf: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    minHeight: 48,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
+    marginBottom: 8,
+    minHeight: 38,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   messageRow: {
     alignItems: 'flex-end',
     flexDirection: 'row',
-    gap: 9,
+    gap: 7,
   },
   messageRowMine: {
     justifyContent: 'flex-end',
@@ -741,14 +851,25 @@ const styles = StyleSheet.create({
   messageColumn: {
     alignItems: 'flex-start',
     flexShrink: 1,
-    maxWidth: '78%',
+    maxWidth: '82%',
   },
   messageColumnMine: {
     alignItems: 'flex-end',
   },
+  senderName: {
+    marginBottom: 3,
+    marginLeft: 3,
+  },
   bubble: {
-    paddingHorizontal: 14,
-    paddingVertical: 11,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+  },
+  bubbleMine: {
+    borderBottomRightRadius: 6,
+  },
+  bubbleReceived: {
+    borderBottomLeftRadius: 6,
   },
   removedText: {
     fontStyle: 'italic',
@@ -756,37 +877,37 @@ const styles = StyleSheet.create({
   messageMeta: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 7,
-    marginTop: 4,
+    gap: 3,
+    marginLeft: 3,
+    marginTop: 3,
   },
-  typing: {
-    paddingHorizontal: 18,
-    paddingVertical: 7,
+  messageMetaMine: {
+    marginLeft: 0,
+    marginRight: 3,
   },
   composer: {
     alignItems: 'flex-end',
     borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
+    gap: 8,
+    paddingBottom: 9,
+    paddingHorizontal: 12,
+    paddingTop: 8,
   },
   input: {
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     flex: 1,
     fontSize: 16,
-    lineHeight: 22,
-    maxHeight: 130,
-    minHeight: 48,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    lineHeight: 21,
+    maxHeight: 120,
+    minHeight: 44,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
   },
   sendButton: {
     alignItems: 'center',
+    height: 44,
     justifyContent: 'center',
-    minHeight: 48,
-    minWidth: 68,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    width: 44,
   },
 });

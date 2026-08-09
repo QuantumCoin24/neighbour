@@ -4,32 +4,26 @@ import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from '
 
 import { useAuth } from '../auth/auth-context';
 import { AppText, Card, Screen } from '../components';
+import NeighbourMark from '../components/brand/NeighbourMark';
 import { FeedList, useFeedController } from '../features/feed';
 import { useNeighbourTheme } from '../theme';
 
-interface DashboardActionProps {
+interface StatCardProps {
   symbol: string;
-  title: string;
   value: string;
+  label: string;
   description: string;
-  tone: 'community' | 'business' | 'event' | 'information';
+  accent: string;
 }
 
-function DashboardAction({ symbol, title, value, description, tone }: DashboardActionProps) {
+function StatCard({ symbol, value, label, description, accent }: StatCardProps) {
   const { theme } = useNeighbourTheme();
-
-  const accentColor = {
-    community: theme.colors.community,
-    business: theme.colors.business,
-    event: theme.colors.event,
-    information: theme.colors.information,
-  }[tone];
 
   return (
     <Pressable
       accessibilityRole="button"
       style={({ pressed }) => [
-        styles.actionCard,
+        styles.statCard,
         {
           backgroundColor: theme.colors.surface,
           borderColor: theme.colors.border,
@@ -41,31 +35,32 @@ function DashboardAction({ symbol, title, value, description, tone }: DashboardA
     >
       <View
         style={[
-          styles.actionIcon,
+          styles.statIcon,
           {
-            backgroundColor: `${accentColor}18`,
+            backgroundColor: `${accent}14`,
             borderRadius: theme.radius.lg,
           },
         ]}
       >
         <AppText
           style={{
-            color: accentColor,
+            color: accent,
             fontSize: 24,
             lineHeight: 28,
+            fontWeight: '700',
           }}
         >
           {symbol}
         </AppText>
       </View>
 
-      <View style={styles.actionCopy}>
-        <AppText variant="heading">{value}</AppText>
-        <AppText variant="bodyStrong">{title}</AppText>
-        <AppText variant="caption" tone="secondary">
-          {description}
-        </AppText>
-      </View>
+      <AppText style={styles.statValue}>{value}</AppText>
+
+      <AppText variant="bodyStrong">{label}</AppText>
+
+      <AppText variant="caption" tone="secondary">
+        {description}
+      </AppText>
     </Pressable>
   );
 }
@@ -81,7 +76,7 @@ export default function HomeScreen() {
 
   const feed = useFeedController();
 
-  const firstName = user?.displayName.trim().split(/\s+/)[0] ?? 'Neighbour';
+  const firstName = user?.displayName?.trim().split(/\s+/)[0] || 'Neighbour';
 
   const loadDashboard = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -94,10 +89,9 @@ export default function HomeScreen() {
 
     try {
       const data = await getDashboardData();
-
       setDashboard(data);
     } catch {
-      setError('Your dashboard could not be loaded. Pull down to try again.');
+      setError('Dashboard connection unavailable.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -107,13 +101,6 @@ export default function HomeScreen() {
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
-
-  const localArea = dashboard?.profile?.localArea?.trim() || 'Set your local area';
-
-  const communityCount = dashboard?.communities.length ?? 0;
-  const conversationCount = dashboard?.conversations.length ?? 0;
-  const unreadMessages = dashboard?.unreadMessages ?? 0;
-  const unreadNotifications = dashboard?.unreadNotifications ?? 0;
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -129,15 +116,24 @@ export default function HomeScreen() {
     return 'Good evening';
   }, []);
 
+  const localArea = dashboard?.profile?.localArea?.trim() || 'Set your local area';
+
+  const communityCount = dashboard?.communities.length ?? 0;
+  const conversationCount = dashboard?.conversations.length ?? 0;
+  const unreadMessages = dashboard?.unreadMessages ?? 0;
+  const unreadNotifications = dashboard?.unreadNotifications ?? 0;
+
   if (loading) {
     return (
       <Screen scroll={false} contentStyle={styles.loadingScreen}>
-        <ActivityIndicator color={theme.colors.primary} size="large" />
+        <NeighbourMark size={82} />
 
-        <AppText variant="subheading">Opening your dashboard…</AppText>
+        <ActivityIndicator color={theme.colors.primary} size="small" />
+
+        <AppText variant="subheading">Opening Neighbour™</AppText>
 
         <AppText variant="caption" tone="secondary">
-          Loading your communities, messages and local activity.
+          Connecting you to your local world.
         </AppText>
       </Screen>
     );
@@ -145,6 +141,7 @@ export default function HomeScreen() {
 
   return (
     <Screen
+      scroll
       contentStyle={styles.screen}
       refreshControl={
         <RefreshControl
@@ -155,39 +152,20 @@ export default function HomeScreen() {
           tintColor={theme.colors.primary}
         />
       }
-      scroll
     >
+      {/* BRAND HEADER */}
+
       <View style={styles.topBar}>
         <View style={styles.brand}>
-          <View
-            style={[
-              styles.brandMark,
-              {
-                backgroundColor: theme.colors.primaryStrong,
-                borderRadius: theme.radius.lg,
-              },
-              theme.shadows.subtle,
-            ]}
-          >
-            <View style={styles.brandPeople}>
-              <View style={styles.brandPerson} />
-              <View style={[styles.brandPerson, styles.brandPersonMiddle]} />
-              <View style={styles.brandPerson} />
-            </View>
+          <NeighbourMark size={58} />
 
-            <View style={styles.brandHome}>
-              <View style={styles.brandRoofLeft} />
-              <View style={styles.brandRoofRight} />
-            </View>
-          </View>
-
-          <View>
+          <View style={styles.brandCopy}>
             <AppText variant="overline" tone="brand">
-              Neighbour™
+              NEIGHBOUR™
             </AppText>
 
             <AppText variant="caption" tone="muted">
-              Your local world
+              Stronger together. Local forever.
             </AppText>
           </View>
         </View>
@@ -207,81 +185,75 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View
-        style={[
-          styles.hero,
-          {
-            backgroundColor: theme.colors.surface,
-            borderColor: theme.colors.border,
-            borderRadius: theme.radius.xl,
-          },
-          theme.shadows.subtle,
-        ]}
-      >
-        <View style={styles.heroStatus}>
+      {/* GREETING */}
+
+      <View style={styles.welcome}>
+        <AppText variant="overline" tone="brand" style={styles.welcomeEyebrow}>
+          YOUR NEIGHBOURHOOD
+        </AppText>
+
+        <AppText style={styles.welcomeTitle}>
+          {greeting}, {firstName}.
+        </AppText>
+
+        <AppText variant="bodyLarge" tone="secondary" style={styles.welcomeDescription}>
+          Discover what is happening nearby, connect with trusted neighbours and take part in the
+          place you call home.
+        </AppText>
+      </View>
+
+      {/* COMPACT CONNECTION NOTICE */}
+
+      {error ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            void loadDashboard();
+          }}
+          style={({ pressed }) => [
+            styles.connectionNotice,
+            {
+              backgroundColor: theme.colors.surfaceMuted,
+              borderColor: theme.colors.border,
+              borderRadius: theme.radius.lg,
+              opacity: pressed ? 0.75 : 1,
+            },
+          ]}
+        >
           <View
             style={[
-              styles.liveDot,
+              styles.connectionDot,
               {
-                backgroundColor: theme.colors.community,
+                backgroundColor: theme.colors.warning,
               },
             ]}
           />
 
-          <AppText variant="overline" tone="brand">
-            YOUR NEIGHBOURHOOD IS LIVE
-          </AppText>
-        </View>
+          <View style={styles.connectionCopy}>
+            <AppText variant="bodyStrong">Local information is reconnecting</AppText>
 
-        <AppText variant="title">
-          {greeting}, {firstName}.
-        </AppText>
-
-        <AppText variant="bodyLarge" tone="secondary">
-          Here is what is happening across your neighbourhood.
-        </AppText>
-      </View>
-
-      {error ? (
-        <Card
-          variant="muted"
-          style={[
-            styles.errorCard,
-            {
-              borderColor: theme.colors.danger,
-            },
-          ]}
-        >
-          <AppText variant="bodyStrong" style={{ color: theme.colors.danger }}>
-            Dashboard unavailable
-          </AppText>
-
-          <AppText variant="caption" tone="secondary">
-            {error}
-          </AppText>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              void loadDashboard();
-            }}
-          >
-            <AppText variant="label" tone="brand">
-              Try again
+            <AppText variant="caption" tone="secondary">
+              Your Neighbour experience remains available. Tap to retry.
             </AppText>
-          </Pressable>
-        </Card>
+          </View>
+
+          <AppText variant="bodyStrong" tone="brand">
+            ↻
+          </AppText>
+        </Pressable>
       ) : null}
+
+      {/* NEIGHBOURHOOD HERO */}
 
       <Card
         style={[
-          styles.locationCard,
+          styles.neighbourhoodCard,
           {
             backgroundColor: theme.colors.primaryStrong,
           },
         ]}
       >
-        <View style={styles.locationHeader}>
+        <View style={styles.neighbourhoodTop}>
           <View
             style={[
               styles.locationIcon,
@@ -296,81 +268,103 @@ export default function HomeScreen() {
             </AppText>
           </View>
 
-          <View style={styles.locationCopy}>
+          <View style={styles.neighbourhoodCopy}>
             <AppText variant="overline" tone="inverse">
-              Your neighbourhood
+              YOUR NEIGHBOURHOOD
             </AppText>
 
-            <AppText variant="heading" tone="inverse">
+            <AppText variant="heading" tone="inverse" style={styles.neighbourhoodTitle}>
               {localArea}
             </AppText>
           </View>
         </View>
 
-        <AppText variant="body" tone="inverse" style={styles.locationDescription}>
+        <AppText variant="body" tone="inverse" style={styles.neighbourhoodDescription}>
           {dashboard?.profile
-            ? 'Your local profile is connected to your Neighbour account.'
-            : 'Complete your profile to unlock nearby communities, events and trusted updates.'}
+            ? 'Explore communities, events and local activity around you.'
+            : 'Complete your profile to discover communities, events and local updates around you.'}
         </AppText>
+
+        <View style={styles.exploreRow}>
+          <AppText variant="bodyStrong" tone="inverse">
+            Explore your area
+          </AppText>
+
+          <AppText variant="bodyStrong" tone="inverse">
+            →
+          </AppText>
+        </View>
       </Card>
+
+      {/* COMMUNITY STATS */}
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <View>
+          <View style={styles.sectionHeadingCopy}>
             <AppText variant="subheading">Your community</AppText>
 
             <AppText variant="caption" tone="secondary">
-              Live information from your account.
+              Your local connections at a glance.
             </AppText>
           </View>
+
+          <AppText variant="label" tone="brand">
+            See all
+          </AppText>
         </View>
 
-        <View style={styles.actionGrid}>
-          <DashboardAction
+        <View style={styles.statGrid}>
+          <StatCard
             symbol="◎"
-            title="Communities"
             value={String(communityCount)}
+            label="Communities"
             description="Connected groups"
-            tone="community"
+            accent={theme.colors.community}
           />
 
-          <DashboardAction
+          <StatCard
             symbol="◌"
-            title="Messages"
             value={String(unreadMessages)}
+            label="Messages"
             description={
               unreadMessages > 0 ? 'Unread messages' : `${conversationCount} conversations`
             }
-            tone="information"
+            accent={theme.colors.information}
           />
 
-          <DashboardAction
+          <StatCard
             symbol="◇"
-            title="Notifications"
             value={String(unreadNotifications)}
-            description="Unread alerts"
-            tone="event"
+            label="Alerts"
+            description="Local notifications"
+            accent={theme.colors.event}
           />
 
-          <DashboardAction
+          <StatCard
             symbol="⌂"
-            title="Profile"
             value={dashboard?.profile ? 'Ready' : 'Setup'}
+            label="Profile"
             description={dashboard?.profile ? dashboard.profile.username : 'Complete your identity'}
-            tone="business"
+            accent={theme.colors.business}
           />
         </View>
       </View>
 
+      {/* COMMUNITY PULSE */}
+
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <View>
-            <AppText variant="subheading">Community pulse</AppText>
+          <View style={styles.sectionHeadingCopy}>
+            <AppText variant="subheading">Local activity</AppText>
 
             <AppText variant="caption" tone="secondary">
-              Your latest local activity.
+              Recent posts and updates from around you.
             </AppText>
           </View>
+
+          <AppText variant="label" tone="brand">
+            See all
+          </AppText>
         </View>
 
         {feed.loading ? (
@@ -378,17 +372,15 @@ export default function HomeScreen() {
             <ActivityIndicator color={theme.colors.primary} size="small" />
 
             <AppText variant="caption" tone="secondary">
-              Loading community posts…
+              Finding local activity…
             </AppText>
           </View>
         ) : feed.error && feed.posts.length === 0 ? (
           <Card variant="muted" style={styles.feedError}>
-            <AppText variant="bodyStrong" style={{ color: theme.colors.danger }}>
-              Community feed unavailable
-            </AppText>
+            <AppText variant="bodyStrong">Local activity is reconnecting</AppText>
 
             <AppText variant="caption" tone="secondary">
-              {feed.error}
+              Pull down to refresh or try again.
             </AppText>
 
             <Pressable
@@ -423,195 +415,185 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    paddingBottom: 40,
+    paddingBottom: 48,
   },
+
   loadingScreen: {
     alignItems: 'center',
     flex: 1,
     gap: 14,
     justifyContent: 'center',
   },
+
   topBar: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+
   brand: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 12,
-  },
-  brandMark: {
-    alignItems: 'center',
-    height: 42,
-    justifyContent: 'center',
-    width: 42,
-  },
-  avatar: {
-    alignItems: 'center',
-    height: 42,
-    justifyContent: 'center',
-    width: 42,
-  },
-  hero: {
-    gap: 10,
-    marginTop: 34,
-  },
-  errorCard: {
-    gap: 10,
-    marginTop: 24,
-  },
-  locationCard: {
-    gap: 18,
-    marginTop: 28,
-  },
-  locationHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 14,
-  },
-  locationIcon: {
-    alignItems: 'center',
-    height: 48,
-    justifyContent: 'center',
-    width: 48,
-  },
-  locationSymbol: {
-    fontSize: 26,
-    lineHeight: 30,
-  },
-  locationCopy: {
     flex: 1,
-    gap: 3,
+    gap: 13,
   },
-  locationDescription: {
-    opacity: 0.82,
-  },
-  section: {
-    gap: 18,
-    marginTop: 34,
-  },
-  sectionHeader: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  actionGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  actionCard: {
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: 14,
-    minHeight: 170,
-    padding: 18,
-    width: '48%',
-  },
-  actionIcon: {
-    alignItems: 'center',
-    height: 46,
-    justifyContent: 'center',
-    width: 46,
-  },
-  actionCopy: {
-    gap: 4,
-  },
-  feedList: {
-    gap: 14,
-  },
-  feedLoading: {
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 28,
-  },
-  feedError: {
-    gap: 10,
-  },
-  feedCard: {
-    gap: 14,
-  },
-  feedHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  feedAvatar: {
-    alignItems: 'center',
-    height: 42,
-    justifyContent: 'center',
-    width: 42,
-  },
-  feedIdentity: {
+
+  brandCopy: {
     flex: 1,
     gap: 2,
   },
-  emptyCard: {
+
+  avatar: {
+    alignItems: 'center',
+    height: 48,
+    justifyContent: 'center',
+    marginLeft: 12,
+    width: 48,
+  },
+
+  welcome: {
+    gap: 12,
+    marginTop: 38,
+  },
+
+  welcomeEyebrow: {
+    letterSpacing: 1.7,
+  },
+
+  welcomeTitle: {
+    fontSize: 39,
+    fontWeight: '800',
+    letterSpacing: -1.4,
+    lineHeight: 44,
+  },
+
+  welcomeDescription: {
+    lineHeight: 28,
+    maxWidth: 590,
+  },
+
+  connectionNotice: {
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+
+  connectionDot: {
+    borderRadius: 5,
+    height: 8,
+    width: 8,
+  },
+
+  connectionCopy: {
+    flex: 1,
+    gap: 2,
+  },
+
+  neighbourhoodCard: {
+    borderWidth: 0,
+    gap: 22,
+    marginTop: 28,
+    padding: 24,
+  },
+
+  neighbourhoodTop: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 16,
   },
-  emptyIcon: {
+
+  locationIcon: {
     alignItems: 'center',
-    height: 52,
+    height: 58,
     justifyContent: 'center',
-    width: 52,
+    width: 58,
   },
-  emptyCopy: {
+
+  locationSymbol: {
+    fontSize: 29,
+    lineHeight: 34,
+  },
+
+  neighbourhoodCopy: {
     flex: 1,
-    gap: 5,
+    gap: 3,
   },
-  brandPeople: {
+
+  neighbourhoodTitle: {
+    fontSize: 27,
+    lineHeight: 33,
+  },
+
+  neighbourhoodDescription: {
+    lineHeight: 25,
+    opacity: 0.86,
+  },
+
+  exploreRow: {
+    alignItems: 'center',
+    borderTopColor: 'rgba(255,255,255,0.18)',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 17,
+  },
+
+  section: {
+    gap: 18,
+    marginTop: 36,
+  },
+
+  sectionHeader: {
     alignItems: 'flex-end',
     flexDirection: 'row',
-    gap: 2,
-    height: 12,
-    justifyContent: 'center',
-    position: 'absolute',
-    top: 8,
+    gap: 12,
+    justifyContent: 'space-between',
   },
-  brandPerson: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    height: 7,
-    width: 7,
+
+  sectionHeadingCopy: {
+    flex: 1,
+    gap: 3,
   },
-  brandPersonMiddle: {
-    height: 10,
-    width: 8,
-  },
-  brandHome: {
-    bottom: 7,
-    height: 9,
-    position: 'absolute',
-    width: 21,
-  },
-  brandRoofLeft: {
-    backgroundColor: '#FFFFFF',
-    height: 3,
-    left: 1,
-    position: 'absolute',
-    top: 3,
-    transform: [{ rotate: '-32deg' }],
-    width: 12,
-  },
-  brandRoofRight: {
-    backgroundColor: '#FFFFFF',
-    height: 3,
-    position: 'absolute',
-    right: 1,
-    top: 3,
-    transform: [{ rotate: '32deg' }],
-    width: 12,
-  },
-  heroStatus: {
-    alignItems: 'center',
+
+  statGrid: {
     flexDirection: 'row',
-    gap: 7,
+    flexWrap: 'wrap',
+    gap: 12,
   },
-  liveDot: {
-    borderRadius: 5,
-    height: 7,
-    width: 7,
+
+  statCard: {
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 7,
+    minHeight: 178,
+    padding: 18,
+    width: '48%',
+  },
+
+  statIcon: {
+    alignItems: 'center',
+    height: 48,
+    justifyContent: 'center',
+    marginBottom: 6,
+    width: 48,
+  },
+
+  statValue: {
+    fontSize: 31,
+    fontWeight: '800',
+    lineHeight: 36,
+  },
+
+  feedLoading: {
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 30,
+  },
+
+  feedError: {
+    gap: 10,
   },
 });

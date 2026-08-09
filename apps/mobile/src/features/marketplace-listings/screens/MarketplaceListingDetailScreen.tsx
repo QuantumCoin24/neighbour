@@ -340,7 +340,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
             }}
           >
             <AppText variant="label" tone="brand">
-              Try Again
+              Try again
             </AppText>
           </Pressable>
         </Card>
@@ -414,7 +414,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
           </AppText>
 
           <AppText variant="caption" tone="secondary">
-            This item is currently reserved through TransactionOS.
+            This item is currently reserved for another neighbour.
           </AppText>
         </Card>
       ) : null}
@@ -424,7 +424,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
           <AppText variant="label">Sold</AppText>
 
           <AppText variant="caption" tone="secondary">
-            This TransactionOS sale has been completed.
+            This item has been sold.
           </AppText>
         </Card>
       ) : null}
@@ -436,11 +436,11 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
           {marketplaceCategoryLabel(listing.category)}
         </AppText>
 
-        <AppText variant="title">{listing.title}</AppText>
-
         <AppText variant="heading" tone="brand">
           {formatMarketplacePrice(listing.pricePence, listing.isFree)}
         </AppText>
+
+        <AppText variant="title">{listing.title}</AppText>
       </View>
 
       <View style={styles.badges}>
@@ -480,7 +480,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
       </Card>
 
       <Card style={styles.deliveryCard}>
-        <AppText variant="subheading">Receiving the Item</AppText>
+        <AppText variant="subheading">Collection & delivery</AppText>
 
         {listing.collectionAvailable ? (
           <AppText tone="secondary">✓ Collection available</AppText>
@@ -529,8 +529,8 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
         <AppText variant="subheading">Marketplace Safety</AppText>
 
         <AppText variant="caption" tone="secondary">
-          Meet in a public place, inspect the item before paying and never share passwords or
-          verification codes.
+          Meet safely, inspect the item before paying and never share passwords or verification
+          codes.
         </AppText>
 
         {listing.seller.id !== user?.id ? (
@@ -550,7 +550,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
               <ActivityIndicator color={theme.colors.primary} />
             ) : (
               <AppText variant="label" tone="brand">
-                Safety & Reporting
+                Safety & reporting
               </AppText>
             )}
           </Pressable>
@@ -562,10 +562,10 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
       listing.acceptsOffers &&
       !listing.isFree ? (
         <Card variant="muted" style={styles.offerCard}>
-          <AppText variant="subheading">Interested in this item?</AppText>
+          <AppText variant="subheading">Make an offer</AppText>
 
           <AppText variant="caption" tone="secondary">
-            Send the seller a structured offer. They can accept, decline or counter.
+            Suggest a price to the seller. They can accept, decline or counter.
           </AppText>
 
           <Pressable
@@ -584,7 +584,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
               },
             ]}
           >
-            <AppText variant="label">Make an Offer</AppText>
+            <AppText variant="label">Make an offer</AppText>
           </Pressable>
         </Card>
       ) : null}
@@ -604,7 +604,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
           ]}
         >
           <AppText variant="label" tone="brand">
-            View Offers for This Listing
+            View offers
           </AppText>
         </Pressable>
       ) : null}
@@ -614,7 +614,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
           <AppText variant="bodyStrong">This is your listing</AppText>
 
           <AppText variant="caption" tone="secondary">
-            Manage its status from My Listings.
+            Manage this item from your selling dashboard.
           </AppText>
 
           <Pressable
@@ -624,7 +624,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
             }}
           >
             <AppText variant="label" tone="brand">
-              Open My Listings
+              Open selling dashboard
             </AppText>
           </Pressable>
         </Card>
@@ -648,7 +648,7 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
             <ActivityIndicator color={theme.colors.inverseText} />
           ) : (
             <AppText variant="label" tone="inverse">
-              Contact Seller
+              Message seller
             </AppText>
           )}
         </Pressable>
@@ -699,8 +699,8 @@ const styles = StyleSheet.create({
   },
 
   screen: {
-    gap: 18,
-    paddingBottom: 52,
+    gap: 16,
+    paddingBottom: 58,
   },
   loading: {
     alignItems: 'center',
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   heading: {
-    gap: 7,
+    gap: 5,
   },
   badges: {
     flexDirection: 'row',
@@ -739,10 +739,10 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   descriptionCard: {
-    gap: 9,
+    gap: 8,
   },
   deliveryCard: {
-    gap: 8,
+    gap: 7,
   },
   sellerCard: {
     alignItems: 'center',

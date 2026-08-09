@@ -7,6 +7,7 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import NeighbourMark from '../components/brand/NeighbourMark';
 import { useAuth } from '../auth/auth-context';
 import { AppText } from '../components';
 import BusinessDetailScreen from '../screens/BusinessDetailScreen';
@@ -47,26 +48,7 @@ function SessionLoadingScreen() {
         },
       ]}
     >
-      <View
-        style={[
-          styles.loadingMark,
-          {
-            backgroundColor: theme.colors.primaryStrong,
-            borderRadius: theme.radius.xl,
-          },
-          theme.shadows.floating,
-        ]}
-      >
-        <AppText
-          style={{
-            color: theme.colors.inverseText,
-            fontSize: 28,
-            fontWeight: '900',
-          }}
-        >
-          N
-        </AppText>
-      </View>
+      <NeighbourMark size={76} style={theme.shadows.floating} />
 
       <AppText
         style={{

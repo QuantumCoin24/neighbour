@@ -188,10 +188,14 @@ export default function CreateMarketplaceListingScreen({ navigation }: Props) {
 
         <View style={styles.heading}>
           <AppText variant="overline" tone="brand">
-            MarketplaceOS
+            Neighbour Marketplace™
           </AppText>
 
-          <AppText variant="title">Sell an Item</AppText>
+          <AppText variant="title">Create a listing</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            Sell or give something to people nearby.
+          </AppText>
         </View>
       </View>
 
@@ -426,7 +430,7 @@ export default function CreateMarketplaceListingScreen({ navigation }: Props) {
       </Card>
 
       <Card style={styles.deliveryCard}>
-        <AppText variant="subheading">Receiving the Item</AppText>
+        <AppText variant="subheading">Collection & delivery</AppText>
 
         {[
           {
@@ -574,7 +578,7 @@ export default function CreateMarketplaceListingScreen({ navigation }: Props) {
             <ActivityIndicator color={theme.colors.primary} />
           ) : (
             <AppText variant="label" tone="brand">
-              Save Draft
+              Save draft
             </AppText>
           )}
         </Pressable>
@@ -598,7 +602,7 @@ export default function CreateMarketplaceListingScreen({ navigation }: Props) {
             <ActivityIndicator color={theme.colors.inverseText} />
           ) : (
             <AppText variant="label" tone="inverse">
-              Publish Listing
+              Publish listing
             </AppText>
           )}
         </Pressable>
@@ -609,8 +613,8 @@ export default function CreateMarketplaceListingScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: 19,
-    paddingBottom: 55,
+    gap: 17,
+    paddingBottom: 60,
   },
   topBar: {
     alignItems: 'center',
@@ -619,7 +623,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     flex: 1,
-    gap: 4,
+    gap: 5,
   },
   roundButton: {
     alignItems: 'center',
@@ -631,14 +635,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   input: {
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     fontSize: 16,
     minHeight: 52,
     paddingHorizontal: 14,
     paddingVertical: 11,
   },
   description: {
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     fontSize: 16,
     lineHeight: 23,
     minHeight: 150,
@@ -658,7 +662,7 @@ const styles = StyleSheet.create({
   },
   priceInput: {
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     gap: 7,
     minHeight: 52,
@@ -701,7 +705,7 @@ const styles = StyleSheet.create({
   },
   secondaryAction: {
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     flex: 1,
     justifyContent: 'center',
     minHeight: 50,

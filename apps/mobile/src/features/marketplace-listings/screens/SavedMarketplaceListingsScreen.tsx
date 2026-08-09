@@ -90,10 +90,14 @@ export default function SavedMarketplaceListingsScreen({ navigation }: Props) {
 
         <View style={styles.heading}>
           <AppText variant="overline" tone="brand">
-            MarketplaceOS
+            Neighbour Marketplace™
           </AppText>
 
-          <AppText variant="title">Saved Listings</AppText>
+          <AppText variant="title">Saved</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            Listings you want to come back to.
+          </AppText>
         </View>
       </View>
 
@@ -117,7 +121,7 @@ export default function SavedMarketplaceListingsScreen({ navigation }: Props) {
 
           <Pressable accessibilityRole="button" onPress={() => void load()}>
             <AppText variant="label" tone="brand">
-              Try Again
+              Try again
             </AppText>
           </Pressable>
         </Card>
@@ -162,9 +166,9 @@ export default function SavedMarketplaceListingsScreen({ navigation }: Props) {
         </View>
       ) : (
         <Card variant="muted" style={styles.empty}>
-          <AppText variant="subheading">No saved listings</AppText>
+          <AppText variant="subheading">Nothing saved yet</AppText>
 
-          <AppText tone="secondary">Tap the heart on a listing to keep it here.</AppText>
+          <AppText tone="secondary">Save things you like and they will appear here.</AppText>
 
           <Pressable
             accessibilityRole="button"
@@ -173,7 +177,7 @@ export default function SavedMarketplaceListingsScreen({ navigation }: Props) {
             }}
           >
             <AppText variant="label" tone="brand">
-              Browse Listings
+              Browse Marketplace
             </AppText>
           </Pressable>
         </Card>
@@ -184,8 +188,8 @@ export default function SavedMarketplaceListingsScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: 18,
-    paddingBottom: 52,
+    gap: 16,
+    paddingBottom: 56,
   },
   topBar: {
     alignItems: 'center',
@@ -194,7 +198,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     flex: 1,
-    gap: 4,
+    gap: 5,
   },
   roundButton: {
     alignItems: 'center',

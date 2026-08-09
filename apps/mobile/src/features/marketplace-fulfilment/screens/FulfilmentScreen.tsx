@@ -63,7 +63,9 @@ export default function FulfilmentScreen({ route }: Props) {
       );
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error ? caughtError.message : 'Fulfilment could not be created.',
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'We could not start the handover. Please try again.',
       );
     } finally {
       setActing(false);
@@ -89,7 +91,9 @@ export default function FulfilmentScreen({ route }: Props) {
       );
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error ? caughtError.message : 'Collection could not be scheduled.',
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'We could not save the collection details. Please try again.',
       );
     } finally {
       setActing(false);
@@ -124,7 +128,9 @@ export default function FulfilmentScreen({ route }: Props) {
       );
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error ? caughtError.message : 'Delivery could not be configured.',
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'We could not save the delivery details. Please try again.',
       );
     } finally {
       setActing(false);
@@ -160,7 +166,7 @@ export default function FulfilmentScreen({ route }: Props) {
     try {
       const result = await generateMarketplaceFulfilmentQr(fulfilment.id);
 
-      Alert.alert('QR handover token', result.token);
+      Alert.alert('QR handover code', result.token);
     } finally {
       setActing(false);
     }
@@ -192,10 +198,15 @@ export default function FulfilmentScreen({ route }: Props) {
     return (
       <Screen contentStyle={styles.screen}>
         <AppText variant="overline" tone="brand">
-          FulfilmentOS
+          MARKETPLACE
         </AppText>
 
-        <AppText variant="title">Choose Fulfilment</AppText>
+        <AppText variant="title">How will you exchange the item?</AppText>
+
+        <AppText tone="secondary">
+          Choose how the buyer will receive the item. You can then add the handover details
+          securely.
+        </AppText>
 
         <Card style={styles.card}>
           {(['COLLECTION', 'DELIVERY', 'POSTAGE'] as MarketplaceFulfilmentMethod[]).map(
@@ -209,13 +220,21 @@ export default function FulfilmentScreen({ route }: Props) {
                 }}
                 style={styles.actionButton}
               >
-                <AppText variant="label">{method.replaceAll('_', ' ')}</AppText>
+                <AppText variant="label">
+                  {method === 'COLLECTION'
+                    ? 'Collection'
+                    : method === 'DELIVERY'
+                      ? 'Delivery'
+                      : 'Postage'}
+                </AppText>
               </Pressable>
             ),
           )}
         </Card>
 
-        {error ? <AppText style={styles.error}>{error}</AppText> : null}
+        {error ? (
+          <AppText style={[styles.error, { color: theme.colors.danger }]}>{error}</AppText>
+        ) : null}
       </Screen>
     );
   }
@@ -226,26 +245,43 @@ export default function FulfilmentScreen({ route }: Props) {
     <Screen contentStyle={styles.screen}>
       <View style={styles.heading}>
         <AppText variant="overline" tone="brand">
-          FulfilmentOS
+          MARKETPLACE
         </AppText>
 
-        <AppText variant="title">{fulfilment.method.replaceAll('_', ' ')}</AppText>
+        <AppText variant="title">
+          {fulfilment.method === 'COLLECTION'
+            ? 'Collection'
+            : fulfilment.method === 'DELIVERY'
+              ? 'Delivery'
+              : 'Postage'}
+        </AppText>
 
-        <AppText tone="secondary">Status: {fulfilment.status.replaceAll('_', ' ')}</AppText>
+        <AppText tone="secondary">
+          Status:{' '}
+          {fulfilment.status
+            .replaceAll('_', ' ')
+            .toLowerCase()
+            .replace(/^./, (value) => value.toUpperCase())}
+        </AppText>
       </View>
 
       {isSeller && fulfilment.method === 'COLLECTION' ? (
         <Card style={styles.card}>
-          <AppText variant="subheading">Schedule Collection</AppText>
+          <AppText variant="subheading">Arrange collection</AppText>
 
           <TextInput
-            placeholder="Address line 1"
+            placeholder="Collection or delivery address"
             value={addressLine1}
             onChangeText={setAddressLine1}
             style={styles.input}
           />
 
-          <TextInput placeholder="City" value={city} onChangeText={setCity} style={styles.input} />
+          <TextInput
+            placeholder="Town or city"
+            value={city}
+            onChangeText={setCity}
+            style={styles.input}
+          />
 
           <TextInput
             placeholder="Postcode"
@@ -255,7 +291,7 @@ export default function FulfilmentScreen({ route }: Props) {
           />
 
           <TextInput
-            placeholder="2026-08-10T14:00:00.000Z"
+            placeholder="Collection date and time"
             value={scheduledFor}
             onChangeText={setScheduledFor}
             style={styles.input}
@@ -269,23 +305,28 @@ export default function FulfilmentScreen({ route }: Props) {
             }}
             style={styles.actionButton}
           >
-            <AppText variant="label">Save Collection</AppText>
+            <AppText variant="label">Save collection</AppText>
           </Pressable>
         </Card>
       ) : null}
 
       {isSeller && fulfilment.method !== 'COLLECTION' ? (
         <Card style={styles.card}>
-          <AppText variant="subheading">Configure Delivery</AppText>
+          <AppText variant="subheading">Delivery details</AppText>
 
           <TextInput
-            placeholder="Address line 1"
+            placeholder="Collection or delivery address"
             value={addressLine1}
             onChangeText={setAddressLine1}
             style={styles.input}
           />
 
-          <TextInput placeholder="City" value={city} onChangeText={setCity} style={styles.input} />
+          <TextInput
+            placeholder="Town or city"
+            value={city}
+            onChangeText={setCity}
+            style={styles.input}
+          />
 
           <TextInput
             placeholder="Postcode"
@@ -295,14 +336,14 @@ export default function FulfilmentScreen({ route }: Props) {
           />
 
           <TextInput
-            placeholder="Courier"
+            placeholder="Courier (optional)"
             value={courier}
             onChangeText={setCourier}
             style={styles.input}
           />
 
           <TextInput
-            placeholder="Tracking number"
+            placeholder="Tracking number (optional)"
             value={trackingNumber}
             onChangeText={setTrackingNumber}
             style={styles.input}
@@ -316,14 +357,19 @@ export default function FulfilmentScreen({ route }: Props) {
             }}
             style={styles.actionButton}
           >
-            <AppText variant="label">Save Delivery</AppText>
+            <AppText variant="label">Save delivery</AppText>
           </Pressable>
         </Card>
       ) : null}
 
       {isSeller ? (
         <Card style={styles.card}>
-          <AppText variant="subheading">Handover Verification</AppText>
+          <AppText variant="subheading">Secure handover</AppText>
+
+          <AppText tone="secondary">
+            Use a one-time PIN or QR code when the item changes hands. Only confirm the handover
+            once the buyer has received the item.
+          </AppText>
 
           <Pressable
             accessibilityRole="button"
@@ -333,7 +379,7 @@ export default function FulfilmentScreen({ route }: Props) {
             }}
             style={styles.actionButton}
           >
-            <AppText variant="label">Generate PIN</AppText>
+            <AppText variant="label">Generate collection PIN</AppText>
           </Pressable>
 
           <Pressable
@@ -344,17 +390,24 @@ export default function FulfilmentScreen({ route }: Props) {
             }}
             style={styles.actionButton}
           >
-            <AppText variant="label">Generate QR Token</AppText>
+            <AppText variant="label">Generate QR code</AppText>
           </Pressable>
         </Card>
       ) : null}
 
       <Card style={styles.card}>
-        <AppText variant="subheading">Timeline</AppText>
+        <AppText variant="subheading">Handover activity</AppText>
+
+        <AppText tone="secondary">Important updates for this transaction appear here.</AppText>
 
         {fulfilment.timeline.map((event) => (
           <View key={event.id} style={styles.timelineItem}>
-            <AppText variant="label">{event.type.replaceAll('_', ' ')}</AppText>
+            <AppText variant="label">
+              {event.type
+                .replaceAll('_', ' ')
+                .toLowerCase()
+                .replace(/^./, (value) => value.toUpperCase())}
+            </AppText>
 
             <AppText variant="caption" tone="secondary">
               {new Date(event.createdAt).toLocaleString('en-GB')}
@@ -363,20 +416,31 @@ export default function FulfilmentScreen({ route }: Props) {
         ))}
       </Card>
 
-      <Pressable
-        accessibilityRole="button"
-        disabled={acting}
-        onPress={() => {
-          void confirm();
-        }}
-        style={styles.actionButton}
-      >
-        <AppText variant="label">Confirm Fulfilment</AppText>
-      </Pressable>
+      <Card style={styles.confirmCard}>
+        <AppText variant="subheading">Ready to finish?</AppText>
+
+        <AppText tone="secondary">
+          Confirm only when the item has been handed over or successfully delivered.
+        </AppText>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Confirm handover"
+          disabled={acting}
+          onPress={() => {
+            void confirm();
+          }}
+          style={styles.actionButton}
+        >
+          <AppText variant="label">Confirm handover</AppText>
+        </Pressable>
+      </Card>
 
       {acting ? <ActivityIndicator /> : null}
 
-      {error ? <AppText style={styles.error}>{error}</AppText> : null}
+      {error ? (
+        <AppText style={[styles.error, { color: theme.colors.danger }]}>{error}</AppText>
+      ) : null}
     </Screen>
   );
 }
@@ -396,6 +460,9 @@ const styles = StyleSheet.create({
   card: {
     gap: 12,
   },
+  confirmCard: {
+    gap: 12,
+  },
   input: {
     minHeight: 48,
   },
@@ -410,7 +477,5 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 6,
   },
-  error: {
-    color: '#b42318',
-  },
+  error: {},
 });

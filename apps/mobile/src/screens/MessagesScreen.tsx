@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import { AppText, Screen } from '../components';
+import ScreenHero from '../components/system/ScreenHero';
 import { ConversationList, useMessages } from '../features/messages';
 import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
@@ -25,72 +26,28 @@ export default function MessagesScreen() {
         />
       }
     >
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.colors.primaryStrong,
-            borderRadius: theme.radius.xl,
-          },
-          theme.shadows.card,
-        ]}
+      <ScreenHero
+        eyebrow="PRIVATE & LOCAL"
+        title="Messages"
+        description="Private conversations with neighbours, communities and local connections."
+        symbol="◌"
       >
-        <View style={styles.messageBrand}>
+        {messages.unreadCount > 0 ? (
           <View
             style={[
-              styles.messageGlyph,
+              styles.unreadPill,
               {
                 backgroundColor: 'rgba(255,255,255,0.14)',
-                borderRadius: theme.radius.lg,
-              },
-            ]}
-          >
-            <AppText tone="inverse" style={styles.messageGlyphText}>
-              ◌
-            </AppText>
-          </View>
-
-          <View style={styles.messageCopy}>
-            <AppText
-              variant="overline"
-              style={{
-                color: theme.colors.inverseText,
-                opacity: 0.72,
-              }}
-            >
-              PRIVATE & LOCAL
-            </AppText>
-
-            <AppText variant="title" tone="inverse">
-              Messages
-            </AppText>
-          </View>
-
-          <View
-            style={[
-              styles.unreadBadge,
-              {
-                backgroundColor: theme.colors.inverseText,
                 borderRadius: theme.radius.pill,
               },
             ]}
           >
-            <AppText variant="label" tone="brand">
-              {messages.unreadCount}
+            <AppText variant="caption" tone="inverse">
+              {messages.unreadCount} unread
             </AppText>
           </View>
-        </View>
-
-        <AppText
-          variant="bodyLarge"
-          style={{
-            color: theme.colors.inverseText,
-            opacity: 0.84,
-          }}
-        >
-          Conversations with the people and places around you.
-        </AppText>
-      </View>
+        ) : null}
+      </ScreenHero>
 
       <ConversationList
         onOpenConversation={(conversationId) => {
@@ -105,36 +62,13 @@ export default function MessagesScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: 24,
+    gap: 18,
     paddingBottom: 40,
   },
-  header: {
-    gap: 10,
-  },
-  messageBrand: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  messageGlyph: {
-    alignItems: 'center',
-    height: 52,
-    justifyContent: 'center',
-    width: 52,
-  },
-  messageGlyphText: {
-    fontSize: 30,
-    lineHeight: 34,
-  },
-  messageCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  unreadBadge: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 34,
-    minWidth: 34,
-    paddingHorizontal: 9,
+
+  unreadPill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 11,
+    paddingVertical: 6,
   },
 });

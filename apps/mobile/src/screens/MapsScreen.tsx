@@ -10,6 +10,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText, Card } from '../components';
+import CompactStatusCard from '../components/system/CompactStatusCard';
+import ScreenHero from '../components/system/ScreenHero';
 import {
   MapFilters,
   NativeNeighbourMap,
@@ -24,6 +26,12 @@ export default function MapsScreen() {
   const { theme } = useNeighbourTheme();
   const map = useNeighbourMapController();
 
+  useEffect(() => {
+    if (__DEV__ && map.error) {
+      console.warn('[Neighbour/Nearby] load error:', map.error);
+    }
+  }, [map.error]);
+
   const permissionNeedsSettings = map.locationStatus === 'denied';
 
   return (
@@ -36,65 +44,17 @@ export default function MapsScreen() {
         },
       ]}
     >
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.colors.primaryStrong,
-            borderRadius: theme.radius.xl,
-          },
-          theme.shadows.card,
-        ]}
+      <ScreenHero
+        eyebrow="NEIGHBOUR MAPS™"
+        title="Explore nearby"
+        description="Discover communities, events and local places around you."
+        symbol="⌖"
       >
-        <View style={styles.heading}>
-          <View style={styles.mapsBrandRow}>
-            <View
-              style={[
-                styles.mapsGlyph,
-                {
-                  backgroundColor: 'rgba(255,255,255,0.14)',
-                  borderRadius: theme.radius.lg,
-                },
-              ]}
-            >
-              <AppText tone="inverse" style={styles.mapsGlyphText}>
-                ⌖
-              </AppText>
-            </View>
-
-            <View style={styles.mapsTitleCopy}>
-              <AppText
-                variant="overline"
-                style={{
-                  color: theme.colors.inverseText,
-                  opacity: 0.72,
-                }}
-              >
-                NEIGHBOUR MAPS™
-              </AppText>
-
-              <AppText variant="title" tone="inverse">
-                Explore nearby
-              </AppText>
-            </View>
-          </View>
-
-          <AppText
-            variant="bodyLarge"
-            style={{
-              color: theme.colors.inverseText,
-              opacity: 0.84,
-            }}
-          >
-            Your neighbourhood, mapped around you.
-          </AppText>
-        </View>
-
         <View
           style={[
             styles.modeControl,
             {
-              backgroundColor: theme.colors.surfaceMuted,
+              backgroundColor: 'rgba(255,255,255,0.12)',
               borderRadius: theme.radius.pill,
             },
           ]}
@@ -106,24 +66,24 @@ export default function MapsScreen() {
               <Pressable
                 key={mode}
                 accessibilityRole="button"
-                accessibilityState={{
-                  selected,
-                }}
+                accessibilityState={{ selected }}
                 onPress={() => {
                   map.setMode(mode);
                 }}
                 style={[
                   styles.modeButton,
                   {
-                    backgroundColor: selected ? theme.colors.primary : 'transparent',
+                    backgroundColor: selected ? theme.colors.inverseText : 'transparent',
                     borderRadius: theme.radius.pill,
                   },
                 ]}
               >
                 <AppText
                   variant="caption"
-                  tone={selected ? 'inverse' : 'secondary'}
-                  style={styles.modeLabel}
+                  style={{
+                    color: selected ? theme.colors.primaryStrong : theme.colors.inverseText,
+                    fontWeight: '700',
+                  }}
                 >
                   {mode === 'map' ? 'Map' : 'List'}
                 </AppText>
@@ -131,14 +91,16 @@ export default function MapsScreen() {
             );
           })}
         </View>
-      </View>
+      </ScreenHero>
 
       <View style={styles.filters}>
-        <MapFilters
-          counts={map.counts}
-          onToggle={map.toggleType}
-          selectedTypes={map.selectedTypes}
-        />
+        <View style={styles.filterInset}>
+          <MapFilters
+            counts={map.counts}
+            onToggle={map.toggleType}
+            selectedTypes={map.selectedTypes}
+          />
+        </View>
 
         <ScrollView
           contentContainerStyle={styles.radiusContent}
@@ -179,11 +141,11 @@ export default function MapsScreen() {
       {map.usingFallbackLocation ? (
         <Card variant="muted" style={styles.locationCard}>
           <View style={styles.locationCopy}>
-            <AppText variant="bodyStrong">Using the Manchester launch area</AppText>
+            <AppText variant="bodyStrong">Manchester launch area</AppText>
 
             <AppText variant="caption" tone="secondary">
-              Neighbour does not publish or continuously track your precise location. Location
-              access is only used to request nearby public places.
+              Nearby results are using the Manchester launch area until you choose to share your
+              location.
             </AppText>
           </View>
 
@@ -201,7 +163,7 @@ export default function MapsScreen() {
               styles.locationButton,
               {
                 backgroundColor: theme.colors.primary,
-                borderRadius: theme.radius.lg,
+                borderRadius: theme.radius.pill,
                 opacity: map.locating ? 0.55 : 1,
               },
             ]}
@@ -218,29 +180,17 @@ export default function MapsScreen() {
       ) : null}
 
       {map.error ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            void map.retry();
-          }}
-          style={[
-            styles.errorBanner,
-            {
-              backgroundColor: `${theme.colors.danger}14`,
-              borderColor: theme.colors.danger,
-              borderRadius: theme.radius.lg,
-            },
-          ]}
-        >
-          <AppText
-            variant="caption"
-            style={{
-              color: theme.colors.danger,
+        <View style={styles.statusWrap}>
+          <CompactStatusCard
+            title="Nearby is reconnecting"
+            message={map.error}
+            actionLabel="Retry"
+            onPress={() => {
+              void map.retry();
             }}
-          >
-            {map.error} Tap to retry.
-          </AppText>
-        </Pressable>
+            tone="warning"
+          />
+        </View>
       ) : null}
 
       {map.mode === 'map' ? (
@@ -259,7 +209,7 @@ export default function MapsScreen() {
             <View style={styles.mapLoading}>
               <ActivityIndicator color={theme.colors.primary} size="large" />
 
-              <AppText tone="secondary">Loading nearby places…</AppText>
+              <AppText tone="secondary">Finding nearby places…</AppText>
             </View>
           ) : (
             <NativeNeighbourMap
@@ -329,7 +279,7 @@ export default function MapsScreen() {
             </View>
           ) : map.filteredItems.length === 0 ? (
             <Card variant="muted" style={styles.emptyCard}>
-              <AppText variant="subheading">No mapped places yet</AppText>
+              <AppText variant="subheading">No nearby places yet</AppText>
 
               <AppText tone="secondary">
                 Location-enabled communities, events and businesses within this radius will appear
@@ -395,69 +345,66 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  header: {
-    alignItems: 'flex-end',
-    flexDirection: 'row',
-    gap: 14,
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 18,
-  },
-  heading: {
-    flex: 1,
-    gap: 7,
-  },
+
   modeControl: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     padding: 3,
   },
+
   modeButton: {
-    minWidth: 52,
-    paddingHorizontal: 10,
+    minWidth: 62,
+    paddingHorizontal: 14,
     paddingVertical: 8,
   },
-  modeLabel: {
-    textAlign: 'center',
-    fontWeight: '700',
-  },
+
   filters: {
-    gap: 10,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    gap: 12,
+    paddingTop: 14,
+    paddingBottom: 12,
   },
+
+  filterInset: {
+    paddingHorizontal: 18,
+  },
+
   radiusContent: {
     gap: 8,
   },
+
   radiusButton: {
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
   },
+
   locationCard: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 12,
+    gap: 14,
     marginBottom: 12,
     marginHorizontal: 18,
-    padding: 15,
+    padding: 14,
   },
+
   locationCopy: {
     flex: 1,
-    gap: 4,
+    gap: 3,
   },
+
   locationButton: {
     alignItems: 'center',
-    minHeight: 42,
+    minHeight: 40,
     justifyContent: 'center',
     paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingVertical: 8,
   },
-  errorBanner: {
-    borderWidth: StyleSheet.hairlineWidth,
+
+  statusWrap: {
     marginBottom: 10,
     marginHorizontal: 18,
-    padding: 12,
   },
+
   mapContainer: {
     flex: 1,
     marginBottom: 14,
@@ -465,42 +412,50 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+
   mapLoading: {
     alignItems: 'center',
     flex: 1,
-    gap: 14,
+    gap: 12,
     justifyContent: 'center',
   },
+
   recenterButton: {
     alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    bottom: 18,
-    height: 50,
+    bottom: 16,
+    height: 48,
     justifyContent: 'center',
     position: 'absolute',
-    right: 18,
-    width: 50,
+    right: 16,
+    width: 48,
   },
+
   recenterIcon: {
-    fontSize: 24,
-    lineHeight: 28,
+    fontSize: 23,
+    lineHeight: 27,
   },
+
   list: {
     gap: 12,
     paddingBottom: 150,
     paddingHorizontal: 18,
   },
+
   listSummary: {
-    gap: 3,
+    gap: 2,
   },
+
   listLoading: {
     alignItems: 'center',
-    gap: 14,
-    paddingVertical: 60,
+    gap: 12,
+    paddingVertical: 54,
   },
+
   emptyCard: {
-    gap: 8,
+    gap: 7,
   },
+
   selection: {
     bottom: 96,
     gap: 10,
@@ -509,30 +464,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 18,
   },
+
   selectionActions: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 8,
     paddingBottom: 4,
-  },
-  mapsBrandRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  mapsGlyph: {
-    alignItems: 'center',
-    height: 52,
-    justifyContent: 'center',
-    width: 52,
-  },
-  mapsGlyphText: {
-    fontSize: 29,
-    lineHeight: 34,
-  },
-  mapsTitleCopy: {
-    flex: 1,
-    gap: 2,
+    paddingHorizontal: 8,
   },
 });

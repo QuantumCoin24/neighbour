@@ -14,7 +14,7 @@ import {
 
 import { useAuth } from '../auth/auth-context';
 import { AppText, Button, Card, Screen } from '../components';
-import { ProfileHero, ProfileStats, useProfileHub, type ProfileSection } from '../features/profile';
+import { ProfileStats, useProfileHub, type ProfileSection } from '../features/profile';
 import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
@@ -44,11 +44,24 @@ const SECTIONS: {
   },
 ];
 
+function formatCustomerStatus(value: string): string {
+  return value
+    .replaceAll('_', ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { theme } = useNeighbourTheme();
   const profile = useProfileHub();
+
+  useEffect(() => {
+    if (__DEV__ && profile.error) {
+      console.warn('[Neighbour/Profile] load error:', profile.error);
+    }
+  }, [profile.error]);
 
   const [section, setSection] = useState<ProfileSection>('overview');
   const [username, setUsername] = useState('');
@@ -122,7 +135,7 @@ export default function ProfileScreen() {
               opacity: 0.7,
             }}
           >
-            NEIGHBOUR IDENTITY™
+            YOUR NEIGHBOUR PROFILE
           </AppText>
 
           <AppText variant="title" tone="inverse">
@@ -136,7 +149,7 @@ export default function ProfileScreen() {
               opacity: 0.82,
             }}
           >
-            Your identity, reputation and local connections.
+            Your identity, local connections and community standing.
           </AppText>
         </View>
 
@@ -159,13 +172,6 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <ProfileHero
-        badges={profile.badges}
-        profile={profile.profile}
-        trustScore={trustScore}
-        user={user}
-      />
-
       <ProfileStats
         businesses={profile.business ? 1 : 0}
         communities={profile.memberships.length}
@@ -179,36 +185,38 @@ export default function ProfileScreen() {
           onPress={() => {
             void profile.retry();
           }}
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.74 : 1,
+          })}
         >
-          <Card
-            variant="muted"
-            style={[
-              styles.error,
-              {
-                borderColor: theme.colors.danger,
-              },
-            ]}
-          >
-            <AppText
-              style={{
-                color: theme.colors.danger,
-              }}
-            >
-              {profile.error}
-            </AppText>
+          <Card variant="muted" style={styles.error}>
+            <View style={styles.errorRow}>
+              <View
+                style={[
+                  styles.errorDot,
+                  {
+                    backgroundColor: theme.colors.warning,
+                  },
+                ]}
+              />
 
-            <AppText variant="label" tone="brand">
-              Tap to retry
-            </AppText>
+              <View style={styles.errorCopy}>
+                <AppText variant="bodyStrong">Profile is reconnecting</AppText>
+
+                <AppText variant="caption" tone="secondary">
+                  Live profile information is temporarily unavailable.
+                </AppText>
+              </View>
+
+              <AppText variant="label" tone="brand">
+                Retry
+              </AppText>
+            </View>
           </Card>
         </Pressable>
       ) : null}
 
-      <ScrollView
-        contentContainerStyle={styles.tabs}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      >
+      <View style={styles.tabs}>
         {SECTIONS.map((item) => {
           const selected = section === item.id;
 
@@ -237,7 +245,7 @@ export default function ProfileScreen() {
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
 
       {section === 'overview' ? (
         <View style={styles.section}>
@@ -246,12 +254,12 @@ export default function ProfileScreen() {
 
             <AppText tone="secondary">
               {profile.profile?.bio ??
-                'Add a short introduction so your neighbours know more about you.'}
+                'Add a short introduction to help your neighbours get to know you.'}
             </AppText>
           </Card>
 
           <Card variant="muted" style={styles.card}>
-            <AppText variant="subheading">Identity status</AppText>
+            <AppText variant="subheading">Profile status</AppText>
 
             <View style={styles.row}>
               <AppText tone="secondary">Account</AppText>
@@ -300,9 +308,11 @@ export default function ProfileScreen() {
             ))
           ) : (
             <Card variant="muted" style={styles.card}>
-              <AppText variant="subheading">No communities joined</AppText>
+              <AppText variant="subheading">Your communities</AppText>
 
-              <AppText tone="secondary">Communities you join will appear here.</AppText>
+              <AppText tone="secondary">
+                Communities you join will appear here, keeping your local connections in one place.
+              </AppText>
             </Card>
           )}
         </View>
@@ -330,9 +340,11 @@ export default function ProfileScreen() {
             </Card>
           ) : (
             <Card variant="muted" style={styles.card}>
-              <AppText variant="subheading">No business profile</AppText>
+              <AppText variant="subheading">Your business</AppText>
 
-              <AppText tone="secondary">Businesses you own will appear here.</AppText>
+              <AppText tone="secondary">
+                If you create or manage a local business profile, it will appear here.
+              </AppText>
             </Card>
           )}
         </View>
@@ -341,7 +353,7 @@ export default function ProfileScreen() {
       {section === 'trust' ? (
         <View style={styles.section}>
           <Card style={styles.card}>
-            <AppText variant="subheading">Trust intelligence</AppText>
+            <AppText variant="subheading">Neighbour standing</AppText>
 
             <View style={styles.row}>
               <AppText tone="secondary">Trust level</AppText>
@@ -373,18 +385,20 @@ export default function ProfileScreen() {
           </Card>
 
           <Card variant="muted" style={styles.card}>
-            <AppText variant="subheading">Verification records</AppText>
+            <AppText variant="subheading">Verification</AppText>
 
             {profile.trustProfile?.verification.length ? (
               profile.trustProfile.verification.map((verification) => (
                 <View key={verification.id} style={styles.row}>
                   <AppText tone="secondary">{verification.subjectType}</AppText>
 
-                  <AppText variant="bodyStrong">{verification.status}</AppText>
+                  <AppText variant="bodyStrong">
+                    {formatCustomerStatus(verification.status)}
+                  </AppText>
                 </View>
               ))
             ) : (
-              <AppText tone="secondary">No verification records yet.</AppText>
+              <AppText tone="secondary">You do not have any verification records yet.</AppText>
             )}
           </Card>
         </View>
@@ -393,7 +407,7 @@ export default function ProfileScreen() {
       {section === 'settings' ? (
         <View style={styles.section}>
           <Card style={styles.form}>
-            <AppText variant="subheading">Edit profile</AppText>
+            <AppText variant="subheading">Profile details</AppText>
 
             {[
               {
@@ -406,7 +420,7 @@ export default function ProfileScreen() {
                 label: 'Bio',
                 value: bio,
                 setter: setBio,
-                placeholder: 'Tell your neighbours about yourself',
+                placeholder: 'A little about you and your connection to the area',
               },
               {
                 label: 'Avatar URL',
@@ -450,7 +464,7 @@ export default function ProfileScreen() {
                 <AppText variant="bodyStrong">Show local area</AppText>
 
                 <AppText variant="caption" tone="secondary">
-                  Display your local area publicly.
+                  Allow neighbours to see the local area shown on your profile.
                 </AppText>
               </View>
 
@@ -482,7 +496,7 @@ export default function ProfileScreen() {
           </Card>
 
           <Button
-            label="Neighbour Premium"
+            label="Explore Neighbour Premium"
             onPress={() => {
               navigation.navigate('Premium');
             }}
@@ -490,7 +504,7 @@ export default function ProfileScreen() {
           />
 
           <Button
-            label="Sign out"
+            label="Sign out of Neighbour"
             onPress={() => {
               void logout();
             }}
@@ -504,7 +518,7 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: 22,
+    gap: 18,
     paddingBottom: 52,
   },
   loading: {
@@ -517,21 +531,42 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   error: {
-    gap: 8,
+    gap: 0,
+  },
+  errorRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  errorDot: {
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  errorCopy: {
+    flex: 1,
+    gap: 2,
   },
   tabs: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
+    paddingVertical: 2,
   },
   tab: {
+    alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 14,
+    flexGrow: 1,
+    minHeight: 38,
+    minWidth: '30%',
+    paddingHorizontal: 12,
     paddingVertical: 9,
   },
   section: {
-    gap: 12,
+    gap: 10,
   },
   card: {
-    gap: 13,
+    gap: 11,
   },
   form: {
     gap: 16,
@@ -559,14 +594,15 @@ const styles = StyleSheet.create({
   identityHeader: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 13,
-    padding: 16,
+    gap: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 15,
   },
   identityMark: {
     alignItems: 'center',
-    height: 58,
+    height: 54,
     justifyContent: 'center',
-    width: 58,
+    width: 54,
   },
   identityMarkText: {
     fontSize: 25,
@@ -580,8 +616,8 @@ const styles = StyleSheet.create({
   trustBadge: {
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 64,
+    minWidth: 62,
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 7,
   },
 });

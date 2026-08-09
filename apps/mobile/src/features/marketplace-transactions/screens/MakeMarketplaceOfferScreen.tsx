@@ -46,9 +46,9 @@ export default function MakeMarketplaceOfferScreen({ navigation, route }: Props)
           : {}),
       });
 
-      Alert.alert('Offer sent', 'The seller has received your offer.', [
+      Alert.alert('Offer sent', 'Your offer has been sent to the seller.', [
         {
-          text: 'View Offer',
+          text: 'View offer',
           onPress: () => {
             navigation.replace('MarketplaceOfferDetail', {
               offerId: offer.id,
@@ -69,10 +69,10 @@ export default function MakeMarketplaceOfferScreen({ navigation, route }: Props)
     <Screen contentStyle={styles.screen}>
       <View style={styles.heading}>
         <AppText variant="overline" tone="brand">
-          TransactionOS
+          MARKETPLACE
         </AppText>
 
-        <AppText variant="title">Make an Offer</AppText>
+        <AppText variant="title">Make an offer</AppText>
 
         <AppText tone="secondary">{route.params.listingTitle}</AppText>
 
@@ -112,7 +112,9 @@ export default function MakeMarketplaceOfferScreen({ navigation, route }: Props)
         />
       </Card>
 
-      {error ? <AppText style={styles.error}>{error}</AppText> : null}
+      {error ? (
+        <AppText style={[styles.error, { color: theme.colors.danger }]}>{error}</AppText>
+      ) : null}
 
       <Pressable
         accessibilityRole="button"
@@ -122,7 +124,7 @@ export default function MakeMarketplaceOfferScreen({ navigation, route }: Props)
         }}
         style={styles.primaryButton}
       >
-        {submitting ? <ActivityIndicator /> : <AppText variant="label">Send Offer</AppText>}
+        {submitting ? <ActivityIndicator /> : <AppText variant="label">Send offer</AppText>}
       </Pressable>
 
       <AppText variant="caption" tone="secondary">
@@ -165,7 +167,5 @@ const styles = StyleSheet.create({
     minHeight: 54,
     paddingHorizontal: 18,
   },
-  error: {
-    color: '#b42318',
-  },
+  error: {},
 });

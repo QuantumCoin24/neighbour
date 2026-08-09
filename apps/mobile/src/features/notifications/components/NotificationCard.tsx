@@ -13,6 +13,7 @@ interface NotificationCardProps {
 
 function getNotificationPresentation(notification: Notification): {
   symbol: string;
+  eyebrow: string;
   title: string;
   description: string;
 } {
@@ -22,6 +23,7 @@ function getNotificationPresentation(notification: Notification): {
     case 'COMMENT':
       return {
         symbol: '💬',
+        eyebrow: 'POST ACTIVITY',
         title: `${actor} commented`,
         description: 'Someone joined the conversation on your post.',
       };
@@ -29,13 +31,15 @@ function getNotificationPresentation(notification: Notification): {
     case 'REPLY':
       return {
         symbol: '↩',
+        eyebrow: 'CONVERSATION',
         title: `${actor} replied`,
         description: 'A neighbour replied to your comment.',
       };
 
     case 'REACTION':
       return {
-        symbol: '❤️',
+        symbol: '♥',
+        eyebrow: 'REACTION',
         title: `${actor} reacted`,
         description: 'Your post received a new reaction.',
       };
@@ -43,6 +47,7 @@ function getNotificationPresentation(notification: Notification): {
     case 'MESSAGE':
       return {
         symbol: '✉',
+        eyebrow: 'MESSAGE',
         title: `${actor} sent a message`,
         description: 'You have a new conversation update.',
       };
@@ -50,6 +55,7 @@ function getNotificationPresentation(notification: Notification): {
     case 'CONNECTION':
       return {
         symbol: '◎',
+        eyebrow: 'CONNECTION',
         title: `${actor} connected with you`,
         description: 'Your Neighbour network is growing.',
       };
@@ -57,6 +63,7 @@ function getNotificationPresentation(notification: Notification): {
     case 'COMMUNITY_INVITE':
       return {
         symbol: '⌂',
+        eyebrow: 'COMMUNITY',
         title: 'Community invitation',
         description: `${actor} invited you to join a community.`,
       };
@@ -64,6 +71,7 @@ function getNotificationPresentation(notification: Notification): {
     default:
       return {
         symbol: '◇',
+        eyebrow: 'NEIGHBOUR',
         title: 'Neighbour update',
         description: 'There is new activity in your local network.',
       };
@@ -80,45 +88,84 @@ export function NotificationCard({ notification, onOpen, onDismiss }: Notificati
       variant={unread ? 'default' : 'muted'}
       style={[
         styles.card,
-        unread
-          ? {
-              borderColor: theme.colors.primary,
-            }
-          : undefined,
+        {
+          borderColor: unread ? theme.colors.primary : theme.colors.border,
+        },
       ]}
     >
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={`${presentation.title}. ${presentation.description}`}
         onPress={onOpen}
         style={({ pressed }) => [
           styles.main,
           {
-            opacity: pressed ? 0.75 : 1,
+            opacity: pressed ? 0.72 : 1,
           },
         ]}
       >
-        {notification.actor ? (
-          <FeedAvatar
-            avatarUrl={notification.actor.avatarUrl}
-            displayName={notification.actor.displayName}
-          />
-        ) : (
-          <View
-            style={[
-              styles.symbol,
-              {
-                backgroundColor: theme.colors.primarySoft,
-                borderRadius: theme.radius.pill,
-              },
-            ]}
-          >
-            <AppText style={styles.symbolText}>{presentation.symbol}</AppText>
-          </View>
-        )}
+        <View style={styles.leading}>
+          {notification.actor ? (
+            <View style={styles.avatarWrap}>
+              <FeedAvatar
+                avatarUrl={notification.actor.avatarUrl}
+                displayName={notification.actor.displayName}
+              />
+
+              <View
+                style={[
+                  styles.actorSymbol,
+                  {
+                    backgroundColor: theme.colors.primarySoft,
+                    borderColor: theme.colors.surface,
+                    borderRadius: theme.radius.pill,
+                  },
+                ]}
+              >
+                <AppText
+                  style={{
+                    color: theme.colors.primary,
+                    fontSize: 11,
+                    lineHeight: 13,
+                  }}
+                >
+                  {presentation.symbol}
+                </AppText>
+              </View>
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.symbol,
+                {
+                  backgroundColor: theme.colors.primarySoft,
+                  borderRadius: theme.radius.pill,
+                },
+              ]}
+            >
+              <AppText
+                style={{
+                  color: theme.colors.primary,
+                  fontSize: 20,
+                  lineHeight: 24,
+                }}
+              >
+                {presentation.symbol}
+              </AppText>
+            </View>
+          )}
+        </View>
 
         <View style={styles.copy}>
-          <View style={styles.titleRow}>
-            <AppText variant="bodyStrong">{presentation.title}</AppText>
+          <View style={styles.metaRow}>
+            <AppText
+              variant="overline"
+              style={{
+                color: unread ? theme.colors.primary : theme.colors.textMuted,
+              }}
+            >
+              {presentation.eyebrow}
+            </AppText>
 
             {unread ? (
               <View
@@ -134,30 +181,54 @@ export function NotificationCard({ notification, onOpen, onDismiss }: Notificati
             ) : null}
           </View>
 
+          <AppText variant="bodyStrong">{presentation.title}</AppText>
+
           <AppText variant="caption" tone="secondary">
             {presentation.description}
           </AppText>
 
-          <RelativeTime date={notification.createdAt} />
+          <View style={styles.timeRow}>
+            <RelativeTime date={notification.createdAt} />
+
+            {unread ? (
+              <AppText variant="caption" tone="brand">
+                New
+              </AppText>
+            ) : null}
+          </View>
         </View>
       </Pressable>
 
-      <Pressable
-        accessibilityLabel="Dismiss notification"
-        accessibilityRole="button"
-        onPress={onDismiss}
-        style={({ pressed }) => [
-          styles.dismiss,
+      <View
+        style={[
+          styles.footer,
           {
             borderTopColor: theme.colors.border,
-            opacity: pressed ? 0.68 : 1,
           },
         ]}
       >
         <AppText variant="caption" tone="muted">
-          Dismiss
+          {unread ? 'Tap to mark as read' : 'Read'}
         </AppText>
-      </Pressable>
+
+        <Pressable
+          accessibilityLabel="Dismiss notification"
+          accessibilityRole="button"
+          onPress={onDismiss}
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.dismiss,
+            {
+              backgroundColor: pressed ? theme.colors.primarySoft : 'transparent',
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText variant="caption" tone="muted">
+            Dismiss
+          </AppText>
+        </Pressable>
+      </View>
     </Card>
   );
 }
@@ -166,38 +237,74 @@ const styles = StyleSheet.create({
   card: {
     gap: 14,
   },
+
   main: {
     alignItems: 'flex-start',
     flexDirection: 'row',
-    gap: 13,
+    gap: 14,
   },
+
+  leading: {
+    flexShrink: 0,
+  },
+
+  avatarWrap: {
+    position: 'relative',
+  },
+
+  actorSymbol: {
+    alignItems: 'center',
+    borderWidth: 2,
+    bottom: -4,
+    height: 22,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: -5,
+    width: 22,
+  },
+
   symbol: {
     alignItems: 'center',
-    height: 44,
+    height: 48,
     justifyContent: 'center',
-    width: 44,
+    width: 48,
   },
-  symbolText: {
-    fontSize: 20,
-    lineHeight: 24,
-  },
+
   copy: {
     flex: 1,
     gap: 5,
   },
-  titleRow: {
+
+  metaRow: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 8,
     justifyContent: 'space-between',
   },
+
   unreadDot: {
     height: 8,
     width: 8,
   },
-  dismiss: {
-    alignItems: 'flex-end',
+
+  timeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+
+  footer: {
+    alignItems: 'center',
     borderTopWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingTop: 11,
+  },
+
+  dismiss: {
+    paddingHorizontal: 8,
+    paddingVertical: 5,
   },
 });

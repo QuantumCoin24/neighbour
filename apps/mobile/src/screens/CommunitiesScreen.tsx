@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 
 import { AppText, Card, Screen } from '../components';
+import CompactStatusCard from '../components/system/CompactStatusCard';
+import ScreenHero from '../components/system/ScreenHero';
 import { CommunityCard, useCommunityDirectory } from '../features/community';
 import type { AppTabParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
@@ -20,6 +22,12 @@ type CommunitiesScreenProps = BottomTabScreenProps<AppTabParamList, 'Communities
 export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps) {
   const { theme } = useNeighbourTheme();
   const directory = useCommunityDirectory();
+
+  useEffect(() => {
+    if (__DEV__ && directory.error) {
+      console.warn('[Neighbour/Communities] load error:', directory.error);
+    }
+  }, [directory.error]);
 
   useFocusEffect(
     useCallback(() => {
@@ -40,58 +48,12 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
         />
       }
     >
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: theme.colors.primaryStrong,
-            borderRadius: theme.radius.xl,
-          },
-          theme.shadows.card,
-        ]}
+      <ScreenHero
+        eyebrow="NEIGHBOUR COMMUNITIES™"
+        title="Communities"
+        description="Find trusted local groups and connect with the people around you."
+        symbol="◎"
       >
-        <View style={styles.communityIdentity}>
-          <View
-            style={[
-              styles.communityGlyph,
-              {
-                backgroundColor: 'rgba(255,255,255,0.14)',
-                borderRadius: theme.radius.lg,
-              },
-            ]}
-          >
-            <AppText tone="inverse" style={styles.communityGlyphText}>
-              ◎
-            </AppText>
-          </View>
-
-          <View style={styles.communityIdentityCopy}>
-            <AppText
-              variant="overline"
-              style={{
-                color: theme.colors.inverseText,
-                opacity: 0.72,
-              }}
-            >
-              NEIGHBOUR COMMUNITIES™
-            </AppText>
-
-            <AppText variant="title" tone="inverse">
-              Communities
-            </AppText>
-          </View>
-        </View>
-
-        <AppText
-          variant="bodyLarge"
-          style={{
-            color: theme.colors.inverseText,
-            opacity: 0.86,
-          }}
-        >
-          Find your people. Build trusted local spaces. Make your neighbourhood stronger.
-        </AppText>
-
         <Pressable
           accessibilityRole="button"
           onPress={() => {
@@ -103,7 +65,6 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
               backgroundColor: theme.colors.primary,
               borderRadius: theme.radius.pill,
             },
-            theme.shadows.subtle,
           ]}
         >
           <View
@@ -118,7 +79,7 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
             <AppText
               style={{
                 color: theme.colors.primary,
-                fontSize: 20,
+                fontSize: 19,
                 fontWeight: '800',
               }}
             >
@@ -128,17 +89,17 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
 
           <View style={styles.createCopy}>
             <AppText variant="bodyStrong" tone="inverse">
-              Create a Community
+              Create a community
             </AppText>
 
             <AppText
               variant="caption"
               style={{
                 color: theme.colors.inverseText,
-                opacity: 0.82,
+                opacity: 0.78,
               }}
             >
-              Start a new local space
+              Start a trusted local space
             </AppText>
           </View>
 
@@ -146,7 +107,7 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
             ›
           </AppText>
         </Pressable>
-      </View>
+      </ScreenHero>
 
       <View
         style={[
@@ -182,37 +143,15 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
       </View>
 
       {directory.error ? (
-        <Pressable
-          accessibilityRole="button"
+        <CompactStatusCard
+          title="Communities are reconnecting"
+          message="Live community information is temporarily unavailable."
+          actionLabel="Retry"
           onPress={() => {
             void directory.retry();
           }}
-        >
-          <Card
-            variant="muted"
-            style={[
-              styles.errorCard,
-              {
-                borderColor: theme.colors.danger,
-              },
-            ]}
-          >
-            <AppText
-              variant="bodyStrong"
-              style={{
-                color: theme.colors.danger,
-              }}
-            >
-              Communities unavailable
-            </AppText>
-
-            <AppText tone="secondary">{directory.error}</AppText>
-
-            <AppText variant="label" tone="brand">
-              Tap to retry
-            </AppText>
-          </Card>
-        </Pressable>
+          tone="warning"
+        />
       ) : null}
 
       {directory.loading ? (
@@ -227,7 +166,7 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionCopy}>
-                  <AppText variant="subheading">My Communities</AppText>
+                  <AppText variant="subheading">My communities</AppText>
 
                   <AppText variant="caption" tone="secondary">
                     Groups you are connected to.
@@ -262,7 +201,7 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionCopy}>
-                <AppText variant="subheading">Discover Communities</AppText>
+                <AppText variant="subheading">Discover communities</AppText>
 
                 <AppText variant="caption" tone="secondary">
                   Join public communities across Neighbour.
@@ -333,17 +272,13 @@ const styles = StyleSheet.create({
     gap: 24,
     paddingBottom: 48,
   },
-  header: {
-    gap: 10,
-  },
   createButton: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 13,
-    marginTop: 8,
-    minHeight: 72,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    minHeight: 64,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   createIcon: {
     alignItems: 'center',
@@ -374,9 +309,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     minHeight: 52,
-  },
-  errorCard: {
-    gap: 8,
   },
   loading: {
     alignItems: 'center',
@@ -412,24 +344,5 @@ const styles = StyleSheet.create({
   emptyCopy: {
     flex: 1,
     gap: 5,
-  },
-  communityIdentity: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 13,
-  },
-  communityIdentityCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  communityGlyph: {
-    alignItems: 'center',
-    height: 54,
-    justifyContent: 'center',
-    width: 54,
-  },
-  communityGlyphText: {
-    fontSize: 30,
-    lineHeight: 34,
   },
 });

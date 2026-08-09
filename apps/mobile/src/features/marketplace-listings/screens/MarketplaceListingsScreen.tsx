@@ -59,7 +59,11 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
             Neighbour Marketplace™
           </AppText>
 
-          <AppText variant="title">Community Listings</AppText>
+          <AppText variant="title">Buy, sell & give locally</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            Discover useful things from people in your community.
+          </AppText>
         </View>
       </View>
 
@@ -78,7 +82,7 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
           ]}
         >
           <AppText variant="label" tone="inverse">
-            + Sell an Item
+            + Sell an item
           </AppText>
         </Pressable>
 
@@ -96,7 +100,7 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
           ]}
         >
           <AppText variant="label" tone="brand">
-            Saved Listings
+            Saved
           </AppText>
         </Pressable>
 
@@ -114,7 +118,7 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
           ]}
         >
           <AppText variant="label" tone="brand">
-            My Listings
+            Selling
           </AppText>
         </Pressable>
       </View>
@@ -139,7 +143,7 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
           autoCapitalize="none"
           autoCorrect={false}
           onChangeText={listings.setQuery}
-          placeholder="Search nearby items"
+          placeholder="Search Marketplace"
           placeholderTextColor={theme.colors.textMuted}
           selectionColor={theme.colors.primary}
           style={[
@@ -234,10 +238,10 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
         ]}
       >
         <View style={styles.freeCopy}>
-          <AppText variant="bodyStrong">Free items only</AppText>
+          <AppText variant="bodyStrong">Free only</AppText>
 
           <AppText variant="caption" tone="secondary">
-            Show items being given away locally.
+            Show items neighbours are giving away.
           </AppText>
         </View>
 
@@ -318,7 +322,7 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
                 <ActivityIndicator color={theme.colors.primary} />
               ) : (
                 <AppText variant="label" tone="brand">
-                  Load More
+                  Show more listings
                 </AppText>
               )}
             </Pressable>
@@ -326,10 +330,10 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
         </>
       ) : (
         <Card variant="muted" style={styles.empty}>
-          <AppText variant="subheading">No listings found</AppText>
+          <AppText variant="subheading">Nothing here yet</AppText>
 
           <AppText tone="secondary">
-            Try another search or be the first neighbour to list an item.
+            Try another search, change your filters or list something for your neighbours.
           </AppText>
         </Card>
       )}
@@ -339,8 +343,8 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: 18,
-    paddingBottom: 50,
+    gap: 16,
+    paddingBottom: 56,
   },
   topBar: {
     alignItems: 'center',
@@ -349,7 +353,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     flex: 1,
-    gap: 4,
+    gap: 5,
   },
   roundButton: {
     alignItems: 'center',
@@ -359,30 +363,30 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
   primaryAction: {
     alignItems: 'center',
-    flex: 1.2,
+    flex: 1.25,
     justifyContent: 'center',
-    minHeight: 48,
-    paddingHorizontal: 14,
+    minHeight: 46,
+    paddingHorizontal: 13,
   },
   secondaryAction: {
     alignItems: 'center',
-    borderWidth: 1,
-    flex: 1,
+    borderWidth: StyleSheet.hairlineWidth,
+    flex: 0.82,
     justifyContent: 'center',
-    minHeight: 48,
-    paddingHorizontal: 14,
+    minHeight: 46,
+    paddingHorizontal: 11,
   },
   search: {
     alignItems: 'center',
     borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
-    minHeight: 56,
-    paddingHorizontal: 16,
+    minHeight: 52,
+    paddingHorizontal: 15,
   },
   searchSymbol: {
     fontSize: 21,
@@ -390,22 +394,23 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    minHeight: 52,
+    minHeight: 48,
   },
   categories: {
     gap: 8,
   },
   category: {
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 13,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
   },
   freeToggle: {
     alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    gap: 12,
-    padding: 13,
+    gap: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
   },
   freeCopy: {
     flex: 1,
@@ -422,14 +427,15 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 12,
     justifyContent: 'space-between',
   },
   loadMore: {
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: 46,
+    marginTop: 4,
   },
   empty: {
     gap: 8,

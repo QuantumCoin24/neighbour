@@ -25,6 +25,13 @@ import { useNeighbourTheme } from '../theme';
 
 type PremiumScreenProps = NativeStackScreenProps<RootStackParamList, 'Premium'>;
 
+function formatCustomerStatus(value: string): string {
+  return value
+    .replaceAll('_', ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
 function displayStorePrice(
   productId: AppleSubscriptionProductId,
   products: Array<{
@@ -93,7 +100,7 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
           <AppText variant="bodyStrong">Neighbour Premium</AppText>
 
           <AppText variant="caption" tone="secondary">
-            Secure subscriptions through Apple
+            Membership & benefits
           </AppText>
         </View>
       </View>
@@ -123,12 +130,12 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
           </AppText>
 
           <AppText variant="heading" tone="inverse">
-            More power for your local world
+            More from your neighbourhood
           </AppText>
 
           <AppText tone="inverse">
-            Upgrade through Apple and unlock premium personal or business tools while the core
-            Neighbour experience remains free.
+            Unlock more ways to discover, connect and grow while the essential Neighbour experience
+            stays free for everyone.
           </AppText>
         </Card>
 
@@ -136,7 +143,7 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
           <View style={styles.loading}>
             <ActivityIndicator color={theme.colors.primary} size="large" />
 
-            <AppText tone="secondary">Loading your subscription…</AppText>
+            <AppText tone="secondary">Checking your membership…</AppText>
           </View>
         ) : null}
 
@@ -151,7 +158,9 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
             <View style={styles.row}>
               <AppText tone="secondary">Status</AppText>
 
-              <AppText variant="bodyStrong">{premium.overview.subscription.status}</AppText>
+              <AppText variant="bodyStrong">
+                {formatCustomerStatus(premium.overview.subscription.status)}
+              </AppText>
             </View>
 
             <View style={styles.row}>
@@ -164,10 +173,10 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
 
         {!storeKit.connected ? (
           <Card variant="muted" style={styles.notice}>
-            <AppText variant="bodyStrong">Connecting securely to the App Store</AppText>
+            <AppText variant="bodyStrong">Getting subscriptions ready</AppText>
 
             <AppText variant="caption" tone="secondary">
-              Apple purchasing becomes available when the StoreKit connection is ready.
+              Your subscription options will appear as soon as the App Store is ready.
             </AppText>
           </Card>
         ) : null}
@@ -206,7 +215,7 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
 
         {storeKit.successMessage ? (
           <Card variant="muted" style={styles.success}>
-            <AppText variant="bodyStrong">Subscription updated</AppText>
+            <AppText variant="bodyStrong">Membership updated</AppText>
 
             <AppText variant="caption" tone="secondary">
               {storeKit.successMessage}
@@ -250,8 +259,8 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
 
                 <AppText tone="secondary">
                   {details.plan === 'BUSINESS'
-                    ? 'Business analytics, marketplace boosts, scheduled offers and priority support.'
-                    : 'Advanced discovery, premium profile tools, enhanced storage and community boosts.'}
+                    ? 'Grow your local presence with business insights, marketplace boosts, scheduled offers and priority support.'
+                    : 'Discover more nearby with enhanced search, profile tools, additional storage and community boosts.'}
                 </AppText>
 
                 <Pressable
@@ -273,10 +282,10 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
                   ]}
                 >
                   {isPurchasing ? (
-                    <ActivityIndicator color="#ffffff" size="small" />
+                    <ActivityIndicator color={theme.colors.inverseText} size="small" />
                   ) : (
                     <AppText variant="label" tone="inverse">
-                      {isCurrent ? 'Active plan' : 'Subscribe with Apple'}
+                      {isCurrent ? 'Your plan' : 'Choose this plan'}
                     </AppText>
                   )}
                 </Pressable>
@@ -303,7 +312,7 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
             <ActivityIndicator color={theme.colors.primary} size="small" />
           ) : (
             <AppText variant="label" tone="brand">
-              Restore Apple purchases
+              Restore purchases
             </AppText>
           )}
         </Pressable>
@@ -317,17 +326,17 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
             style={styles.manageButton}
           >
             <AppText variant="label" tone="brand">
-              Manage subscription with Apple
+              Manage subscription
             </AppText>
           </Pressable>
         ) : null}
 
         <Card variant="muted" style={styles.notice}>
-          <AppText variant="bodyStrong">Apple-secured billing</AppText>
+          <AppText variant="bodyStrong">Secure billing</AppText>
 
           <AppText variant="caption" tone="secondary">
-            Purchases are processed by Apple. Premium access is granted only after the signed
-            StoreKit transaction is accepted by the Neighbour backend.
+            Subscriptions are securely processed by Apple. You can restore purchases or manage your
+            subscription at any time.
           </AppText>
         </Card>
       </ScrollView>

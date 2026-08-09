@@ -63,7 +63,7 @@ export function CommunityHero({
 
         <View style={styles.identity}>
           <AppText variant="overline" tone="inverse">
-            CommunityOS
+            NEIGHBOUR COMMUNITY
           </AppText>
 
           <AppText variant="heading" tone="inverse">
@@ -187,7 +187,7 @@ export function CommunityHero({
               <ActivityIndicator color={theme.colors.primary} size="small" />
             ) : (
               <AppText variant="label" tone="brand">
-                {community.joinPolicy === 'APPROVAL' ? 'Request to Join' : 'Join Community'}
+                {community.joinPolicy === 'APPROVAL' ? 'Request to join' : 'Join community'}
               </AppText>
             )}
           </Pressable>
@@ -218,23 +218,24 @@ export function CommunityHero({
 
 const styles = StyleSheet.create({
   hero: {
-    gap: 18,
+    gap: 16,
+    overflow: 'hidden',
   },
   identityRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 15,
+    gap: 13,
   },
   mark: {
     alignItems: 'center',
-    height: 70,
+    height: 62,
     justifyContent: 'center',
-    width: 70,
+    width: 62,
   },
   markSymbol: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
-    lineHeight: 38,
+    lineHeight: 34,
   },
   identity: {
     flex: 1,
@@ -248,8 +249,8 @@ const styles = StyleSheet.create({
   badge: {
     backgroundColor: 'rgba(255,255,255,0.11)',
     borderRadius: 999,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   actions: {
     alignItems: 'center',
@@ -258,15 +259,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   membership: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
   },
   join: {
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    minHeight: 42,
+    paddingHorizontal: 17,
+    paddingVertical: 9,
   },
   leave: {
     alignItems: 'center',
@@ -286,7 +287,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     flexBasis: '46%',
     flexGrow: 1,
-    gap: 2,
-    padding: 12,
+    gap: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
 });

@@ -63,10 +63,10 @@ export default function MarketplaceTransactionsScreen({ navigation }: Props) {
     >
       <View style={styles.heading}>
         <AppText variant="overline" tone="brand">
-          TransactionOS
+          MARKETPLACE
         </AppText>
 
-        <AppText variant="title">My Transactions</AppText>
+        <AppText variant="title">Transactions</AppText>
 
         <AppText tone="secondary">
           Track reserved, collected, delivered and completed Marketplace trades.
@@ -81,7 +81,7 @@ export default function MarketplaceTransactionsScreen({ navigation }: Props) {
 
       {error ? (
         <Card style={styles.card}>
-          <AppText style={styles.error}>{error}</AppText>
+          <AppText style={[styles.error, { color: theme.colors.danger }]}>{error}</AppText>
 
           <Pressable
             accessibilityRole="button"
@@ -90,7 +90,7 @@ export default function MarketplaceTransactionsScreen({ navigation }: Props) {
             }}
           >
             <AppText variant="label" tone="brand">
-              Try Again
+              Try again
             </AppText>
           </Pressable>
         </Card>
@@ -123,7 +123,12 @@ export default function MarketplaceTransactionsScreen({ navigation }: Props) {
                   <View style={styles.summary}>
                     <AppText variant="subheading">{role}</AppText>
 
-                    <AppText tone="secondary">{transaction.status.replaceAll('_', ' ')}</AppText>
+                    <AppText tone="secondary">
+                      {transaction.status
+                        .replaceAll('_', ' ')
+                        .toLowerCase()
+                        .replace(/^./, (value) => value.toUpperCase())}
+                    </AppText>
                   </View>
 
                   <AppText variant="label" tone="brand">
@@ -171,7 +176,5 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
-  error: {
-    color: '#b42318',
-  },
+  error: {},
 });
