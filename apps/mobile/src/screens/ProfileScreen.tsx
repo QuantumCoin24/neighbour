@@ -501,8 +501,17 @@ export default function ProfileScreen() {
                         const selected = selection.items[0];
 
                         if (!selected) {
+                          setProfilePhotoError(
+                            selection.rejectedCount > 0
+                              ? `The selected photo was rejected (${selection.rejectedCount}). Choose an image smaller than 20 MB.`
+                              : 'Neighbour did not receive the selected photo from iOS.',
+                          );
                           return;
                         }
+
+                        setProfilePhotoError(
+                          `Selected: ${selected.fileName} · ${selected.mimeType} · ${selected.sizeBytes} bytes`,
+                        );
 
                         const uploaded = await mediaUpload.upload([selected]);
                         const url = uploaded[0]?.asset.url;
@@ -538,8 +547,17 @@ export default function ProfileScreen() {
                         const selected = selection.items[0];
 
                         if (!selected) {
+                          setProfilePhotoError(
+                            selection.rejectedCount > 0
+                              ? `The selected photo was rejected (${selection.rejectedCount}). Choose an image smaller than 20 MB.`
+                              : 'Neighbour did not receive the photo from the camera.',
+                          );
                           return;
                         }
+
+                        setProfilePhotoError(
+                          `Selected: ${selected.fileName} · ${selected.mimeType} · ${selected.sizeBytes} bytes`,
+                        );
 
                         const uploaded = await mediaUpload.upload([selected]);
                         const url = uploaded[0]?.asset.url;
