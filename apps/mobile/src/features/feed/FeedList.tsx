@@ -44,7 +44,7 @@ export function FeedList({
               color: theme.colors.danger,
             }}
           >
-            More posts could not be loaded
+            More local updates are unavailable
           </AppText>
 
           <AppText variant="caption" tone="secondary">
@@ -75,7 +75,7 @@ export function FeedList({
           <ActivityIndicator color={theme.colors.primary} size="small" />
 
           <AppText variant="caption" tone="secondary">
-            Loading more posts…
+            Loading more activity…
           </AppText>
         </View>
       ) : null}
@@ -96,7 +96,7 @@ export function FeedList({
           ]}
         >
           <AppText variant="bodyStrong" tone="brand">
-            Load more posts
+            Show more activity
           </AppText>
         </Pressable>
       ) : null}
@@ -104,7 +104,7 @@ export function FeedList({
       {!hasMore && !loadingMore ? (
         <View style={styles.endMessage}>
           <AppText variant="caption" tone="muted">
-            You are up to date.
+            You’re all caught up.
           </AppText>
         </View>
       ) : null}
@@ -114,10 +114,10 @@ export function FeedList({
 
 const styles = StyleSheet.create({
   list: {
-    gap: 14,
+    gap: 12,
   },
   footerMessage: {
-    gap: 10,
+    gap: 7,
   },
   footerAction: {
     alignSelf: 'flex-start',
@@ -125,16 +125,16 @@ const styles = StyleSheet.create({
   },
   loadingFooter: {
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 18,
+    gap: 8,
+    paddingVertical: 16,
   },
   loadMoreButton: {
     alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth,
     justifyContent: 'center',
-    minHeight: 52,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+    minHeight: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   endMessage: {
     alignItems: 'center',

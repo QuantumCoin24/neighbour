@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../../auth/auth-context';
 import { AppText, Card, Screen } from '../../../components';
 import type { RootStackParamList } from '../../../navigation/routes';
+import { useNeighbourTheme } from '../../../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MarketplaceOfferDetail'>;
 
@@ -24,6 +25,7 @@ function formatPrice(value: number): string {
 }
 
 export default function MarketplaceOfferDetailScreen({ navigation, route }: Props) {
+  const { theme } = useNeighbourTheme();
   const { user } = useAuth();
 
   const [offer, setOffer] = useState<MarketplacePeerOffer | null>(null);
@@ -59,7 +61,7 @@ export default function MarketplaceOfferDetailScreen({ navigation, route }: Prop
       const updated = await action();
       setOffer(updated);
 
-      Alert.alert('TransactionOS', successMessage);
+      Alert.alert('MARKETPLACE', successMessage);
     } catch (caughtError) {
       setError(
         caughtError instanceof Error ? caughtError.message : 'The offer could not be updated.',
@@ -121,7 +123,7 @@ export default function MarketplaceOfferDetailScreen({ navigation, route }: Prop
     <Screen contentStyle={styles.screen}>
       <View style={styles.heading}>
         <AppText variant="overline" tone="brand">
-          TransactionOS
+          MARKETPLACE
         </AppText>
 
         <AppText variant="title">{offer.listing.title}</AppText>
@@ -130,7 +132,13 @@ export default function MarketplaceOfferDetailScreen({ navigation, route }: Prop
           {formatPrice(offer.amountPence)}
         </AppText>
 
-        <AppText tone="secondary">Status: {offer.status.replaceAll('_', ' ')}</AppText>
+        <AppText tone="secondary">
+          Status:{' '}
+          {offer.status
+            .replaceAll('_', ' ')
+            .toLowerCase()
+            .replace(/^./, (value) => value.toUpperCase())}
+        </AppText>
       </View>
 
       <Card style={styles.section}>
@@ -154,7 +162,12 @@ export default function MarketplaceOfferDetailScreen({ navigation, route }: Prop
 
         {offer.history.map((item) => (
           <View key={item.id} style={styles.timelineItem}>
-            <AppText variant="label">{item.toStatus.replaceAll('_', ' ')}</AppText>
+            <AppText variant="label">
+              {item.toStatus
+                .replaceAll('_', ' ')
+                .toLowerCase()
+                .replace(/^./, (value) => value.toUpperCase())}
+            </AppText>
 
             {item.amountPence !== null ? (
               <AppText tone="brand">{formatPrice(item.amountPence)}</AppText>
@@ -190,7 +203,7 @@ export default function MarketplaceOfferDetailScreen({ navigation, route }: Prop
             }}
             style={styles.actionButton}
           >
-            <AppText variant="label">Send Counter Offer</AppText>
+            <AppText variant="label">Send counter offer</AppText>
           </Pressable>
 
           <Pressable
@@ -204,7 +217,7 @@ export default function MarketplaceOfferDetailScreen({ navigation, route }: Prop
             }}
             style={styles.actionButton}
           >
-            <AppText variant="label">Accept Offer</AppText>
+            <AppText variant="label">Accept offer</AppText>
           </Pressable>
 
           <Pressable
@@ -215,7 +228,7 @@ export default function MarketplaceOfferDetailScreen({ navigation, route }: Prop
             }}
             style={styles.actionButton}
           >
-            <AppText variant="label">Decline Offer</AppText>
+            <AppText variant="label">Decline offer</AppText>
           </Pressable>
         </Card>
       ) : null}
@@ -229,7 +242,7 @@ export default function MarketplaceOfferDetailScreen({ navigation, route }: Prop
           }}
           style={styles.actionButton}
         >
-          <AppText variant="label">Withdraw Offer</AppText>
+          <AppText variant="label">Withdraw offer</AppText>
         </Pressable>
       ) : null}
 
@@ -243,13 +256,15 @@ export default function MarketplaceOfferDetailScreen({ navigation, route }: Prop
           }}
           style={styles.actionButton}
         >
-          <AppText variant="label">View Transaction</AppText>
+          <AppText variant="label">View transaction</AppText>
         </Pressable>
       ) : null}
 
       {acting ? <ActivityIndicator /> : null}
 
-      {error ? <AppText style={styles.error}>{error}</AppText> : null}
+      {error ? (
+        <AppText style={[styles.error, { color: theme.colors.danger }]}>{error}</AppText>
+      ) : null}
     </Screen>
   );
 }
@@ -283,7 +298,5 @@ const styles = StyleSheet.create({
     minHeight: 50,
     paddingHorizontal: 16,
   },
-  error: {
-    color: '#b42318',
-  },
+  error: {},
 });

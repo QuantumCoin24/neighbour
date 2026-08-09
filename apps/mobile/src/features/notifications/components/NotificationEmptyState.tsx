@@ -12,26 +12,31 @@ export function NotificationEmptyState() {
         style={[
           styles.icon,
           {
-            backgroundColor: `${theme.colors.event}18`,
+            backgroundColor: theme.colors.primarySoft,
             borderRadius: theme.radius.pill,
           },
         ]}
       >
         <AppText
           style={{
-            color: theme.colors.event,
-            fontSize: 26,
+            color: theme.colors.primary,
+            fontSize: 27,
+            lineHeight: 31,
           }}
         >
-          ◇
+          ✓
         </AppText>
       </View>
 
       <View style={styles.copy}>
+        <AppText variant="overline" tone="brand">
+          YOU'RE UP TO DATE
+        </AppText>
+
         <AppText variant="subheading">You are all caught up</AppText>
 
         <AppText tone="secondary">
-          Community activity, messages, reactions and local updates will appear here.
+          New messages, reactions, community activity and local updates will appear here.
         </AppText>
       </View>
     </Card>
@@ -41,17 +46,20 @@ export function NotificationEmptyState() {
 const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
-    flexDirection: 'row',
-    gap: 16,
+    gap: 18,
+    paddingVertical: 24,
   },
+
   icon: {
     alignItems: 'center',
-    height: 56,
+    height: 62,
     justifyContent: 'center',
-    width: 56,
+    width: 62,
   },
+
   copy: {
-    flex: 1,
-    gap: 6,
+    alignItems: 'center',
+    gap: 7,
+    maxWidth: 340,
   },
 });

@@ -7,12 +7,20 @@ export function FeedEmptyState() {
   const { theme } = useNeighbourTheme();
 
   return (
-    <Card variant="muted" style={styles.card}>
+    <Card
+      variant="muted"
+      style={[
+        styles.card,
+        {
+          borderRadius: theme.radius.xl,
+        },
+      ]}
+    >
       <View
         style={[
           styles.icon,
           {
-            backgroundColor: theme.colors.surfaceStrong,
+            backgroundColor: theme.colors.primarySoft,
             borderRadius: theme.radius.pill,
           },
         ]}
@@ -20,18 +28,20 @@ export function FeedEmptyState() {
         <AppText
           style={{
             color: theme.colors.primary,
-            fontSize: 24,
+            fontSize: 23,
+            fontWeight: '700',
           }}
         >
-          ✦
+          ◎
         </AppText>
       </View>
 
       <View style={styles.copy}>
-        <AppText variant="bodyStrong">Your feed is ready</AppText>
+        <AppText variant="bodyStrong">Your local feed is ready</AppText>
 
-        <AppText variant="caption" tone="secondary">
-          Community posts and trusted local updates will appear here as you connect with your area.
+        <AppText variant="caption" tone="secondary" style={styles.description}>
+          Posts, recommendations and trusted local updates will appear here as your Neighbour
+          community grows.
         </AppText>
       </View>
     </Card>
@@ -42,16 +52,23 @@ const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 16,
+    gap: 14,
+    padding: 16,
   },
+
   icon: {
     alignItems: 'center',
-    height: 52,
+    height: 48,
     justifyContent: 'center',
-    width: 52,
+    width: 48,
   },
+
   copy: {
     flex: 1,
-    gap: 5,
+    gap: 4,
+  },
+
+  description: {
+    lineHeight: 19,
   },
 });

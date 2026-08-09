@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../../auth/auth-context';
 import { AppText, Card, Screen } from '../../../components';
 import type { RootStackParamList } from '../../../navigation/routes';
+import { useNeighbourTheme } from '../../../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MarketplaceTransactionDetail'>;
 
@@ -22,6 +23,7 @@ function formatPrice(value: number): string {
 }
 
 export default function MarketplaceTransactionDetailScreen({ navigation, route }: Props) {
+  const { theme } = useNeighbourTheme();
   const { user } = useAuth();
 
   const [transaction, setTransaction] = useState<MarketplaceTransaction | null>(null);
@@ -54,7 +56,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
 
     try {
       setTransaction(await action());
-      Alert.alert('TransactionOS', message);
+      Alert.alert('MARKETPLACE', message);
     } catch (caughtError) {
       setError(
         caughtError instanceof Error ? caughtError.message : 'Transaction could not be updated.',
@@ -90,7 +92,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
   return (
     <Screen contentStyle={styles.screen}>
       <AppText variant="overline" tone="brand">
-        TransactionOS
+        MARKETPLACE
       </AppText>
 
       <AppText variant="title">Marketplace Transaction</AppText>
@@ -98,7 +100,13 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
       <Card style={styles.card}>
         <AppText variant="subheading">{formatPrice(transaction.agreedPricePence)}</AppText>
 
-        <AppText>Status: {transaction.status.replaceAll('_', ' ')}</AppText>
+        <AppText>
+          Status:{' '}
+          {transaction.status
+            .replaceAll('_', ' ')
+            .toLowerCase()
+            .replace(/^./, (value) => value.toUpperCase())}
+        </AppText>
 
         <AppText tone="secondary">
           Reserved: {new Date(transaction.reservedAt).toLocaleString('en-GB')}
@@ -117,7 +125,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
           }}
           style={styles.actionButton}
         >
-          <AppText variant="label">Complete Sale</AppText>
+          <AppText variant="label">Complete sale</AppText>
         </Pressable>
       ) : null}
 
@@ -133,13 +141,15 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
           }}
           style={styles.actionButton}
         >
-          <AppText variant="label">Cancel Transaction</AppText>
+          <AppText variant="label">Cancel transaction</AppText>
         </Pressable>
       ) : null}
 
       {acting ? <ActivityIndicator /> : null}
 
-      {error ? <AppText style={styles.error}>{error}</AppText> : null}
+      {error ? (
+        <AppText style={[styles.error, { color: theme.colors.danger }]}>{error}</AppText>
+      ) : null}
       <Pressable
         accessibilityRole="button"
         onPress={() => {
@@ -150,7 +160,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
         }}
         style={styles.actionButton}
       >
-        <AppText variant="label">Open Fulfilment</AppText>
+        <AppText variant="label">Open fulfilment</AppText>
       </Pressable>
     </Screen>
   );
@@ -175,7 +185,5 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: 16,
   },
-  error: {
-    color: '#b42318',
-  },
+  error: {},
 });

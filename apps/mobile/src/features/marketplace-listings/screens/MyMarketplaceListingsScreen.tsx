@@ -102,10 +102,14 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
 
         <View style={styles.heading}>
           <AppText variant="overline" tone="brand">
-            MarketplaceOS
+            Neighbour Marketplace™
           </AppText>
 
-          <AppText variant="title">My Listings</AppText>
+          <AppText variant="title">Selling</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            Manage the things you have listed.
+          </AppText>
         </View>
       </View>
 
@@ -123,7 +127,7 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
         ]}
       >
         <AppText variant="label" tone="inverse">
-          + Create New Listing
+          + Create listing
         </AppText>
       </Pressable>
 
@@ -184,7 +188,10 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
                     ]}
                   >
                     <AppText variant="caption" tone="brand">
-                      {listing.status}
+                      {listing.status
+                        .replaceAll('_', ' ')
+                        .toLowerCase()
+                        .replace(/^./, (value) => value.toUpperCase())}
                     </AppText>
                   </View>
                 </View>
@@ -326,9 +333,11 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
         </View>
       ) : (
         <Card variant="muted" style={styles.empty}>
-          <AppText variant="subheading">No listings yet</AppText>
+          <AppText variant="subheading">Nothing listed yet</AppText>
 
-          <AppText tone="secondary">Create your first community marketplace listing.</AppText>
+          <AppText tone="secondary">
+            Create a listing to sell or give something to your community.
+          </AppText>
         </Card>
       )}
     </Screen>
@@ -337,8 +346,8 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   screen: {
-    gap: 18,
-    paddingBottom: 52,
+    gap: 16,
+    paddingBottom: 56,
   },
   topBar: {
     alignItems: 'center',
@@ -347,7 +356,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     flex: 1,
-    gap: 4,
+    gap: 5,
   },
   roundButton: {
     alignItems: 'center',

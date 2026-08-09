@@ -246,7 +246,7 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
                   Welcome
                 </AppText>
 
-                <AppText variant="subheading">A message from the community</AppText>
+                <AppText variant="subheading">Welcome to the community</AppText>
 
                 <AppText tone="secondary">{detail.community.welcomeMessage}</AppText>
               </Card>
@@ -264,7 +264,7 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
               {detail.enabledFeatures.map((feature) => (
                 <Card key={feature} variant="muted" style={styles.featureCard}>
                   <AppText variant="caption" tone="brand">
-                    Available
+                    Enabled
                   </AppText>
 
                   <AppText variant="bodyStrong">{feature}</AppText>
@@ -342,7 +342,7 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
                 <AppText variant="bodyStrong">Join to contribute</AppText>
 
                 <AppText variant="caption" tone="secondary">
-                  Connect with this community to create posts, comment and participate.
+                  Join this community to post, comment and take part.
                 </AppText>
               </Card>
             ) : !detail.community.allowMemberPosts ? (
@@ -350,12 +350,12 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
                 <AppText variant="bodyStrong">Owner publishing only</AppText>
 
                 <AppText variant="caption" tone="secondary">
-                  Member posts are currently disabled by the community owner.
+                  Only community managers can publish here at the moment.
                 </AppText>
               </Card>
             ) : null}
             <View style={styles.sectionHeader}>
-              <AppText variant="subheading">Community Feed</AppText>
+              <AppText variant="subheading">Community feed</AppText>
 
               <AppText variant="caption" tone="secondary">
                 {detail.posts.length} posts
@@ -369,7 +369,7 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
         {section === 'events' ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <AppText variant="subheading">Community Events</AppText>
+              <AppText variant="subheading">Community events</AppText>
 
               <AppText variant="caption" tone="secondary">
                 {detail.events.length}
@@ -386,7 +386,7 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
               <Card variant="muted" style={styles.empty}>
                 <AppText variant="subheading">No events scheduled</AppText>
 
-                <AppText tone="secondary">New community events will appear here.</AppText>
+                <AppText tone="secondary">Upcoming community events will appear here.</AppText>
               </Card>
             )}
           </View>
@@ -395,7 +395,7 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
         {section === 'businesses' ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <AppText variant="subheading">Local Businesses</AppText>
+              <AppText variant="subheading">Local businesses</AppText>
 
               <AppText variant="caption" tone="secondary">
                 {detail.businesses.length}
@@ -412,7 +412,7 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
               <Card variant="muted" style={styles.empty}>
                 <AppText variant="subheading">No businesses listed</AppText>
 
-                <AppText tone="secondary">Verified local businesses will appear here.</AppText>
+                <AppText tone="secondary">Connected local businesses will appear here.</AppText>
               </Card>
             )}
           </View>
@@ -528,24 +528,25 @@ const styles = StyleSheet.create({
   topBar: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    gap: 10,
+    minHeight: 58,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   back: {
     alignItems: 'center',
-    height: 42,
+    height: 38,
     justifyContent: 'center',
-    width: 42,
+    width: 38,
   },
   topCopy: {
     flex: 1,
     gap: 1,
   },
   content: {
-    gap: 22,
-    paddingBottom: 50,
-    paddingHorizontal: 18,
+    gap: 18,
+    paddingBottom: 56,
+    paddingHorizontal: 16,
   },
   errorCard: {
     gap: 8,
@@ -555,11 +556,11 @@ const styles = StyleSheet.create({
   },
   tab: {
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 15,
-    paddingVertical: 9,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   section: {
-    gap: 14,
+    gap: 13,
   },
   feedNotice: {
     gap: 6,
@@ -573,14 +574,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   featureCard: {
-    gap: 4,
+    gap: 3,
+    paddingVertical: 13,
     width: '48%',
   },
   snapshotCard: {
-    gap: 14,
+    gap: 12,
   },
   snapshotRows: {
-    gap: 12,
+    gap: 10,
   },
   snapshotRow: {
     alignItems: 'center',
@@ -597,7 +599,8 @@ const styles = StyleSheet.create({
     gap: 11,
   },
   empty: {
-    gap: 8,
+    gap: 6,
+    paddingVertical: 18,
   },
   about: {
     gap: 14,

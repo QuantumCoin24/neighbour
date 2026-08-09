@@ -423,7 +423,7 @@ export default function CreateCommunityScreen({ navigation }: Props) {
               <AppText variant="heading">Name your community</AppText>
 
               <AppText tone="secondary">
-                Create a clear identity that neighbours can recognise and search for.
+                Choose a name and identity that neighbours will recognise.
               </AppText>
             </View>
 
@@ -452,7 +452,7 @@ export default function CreateCommunityScreen({ navigation }: Props) {
               <AppText variant="caption" tone="secondary">
                 {draft.handle
                   ? `@${draft.handle}`
-                  : 'A unique handle will be generated automatically if you leave this blank.'}
+                  : 'Leave this blank and Neighbour will create a unique handle for you.'}
               </AppText>
             </Card>
           </>
@@ -464,9 +464,7 @@ export default function CreateCommunityScreen({ navigation }: Props) {
             <View style={styles.sectionHeading}>
               <AppText variant="heading">Define its purpose</AppText>
 
-              <AppText tone="secondary">
-                Explain what the community is for and who it serves.
-              </AppText>
+              <AppText tone="secondary">Tell neighbours what this community is for.</AppText>
             </View>
 
             <View style={styles.categoryGrid}>
@@ -543,9 +541,7 @@ export default function CreateCommunityScreen({ navigation }: Props) {
             <View style={styles.sectionHeading}>
               <AppText variant="heading">Set the local area</AppText>
 
-              <AppText tone="secondary">
-                This helps nearby neighbours discover the right community.
-              </AppText>
+              <AppText tone="secondary">Help nearby neighbours find the right community.</AppText>
             </View>
 
             <Field
@@ -587,10 +583,10 @@ export default function CreateCommunityScreen({ navigation }: Props) {
               </View>
 
               <View style={styles.locationCopy}>
-                <AppText variant="bodyStrong">Nearby discovery ready</AppText>
+                <AppText variant="bodyStrong">Local discovery</AppText>
 
                 <AppText variant="caption" tone="secondary">
-                  Exact map coordinates can be added through the community settings after creation.
+                  You can refine the map location later from community settings.
                 </AppText>
               </View>
             </Card>
@@ -604,7 +600,7 @@ export default function CreateCommunityScreen({ navigation }: Props) {
               <AppText variant="heading">Choose how it operates</AppText>
 
               <AppText tone="secondary">
-                Control visibility, joining and the tools available to members.
+                Choose who can discover, join and contribute to the community.
               </AppText>
             </View>
 
@@ -743,9 +739,7 @@ export default function CreateCommunityScreen({ navigation }: Props) {
             <View style={styles.sectionHeading}>
               <AppText variant="heading">Ready to launch</AppText>
 
-              <AppText tone="secondary">
-                Review the new community before publishing it to Neighbour.
-              </AppText>
+              <AppText tone="secondary">Check the details before creating your community.</AppText>
             </View>
 
             <Card style={styles.previewCard}>
@@ -814,11 +808,11 @@ export default function CreateCommunityScreen({ navigation }: Props) {
 
             <Card variant="muted" style={styles.ownerCard}>
               <AppText variant="bodyStrong" tone="brand">
-                You become the community owner
+                You’ll be the community owner
               </AppText>
 
               <AppText variant="caption" tone="secondary">
-                You will receive owner permissions and an active membership automatically.
+                Owner permissions and active membership are added automatically.
               </AppText>
             </Card>
           </>
@@ -856,12 +850,22 @@ export default function CreateCommunityScreen({ navigation }: Props) {
           </Pressable>
 
           <View style={styles.topCopy}>
-            <AppText variant="bodyStrong">Create Community</AppText>
+            <AppText variant="bodyStrong">Create community</AppText>
 
             <AppText variant="caption" tone="secondary">
               Step {currentStep.number} of {STEPS.length}
             </AppText>
           </View>
+        </View>
+
+        <View style={styles.progressHeading}>
+          <AppText variant="caption" tone="brand">
+            {currentStep.label}
+          </AppText>
+
+          <AppText variant="caption" tone="muted">
+            {currentStep.number}/{STEPS.length}
+          </AppText>
         </View>
 
         <View style={styles.progress}>
@@ -992,6 +996,14 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  progressHeading: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingTop: 4,
+  },
+
   progress: {
     flexDirection: 'row',
     gap: 6,
@@ -1003,7 +1015,7 @@ const styles = StyleSheet.create({
     height: 4,
   },
   content: {
-    gap: 20,
+    gap: 17,
     paddingBottom: 40,
     paddingHorizontal: 20,
     paddingTop: 20,
@@ -1020,7 +1032,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   input: {
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     fontSize: 16,
     minHeight: 54,
     paddingHorizontal: 16,
@@ -1039,7 +1051,7 @@ const styles = StyleSheet.create({
   },
   category: {
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     gap: 6,
     justifyContent: 'center',
     minHeight: 78,

@@ -3,6 +3,7 @@ import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '../auth/auth-context';
 import { AppText, Button, Card, Screen, TextField } from '../components';
+import NeighbourMark from '../components/brand/NeighbourMark';
 import { useNeighbourTheme } from '../theme';
 
 type AuthMode = 'login' | 'register';
@@ -83,19 +84,18 @@ export default function LoginScreen() {
   return (
     <Screen contentStyle={styles.screen}>
       <View style={styles.hero}>
-        <View
-          style={[
-            styles.mark,
-            {
-              backgroundColor: theme.colors.primary,
-              borderRadius: theme.radius.xl,
-            },
-            theme.shadows.floating,
-          ]}
-        >
-          <AppText variant="heading" tone="inverse" style={styles.markText}>
-            N
-          </AppText>
+        <View style={styles.brandHeader}>
+          <NeighbourMark size={82} style={theme.shadows.floating} />
+
+          <View style={styles.brandIdentity}>
+            <AppText variant="overline" tone="brand">
+              NEIGHBOUR™
+            </AppText>
+
+            <AppText variant="caption" tone="muted">
+              Stronger together. Local forever.
+            </AppText>
+          </View>
         </View>
 
         <View style={styles.introduction}>
@@ -260,15 +260,14 @@ const styles = StyleSheet.create({
     gap: 28,
     paddingTop: 22,
   },
-  mark: {
+  brandHeader: {
     alignItems: 'center',
-    height: 68,
-    justifyContent: 'center',
-    width: 68,
+    flexDirection: 'row',
+    gap: 16,
   },
-  markText: {
-    fontSize: 30,
-    lineHeight: 34,
+  brandIdentity: {
+    flex: 1,
+    gap: 3,
   },
   introduction: {
     gap: 12,

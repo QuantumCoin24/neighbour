@@ -71,12 +71,12 @@ export function MarketplaceListingCard({ listing, onPress }: MarketplaceListingC
         </View>
 
         <View style={styles.copy}>
-          <AppText variant="bodyStrong" numberOfLines={2}>
-            {listing.title}
-          </AppText>
-
           <AppText variant="subheading" tone="brand">
             {formatMarketplacePrice(listing.pricePence, listing.isFree)}
+          </AppText>
+
+          <AppText variant="bodyStrong" numberOfLines={2}>
+            {listing.title}
           </AppText>
 
           <AppText variant="caption" tone="secondary" numberOfLines={1}>
@@ -84,7 +84,7 @@ export function MarketplaceListingCard({ listing, onPress }: MarketplaceListingC
           </AppText>
 
           <AppText variant="caption" tone="muted" numberOfLines={1}>
-            {listing.localArea ?? listing.postcodeDistrict ?? 'Local collection'}
+            {listing.localArea ?? listing.postcodeDistrict ?? 'Nearby'}
           </AppText>
         </View>
       </Card>
@@ -94,8 +94,8 @@ export function MarketplaceListingCard({ listing, onPress }: MarketplaceListingC
 
 const styles = StyleSheet.create({
   card: {
-    gap: 10,
-    padding: 9,
+    gap: 9,
+    padding: 8,
   },
   imageFrame: {
     aspectRatio: 1,
@@ -123,6 +123,8 @@ const styles = StyleSheet.create({
     width: 32,
   },
   copy: {
-    gap: 4,
+    gap: 3,
+    paddingBottom: 2,
+    paddingHorizontal: 2,
   },
 });

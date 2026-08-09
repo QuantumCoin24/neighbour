@@ -40,7 +40,10 @@ export function MarketplaceOfferCard({ offer, perspective, onPress }: Marketplac
 
         <View style={styles.footer}>
           <AppText variant="caption" tone="secondary">
-            {offer.status.replaceAll('_', ' ')}
+            {offer.status
+              .replaceAll('_', ' ')
+              .toLowerCase()
+              .replace(/^./, (value) => value.toUpperCase())}
           </AppText>
 
           <AppText variant="caption" tone="secondary">

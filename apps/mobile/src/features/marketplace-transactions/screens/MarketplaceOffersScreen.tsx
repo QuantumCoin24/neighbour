@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { AppText, Card, Screen } from '../../../components';
 import type { RootStackParamList } from '../../../navigation/routes';
+import { useNeighbourTheme } from '../../../theme';
 
 import { MarketplaceOfferCard } from '../components/MarketplaceOfferCard';
 
@@ -17,6 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MarketplaceOffers'>;
 type OfferView = 'RECEIVED' | 'SENT';
 
 export default function MarketplaceOffersScreen({ navigation }: Props) {
+  const { theme } = useNeighbourTheme();
   const [view, setView] = useState<OfferView>('RECEIVED');
   const [items, setItems] = useState<MarketplacePeerOffer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,10 +72,10 @@ export default function MarketplaceOffersScreen({ navigation }: Props) {
     >
       <View style={styles.heading}>
         <AppText variant="overline" tone="brand">
-          TransactionOS
+          MARKETPLACE
         </AppText>
 
-        <AppText variant="title">Marketplace Offers</AppText>
+        <AppText variant="title">Offers</AppText>
       </View>
 
       <View style={styles.tabs}>
@@ -104,7 +106,7 @@ export default function MarketplaceOffersScreen({ navigation }: Props) {
 
       {error ? (
         <Card style={styles.messageCard}>
-          <AppText style={styles.error}>{error}</AppText>
+          <AppText style={[styles.error, { color: theme.colors.danger }]}>{error}</AppText>
 
           <Pressable
             accessibilityRole="button"
@@ -113,7 +115,7 @@ export default function MarketplaceOffersScreen({ navigation }: Props) {
             }}
           >
             <AppText variant="label" tone="brand">
-              Try Again
+              Try again
             </AppText>
           </Pressable>
         </Card>
@@ -142,7 +144,7 @@ export default function MarketplaceOffersScreen({ navigation }: Props) {
         <Card style={styles.messageCard}>
           <AppText variant="subheading">No {view.toLowerCase()} offers</AppText>
 
-          <AppText tone="secondary">Your Marketplace negotiations will appear here.</AppText>
+          <AppText tone="secondary">Offers you send and receive will appear here.</AppText>
         </Card>
       )}
     </Screen>
@@ -177,7 +179,5 @@ const styles = StyleSheet.create({
   messageCard: {
     gap: 10,
   },
-  error: {
-    color: '#b42318',
-  },
+  error: {},
 });
