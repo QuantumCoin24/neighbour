@@ -127,9 +127,18 @@ export default function ProfileScreen() {
             },
           ]}
         >
-          <AppText tone="inverse" style={styles.identityMarkText}>
-            {user?.displayName?.slice(0, 1).toUpperCase() ?? 'N'}
-          </AppText>
+          {profile.profile?.avatarUrl ? (
+            <Image
+              accessibilityLabel="Your profile photo"
+              resizeMode="cover"
+              source={{ uri: profile.profile.avatarUrl }}
+              style={styles.identityMarkImage}
+            />
+          ) : (
+            <AppText tone="inverse" style={styles.identityMarkText}>
+              {user?.displayName?.slice(0, 1).toUpperCase() ?? 'N'}
+            </AppText>
+          )}
         </View>
 
         <View style={styles.identityCopy}>
@@ -756,6 +765,10 @@ const styles = StyleSheet.create({
     height: 54,
     justifyContent: 'center',
     width: 54,
+  },
+  identityMarkImage: {
+    height: '100%',
+    width: '100%',
   },
   identityMarkText: {
     fontSize: 25,
