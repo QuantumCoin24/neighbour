@@ -14,6 +14,7 @@ import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { InteractionModule } from './interaction/interaction.module';
 import { MessageModule } from './message/message.module';
+import { MediaModule } from './media/media.module';
 import { NotificationModule } from './notification/notification.module';
 import { PostModule } from './post/post.module';
 import { ProfileModule } from './profile/profile.module';
@@ -62,6 +63,7 @@ import { NearbyModule } from './nearby/nearby.module';
     HealthModule,
     InteractionModule,
     MessageModule,
+    MediaModule,
     NotificationModule,
     PostModule,
     ProfileModule,
