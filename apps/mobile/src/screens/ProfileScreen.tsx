@@ -485,10 +485,10 @@ export default function ProfileScreen() {
               }
               onPress={() => {
                 void profile.save({
-                  username,
-                  bio,
-                  avatarUrl,
-                  localArea,
+                  username: username.trim(),
+                  ...(bio.trim() ? { bio: bio.trim() } : {}),
+                  ...(avatarUrl.trim() ? { avatarUrl: avatarUrl.trim() } : {}),
+                  ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
                   showLocalArea,
                 });
               }}
