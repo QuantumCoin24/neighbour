@@ -12,7 +12,7 @@ export interface EventItem {
 }
 
 export function getCommunityEvents(communityId: string) {
-  return apiRequest<EventItem[]>(`/events/community/${communityId}`, {
+  return apiRequest<EventItem[]>(`/communities/${communityId}/events`, {
     method: 'GET',
   });
 }
@@ -27,7 +27,7 @@ export function createEvent(
     endsAt: string;
   },
 ) {
-  return apiRequest<EventItem>('/events', {
+  return apiRequest<EventItem>(`/communities/${data.communityId}/events`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
