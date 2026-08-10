@@ -416,7 +416,15 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
             {detail.events.length ? (
               <View style={styles.cards}>
                 {detail.events.map((event) => (
-                  <CommunityEventCard key={event.id} event={event} />
+                  <CommunityEventCard
+                    key={event.id}
+                    event={event}
+                    onPress={() => {
+                      navigation.navigate('EventDetail', {
+                        eventId: event.id,
+                      });
+                    }}
+                  />
                 ))}
               </View>
             ) : (

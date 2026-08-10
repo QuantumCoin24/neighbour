@@ -14,6 +14,7 @@ import BusinessDetailScreen from '../screens/BusinessDetailScreen';
 import CommunityDetailScreen from '../screens/CommunityDetailScreen';
 import CreateCommunityScreen from '../screens/CreateCommunityScreen';
 import CreateEventScreen from '../screens/CreateEventScreen';
+import EventDetailScreen from '../screens/EventDetailScreen';
 import ConversationScreen from '../screens/ConversationScreen';
 import LoginScreen from '../screens/LoginScreen';
 import PremiumScreen from '../screens/PremiumScreen';
@@ -114,6 +115,8 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.CREATE_COMMUNITY} component={CreateCommunityScreen} />
 
             <Stack.Screen name={ROUTES.CREATE_EVENT} component={CreateEventScreen} />
+
+            <Stack.Screen name={ROUTES.EVENT_DETAIL} component={EventDetailScreen} />
 
             <Stack.Screen name={ROUTES.BUSINESS_DETAIL} component={BusinessDetailScreen} />
 
