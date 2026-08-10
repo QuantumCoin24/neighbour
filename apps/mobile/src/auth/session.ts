@@ -1,4 +1,4 @@
-import type { AuthResponse, AuthUser } from '@neighbour/api-client';
+import { refreshAuthTokens, type AuthResponse, type AuthUser } from '@neighbour/api-client';
 import * as SecureStore from 'expo-secure-store';
 
 const SESSION_KEY = 'neighbour_session';
@@ -18,6 +18,33 @@ export function getSession(): MobileSession | null {
 
 export function getSessionAccessToken(): string | null {
   return currentSession?.accessToken ?? null;
+}
+
+export async function refreshSessionAccessToken(): Promise<string | null> {
+  const session = currentSession;
+
+  if (!session) {
+    return null;
+  }
+
+  try {
+    const tokens = await refreshAuthTokens(session.refreshToken);
+
+    const refreshedSession: MobileSession = {
+      ...session,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresAt: Date.now() + tokens.expiresIn * 1000,
+    };
+
+    await saveSession(refreshedSession);
+
+    return refreshedSession.accessToken;
+  } catch {
+    await clearSession();
+
+    return null;
+  }
 }
 
 export function createSession(response: AuthResponse): MobileSession {

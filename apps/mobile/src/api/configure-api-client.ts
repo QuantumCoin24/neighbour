@@ -1,7 +1,7 @@
 import { configureApiClient } from '@neighbour/api-client';
 import Constants from 'expo-constants';
 
-import { getSessionAccessToken } from '../auth/session';
+import { getSessionAccessToken, refreshSessionAccessToken } from '../auth/session';
 
 function getMobileApiUrl(): string {
   const configuredUrl = process.env.EXPO_PUBLIC_NEIGHBOUR_API_URL?.trim();
@@ -33,5 +33,6 @@ export function initialiseMobileApiClient(): void {
   configureApiClient({
     baseUrl: getMobileApiUrl(),
     getAccessToken: getSessionAccessToken,
+    refreshAccessToken: refreshSessionAccessToken,
   });
 }
