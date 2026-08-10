@@ -32,6 +32,11 @@ export function createEvent(
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      title: data.title,
+      description: data.description,
+      startsAt: data.startsAt,
+      endsAt: data.endsAt,
+    }),
   });
 }
