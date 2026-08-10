@@ -376,6 +376,43 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
               </AppText>
             </View>
 
+            {detail.community.allowEvents &&
+            detail.membership &&
+            ['OWNER', 'ADMIN', 'MODERATOR'].includes(detail.membership.role) ? (
+              <Pressable
+                accessibilityLabel="Create community event"
+                accessibilityRole="button"
+                onPress={() => {
+                  navigation.navigate('CreateEvent', {
+                    communityId: detail.community!.id,
+                    communitySlug: detail.community!.slug,
+                    communityName: detail.community!.name,
+                  });
+                }}
+                style={[
+                  styles.createEventButton,
+                  {
+                    backgroundColor: theme.colors.primary,
+                    borderRadius: theme.radius.lg,
+                  },
+                ]}
+              >
+                <View style={styles.createEventCopy}>
+                  <AppText variant="bodyStrong" tone="inverse">
+                    Create event
+                  </AppText>
+
+                  <AppText variant="caption" tone="inverse">
+                    Publish something for your neighbours
+                  </AppText>
+                </View>
+
+                <AppText variant="heading" tone="inverse">
+                  +
+                </AppText>
+              </Pressable>
+            ) : null}
+
             {detail.events.length ? (
               <View style={styles.cards}>
                 {detail.events.map((event) => (
@@ -594,6 +631,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  createEventButton: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 76,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  createEventCopy: {
+    flex: 1,
+    gap: 3,
   },
   cards: {
     gap: 11,
