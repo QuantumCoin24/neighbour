@@ -28,6 +28,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { DeveloperModule } from './developer/developer.module';
 import { SecurityModule } from './security/security.module';
 import { BusinessModule } from './marketplace/business/business.module';
+import { BusinessDashboardModule } from './marketplace/business/dashboard/dashboard.module';
 import { OrganisationModule } from './organisation/organisation.module';
 
 import { AppleCommerceModule } from './payments/apple/apple-commerce.module';
@@ -77,6 +78,7 @@ import { NearbyModule } from './nearby/nearby.module';
     DeveloperModule,
     SecurityModule,
     BusinessModule,
+    BusinessDashboardModule,
     OrganisationModule,
     MarketplaceListingModule,
     MarketplaceTransactionModule,

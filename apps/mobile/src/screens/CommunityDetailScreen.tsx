@@ -473,12 +473,18 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
                   },
                 ]}
               >
-                <AppText variant="bodyStrong" tone="inverse">
-                  Create business
-                </AppText>
+                <View style={styles.createEventCopy}>
+                  <AppText variant="bodyStrong" tone="inverse">
+                    Create business
+                  </AppText>
 
-                <AppText variant="caption" tone="inverse">
-                  Add a local business profile to this community
+                  <AppText variant="caption" tone="inverse">
+                    Add a local business profile to this community
+                  </AppText>
+                </View>
+
+                <AppText variant="heading" tone="inverse">
+                  +
                 </AppText>
               </Pressable>
             ) : null}
