@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+
+import { MembershipStatus } from '../../generated/prisma/client.js';
+
+import { DatabaseService } from '../../database/database.service';
 
 import type { BusinessEntity } from './business.entity';
 
@@ -6,9 +10,48 @@ import { BusinessRepository } from './business.repository';
 
 @Injectable()
 export class BusinessService {
-  constructor(private readonly repository: BusinessRepository) {}
+  constructor(
+    private readonly repository: BusinessRepository,
+    private readonly database: DatabaseService,
+  ) {}
 
-  create(business: BusinessEntity): Promise<BusinessEntity> {
+  async create(userId: string, business: BusinessEntity): Promise<BusinessEntity> {
+    const community = await this.database.community.findUnique({
+      where: {
+        id: business.communityId,
+      },
+      select: {
+        id: true,
+        allowBusinesses: true,
+      },
+    });
+
+    if (!community) {
+      throw new NotFoundException('Community not found.');
+    }
+
+    if (!community.allowBusinesses) {
+      throw new ForbiddenException('Business listings are not enabled for this community.');
+    }
+
+    const membership = await this.database.membership.findUnique({
+      where: {
+        userId_communityId: {
+          userId,
+          communityId: community.id,
+        },
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    if (!membership || membership.status !== MembershipStatus.ACTIVE) {
+      throw new ForbiddenException(
+        'You must be an active community member to create a business listing.',
+      );
+    }
+
     return this.repository.save(business);
   }
 

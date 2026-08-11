@@ -47,19 +47,13 @@ export class BusinessController {
       category: string;
     },
   ) {
-    return this.service.create({
+    return this.service.create(user.id, {
       id: crypto.randomUUID(),
-
       communityId: body.communityId,
-
       ownerId: user.id,
-
       name: body.name,
-
       description: body.description,
-
       category: body.category,
-
       createdAt: new Date(),
     });
   }
