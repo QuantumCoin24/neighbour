@@ -1,6 +1,7 @@
 import {
   ApiClientError,
   attendEvent,
+  deleteEvent,
   getEvent,
   getEventAttendance,
   leaveEvent,
@@ -11,6 +12,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -77,6 +79,7 @@ export default function EventDetailScreen({ navigation, route }: EventDetailScre
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [changingAttendance, setChangingAttendance] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -125,6 +128,7 @@ export default function EventDetailScreen({ navigation, route }: EventDetailScre
   );
 
   const attendanceCount = attendance.length;
+  const canDeleteEvent = Boolean(user && event && event.creatorId === user.id);
 
   const changeAttendance = useCallback(async () => {
     if (changingAttendance) {
@@ -159,6 +163,54 @@ export default function EventDetailScreen({ navigation, route }: EventDetailScre
       setChangingAttendance(false);
     }
   }, [changingAttendance, isGoing, route.params.eventId]);
+
+  const performDeleteEvent = useCallback(async () => {
+    if (!event || deleting) {
+      return;
+    }
+
+    const session = getSession();
+
+    if (!session) {
+      setError('Your session is unavailable. Please sign in again.');
+      return;
+    }
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      await deleteEvent(session.accessToken, event.id);
+      navigation.goBack();
+    } catch (caughtError) {
+      setError(getErrorMessage(caughtError));
+      setDeleting(false);
+    }
+  }, [deleting, event, navigation]);
+
+  const confirmDeleteEvent = useCallback(() => {
+    if (!event || deleting) {
+      return;
+    }
+
+    Alert.alert(
+      'Delete event?',
+      'This will permanently delete this event and its attendance records. This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete event',
+          style: 'destructive',
+          onPress: () => {
+            void performDeleteEvent();
+          },
+        },
+      ],
+    );
+  }, [deleting, event, performDeleteEvent]);
 
   return (
     <SafeAreaView
@@ -393,6 +445,47 @@ export default function EventDetailScreen({ navigation, route }: EventDetailScre
               )}
             </Pressable>
           </Card>
+
+          {canDeleteEvent ? (
+            <Card style={styles.section}>
+              <View style={styles.manageHeader}>
+                <AppText variant="subheading">Manage event</AppText>
+
+                <AppText tone="secondary">
+                  You created this event. Deleting it permanently removes the event and its
+                  attendance records.
+                </AppText>
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Delete event"
+                disabled={deleting}
+                onPress={confirmDeleteEvent}
+                style={[
+                  styles.deleteButton,
+                  {
+                    borderColor: theme.colors.danger,
+                    borderRadius: theme.radius.lg,
+                    opacity: deleting ? 0.65 : 1,
+                  },
+                ]}
+              >
+                {deleting ? (
+                  <ActivityIndicator color={theme.colors.danger} size="small" />
+                ) : (
+                  <AppText
+                    variant="bodyStrong"
+                    style={{
+                      color: theme.colors.danger,
+                    }}
+                  >
+                    Delete event
+                  </AppText>
+                )}
+              </Pressable>
+            </Card>
+          ) : null}
         </ScrollView>
       ) : null}
     </SafeAreaView>
@@ -496,6 +589,19 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 6,
+  },
+
+  manageHeader: {
+    gap: 6,
+  },
+
+  deleteButton: {
+    alignItems: 'center',
+    borderWidth: 1,
+    justifyContent: 'center',
+    minHeight: 52,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
   },
 
   primaryButton: {

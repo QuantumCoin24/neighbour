@@ -63,6 +63,15 @@ export function leaveEvent(token: string, eventId: string) {
   });
 }
 
+export function deleteEvent(token: string, eventId: string) {
+  return apiRequest<void>(`/communities/events/${encodeURIComponent(eventId)}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
 export function createEvent(
   token: string,
   data: {
