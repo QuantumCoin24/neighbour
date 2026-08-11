@@ -13,6 +13,7 @@ import { AppText } from '../components';
 import BusinessDetailScreen from '../screens/BusinessDetailScreen';
 import CommunityDetailScreen from '../screens/CommunityDetailScreen';
 import CreateCommunityScreen from '../screens/CreateCommunityScreen';
+import CreateBusinessScreen from '../screens/CreateBusinessScreen';
 import CreateEventScreen from '../screens/CreateEventScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
 import ConversationScreen from '../screens/ConversationScreen';
@@ -119,6 +120,8 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.EVENT_DETAIL} component={EventDetailScreen} />
 
             <Stack.Screen name={ROUTES.BUSINESS_DETAIL} component={BusinessDetailScreen} />
+
+            <Stack.Screen name={ROUTES.CREATE_BUSINESS} component={CreateBusinessScreen} />
 
             <Stack.Screen
               name={ROUTES.MARKETPLACE_LISTINGS}

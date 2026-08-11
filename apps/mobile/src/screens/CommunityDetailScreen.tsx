@@ -454,6 +454,35 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
               </AppText>
             </View>
 
+            {detail.community.allowBusinesses && detail.membership?.status === 'ACTIVE' ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Create business"
+                onPress={() => {
+                  navigation.navigate('CreateBusiness', {
+                    communityId: detail.community.id,
+                    communitySlug: detail.community.slug,
+                    communityName: detail.community.name,
+                  });
+                }}
+                style={[
+                  styles.createEventButton,
+                  {
+                    backgroundColor: theme.colors.primary,
+                    borderRadius: theme.radius.lg,
+                  },
+                ]}
+              >
+                <AppText variant="bodyStrong" tone="inverse">
+                  Create business
+                </AppText>
+
+                <AppText variant="caption" tone="inverse">
+                  Add a local business profile to this community
+                </AppText>
+              </Pressable>
+            ) : null}
+
             {detail.businesses.length ? (
               <View style={styles.cards}>
                 {detail.businesses.map((business) => (
