@@ -1,13 +1,19 @@
 import type { Business } from '@neighbour/api-client';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText, Card } from '../../../components';
 import { useNeighbourTheme } from '../../../theme';
 
-export function CommunityBusinessCard({ business }: { business: Business }) {
+export function CommunityBusinessCard({
+  business,
+  onPress,
+}: {
+  business: Business;
+  onPress?: () => void;
+}) {
   const { theme } = useNeighbourTheme();
 
-  return (
+  const content = (
     <Card variant="muted" style={styles.card}>
       <View
         style={[
@@ -51,9 +57,30 @@ export function CommunityBusinessCard({ business }: { business: Business }) {
       </View>
     </Card>
   );
+
+  if (!onPress) {
+    return content;
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Open ${business.name}`}
+      onPress={onPress}
+      style={({ pressed }) => [styles.pressable, pressed ? styles.pressed : null]}
+    >
+      {content}
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({
+  pressable: {
+    width: '100%',
+  },
+  pressed: {
+    opacity: 0.82,
+  },
   card: {
     alignItems: 'flex-start',
     flexDirection: 'row',

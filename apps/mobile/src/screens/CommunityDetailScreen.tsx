@@ -457,7 +457,15 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
             {detail.businesses.length ? (
               <View style={styles.cards}>
                 {detail.businesses.map((business) => (
-                  <CommunityBusinessCard key={business.id} business={business} />
+                  <CommunityBusinessCard
+                    key={business.id}
+                    business={business}
+                    onPress={() => {
+                      navigation.navigate('BusinessDetail', {
+                        business,
+                      });
+                    }}
+                  />
                 ))}
               </View>
             ) : (
