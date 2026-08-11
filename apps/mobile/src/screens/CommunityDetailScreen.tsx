@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -53,6 +54,12 @@ const SECTIONS: {
 export default function CommunityDetailScreen({ navigation, route }: CommunityDetailScreenProps) {
   const { theme } = useNeighbourTheme();
   const detail = useCommunityDetail(route.params.slug);
+
+  useFocusEffect(
+    useCallback(() => {
+      void detail.refresh();
+    }, [detail.refresh]),
+  );
 
   const [section, setSection] = useState<CommunityDetailSection>('overview');
 
