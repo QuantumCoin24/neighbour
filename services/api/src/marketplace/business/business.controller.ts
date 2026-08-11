@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 
@@ -32,6 +32,39 @@ export class BusinessController {
     query: string,
   ) {
     return this.service.search(query ?? '');
+  }
+
+  @Patch(':id')
+  update(
+    @CurrentUser()
+    user: AuthUser,
+
+    @Param('id')
+    id: string,
+
+    @Body()
+    body: {
+      name?: string;
+      description?: string;
+      category?: string;
+    },
+  ) {
+    return this.service.update(user.id, id, {
+      ...(body.name !== undefined ? { name: body.name } : {}),
+      ...(body.description !== undefined ? { description: body.description } : {}),
+      ...(body.category !== undefined ? { category: body.category } : {}),
+    });
+  }
+
+  @Delete(':id')
+  remove(
+    @CurrentUser()
+    user: AuthUser,
+
+    @Param('id')
+    id: string,
+  ) {
+    return this.service.remove(user.id, id);
   }
 
   @Post()

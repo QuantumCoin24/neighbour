@@ -69,6 +69,32 @@ export class PrismaBusinessRepository extends BusinessRepository {
     return record ? this.map(record) : undefined;
   }
 
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      category?: string;
+    },
+  ): Promise<BusinessEntity> {
+    const record = await this.database.business.update({
+      where: {
+        id,
+      },
+      data,
+    });
+
+    return this.map(record);
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.database.business.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
   async findByCommunity(communityId: string): Promise<BusinessEntity[]> {
     const records = await this.database.business.findMany({
       where: {

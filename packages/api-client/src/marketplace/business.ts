@@ -26,3 +26,23 @@ export function getCommunityMarketplaceBusinesses(
 export function searchMarketplaceBusinesses(query: string): Promise<MarketplaceBusiness[]> {
   return apiRequest<MarketplaceBusiness[]>(`/businesses/search?q=${encodeURIComponent(query)}`);
 }
+
+export function updateMarketplaceBusiness(
+  businessId: string,
+  data: {
+    name?: string;
+    description?: string;
+    category?: string;
+  },
+): Promise<MarketplaceBusiness> {
+  return apiRequest<MarketplaceBusiness>(`/businesses/${encodeURIComponent(businessId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteMarketplaceBusiness(businessId: string): Promise<void> {
+  return apiRequest<void>(`/businesses/${encodeURIComponent(businessId)}`, {
+    method: 'DELETE',
+  });
+}

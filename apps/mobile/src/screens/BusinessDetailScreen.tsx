@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuth } from '../auth/auth-context';
 import { AppText, Card } from '../components';
 import {
   MarketplaceEventCard,
@@ -35,10 +37,23 @@ const SECTIONS: {
 
 export default function BusinessDetailScreen({ navigation, route }: BusinessDetailScreenProps) {
   const { theme } = useNeighbourTheme();
+  const { user } = useAuth();
   const detail = useBusinessDetail(route.params.business);
   const [section, setSection] = useState<BusinessSection>('about');
 
   const business = detail.dashboard?.business ?? route.params.business;
+  const canManageBusiness = Boolean(user && business.ownerId === user.id);
+  const hasFocusedRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (hasFocusedRef.current) {
+        void detail.refresh();
+      } else {
+        hasFocusedRef.current = true;
+      }
+    }, [detail.refresh]),
+  );
 
   return (
     <SafeAreaView
@@ -134,6 +149,39 @@ export default function BusinessDetailScreen({ navigation, route }: BusinessDeta
             ) : null}
           </View>
         </Card>
+
+        {canManageBusiness ? (
+          <Pressable
+            accessibilityLabel="Manage business"
+            accessibilityRole="button"
+            onPress={() => {
+              navigation.navigate('EditBusiness', {
+                business,
+              });
+            }}
+            style={[
+              styles.manageButton,
+              {
+                backgroundColor: theme.colors.primary,
+                borderRadius: theme.radius.lg,
+              },
+            ]}
+          >
+            <View style={styles.manageCopy}>
+              <AppText variant="bodyStrong" tone="inverse">
+                Manage business
+              </AppText>
+
+              <AppText variant="caption" tone="inverse">
+                Edit profile details or delete this business
+              </AppText>
+            </View>
+
+            <AppText variant="heading" tone="inverse">
+              ›
+            </AppText>
+          </Pressable>
+        ) : null}
 
         {detail.loading ? (
           <View style={styles.loading}>
@@ -356,6 +404,19 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingHorizontal: 11,
     paddingVertical: 6,
+  },
+  manageButton: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+    minHeight: 64,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  manageCopy: {
+    flex: 1,
+    gap: 3,
   },
   loading: {
     alignItems: 'center',

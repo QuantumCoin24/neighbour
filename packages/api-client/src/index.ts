@@ -31,6 +31,8 @@ export {
   getCommunityMarketplaceBusinesses,
   getMyMarketplaceBusiness,
   searchMarketplaceBusinesses,
+  updateMarketplaceBusiness,
+  deleteMarketplaceBusiness,
   createMarketplaceOffer,
   getMarketplaceOffer,
   createMarketplaceBusinessEvent,

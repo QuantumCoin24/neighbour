@@ -49,13 +49,16 @@ export function useBusinessDetail(business: MarketplaceBusiness) {
     void load();
   }, [load]);
 
+  const refresh = useCallback(() => load(true), [load]);
+  const retry = useCallback(() => load(false), [load]);
+
   return {
     dashboard,
     analytics,
     loading,
     refreshing,
     error,
-    refresh: () => load(true),
-    retry: () => load(false),
+    refresh,
+    retry,
   };
 }

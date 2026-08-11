@@ -70,4 +70,40 @@ export class BusinessService {
   search(query: string): Promise<BusinessEntity[]> {
     return this.repository.search(query);
   }
+
+  async update(
+    userId: string,
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      category?: string;
+    },
+  ): Promise<BusinessEntity> {
+    const business = await this.repository.findById(id);
+
+    if (!business) {
+      throw new NotFoundException('Business not found.');
+    }
+
+    if (business.ownerId !== userId) {
+      throw new ForbiddenException('You do not have permission to update this business.');
+    }
+
+    return this.repository.update(id, data);
+  }
+
+  async remove(userId: string, id: string): Promise<void> {
+    const business = await this.repository.findById(id);
+
+    if (!business) {
+      throw new NotFoundException('Business not found.');
+    }
+
+    if (business.ownerId !== userId) {
+      throw new ForbiddenException('You do not have permission to delete this business.');
+    }
+
+    await this.repository.remove(id);
+  }
 }
