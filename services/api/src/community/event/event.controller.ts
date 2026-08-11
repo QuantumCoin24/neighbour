@@ -39,7 +39,7 @@ export class EventController {
   }
 
   @Delete('/events/:id')
-  remove(@Param('id') id: string) {
-    return this.eventService.remove(id);
+  remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.eventService.remove(user.id, id);
   }
 }
