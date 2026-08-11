@@ -116,7 +116,7 @@ export default function EditBusinessScreen({ navigation, route }: Props) {
     try {
       await deleteMarketplaceBusiness(business.id);
 
-      navigation.pop(2);
+      navigation.popTo('CommunityDetail');
     } catch (caughtError) {
       setError(getErrorMessage(caughtError));
       setDeleting(false);
