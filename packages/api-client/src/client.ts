@@ -104,11 +104,25 @@ async function parseResponse<T>(response: Response): Promise<T> {
     );
   }
 
-  if (response.status === 204) {
+  if (response.status === 204 || response.status === 205) {
     return undefined as T;
   }
 
-  return response.json() as Promise<T>;
+  const body = await response.text();
+
+  if (!body.trim()) {
+    return undefined as T;
+  }
+
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    throw new ApiClientError(
+      `Neighbour API returned an invalid JSON response with status ${response.status}.`,
+      response.status,
+      body,
+    );
+  }
 }
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
