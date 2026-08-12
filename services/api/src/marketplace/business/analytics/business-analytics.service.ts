@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { AnalyticsService } from '../../../analytics/analytics.service';
+import { DatabaseService } from '../../../database/database.service';
 
 @Injectable()
 export class BusinessAnalyticsService {
-  constructor(private readonly analytics: AnalyticsService) {}
+  constructor(
+    private readonly analytics: AnalyticsService,
+    private readonly database: DatabaseService,
+  ) {}
 
   recordBusinessView(businessId: string, userId?: string) {
     return this.analytics.record({
@@ -56,7 +60,20 @@ export class BusinessAnalyticsService {
     });
   }
 
-  getAnalytics(businessId: string) {
+  async getAnalytics(businessId: string) {
+    const business = await this.database.business.findUnique({
+      where: {
+        id: businessId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!business) {
+      throw new NotFoundException('Business not found.');
+    }
+
     const events = this.analytics.list();
 
     const profileViews = events.filter(

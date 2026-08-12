@@ -116,7 +116,10 @@ export default function EditBusinessScreen({ navigation, route }: Props) {
     try {
       await deleteMarketplaceBusiness(business.id);
 
-      navigation.popTo('CommunityDetail');
+      // Remove both EditBusiness and the now-deleted BusinessDetail
+      // from the native stack. CommunityDetail is directly underneath
+      // and refreshes automatically when it regains focus.
+      navigation.pop(2);
     } catch (caughtError) {
       setError(getErrorMessage(caughtError));
       setDeleting(false);
