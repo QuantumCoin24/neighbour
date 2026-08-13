@@ -16,8 +16,7 @@
         "NSPhotoLibraryUsageDescription": "Allow Neighbour to choose photos you want to share with your communities.",
         "NSCameraUsageDescription": "Allow Neighbour to take photos you want to share with your communities.",
         "NSPhotoLibraryAddUsageDescription": "Allow Neighbour to save media to your photo library when you choose to do so."
-      },
-      "buildNumber": "1"
+      }
     },
     "android": {
       "adaptiveIcon": {
