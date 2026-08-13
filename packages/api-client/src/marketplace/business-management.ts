@@ -30,3 +30,22 @@ export function submitBusinessVerification(
     },
   );
 }
+
+export function reviewBusinessVerification(
+  businessId: string,
+  data: {
+    status: 'APPROVED' | 'REJECTED';
+    notes?: string;
+  },
+): Promise<BusinessVerification> {
+  return apiRequest<BusinessVerification>(
+    `/businesses/${encodeURIComponent(businessId)}/verification`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status: data.status,
+        ...(data.notes?.trim() ? { notes: data.notes.trim() } : {}),
+      }),
+    },
+  );
+}

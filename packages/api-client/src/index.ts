@@ -46,6 +46,7 @@ export {
   getBusinessAnalytics as getMarketplaceBusinessAnalytics,
   getBusinessVerification as getMarketplaceBusinessVerification,
   submitBusinessVerification as submitMarketplaceBusinessVerification,
+  reviewBusinessVerification as reviewMarketplaceBusinessVerification,
 } from './marketplace';
 
 export type {

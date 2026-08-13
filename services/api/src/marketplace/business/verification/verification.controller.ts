@@ -1,4 +1,9 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+
+import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
+import { Roles } from '../../../auth/decorators/roles.decorator';
+import type { AuthUser } from '../../../auth/interfaces/auth-user.interface';
+import { PlatformRole } from '../../../generated/prisma/client.js';
 
 import { VerificationService } from './verification.service';
 
@@ -8,6 +13,9 @@ export class VerificationController {
 
   @Post(':businessId/verification')
   submit(
+    @CurrentUser()
+    user: AuthUser,
+
     @Param('businessId')
     businessId: string,
 
@@ -16,10 +24,9 @@ export class VerificationController {
       notes?: string;
     },
   ) {
-    return this.service.submit({
+    return this.service.submit(user.id, {
       businessId,
-
-      ...(body.notes ? { notes: body.notes } : {}),
+      ...(body.notes !== undefined ? { notes: body.notes } : {}),
     });
   }
 
@@ -29,5 +36,23 @@ export class VerificationController {
     businessId: string,
   ) {
     return this.service.findByBusiness(businessId);
+  }
+
+  @Roles(PlatformRole.MODERATOR, PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN)
+  @Patch(':businessId/verification')
+  review(
+    @CurrentUser()
+    user: AuthUser,
+
+    @Param('businessId')
+    businessId: string,
+
+    @Body()
+    body: {
+      status: 'APPROVED' | 'REJECTED';
+      notes?: string;
+    },
+  ) {
+    return this.service.review(user.id, businessId, body);
   }
 }

@@ -3,13 +3,21 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import {
+  ApiClientError,
+  reviewMarketplaceBusinessVerification,
+  submitMarketplaceBusinessVerification,
+} from '@neighbour/api-client';
 
 import { useAuth } from '../auth/auth-context';
 import { AppText, Card } from '../components';
@@ -42,8 +50,96 @@ export default function BusinessDetailScreen({ navigation, route }: BusinessDeta
   const [section, setSection] = useState<BusinessSection>('about');
 
   const business = detail.dashboard?.business ?? route.params.business;
+  const verification = detail.dashboard?.verification ?? null;
   const canManageBusiness = Boolean(user && business.ownerId === user.id);
+  const canReviewVerification = Boolean(
+    user &&
+    ['MODERATOR', 'ADMIN', 'SUPER_ADMIN'].includes(user.role) &&
+    verification?.status === 'PENDING',
+  );
+
+  const [verificationNotes, setVerificationNotes] = useState('');
+  const [verificationBusy, setVerificationBusy] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
   const hasFocusedRef = useRef(false);
+
+  const getVerificationError = (error: unknown): string => {
+    if (error instanceof ApiClientError) {
+      if (error.status === 400) {
+        return 'Check the verification details and try again.';
+      }
+
+      if (error.status === 403) {
+        return 'You do not have permission to perform this verification action.';
+      }
+
+      if (error.status === 404) {
+        return 'This business verification could not be found.';
+      }
+
+      if (error.status === 409) {
+        return 'This verification is no longer awaiting that action.';
+      }
+
+      return `Verification request failed (HTTP ${error.status}).`;
+    }
+
+    if (error instanceof TypeError) {
+      return 'Neighbour could not reach the verification service.';
+    }
+
+    return 'Something went wrong while processing verification.';
+  };
+
+  const submitVerification = async () => {
+    if (verificationBusy) {
+      return;
+    }
+
+    setVerificationBusy(true);
+    setVerificationError(null);
+
+    try {
+      await submitMarketplaceBusinessVerification(business.id, verificationNotes);
+
+      setVerificationNotes('');
+      await detail.refresh();
+    } catch (error) {
+      setVerificationError(getVerificationError(error));
+    } finally {
+      setVerificationBusy(false);
+    }
+  };
+
+  const reviewVerification = async (status: 'APPROVED' | 'REJECTED') => {
+    if (verificationBusy) {
+      return;
+    }
+
+    const normalizedNotes = verificationNotes.trim();
+
+    if (status === 'REJECTED' && !normalizedNotes) {
+      setVerificationError('Add a reason before rejecting this verification.');
+      return;
+    }
+
+    setVerificationBusy(true);
+    setVerificationError(null);
+
+    try {
+      await reviewMarketplaceBusinessVerification(business.id, {
+        status,
+        ...(normalizedNotes ? { notes: normalizedNotes } : {}),
+      });
+
+      setVerificationNotes('');
+      await detail.refresh();
+    } catch (error) {
+      setVerificationError(getVerificationError(error));
+    } finally {
+      setVerificationBusy(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -149,6 +245,199 @@ export default function BusinessDetailScreen({ navigation, route }: BusinessDeta
             ) : null}
           </View>
         </Card>
+
+        {canManageBusiness ? (
+          <Card style={styles.verificationCard}>
+            <AppText variant="subheading">Business verification</AppText>
+
+            <AppText tone="secondary">
+              {verification?.status === 'PENDING'
+                ? 'Your verification is awaiting review.'
+                : verification?.status === 'APPROVED'
+                  ? 'This business has been verified.'
+                  : verification?.status === 'REJECTED'
+                    ? 'Your verification was rejected. You can update the information and submit again.'
+                    : 'Submit this business for verification to request a verified profile.'}
+            </AppText>
+
+            {verification?.notes ? (
+              <View style={styles.verificationMessage}>
+                <AppText variant="label">
+                  {verification.status === 'REJECTED' ? 'Review reason' : 'Verification notes'}
+                </AppText>
+
+                <AppText tone="secondary">{verification.notes}</AppText>
+              </View>
+            ) : null}
+
+            {verification?.status !== 'PENDING' && verification?.status !== 'APPROVED' ? (
+              <>
+                <TextInput
+                  accessibilityLabel="Business verification notes"
+                  editable={!verificationBusy}
+                  multiline
+                  onChangeText={setVerificationNotes}
+                  placeholder="Add information for the verification reviewer"
+                  placeholderTextColor={theme.colors.textMuted}
+                  style={[
+                    styles.verificationInput,
+                    {
+                      borderColor: theme.colors.border,
+                      color: theme.colors.text,
+                      backgroundColor: theme.colors.surface,
+                    },
+                  ]}
+                  value={verificationNotes}
+                />
+
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={verificationBusy}
+                  onPress={() => {
+                    void submitVerification();
+                  }}
+                  style={[
+                    styles.verificationPrimaryButton,
+                    {
+                      backgroundColor: theme.colors.primary,
+                      borderRadius: theme.radius.lg,
+                      opacity: verificationBusy ? 0.65 : 1,
+                    },
+                  ]}
+                >
+                  {verificationBusy ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <AppText variant="bodyStrong" tone="inverse">
+                      {verification?.status === 'REJECTED'
+                        ? 'Resubmit verification'
+                        : 'Submit for verification'}
+                    </AppText>
+                  )}
+                </Pressable>
+              </>
+            ) : null}
+
+            {verificationError ? (
+              <AppText
+                style={{
+                  color: theme.colors.danger,
+                }}
+              >
+                {verificationError}
+              </AppText>
+            ) : null}
+          </Card>
+        ) : null}
+
+        {canReviewVerification ? (
+          <Card style={styles.verificationCard}>
+            <AppText variant="subheading">Review business verification</AppText>
+
+            <AppText tone="secondary">
+              Review the submitted business information before approving or rejecting it.
+            </AppText>
+
+            {verification?.notes ? (
+              <View style={styles.verificationMessage}>
+                <AppText variant="label">Owner submission</AppText>
+                <AppText tone="secondary">{verification.notes}</AppText>
+              </View>
+            ) : null}
+
+            <TextInput
+              accessibilityLabel="Verification review notes"
+              editable={!verificationBusy}
+              multiline
+              onChangeText={setVerificationNotes}
+              placeholder="Add review notes or a rejection reason"
+              placeholderTextColor={theme.colors.textMuted}
+              style={[
+                styles.verificationInput,
+                {
+                  borderColor: theme.colors.border,
+                  color: theme.colors.text,
+                  backgroundColor: theme.colors.surface,
+                },
+              ]}
+              value={verificationNotes}
+            />
+
+            <View style={styles.verificationActions}>
+              <Pressable
+                accessibilityRole="button"
+                disabled={verificationBusy}
+                onPress={() => {
+                  void reviewVerification('APPROVED');
+                }}
+                style={[
+                  styles.verificationActionButton,
+                  {
+                    backgroundColor: theme.colors.primary,
+                    borderRadius: theme.radius.lg,
+                    opacity: verificationBusy ? 0.65 : 1,
+                  },
+                ]}
+              >
+                <AppText variant="bodyStrong" tone="inverse">
+                  Approve
+                </AppText>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                disabled={verificationBusy}
+                onPress={() => {
+                  Alert.alert(
+                    'Reject verification?',
+                    'The owner will be able to see your reason and submit again.',
+                    [
+                      {
+                        text: 'Cancel',
+                        style: 'cancel',
+                      },
+                      {
+                        text: 'Reject',
+                        style: 'destructive',
+                        onPress: () => {
+                          void reviewVerification('REJECTED');
+                        },
+                      },
+                    ],
+                  );
+                }}
+                style={[
+                  styles.verificationActionButton,
+                  {
+                    borderColor: theme.colors.danger,
+                    borderRadius: theme.radius.lg,
+                    borderWidth: 1,
+                    opacity: verificationBusy ? 0.65 : 1,
+                  },
+                ]}
+              >
+                <AppText
+                  variant="bodyStrong"
+                  style={{
+                    color: theme.colors.danger,
+                  }}
+                >
+                  Reject
+                </AppText>
+              </Pressable>
+            </View>
+
+            {verificationError ? (
+              <AppText
+                style={{
+                  color: theme.colors.danger,
+                }}
+              >
+                {verificationError}
+              </AppText>
+            ) : null}
+          </Card>
+        ) : null}
 
         {canManageBusiness ? (
           <Pressable
@@ -404,6 +693,36 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingHorizontal: 11,
     paddingVertical: 6,
+  },
+  verificationCard: {
+    gap: 12,
+  },
+  verificationMessage: {
+    gap: 4,
+  },
+  verificationInput: {
+    borderWidth: 1,
+    minHeight: 96,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    textAlignVertical: 'top',
+  },
+  verificationPrimaryButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+    paddingHorizontal: 16,
+  },
+  verificationActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  verificationActionButton: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 48,
+    paddingHorizontal: 14,
   },
   manageButton: {
     alignItems: 'center',
