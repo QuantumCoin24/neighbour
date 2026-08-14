@@ -7,6 +7,7 @@ import {
 } from '@neighbour/api-client';
 import { type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useAuth } from '../../../auth/auth-context';
 import { RealtimeEvents, useRealtime, type RealtimeEnvelope } from '../../../realtime';
 
 import { MessageContextBoundary, type MessageContextValue } from './message-context';
@@ -49,16 +50,22 @@ function replaceConversation(current: Conversation[], incoming: Conversation): C
   ]);
 }
 
-function getUnreadCount(conversations: Conversation[]): number {
-  return conversations.reduce(
-    (total, conversation) =>
-      total +
-      conversation.members.reduce((memberTotal, member) => memberTotal + member.unreadCount, 0),
-    0,
-  );
+function getUnreadCount(conversations: Conversation[], currentUserId: string | undefined): number {
+  if (!currentUserId) {
+    return 0;
+  }
+
+  return conversations.reduce((total, conversation) => {
+    const currentMembership = conversation.members.find(
+      (member) => member.user.id === currentUserId,
+    );
+
+    return total + (currentMembership?.unreadCount ?? 0);
+  }, 0);
 }
 
 export function MessageProvider({ children }: PropsWithChildren) {
+  const { user, status: authStatus } = useAuth();
   const realtime = useRealtime();
 
   const conversationRefreshesRef = useRef<Map<string, Promise<void>>>(new Map());
@@ -170,11 +177,15 @@ export function MessageProvider({ children }: PropsWithChildren) {
           conversation.id === conversationId
             ? {
                 ...conversation,
-                members: conversation.members.map((member) => ({
-                  ...member,
-                  unreadCount: 0,
-                  lastReadAt: member.lastReadAt ?? new Date().toISOString(),
-                })),
+                members: conversation.members.map((member) =>
+                  member.user.id === user?.id
+                    ? {
+                        ...member,
+                        unreadCount: 0,
+                        lastReadAt: member.lastReadAt ?? new Date().toISOString(),
+                      }
+                    : member,
+                ),
               }
             : conversation,
         ),
@@ -188,12 +199,24 @@ export function MessageProvider({ children }: PropsWithChildren) {
         setError('The conversation could not be marked as read.');
       }
     },
-    [conversations, refreshConversation],
+    [conversations, refreshConversation, user?.id],
   );
 
   useEffect(() => {
+    if (authStatus !== 'authenticated' || !user) {
+      if (authStatus === 'anonymous') {
+        setConversations([]);
+        setNextCursor(null);
+        setError(null);
+        setLoading(false);
+      }
+
+      return;
+    }
+
+    setLoading(true);
     void loadInitial();
-  }, [loadInitial]);
+  }, [authStatus, loadInitial, user]);
 
   useEffect(() => {
     const unsubscribeCreated = realtime.subscribe<Message>(
@@ -241,7 +264,10 @@ export function MessageProvider({ children }: PropsWithChildren) {
     };
   }, [realtime, refreshConversation]);
 
-  const unreadCount = useMemo(() => getUnreadCount(conversations), [conversations]);
+  const unreadCount = useMemo(
+    () => getUnreadCount(conversations, user?.id),
+    [conversations, user?.id],
+  );
 
   const value = useMemo<MessageContextValue>(
     () => ({
