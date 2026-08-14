@@ -275,12 +275,14 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
                     accessibilityRole="button"
                     accessibilityLabel="Open Marketplace"
                     onPress={() => {
-                      navigation.navigate('App', {
-                        screen: 'Marketplace',
-                      });
+                      navigation.navigate('Marketplace');
                     }}
+                    style={styles.featurePressable}
                   >
-                    <Card variant="muted" style={styles.featureCard}>
+                    <Card
+                      variant="muted"
+                      style={[styles.featureCard, styles.marketplaceFeatureCard]}
+                    >
                       <AppText variant="caption" tone="brand">
                         Enabled
                       </AppText>
@@ -689,10 +691,16 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
+  featurePressable: {
+    width: '48%',
+  },
   featureCard: {
     gap: 3,
     paddingVertical: 13,
     width: '48%',
+  },
+  marketplaceFeatureCard: {
+    width: '100%',
   },
   snapshotCard: {
     gap: 12,

@@ -1,4 +1,4 @@
-import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   ActivityIndicator,
   Pressable,
@@ -11,10 +11,10 @@ import {
 
 import { AppText, Card, Screen } from '../components';
 import { MarketplaceBusinessCard, useMarketplace } from '../features/marketplace';
-import type { AppTabParamList } from '../navigation/routes';
+import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
-type MarketplaceScreenProps = BottomTabScreenProps<AppTabParamList, 'Marketplace'>;
+type MarketplaceScreenProps = NativeStackScreenProps<RootStackParamList, 'Marketplace'>;
 
 export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps) {
   const { theme } = useNeighbourTheme();
@@ -49,7 +49,7 @@ export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps
         <Pressable
           accessibilityRole="button"
           onPress={() => {
-            navigation.getParent()?.navigate('MarketplaceOffers');
+            navigation.navigate('MarketplaceOffers');
           }}
           style={styles.marketplaceMode}
         >
@@ -61,7 +61,7 @@ export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps
         <Pressable
           accessibilityRole="button"
           onPress={() => {
-            navigation.getParent()?.navigate('MarketplaceTransactions');
+            navigation.navigate('MarketplaceTransactions');
           }}
           style={styles.marketplaceMode}
         >
@@ -75,7 +75,7 @@ export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps
         <Pressable
           accessibilityRole="button"
           onPress={() => {
-            navigation.getParent()?.navigate('MarketplaceListings');
+            navigation.navigate('MarketplaceListings');
           }}
           style={[
             styles.marketplaceMode,
@@ -219,7 +219,7 @@ export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps
           <MarketplaceBusinessCard
             business={marketplace.myBusiness}
             onPress={() => {
-              navigation.getParent()?.navigate('BusinessDetail', {
+              navigation.navigate('BusinessDetail', {
                 business: marketplace.myBusiness!,
               });
             }}
@@ -249,7 +249,7 @@ export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps
                 key={business.id}
                 business={business}
                 onPress={() => {
-                  navigation.getParent()?.navigate('BusinessDetail', {
+                  navigation.navigate('BusinessDetail', {
                     business,
                   });
                 }}

@@ -19,6 +19,7 @@ import CreateEventScreen from '../screens/CreateEventScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
 import ConversationScreen from '../screens/ConversationScreen';
 import LoginScreen from '../screens/LoginScreen';
+import MarketplaceScreen from '../screens/MarketplaceScreen';
 import PremiumScreen from '../screens/PremiumScreen';
 import CreateMarketplaceListingScreen from '../features/marketplace-listings/screens/CreateMarketplaceListingScreen';
 import MarketplaceListingDetailScreen from '../features/marketplace-listings/screens/MarketplaceListingDetailScreen';
@@ -121,6 +122,8 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.EVENT_DETAIL} component={EventDetailScreen} />
 
             <Stack.Screen name={ROUTES.BUSINESS_DETAIL} component={BusinessDetailScreen} />
+
+            <Stack.Screen name={ROUTES.MARKETPLACE} component={MarketplaceScreen} />
 
             <Stack.Screen name={ROUTES.EDIT_BUSINESS} component={EditBusinessScreen} />
 

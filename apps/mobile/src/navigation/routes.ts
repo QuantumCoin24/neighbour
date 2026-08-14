@@ -28,6 +28,7 @@ export const ROUTES = {
   CREATE_EVENT: 'CreateEvent',
   EVENT_DETAIL: 'EventDetail',
   BUSINESS_DETAIL: 'BusinessDetail',
+  MARKETPLACE: 'Marketplace',
   EDIT_BUSINESS: 'EditBusiness',
   CREATE_BUSINESS: 'CreateBusiness',
   PREMIUM: 'Premium',
@@ -51,6 +52,7 @@ export type RootStackParamList = {
   EventDetail: {
     eventId: string;
   };
+  Marketplace: undefined;
   BusinessDetail: {
     business: import('@neighbour/api-client').MarketplaceBusiness;
   };
