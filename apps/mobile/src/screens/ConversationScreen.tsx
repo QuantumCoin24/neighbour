@@ -351,7 +351,10 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
       });
 
       setMessages((current) =>
-        sortMessages(current.map((message) => (message.id === optimisticId ? created : message))),
+        mergeMessage(
+          current.filter((message) => message.id !== optimisticId),
+          created,
+        ),
       );
 
       await refreshConversation(conversationId);
