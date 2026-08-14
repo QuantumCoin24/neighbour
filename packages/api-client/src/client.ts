@@ -83,12 +83,12 @@ async function performRequest(
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(options.headers ?? {}),
       ...(token
         ? {
             Authorization: `Bearer ${token}`,
           }
         : {}),
-      ...(options.headers ?? {}),
     },
   });
 }

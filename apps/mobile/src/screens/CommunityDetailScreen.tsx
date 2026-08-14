@@ -483,9 +483,9 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
                 accessibilityLabel="Create business"
                 onPress={() => {
                   navigation.navigate('CreateBusiness', {
-                    communityId: detail.community.id,
-                    communitySlug: detail.community.slug,
-                    communityName: detail.community.name,
+                    communityId: detail.community!.id,
+                    communitySlug: detail.community!.slug,
+                    communityName: detail.community!.name,
                   });
                 }}
                 style={[
