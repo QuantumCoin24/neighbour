@@ -72,8 +72,8 @@ export async function uploadPendingMedia(
     throw new Error('Images must be smaller than 20 MB.');
   }
 
-  const mimeType = resolveMimeType(media);
-  const fileName = resolveFileName(media, mimeType);
+  const mimeType: PendingMedia['mimeType'] = 'image/jpeg';
+  const fileName = `neighbour-${media.localId}.jpg`;
 
   onProgress?.({
     localId: media.localId,
