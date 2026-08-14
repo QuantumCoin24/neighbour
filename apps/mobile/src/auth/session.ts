@@ -11,6 +11,7 @@ export interface MobileSession {
 }
 
 let currentSession: MobileSession | null = null;
+let refreshPromise: Promise<string | null> | null = null;
 
 export function getSession(): MobileSession | null {
   return currentSession;
@@ -21,30 +22,40 @@ export function getSessionAccessToken(): string | null {
 }
 
 export async function refreshSessionAccessToken(): Promise<string | null> {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
   const session = currentSession;
 
   if (!session) {
     return null;
   }
 
-  try {
-    const tokens = await refreshAuthTokens(session.refreshToken);
+  refreshPromise = (async () => {
+    try {
+      const tokens = await refreshAuthTokens(session.refreshToken);
 
-    const refreshedSession: MobileSession = {
-      ...session,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresAt: Date.now() + tokens.expiresIn * 1000,
-    };
+      const refreshedSession: MobileSession = {
+        ...session,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresAt: Date.now() + tokens.expiresIn * 1000,
+      };
 
-    await saveSession(refreshedSession);
+      await saveSession(refreshedSession);
 
-    return refreshedSession.accessToken;
-  } catch {
-    await clearSession();
+      return refreshedSession.accessToken;
+    } catch {
+      await clearSession();
 
-    return null;
-  }
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 export function createSession(response: AuthResponse): MobileSession {
