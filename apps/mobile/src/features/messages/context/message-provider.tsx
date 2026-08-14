@@ -5,7 +5,7 @@ import {
   type Conversation,
   type Message,
 } from '@neighbour/api-client';
-import { type PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
+import { type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { RealtimeEvents, useRealtime, type RealtimeEnvelope } from '../../../realtime';
 
@@ -60,6 +60,8 @@ function getUnreadCount(conversations: Conversation[]): number {
 
 export function MessageProvider({ children }: PropsWithChildren) {
   const realtime = useRealtime();
+
+  const conversationRefreshesRef = useRef<Map<string, Promise<void>>>(new Map());
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -135,14 +137,28 @@ export function MessageProvider({ children }: PropsWithChildren) {
     }
   }, [loadingMore, nextCursor]);
 
-  const refreshConversation = useCallback(async (conversationId: string) => {
-    try {
-      const updated = await getConversation(conversationId);
+  const refreshConversation = useCallback((conversationId: string): Promise<void> => {
+    const existing = conversationRefreshesRef.current.get(conversationId);
 
-      setConversations((current) => replaceConversation(current, updated));
-    } catch {
-      // A later refresh or realtime event can recover this item.
+    if (existing) {
+      return existing;
     }
+
+    const refreshPromise = (async () => {
+      try {
+        const updated = await getConversation(conversationId);
+
+        setConversations((current) => replaceConversation(current, updated));
+      } catch {
+        // A later refresh or realtime event can recover this item.
+      } finally {
+        conversationRefreshesRef.current.delete(conversationId);
+      }
+    })();
+
+    conversationRefreshesRef.current.set(conversationId, refreshPromise);
+
+    return refreshPromise;
   }, []);
 
   const markConversationRead = useCallback(

@@ -150,7 +150,7 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
   const { user } = useAuth();
   const { theme } = useNeighbourTheme();
   const realtime = useRealtime();
-  const messageStore = useMessages();
+  const { refreshConversation } = useMessages();
 
   const listRef = useRef<FlatList<Message>>(null);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -210,13 +210,12 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
       setNextCursor(messageResponse.nextCursor);
 
       await markConversationRead(conversationId);
-      await messageStore.refreshConversation(conversationId);
     } catch {
       setError('This conversation could not be loaded.');
     } finally {
       setLoading(false);
     }
-  }, [conversationId, messageStore]);
+  }, [conversationId]);
 
   const loadOlderMessages = useCallback(async () => {
     if (!nextCursor || loadingOlder) {
@@ -355,7 +354,7 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
         sortMessages(current.map((message) => (message.id === optimisticId ? created : message))),
       );
 
-      await messageStore.refreshConversation(conversationId);
+      await refreshConversation(conversationId);
     } catch {
       setMessages((current) => current.filter((message) => message.id !== optimisticId));
       setText(content);
@@ -363,7 +362,7 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
     } finally {
       setSending(false);
     }
-  }, [conversationId, messageStore, sending, stopTyping, text, user]);
+  }, [conversationId, refreshConversation, sending, stopTyping, text, user]);
 
   useEffect(() => {
     void loadConversation();
@@ -387,7 +386,7 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
 
         void markConversationRead(conversationId, payload.data.id);
 
-        void messageStore.refreshConversation(conversationId);
+        void refreshConversation(conversationId);
 
         requestAnimationFrame(() => {
           listRef.current?.scrollToEnd({
@@ -433,7 +432,7 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
       RealtimeEvents.MESSAGE_READ,
       (payload) => {
         if (payload.data.conversationId === conversationId) {
-          void messageStore.refreshConversation(conversationId);
+          void refreshConversation(conversationId);
         }
       },
     );
@@ -477,7 +476,7 @@ export default function ConversationScreen({ navigation, route }: ConversationSc
       void stopTyping();
       void realtime.leaveConversation(conversationId).catch(() => undefined);
     };
-  }, [conversationId, messageStore, realtime, stopTyping, user?.id]);
+  }, [conversationId, realtime, refreshConversation, stopTyping, user?.id]);
 
   if (loading) {
     return (
