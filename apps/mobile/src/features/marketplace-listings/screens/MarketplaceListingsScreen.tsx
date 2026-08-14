@@ -397,11 +397,16 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   categories: {
+    alignItems: 'center',
     gap: 8,
   },
   category: {
+    alignItems: 'center',
+    alignSelf: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 12,
+    justifyContent: 'center',
+    minHeight: 38,
+    paddingHorizontal: 14,
     paddingVertical: 7,
   },
   freeToggle: {
