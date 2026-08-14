@@ -292,13 +292,20 @@ export function markConversationRead(
 
   const token = legacyCall ? first : undefined;
   const conversationId = legacyCall ? second : first;
+  const messageId = legacyCall ? undefined : second;
 
   return apiRequest<MarkConversationReadResponse>(
     `/messages/conversations/${encodeURIComponent(conversationId)}/read`,
     {
       method: 'POST',
       headers: tokenHeaders(token),
-      body: JSON.stringify({}),
+      body: JSON.stringify(
+        messageId
+          ? {
+              messageId,
+            }
+          : {},
+      ),
     },
   );
 }

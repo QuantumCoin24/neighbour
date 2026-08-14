@@ -90,8 +90,6 @@ export function ConversationList({ onOpenConversation }: ConversationListProps) 
           key={conversation.id}
           conversation={conversation}
           onPress={() => {
-            void messages.markConversationRead(conversation.id);
-
             onOpenConversation(conversation.id);
           }}
         />
