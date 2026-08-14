@@ -1,3 +1,5 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
+
 export const ROUTES = {
   LOGIN: 'Login',
   APP: 'App',
@@ -33,7 +35,7 @@ export const ROUTES = {
 
 export type RootStackParamList = {
   Login: undefined;
-  App: undefined;
+  App: NavigatorScreenParams<AppTabParamList>;
   Conversation: {
     conversationId: string;
   };
