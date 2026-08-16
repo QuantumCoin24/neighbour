@@ -29,5 +29,5 @@ export interface MarketplacePaymentProviderAdapter {
 
   cancelPayment(providerReference: string): Promise<void>;
 
-  refundPayment(providerReference: string, amountPence: number): Promise<void>;
+  refundPayment(providerReference: string, amountPence: number): Promise<string | null>;
 }

@@ -448,11 +448,13 @@ export class MarketplacePaymentService {
       throw new BadRequestException('Refund amount exceeds the remaining captured balance.');
     }
 
+    let providerRefundReference: string | null = null;
+
     if (
       payment.provider === MarketplacePaymentProvider.STRIPE &&
       payment.providerReference
     ) {
-      await this.stripeProvider.refundPayment(
+      providerRefundReference = await this.stripeProvider.refundPayment(
         payment.providerReference,
         dto.amountPence,
       );
@@ -475,6 +477,7 @@ export class MarketplacePaymentService {
           status: MarketplaceRefundStatus.COMPLETED,
           amountPence: dto.amountPence,
           reason: dto.reason?.trim() || null,
+          providerReference: providerRefundReference,
           completedAt: now,
         },
       });
@@ -500,6 +503,7 @@ export class MarketplacePaymentService {
           note: dto.reason?.trim() || 'Marketplace refund completed.',
           metadata: {
             refundId: refund.id,
+            providerReference: providerRefundReference,
           },
         },
       });

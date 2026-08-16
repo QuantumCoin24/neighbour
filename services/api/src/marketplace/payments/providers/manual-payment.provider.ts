@@ -33,10 +33,13 @@ export class ManualPaymentProvider implements MarketplacePaymentProviderAdapter 
     return Promise.resolve();
   }
 
-  refundPayment(providerReference: string, amountPence: number): Promise<void> {
+  refundPayment(
+    providerReference: string,
+    amountPence: number,
+  ): Promise<string | null> {
     void providerReference;
     void amountPence;
 
-    return Promise.resolve();
+    return Promise.resolve(null);
   }
 }

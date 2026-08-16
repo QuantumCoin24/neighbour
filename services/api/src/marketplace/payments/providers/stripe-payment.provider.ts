@@ -85,13 +85,15 @@ export class StripePaymentProvider implements MarketplacePaymentProviderAdapter 
   async refundPayment(
     providerReference: string,
     amountPence: number,
-  ): Promise<void> {
+  ): Promise<string> {
     const stripe = this.getStripe();
 
-    await stripe.refunds.create({
+    const refund = await stripe.refunds.create({
       payment_intent: providerReference,
       amount: amountPence,
     });
+
+    return refund.id;
   }
 
   constructWebhookEvent(
