@@ -1771,27 +1771,31 @@ model MarketplaceFulfilmentProof {
 }
 
 model MarketplacePayment {
-  id                  String                     @id @default(uuid()) @db.Uuid
-  transactionId       String                     @db.Uuid
-  buyerId             String                     @db.Uuid
-  sellerId            String                     @db.Uuid
-  provider            MarketplacePaymentProvider
-  method              MarketplacePaymentMethod
-  status              MarketplacePaymentStatus   @default(PENDING)
-  amountPence         Int
-  currency            String                     @default("GBP")
-  providerReference   String?
-  clientSecret        String?
-  manualReference     String?
-  idempotencyKey      String                     @unique
-  failureReason       String?
-  authorisedAt        DateTime?
-  capturedAt          DateTime?
-  cancelledAt         DateTime?
-  refundedAmountPence Int                        @default(0)
-  expiresAt           DateTime?
-  createdAt           DateTime                   @default(now())
-  updatedAt           DateTime                   @updatedAt
+  id                     String                     @id @default(uuid()) @db.Uuid
+  transactionId          String                     @db.Uuid
+  buyerId                String                     @db.Uuid
+  sellerId               String                     @db.Uuid
+  provider               MarketplacePaymentProvider
+  method                 MarketplacePaymentMethod
+  status                 MarketplacePaymentStatus   @default(PENDING)
+  amountPence            Int
+  platformFeeBasisPoints Int                        @default(750)
+  platformFeePence       Int                        @default(0)
+  processorFeePence      Int                        @default(0)
+  sellerProceedsPence    Int                        @default(0)
+  currency               String                     @default("GBP")
+  providerReference      String?
+  clientSecret           String?
+  manualReference        String?
+  idempotencyKey         String                     @unique
+  failureReason          String?
+  authorisedAt           DateTime?
+  capturedAt             DateTime?
+  cancelledAt            DateTime?
+  refundedAmountPence    Int                        @default(0)
+  expiresAt              DateTime?
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
 
   transaction         MarketplaceTransaction    @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   buyer               User                      @relation("MarketplacePaymentBuyer", fields: [buyerId], references: [id], onDelete: Restrict)

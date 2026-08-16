@@ -1,17 +1,65 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Post,
+  Req,
+} from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
+import type { Request } from 'express';
 
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
+import { Public } from '../../../auth/decorators/public.decorator';
 import type { AuthUser } from '../../../auth/interfaces/auth-user.interface';
 
 import { CancelMarketplacePaymentDto } from '../dto/cancel-marketplace-payment.dto';
 import { ConfirmMarketplacePaymentDto } from '../dto/confirm-marketplace-payment.dto';
 import { CreateMarketplacePaymentDto } from '../dto/create-marketplace-payment.dto';
 import { CreateMarketplaceRefundDto } from '../dto/create-marketplace-refund.dto';
+import { StripePaymentProvider } from '../providers/stripe-payment.provider';
 import { MarketplacePaymentService } from '../services/marketplace-payment.service';
 
 @Controller('marketplace/payments')
 export class MarketplacePaymentController {
-  constructor(private readonly payments: MarketplacePaymentService) {}
+  constructor(
+    private readonly payments: MarketplacePaymentService,
+    private readonly stripe: StripePaymentProvider,
+  ) {}
+
+  @Public()
+  @Post('stripe/webhook')
+  async stripeWebhook(
+    @Req() request: RawBodyRequest<Request>,
+    @Headers('stripe-signature') signature?: string,
+  ) {
+    if (!request.rawBody) {
+      throw new BadRequestException('Stripe webhook raw body is unavailable.');
+    }
+
+    if (!signature) {
+      throw new BadRequestException('Stripe-Signature header is required.');
+    }
+
+    let event;
+
+    try {
+      event = this.stripe.constructWebhookEvent(
+        request.rawBody,
+        signature,
+      );
+    } catch {
+      throw new BadRequestException('Invalid Stripe webhook signature.');
+    }
+
+    await this.payments.handleStripeWebhook(event);
+
+    return {
+      received: true,
+    };
+  }
 
   @Get('health')
   getHealth() {

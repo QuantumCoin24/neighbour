@@ -14,4 +14,6 @@ export const environmentValidationSchema = Joi.object({
   CORS_ORIGINS: Joi.string().allow('').optional(),
   RATE_LIMIT_WINDOW_MS: Joi.number().integer().positive().default(60_000),
   RATE_LIMIT_MAX: Joi.number().integer().positive().default(300),
+  STRIPE_SECRET_KEY: Joi.string().allow('').optional(),
+  STRIPE_WEBHOOK_SECRET: Joi.string().allow('').optional(),
 });
