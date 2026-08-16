@@ -5,6 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type Stripe from 'stripe';
 
 import { DatabaseService } from '../../../database/database.service';
 import {
@@ -27,6 +28,7 @@ import type {
   MarketplacePaymentResponse,
 } from '../interfaces/marketplace-payment-response.interface';
 import { ManualPaymentProvider } from '../providers/manual-payment.provider';
+import { StripePaymentProvider } from '../providers/stripe-payment.provider';
 
 const paymentInclude = {
   events: {
@@ -51,11 +53,31 @@ const TERMINAL_STATUSES: MarketplacePaymentStatus[] = [
   MarketplacePaymentStatus.FAILED,
 ];
 
+const MARKETPLACE_PLATFORM_FEE_BASIS_POINTS = 750;
+const BASIS_POINTS_DIVISOR = 10_000;
+
+function calculateMarketplaceCommission(amountPence: number) {
+  const platformFeePence = Math.round(
+    (amountPence * MARKETPLACE_PLATFORM_FEE_BASIS_POINTS) / BASIS_POINTS_DIVISOR,
+  );
+
+  const processorFeePence = 0;
+  const sellerProceedsPence = amountPence - platformFeePence - processorFeePence;
+
+  return {
+    platformFeeBasisPoints: MARKETPLACE_PLATFORM_FEE_BASIS_POINTS,
+    platformFeePence,
+    processorFeePence,
+    sellerProceedsPence,
+  };
+}
+
 @Injectable()
 export class MarketplacePaymentService {
   constructor(
     private readonly database: DatabaseService,
     private readonly manualProvider: ManualPaymentProvider,
+    private readonly stripeProvider: StripePaymentProvider,
   ) {}
 
   getHealth(): MarketplacePaymentHealthResponse {
@@ -84,12 +106,12 @@ export class MarketplacePaymentService {
         {
           id: MarketplacePaymentMethod.CARD,
           provider: MarketplacePaymentProvider.STRIPE,
-          enabled: false,
+          enabled: this.stripeProvider.isConfigured(),
         },
         {
           id: MarketplacePaymentMethod.APPLE_PAY,
           provider: MarketplacePaymentProvider.STRIPE,
-          enabled: false,
+          enabled: this.stripeProvider.isConfigured(),
         },
         {
           id: MarketplacePaymentMethod.QFN,
@@ -128,12 +150,25 @@ export class MarketplacePaymentService {
 
     const method = dto.method as MarketplacePaymentMethod;
 
-    if (
-      method !== MarketplacePaymentMethod.CASH_ON_COLLECTION &&
-      method !== MarketplacePaymentMethod.BANK_TRANSFER
-    ) {
+    const isManualMethod =
+      method === MarketplacePaymentMethod.CASH_ON_COLLECTION ||
+      method === MarketplacePaymentMethod.BANK_TRANSFER;
+
+    const isStripeMethod =
+      method === MarketplacePaymentMethod.CARD ||
+      method === MarketplacePaymentMethod.APPLE_PAY;
+
+    if (!isManualMethod && !isStripeMethod) {
       throw new BadRequestException('This payment method is not enabled yet.');
     }
+
+    if (isStripeMethod && !this.stripeProvider.isConfigured()) {
+      throw new BadRequestException('Stripe payments are not configured.');
+    }
+
+    const provider = isStripeMethod
+      ? MarketplacePaymentProvider.STRIPE
+      : MarketplacePaymentProvider.MANUAL;
 
     const existing = await this.database.marketplacePayment.findFirst({
       where: {
@@ -151,16 +186,24 @@ export class MarketplacePaymentService {
 
     const idempotencyKey = `marketplace-payment:${transaction.id}:${method}`;
 
+    const commission = calculateMarketplaceCommission(dto.amountPence);
+
     const created = await this.database.$transaction(async (databaseTransaction) => {
       const payment = await databaseTransaction.marketplacePayment.create({
         data: {
           transactionId: transaction.id,
           buyerId: transaction.buyerId,
           sellerId: transaction.sellerId,
-          provider: MarketplacePaymentProvider.MANUAL,
+          provider,
           method,
-          status: MarketplacePaymentStatus.PENDING,
+          status: isStripeMethod
+            ? MarketplacePaymentStatus.REQUIRES_ACTION
+            : MarketplacePaymentStatus.PENDING,
           amountPence: dto.amountPence,
+          platformFeeBasisPoints: commission.platformFeeBasisPoints,
+          platformFeePence: commission.platformFeePence,
+          processorFeePence: commission.processorFeePence,
+          sellerProceedsPence: commission.sellerProceedsPence,
           currency: 'GBP',
           manualReference: dto.reference?.trim() || null,
           idempotencyKey,
@@ -187,7 +230,11 @@ export class MarketplacePaymentService {
       });
     });
 
-    await this.manualProvider.createPayment({
+    const providerAdapter = isStripeMethod
+      ? this.stripeProvider
+      : this.manualProvider;
+
+    const providerResult = await providerAdapter.createPayment({
       paymentId: created.id,
       transactionId: created.transactionId,
       buyerId: created.buyerId,
@@ -197,9 +244,27 @@ export class MarketplacePaymentService {
       method: created.method,
     });
 
-    await this.notify(created.sellerId, userId, created.id, 'created');
+    const finalPayment =
+      provider === MarketplacePaymentProvider.STRIPE
+        ? await this.database.marketplacePayment.update({
+            where: {
+              id: created.id,
+            },
+            data: {
+              provider: providerResult.provider,
+              providerReference: providerResult.providerReference,
+              clientSecret: providerResult.clientSecret,
+              status: providerResult.requiresAction
+                ? MarketplacePaymentStatus.REQUIRES_ACTION
+                : MarketplacePaymentStatus.AUTHORISED,
+            },
+            include: paymentInclude,
+          })
+        : created;
 
-    return this.map(created);
+    await this.notify(finalPayment.sellerId, userId, finalPayment.id, 'created');
+
+    return this.map(finalPayment);
   }
 
   async listMine(userId: string): Promise<MarketplacePaymentResponse[]> {
@@ -236,6 +301,12 @@ export class MarketplacePaymentService {
 
     if (payment.sellerId !== userId) {
       throw new ForbiddenException('Only the seller may confirm receipt of payment.');
+    }
+
+    if (payment.provider !== MarketplacePaymentProvider.MANUAL) {
+      throw new ConflictException(
+        'Provider-managed payments cannot be manually confirmed.',
+      );
     }
 
     if (payment.status === MarketplacePaymentStatus.CAPTURED) {
@@ -308,6 +379,13 @@ export class MarketplacePaymentService {
       return this.map(payment);
     }
 
+    if (
+      payment.provider === MarketplacePaymentProvider.STRIPE &&
+      payment.providerReference
+    ) {
+      await this.stripeProvider.cancelPayment(payment.providerReference);
+    }
+
     const cancelledAt = new Date();
 
     const updated = await this.database.$transaction(async (databaseTransaction) => {
@@ -368,6 +446,16 @@ export class MarketplacePaymentService {
 
     if (dto.amountPence > refundable) {
       throw new BadRequestException('Refund amount exceeds the remaining captured balance.');
+    }
+
+    if (
+      payment.provider === MarketplacePaymentProvider.STRIPE &&
+      payment.providerReference
+    ) {
+      await this.stripeProvider.refundPayment(
+        payment.providerReference,
+        dto.amountPence,
+      );
     }
 
     const nextRefundedAmount = payment.refundedAmountPence + dto.amountPence;
@@ -494,6 +582,123 @@ export class MarketplacePaymentService {
     });
   }
 
+  async handleStripeWebhook(event: Stripe.Event): Promise<void> {
+    const object = event.data.object as Stripe.PaymentIntent;
+    const providerReference = object.id;
+
+    if (!providerReference) {
+      return;
+    }
+
+    if (
+      event.type !== 'payment_intent.succeeded' &&
+      event.type !== 'payment_intent.payment_failed' &&
+      event.type !== 'payment_intent.canceled'
+    ) {
+      return;
+    }
+
+    const payment = await this.database.marketplacePayment.findFirst({
+      where: {
+        provider: MarketplacePaymentProvider.STRIPE,
+        providerReference,
+      },
+    });
+
+    if (!payment) {
+      return;
+    }
+
+    const now = new Date();
+
+    if (event.type === 'payment_intent.succeeded') {
+      if (payment.status === MarketplacePaymentStatus.CAPTURED) {
+        return;
+      }
+
+      await this.database.$transaction(async (databaseTransaction) => {
+        await databaseTransaction.marketplacePayment.update({
+          where: {
+            id: payment.id,
+          },
+          data: {
+            status: MarketplacePaymentStatus.CAPTURED,
+            authorisedAt: payment.authorisedAt ?? now,
+            capturedAt: payment.capturedAt ?? now,
+            failureReason: null,
+          },
+        });
+
+        await databaseTransaction.marketplacePaymentEvent.create({
+          data: {
+            paymentId: payment.id,
+            actorId: payment.buyerId,
+            type: MarketplacePaymentEventType.CAPTURED,
+            fromStatus: payment.status,
+            toStatus: MarketplacePaymentStatus.CAPTURED,
+            amountPence: payment.amountPence,
+            note: 'Stripe confirmed payment capture.',
+            metadata: {
+              stripeEventId: event.id,
+              providerReference,
+            },
+          },
+        });
+      });
+
+      await this.notify(
+        payment.sellerId,
+        payment.buyerId,
+        payment.id,
+        'captured',
+      );
+
+      return;
+    }
+
+    if (event.type === 'payment_intent.payment_failed') {
+      if (payment.status === MarketplacePaymentStatus.FAILED) {
+        return;
+      }
+
+      await this.database.$transaction(async (databaseTransaction) => {
+        await databaseTransaction.marketplacePayment.update({
+          where: {
+            id: payment.id,
+          },
+          data: {
+            status: MarketplacePaymentStatus.FAILED,
+            failureReason:
+              object.last_payment_error?.message ??
+              'Stripe reported that the payment failed.',
+          },
+        });
+
+      });
+
+      return;
+    }
+
+    if (event.type === 'payment_intent.canceled') {
+      if (payment.status === MarketplacePaymentStatus.CANCELLED) {
+        return;
+      }
+
+      await this.database.$transaction(async (databaseTransaction) => {
+        await databaseTransaction.marketplacePayment.update({
+          where: {
+            id: payment.id,
+          },
+          data: {
+            status: MarketplacePaymentStatus.CANCELLED,
+            cancelledAt: payment.cancelledAt ?? now,
+          },
+        });
+
+      });
+    }
+  }
+
   private map(payment: PaymentWithRelations): MarketplacePaymentResponse {
     return {
       id: payment.id,
@@ -504,6 +709,10 @@ export class MarketplacePaymentService {
       method: payment.method,
       status: payment.status,
       amountPence: payment.amountPence,
+      platformFeeBasisPoints: payment.platformFeeBasisPoints,
+      platformFeePence: payment.platformFeePence,
+      processorFeePence: payment.processorFeePence,
+      sellerProceedsPence: payment.sellerProceedsPence,
       currency: payment.currency,
       providerReference: payment.providerReference,
       clientSecret: payment.clientSecret,
