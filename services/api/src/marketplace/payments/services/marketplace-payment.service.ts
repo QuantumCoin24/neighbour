@@ -658,6 +658,31 @@ export class MarketplacePaymentService {
           },
         });
 
+        await databaseTransaction.marketplaceSettlement.upsert({
+          where: {
+            paymentId: payment.id,
+          },
+          create: {
+            paymentId: payment.id,
+            transactionId: payment.transactionId,
+            sellerId: payment.sellerId,
+            status: 'PENDING',
+            grossAmountPence: payment.amountPence,
+            platformFeePence: payment.platformFeePence,
+            processorFeePence: payment.processorFeePence,
+            sellerProceedsPence: payment.sellerProceedsPence,
+            refundedAmountPence: payment.refundedAmountPence,
+            currency: payment.currency,
+            provider: payment.provider,
+            providerReference: payment.providerReference,
+            capturedAt: payment.capturedAt ?? now,
+          },
+          update: {
+            refundedAmountPence: payment.refundedAmountPence,
+            providerReference: payment.providerReference,
+          },
+        });
+
         await databaseTransaction.marketplacePaymentEvent.create({
           data: {
             paymentId: payment.id,
