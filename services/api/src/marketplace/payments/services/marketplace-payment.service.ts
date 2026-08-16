@@ -594,6 +594,31 @@ export class MarketplacePaymentService {
       return;
     }
 
+    /*
+     * Stripe guarantees that an Event has a stable unique ID.
+     *
+     * Persist that ID before applying any payment mutation. The unique
+     * constraint makes duplicate webhook deliveries safe even when two
+     * copies arrive concurrently.
+     */
+    try {
+      await this.database.stripeWebhookEvent.create({
+        data: {
+          stripeEventId: event.id,
+          type: event.type,
+          providerObjectId: providerReference,
+        },
+      });
+    } catch (error) {
+      const candidate = error as { code?: string };
+
+      if (candidate?.code === 'P2002') {
+        return;
+      }
+
+      throw error;
+    }
+
     if (
       event.type !== 'payment_intent.succeeded' &&
       event.type !== 'payment_intent.payment_failed' &&

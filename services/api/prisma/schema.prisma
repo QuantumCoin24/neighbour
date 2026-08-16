@@ -1837,6 +1837,19 @@ model MarketplaceRefund {
   @@map("marketplace_refunds")
 }
 
+model StripeWebhookEvent {
+  id               String   @id @default(uuid()) @db.Uuid
+  stripeEventId    String   @unique
+  type             String
+  providerObjectId String?
+  processedAt      DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  @@index([type, processedAt])
+  @@index([providerObjectId])
+  @@map("stripe_webhook_events")
+}
+
 model MarketplacePaymentEvent {
   id          String                      @id @default(uuid()) @db.Uuid
   paymentId   String                      @db.Uuid
