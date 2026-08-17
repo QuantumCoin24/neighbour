@@ -31,9 +31,9 @@ import {
   MakeMarketplaceOfferScreen,
   MarketplaceOfferDetailScreen,
   MarketplaceOffersScreen,
-  MarketplaceTransactionDetailScreen,
   MarketplaceTransactionsScreen,
 } from '../features/marketplace-transactions';
+
 import { useNeighbourTheme } from '../theme';
 
 import AppTabs from './AppTabs';
@@ -173,7 +173,10 @@ export default function AppNavigator() {
 
             <Stack.Screen
               name={ROUTES.MARKETPLACE_TRANSACTION_DETAIL}
-              component={MarketplaceTransactionDetailScreen}
+              getComponent={() =>
+                require('../features/marketplace-transactions/screens/MarketplaceTransactionDetailScreen')
+                  .default
+              }
             />
 
             <Stack.Screen name={ROUTES.MARKETPLACE_FULFILMENT} component={FulfilmentScreen} />

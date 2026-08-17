@@ -268,29 +268,64 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
             </View>
 
             <View style={styles.featureGrid}>
-              {detail.enabledFeatures.map((feature) =>
-                feature === 'Marketplace' ? (
-                  <Pressable
-                    key={feature}
-                    accessibilityRole="button"
-                    accessibilityLabel="Open Marketplace"
-                    onPress={() => {
-                      navigation.navigate('Marketplace');
-                    }}
-                    style={styles.featurePressable}
-                  >
-                    <Card
-                      variant="muted"
-                      style={[styles.featureCard, styles.marketplaceFeatureCard]}
-                    >
-                      <AppText variant="caption" tone="brand">
-                        Enabled
-                      </AppText>
+              {detail.enabledFeatures.map((feature) => {
+                const destination: CommunityDetailSection | null =
+                  feature === 'Member posts'
+                    ? 'feed'
+                    : feature === 'Events'
+                      ? 'events'
+                      : feature === 'Businesses'
+                        ? 'businesses'
+                        : null;
 
-                      <AppText variant="bodyStrong">{feature}</AppText>
-                    </Card>
-                  </Pressable>
-                ) : (
+                if (feature === 'Marketplace') {
+                  return (
+                    <Pressable
+                      key={feature}
+                      accessibilityRole="button"
+                      accessibilityLabel="Open Marketplace"
+                      onPress={() => {
+                        navigation.navigate('Marketplace');
+                      }}
+                      style={styles.featurePressable}
+                    >
+                      <Card
+                        variant="muted"
+                        style={[styles.featureCard, styles.marketplaceFeatureCard]}
+                      >
+                        <AppText variant="caption" tone="brand">
+                          Enabled
+                        </AppText>
+
+                        <AppText variant="bodyStrong">{feature}</AppText>
+                      </Card>
+                    </Pressable>
+                  );
+                }
+
+                if (destination) {
+                  return (
+                    <Pressable
+                      key={feature}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Open ${feature}`}
+                      onPress={() => {
+                        setSection(destination);
+                      }}
+                      style={styles.featurePressable}
+                    >
+                      <Card variant="muted" style={styles.featureCard}>
+                        <AppText variant="caption" tone="brand">
+                          Enabled
+                        </AppText>
+
+                        <AppText variant="bodyStrong">{feature}</AppText>
+                      </Card>
+                    </Pressable>
+                  );
+                }
+
+                return (
                   <Card key={feature} variant="muted" style={styles.featureCard}>
                     <AppText variant="caption" tone="brand">
                       Enabled
@@ -298,8 +333,8 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
 
                     <AppText variant="bodyStrong">{feature}</AppText>
                   </Card>
-                ),
-              )}
+                );
+              })}
             </View>
 
             <Card style={styles.snapshotCard}>

@@ -1,4 +1,5 @@
 import { getDashboardData, type DashboardData } from '@neighbour/api-client';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
@@ -6,6 +7,7 @@ import { useAuth } from '../auth/auth-context';
 import { AppText, Card, Screen } from '../components';
 import NeighbourMark from '../components/brand/NeighbourMark';
 import { FeedList, useFeedController } from '../features/feed';
+import type { AppTabParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
 interface StatCardProps {
@@ -14,14 +16,23 @@ interface StatCardProps {
   label: string;
   description: string;
   accent: string;
+  onPress: () => void;
 }
 
-function StatCard({ symbol, value, label, description, accent }: StatCardProps) {
+function StatCard({
+  symbol,
+  value,
+  label,
+  description,
+  accent,
+  onPress,
+}: StatCardProps) {
   const { theme } = useNeighbourTheme();
 
   return (
     <Pressable
       accessibilityRole="button"
+      onPress={onPress}
       style={({ pressed }) => [
         styles.statCard,
         {
@@ -65,7 +76,9 @@ function StatCard({ symbol, value, label, description, accent }: StatCardProps) 
   );
 }
 
-export default function HomeScreen() {
+type HomeScreenProps = BottomTabScreenProps<AppTabParamList, 'Home'>;
+
+export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { user } = useAuth();
   const { theme } = useNeighbourTheme();
 
@@ -245,9 +258,16 @@ export default function HomeScreen() {
 
       {/* NEIGHBOURHOOD HERO */}
 
-      <Card
-        style={[
-          styles.neighbourhoodCard,
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Explore your local area"
+        onPress={() => {
+          navigation.navigate('Maps');
+        }}
+      >
+        <Card
+          style={[
+            styles.neighbourhoodCard,
           {
             backgroundColor: theme.colors.primaryStrong,
           },
@@ -294,7 +314,8 @@ export default function HomeScreen() {
             →
           </AppText>
         </View>
-      </Card>
+        </Card>
+      </Pressable>
 
       {/* COMMUNITY STATS */}
 
@@ -320,6 +341,9 @@ export default function HomeScreen() {
             label="Communities"
             description="Connected groups"
             accent={theme.colors.community}
+            onPress={() => {
+              navigation.navigate('Communities');
+            }}
           />
 
           <StatCard
@@ -330,6 +354,9 @@ export default function HomeScreen() {
               unreadMessages > 0 ? 'Unread messages' : `${conversationCount} conversations`
             }
             accent={theme.colors.information}
+            onPress={() => {
+              navigation.navigate('Messages');
+            }}
           />
 
           <StatCard
@@ -338,6 +365,9 @@ export default function HomeScreen() {
             label="Alerts"
             description="Local notifications"
             accent={theme.colors.event}
+            onPress={() => {
+              navigation.navigate('Communities');
+            }}
           />
 
           <StatCard
@@ -346,6 +376,9 @@ export default function HomeScreen() {
             label="Profile"
             description={dashboard?.profile ? dashboard.profile.username : 'Complete your identity'}
             accent={theme.colors.business}
+            onPress={() => {
+              navigation.navigate('Profile');
+            }}
           />
         </View>
       </View>
