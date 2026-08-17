@@ -233,7 +233,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
     setError(null);
 
     try {
-      const confirmed = await confirmMarketplacePayment(payment.id, {});
+      const confirmed = await confirmMarketplacePayment(payment.id);
 
       setPayment(confirmed);
 
@@ -385,7 +385,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
                         styles.paymentMethodButton,
                         selected
                           ? {
-                              borderColor: theme.colors.brand,
+                              borderColor: theme.colors.primary,
                               borderWidth: 2,
                             }
                           : null,

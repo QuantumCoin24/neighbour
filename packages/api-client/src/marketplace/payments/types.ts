@@ -50,6 +50,10 @@ export interface MarketplacePayment {
   method: MarketplacePaymentMethod;
   status: MarketplacePaymentStatus;
   amountPence: number;
+  platformFeeBasisPoints: number;
+  platformFeePence: number;
+  processorFeePence: number;
+  sellerProceedsPence: number;
   currency: string;
   providerReference: string | null;
   clientSecret: string | null;
