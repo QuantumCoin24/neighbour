@@ -266,6 +266,139 @@ export class MarketplaceTransactionService {
     return this.mapOffer(counter);
   }
 
+  async purchaseListing(
+    buyerId: string,
+    listingId: string,
+  ): Promise<MarketplaceTransactionResponse> {
+    await this.expireStaleMarketplaceState();
+
+    const listing = await this.database.marketplaceListing.findFirst({
+      where: {
+        id: listingId,
+        status: MarketplaceListingStatus.PUBLISHED,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        sellerId: true,
+        pricePence: true,
+        isFree: true,
+      },
+    });
+
+    if (!listing) {
+      throw new NotFoundException('Marketplace listing not found.');
+    }
+
+    if (listing.sellerId === buyerId) {
+      throw new ForbiddenException('You cannot purchase your own listing.');
+    }
+
+    if (listing.isFree || listing.pricePence === null || listing.pricePence <= 0) {
+      throw new BadRequestException('This listing is not available for direct purchase.');
+    }
+
+    await this.requireNoBlockRelationship(buyerId, listing.sellerId);
+
+    const reservedAt = new Date();
+
+    const created = await this.database.$transaction(async (transaction) => {
+      const existingTransaction = await transaction.marketplaceTransaction.findUnique({
+        where: {
+          listingId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (existingTransaction) {
+        throw new ConflictException('A transaction already exists for this listing.');
+      }
+
+      const reserved = await transaction.marketplaceListing.updateMany({
+        where: {
+          id: listingId,
+          status: MarketplaceListingStatus.PUBLISHED,
+          deletedAt: null,
+        },
+        data: {
+          status: MarketplaceListingStatus.RESERVED,
+          reservedAt,
+        },
+      });
+
+      if (reserved.count !== 1) {
+        throw new ConflictException('This listing is no longer available.');
+      }
+
+      const activeOffers = await transaction.marketplaceOffer.findMany({
+        where: {
+          listingId,
+          status: {
+            in: ACTIVE_OFFER_STATUSES,
+          },
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+
+      for (const offer of activeOffers) {
+        await transaction.marketplaceOffer.update({
+          where: {
+            id: offer.id,
+          },
+          data: {
+            status: MarketplaceOfferStatus.CANCELLED,
+            cancelledAt: reservedAt,
+          },
+        });
+
+        await transaction.marketplaceOfferHistory.create({
+          data: {
+            offerId: offer.id,
+            actorId: buyerId,
+            fromStatus: offer.status,
+            toStatus: MarketplaceOfferStatus.CANCELLED,
+            note: 'Listing purchased at the asking price.',
+          },
+        });
+      }
+
+      return transaction.marketplaceTransaction.create({
+        data: {
+          listingId,
+          buyerId,
+          sellerId: listing.sellerId,
+          agreedPricePence: listing.pricePence,
+          status: MarketplaceTransactionStatus.RESERVED,
+          reservedAt,
+          expiresAt: new Date(reservedAt.getTime() + 7 * 24 * 60 * 60 * 1_000),
+        },
+      });
+    });
+
+    const conversationId = await this.createTransactionConversation(
+      buyerId,
+      buyerId,
+      listing.sellerId,
+      listingId,
+      created.id,
+      created.agreedPricePence,
+    );
+
+    return this.database.marketplaceTransaction.update({
+      where: {
+        id: created.id,
+      },
+      data: {
+        conversationId,
+      },
+    });
+  }
+
   async acceptOffer(userId: string, offerId: string): Promise<MarketplaceOfferResponse> {
     const offer = await this.requireParticipatingOffer(userId, offerId);
 

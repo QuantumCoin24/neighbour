@@ -25,6 +25,17 @@ function buildQuery(query: MarketplaceOfferQuery = {}): string {
   return value ? `?${value}` : '';
 }
 
+export function purchaseMarketplaceListing(
+  listingId: string,
+): Promise<MarketplaceTransaction> {
+  return apiRequest<MarketplaceTransaction>(
+    `/marketplace/listings/${encodeURIComponent(listingId)}/purchase`,
+    {
+      method: 'POST',
+    },
+  );
+}
+
 export function createMarketplacePeerOffer(
   listingId: string,
   input: CreateMarketplacePeerOfferInput,

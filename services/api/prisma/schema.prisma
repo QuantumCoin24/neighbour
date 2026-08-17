@@ -1605,7 +1605,7 @@ model MarketplaceOfferHistory {
 model MarketplaceTransaction {
   id               String                       @id @default(uuid()) @db.Uuid
   listingId        String                       @unique @db.Uuid
-  acceptedOfferId  String                       @unique @db.Uuid
+  acceptedOfferId  String?                      @unique @db.Uuid
   buyerId          String                       @db.Uuid
   sellerId         String                       @db.Uuid
   conversationId   String?                      @db.Uuid
@@ -1619,7 +1619,7 @@ model MarketplaceTransaction {
   updatedAt        DateTime                     @updatedAt
 
   listing       MarketplaceListing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  acceptedOffer MarketplaceOffer       @relation(fields: [acceptedOfferId], references: [id], onDelete: Restrict)
+  acceptedOffer MarketplaceOffer?      @relation(fields: [acceptedOfferId], references: [id], onDelete: Restrict)
   buyer         User                   @relation("MarketplaceTransactionBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
   seller        User                   @relation("MarketplaceTransactionSeller", fields: [sellerId], references: [id], onDelete: Restrict)
   fulfilment    MarketplaceFulfilment?

@@ -32,7 +32,7 @@ export interface MarketplaceOfferHistoryResponse {
 export interface MarketplaceTransactionResponse {
   id: string;
   listingId: string;
-  acceptedOfferId: string;
+  acceptedOfferId: string | null;
   buyerId: string;
   sellerId: string;
   conversationId: string | null;

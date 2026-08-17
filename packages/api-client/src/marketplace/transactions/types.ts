@@ -33,7 +33,7 @@ export interface MarketplaceOfferHistory {
 export interface MarketplaceTransaction {
   id: string;
   listingId: string;
-  acceptedOfferId: string;
+  acceptedOfferId: string | null;
   buyerId: string;
   sellerId: string;
   conversationId: string | null;

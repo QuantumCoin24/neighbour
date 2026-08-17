@@ -6,6 +6,7 @@ import {
   sendMessage,
   createConversation,
   getMarketplaceListing,
+  purchaseMarketplaceListing,
   toggleMarketplaceListingSaved,
   type MarketplaceListing,
 } from '@neighbour/api-client';
@@ -39,6 +40,8 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
   const [saving, setSaving] = useState(false);
 
   const [contacting, setContacting] = useState(false);
+
+  const [purchasing, setPurchasing] = useState(false);
 
   const [reporting, setReporting] = useState(false);
 
@@ -84,6 +87,39 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
       setError('The saved-listing status could not be changed.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const purchaseNow = async () => {
+    if (
+      !listing ||
+      !user ||
+      purchasing ||
+      listing.seller.id === user.id ||
+      listing.status !== 'PUBLISHED' ||
+      listing.isFree ||
+      listing.pricePence === null
+    ) {
+      return;
+    }
+
+    setPurchasing(true);
+    setError(null);
+
+    try {
+      const transaction = await purchaseMarketplaceListing(listing.id);
+
+      navigation.navigate('MarketplaceTransactionDetail', {
+        transactionId: transaction.id,
+      });
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'This listing could not be purchased.',
+      );
+    } finally {
+      setPurchasing(false);
     }
   };
 
@@ -556,6 +592,61 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
           </Pressable>
         ) : null}
       </Card>
+
+      {listing.seller.id !== user?.id &&
+      listing.status === 'PUBLISHED' &&
+      !listing.isFree &&
+      listing.pricePence !== null ? (
+        <Card variant="muted" style={styles.offerCard}>
+          <AppText variant="subheading">Buy now</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            Reserve this item at the seller’s asking price and continue to payment.
+          </AppText>
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={purchasing}
+            onPress={() => {
+              Alert.alert(
+                'BUY NOW',
+                `Purchase ${listing.title} for ${formatMarketplacePrice(
+                  listing.pricePence,
+                  false,
+                )}?`,
+                [
+                  {
+                    text: 'Cancel',
+                    style: 'cancel',
+                  },
+                  {
+                    text: 'Buy now',
+                    onPress: () => {
+                      void purchaseNow();
+                    },
+                  },
+                ],
+              );
+            }}
+            style={[
+              styles.contactButton,
+              {
+                backgroundColor: theme.colors.primary,
+                borderRadius: theme.radius.pill,
+                opacity: purchasing ? 0.65 : 1,
+              },
+            ]}
+          >
+            {purchasing ? (
+              <ActivityIndicator color={theme.colors.inverseText} />
+            ) : (
+              <AppText variant="label" tone="inverse">
+                Buy now — {formatMarketplacePrice(listing.pricePence, false)}
+              </AppText>
+            )}
+          </Pressable>
+        </Card>
+      ) : null}
 
       {listing.seller.id !== user?.id &&
       listing.status === 'PUBLISHED' &&

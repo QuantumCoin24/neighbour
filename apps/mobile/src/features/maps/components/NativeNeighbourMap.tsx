@@ -81,7 +81,7 @@ export function NativeNeighbourMap({
         cameraPosition={cameraPosition}
         colorScheme={isDark ? AppleMaps.MapColorScheme.DARK : AppleMaps.MapColorScheme.LIGHT}
         markers={markers}
-        onMarkerClick={(marker) => {
+        onMarkerClick={(marker: AppleMaps.Marker) => {
           if (marker.id) {
             onSelectItem(marker.id);
           }
@@ -120,7 +120,7 @@ export function NativeNeighbourMap({
         cameraPosition={cameraPosition}
         colorScheme={isDark ? GoogleMaps.MapColorScheme.DARK : GoogleMaps.MapColorScheme.LIGHT}
         markers={markers}
-        onMarkerClick={(marker) => {
+        onMarkerClick={(marker: GoogleMaps.Marker) => {
           if (marker.id) {
             onSelectItem(marker.id);
           }
