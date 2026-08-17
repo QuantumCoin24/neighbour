@@ -7,6 +7,7 @@ export const ROUTES = {
   COMMUNITIES: 'Communities',
   SEARCH: 'Search',
   MAPS: 'Maps',
+  LOCAL_AREA: 'LocalArea',
   MARKETPLACE: 'Marketplace',
   MARKETPLACE_LISTINGS: 'MarketplaceListings',
   CREATE_MARKETPLACE_LISTING: 'CreateMarketplaceListing',
@@ -87,6 +88,7 @@ export type RootStackParamList = {
     transactionId: string;
     sellerId: string;
   };
+  LocalArea: undefined;
   Premium: undefined;
 };
 

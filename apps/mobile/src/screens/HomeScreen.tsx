@@ -1,5 +1,6 @@
 import { getDashboardData, type DashboardData } from '@neighbour/api-client';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
@@ -7,7 +8,7 @@ import { useAuth } from '../auth/auth-context';
 import { AppText, Card, Screen } from '../components';
 import NeighbourMark from '../components/brand/NeighbourMark';
 import { FeedList, useFeedController } from '../features/feed';
-import type { AppTabParamList } from '../navigation/routes';
+import type { AppTabParamList, RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
 interface StatCardProps {
@@ -262,7 +263,15 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         accessibilityRole="button"
         accessibilityLabel="Explore your local area"
         onPress={() => {
-          navigation.navigate('Maps');
+          if (dashboard?.profile?.localArea?.trim()) {
+            navigation.navigate('Maps');
+            return;
+          }
+
+          const rootNavigation =
+            navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+
+          rootNavigation?.navigate('LocalArea');
         }}
       >
         <Card
@@ -307,7 +316,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
         <View style={styles.exploreRow}>
           <AppText variant="bodyStrong" tone="inverse">
-            Explore your area
+            {dashboard?.profile?.localArea?.trim()
+              ? 'Explore your area'
+              : 'Set your local area'}
           </AppText>
 
           <AppText variant="bodyStrong" tone="inverse">

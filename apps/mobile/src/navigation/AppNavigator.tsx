@@ -17,6 +17,7 @@ import CreateBusinessScreen from '../screens/CreateBusinessScreen';
 import EditBusinessScreen from '../screens/EditBusinessScreen';
 import CreateEventScreen from '../screens/CreateEventScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
+import LocalAreaScreen from '../screens/LocalAreaScreen';
 import ConversationScreen from '../screens/ConversationScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MarketplaceScreen from '../screens/MarketplaceScreen';
@@ -120,6 +121,7 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.CREATE_EVENT} component={CreateEventScreen} />
 
             <Stack.Screen name={ROUTES.EVENT_DETAIL} component={EventDetailScreen} />
+            <Stack.Screen name={ROUTES.LOCAL_AREA} component={LocalAreaScreen} />
 
             <Stack.Screen name={ROUTES.BUSINESS_DETAIL} component={BusinessDetailScreen} />
 

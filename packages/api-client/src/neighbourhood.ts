@@ -7,10 +7,18 @@ export interface Neighbourhood {
   localArea: string | null;
 }
 
-export function getNeighbourhoods(token: string) {
+function tokenHeaders(token?: string): HeadersInit | undefined {
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : undefined;
+}
+
+export function getNeighbourhoods(): Promise<Neighbourhood[]>;
+export function getNeighbourhoods(token: string): Promise<Neighbourhood[]>;
+export function getNeighbourhoods(token?: string): Promise<Neighbourhood[]> {
   return apiRequest<Neighbourhood[]>('/neighbourhoods', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: tokenHeaders(token),
   });
 }
