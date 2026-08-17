@@ -298,6 +298,8 @@ export class MarketplaceTransactionService {
       throw new BadRequestException('This listing is not available for direct purchase.');
     }
 
+    const agreedPricePence = listing.pricePence;
+
     await this.requireNoBlockRelationship(buyerId, listing.sellerId);
 
     const reservedAt = new Date();
@@ -372,7 +374,7 @@ export class MarketplaceTransactionService {
           listingId,
           buyerId,
           sellerId: listing.sellerId,
-          agreedPricePence: listing.pricePence,
+          agreedPricePence,
           status: MarketplaceTransactionStatus.RESERVED,
           reservedAt,
           expiresAt: new Date(reservedAt.getTime() + 7 * 24 * 60 * 60 * 1_000),
@@ -961,25 +963,27 @@ export class MarketplaceTransactionService {
         },
       });
 
-      await databaseTransaction.marketplaceOffer.update({
-        where: {
-          id: transaction.acceptedOfferId,
-        },
-        data: {
-          status: MarketplaceOfferStatus.CANCELLED,
-          cancelledAt,
-        },
-      });
+      if (transaction.acceptedOfferId) {
+        await databaseTransaction.marketplaceOffer.update({
+          where: {
+            id: transaction.acceptedOfferId,
+          },
+          data: {
+            status: MarketplaceOfferStatus.CANCELLED,
+            cancelledAt,
+          },
+        });
 
-      await databaseTransaction.marketplaceOfferHistory.create({
-        data: {
-          offerId: transaction.acceptedOfferId,
-          actorId: userId,
-          fromStatus: MarketplaceOfferStatus.ACCEPTED,
-          toStatus: MarketplaceOfferStatus.CANCELLED,
-          note: 'Transaction cancelled.',
-        },
-      });
+        await databaseTransaction.marketplaceOfferHistory.create({
+          data: {
+            offerId: transaction.acceptedOfferId,
+            actorId: userId,
+            fromStatus: MarketplaceOfferStatus.ACCEPTED,
+            toStatus: MarketplaceOfferStatus.CANCELLED,
+            note: 'Transaction cancelled.',
+          },
+        });
+      }
 
       await databaseTransaction.marketplaceListing.update({
         where: {
@@ -1066,37 +1070,39 @@ export class MarketplaceTransactionService {
           },
         });
 
-        const acceptedOffer = await transaction.marketplaceOffer.findUnique({
-          where: {
-            id: marketplaceTransaction.acceptedOfferId,
-          },
-          select: {
-            status: true,
-            amountPence: true,
-          },
-        });
-
-        if (acceptedOffer && acceptedOffer.status !== MarketplaceOfferStatus.CANCELLED) {
-          await transaction.marketplaceOffer.update({
+        if (marketplaceTransaction.acceptedOfferId) {
+          const acceptedOffer = await transaction.marketplaceOffer.findUnique({
             where: {
               id: marketplaceTransaction.acceptedOfferId,
             },
-            data: {
-              status: MarketplaceOfferStatus.CANCELLED,
-              cancelledAt: now,
+            select: {
+              status: true,
+              amountPence: true,
             },
           });
 
-          await transaction.marketplaceOfferHistory.create({
-            data: {
-              offerId: marketplaceTransaction.acceptedOfferId,
-              actorId: marketplaceTransaction.buyerId,
-              fromStatus: acceptedOffer.status,
-              toStatus: MarketplaceOfferStatus.CANCELLED,
-              amountPence: acceptedOffer.amountPence,
-              note: 'Reservation expired automatically.',
-            },
-          });
+          if (acceptedOffer && acceptedOffer.status !== MarketplaceOfferStatus.CANCELLED) {
+            await transaction.marketplaceOffer.update({
+              where: {
+                id: marketplaceTransaction.acceptedOfferId,
+              },
+              data: {
+                status: MarketplaceOfferStatus.CANCELLED,
+                cancelledAt: now,
+              },
+            });
+
+            await transaction.marketplaceOfferHistory.create({
+              data: {
+                offerId: marketplaceTransaction.acceptedOfferId,
+                actorId: marketplaceTransaction.buyerId,
+                fromStatus: acceptedOffer.status,
+                toStatus: MarketplaceOfferStatus.CANCELLED,
+                amountPence: acceptedOffer.amountPence,
+                note: 'Reservation expired automatically.',
+              },
+            });
+          }
         }
 
         await transaction.marketplaceListing.updateMany({
