@@ -242,6 +242,15 @@ export default function FulfilmentScreen({ route }: Props) {
   }
 
   const isSeller = route.params.sellerId === user?.id;
+  const isBuyer = !isSeller;
+
+  const currentUserConfirmed = isSeller
+    ? fulfilment.sellerConfirmedAt !== null
+    : fulfilment.buyerConfirmedAt !== null;
+
+  const otherPartyConfirmed = isSeller
+    ? fulfilment.buyerConfirmedAt !== null
+    : fulfilment.sellerConfirmedAt !== null;
 
   return (
     <Screen contentStyle={styles.screen}>
@@ -419,23 +428,45 @@ export default function FulfilmentScreen({ route }: Props) {
       </Card>
 
       <Card style={styles.confirmCard}>
-        <AppText variant="subheading">Ready to finish?</AppText>
+        {fulfilment.status === 'COMPLETED' ? (
+          <>
+            <AppText variant="subheading">Handover complete</AppText>
 
-        <AppText tone="secondary">
-          Confirm only when the item has been handed over or successfully delivered.
-        </AppText>
+            <AppText tone="secondary">
+              Both buyer and seller have confirmed the handover. This transaction is complete.
+            </AppText>
+          </>
+        ) : currentUserConfirmed ? (
+          <>
+            <AppText variant="subheading">You have confirmed</AppText>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Confirm handover"
-          disabled={acting}
-          onPress={() => {
-            void confirm();
-          }}
-          style={styles.actionButton}
-        >
-          <AppText variant="label">Confirm handover</AppText>
-        </Pressable>
+            <AppText tone="secondary">
+              {otherPartyConfirmed
+                ? 'Both parties have confirmed the handover.'
+                : `Waiting for the ${isBuyer ? 'seller' : 'buyer'} to confirm the handover.`}
+            </AppText>
+          </>
+        ) : (
+          <>
+            <AppText variant="subheading">Ready to finish?</AppText>
+
+            <AppText tone="secondary">
+              Confirm only when the item has been handed over or successfully delivered.
+            </AppText>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Confirm handover"
+              disabled={acting}
+              onPress={() => {
+                void confirm();
+              }}
+              style={styles.actionButton}
+            >
+              <AppText variant="label">Confirm handover</AppText>
+            </Pressable>
+          </>
+        )}
       </Card>
 
       {acting ? <ActivityIndicator /> : null}

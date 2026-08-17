@@ -453,6 +453,14 @@ export class FulfilmentService {
 
     const isSeller = userId === fulfilment.transaction.sellerId;
 
+    const alreadyConfirmed = isBuyer
+      ? fulfilment.buyerConfirmedAt !== null
+      : fulfilment.sellerConfirmedAt !== null;
+
+    if (alreadyConfirmed) {
+      return this.findOne(userId, fulfilmentId);
+    }
+
     const now = new Date();
 
     await this.database.$transaction(async (tx) => {
