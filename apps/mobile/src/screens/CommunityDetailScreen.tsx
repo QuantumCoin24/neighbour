@@ -706,6 +706,7 @@ const styles = StyleSheet.create({
   },
   tabs: {
     gap: 8,
+    paddingHorizontal: 2,
   },
   tab: {
     borderWidth: StyleSheet.hairlineWidth,
@@ -727,12 +728,16 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   featurePressable: {
-    width: '48%',
+    flexBasis: '48%',
+    flexGrow: 1,
+    minWidth: 0,
   },
   featureCard: {
-    gap: 3,
-    paddingVertical: 13,
-    width: '48%',
+    gap: 6,
+    minHeight: 88,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    width: '100%',
   },
   marketplaceFeatureCard: {
     width: '100%',
