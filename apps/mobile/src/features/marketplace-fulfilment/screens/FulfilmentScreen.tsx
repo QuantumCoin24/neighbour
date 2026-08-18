@@ -127,6 +127,18 @@ export default function FulfilmentScreen({ route }: Props) {
 
   const saveDelivery = async () => {
     if (!fulfilment) {
+      setError('Delivery handover is not ready yet. Please reopen this transaction.');
+      return;
+    }
+
+    const normalisedAddressLine1 = addressLine1.trim();
+    const normalisedCity = city.trim();
+    const normalisedPostcode = postcode.trim().toUpperCase();
+    const normalisedCourier = courier.trim();
+    const normalisedTrackingNumber = trackingNumber.trim();
+
+    if (!normalisedAddressLine1 || !normalisedCity || !normalisedPostcode) {
+      setError('Enter the delivery address, town or city, and postcode before saving.');
       return;
     }
 
@@ -134,29 +146,36 @@ export default function FulfilmentScreen({ route }: Props) {
     setError(null);
 
     try {
-      setFulfilment(
-        await createMarketplaceDelivery(fulfilment.id, {
-          addressLine1,
-          city,
-          postcode,
-          ...(courier.trim()
-            ? {
-                courier: courier.trim(),
-              }
-            : {}),
-          ...(trackingNumber.trim()
-            ? {
-                trackingNumber: trackingNumber.trim(),
-              }
-            : {}),
-        }),
-      );
+      await createMarketplaceDelivery(fulfilment.id, {
+        addressLine1: normalisedAddressLine1,
+        city: normalisedCity,
+        postcode: normalisedPostcode,
+        ...(normalisedCourier
+          ? {
+              courier: normalisedCourier,
+            }
+          : {}),
+        ...(normalisedTrackingNumber
+          ? {
+              trackingNumber: normalisedTrackingNumber,
+            }
+          : {}),
+      });
+
+      const refreshed = await getMarketplaceFulfilmentByTransaction(route.params.transactionId);
+
+      setFulfilment(refreshed);
+
+      Alert.alert('Delivery saved', 'The delivery details have been saved successfully.');
     } catch (caughtError) {
-      setError(
+      const message =
         caughtError instanceof Error
           ? caughtError.message
-          : 'We could not save the delivery details. Please try again.',
-      );
+          : 'We could not save the delivery details. Please try again.';
+
+      setError(message);
+
+      Alert.alert('Delivery not saved', message);
     } finally {
       setActing(false);
     }
@@ -391,7 +410,7 @@ export default function FulfilmentScreen({ route }: Props) {
             }}
             style={styles.actionButton}
           >
-            <AppText variant="label">Save delivery</AppText>
+            <AppText variant="label">{acting ? 'Saving delivery…' : 'Save delivery'}</AppText>
           </Pressable>
         </Card>
       ) : null}
