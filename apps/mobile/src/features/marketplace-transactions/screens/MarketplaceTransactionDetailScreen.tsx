@@ -89,6 +89,48 @@ async function initialiseStripeRuntime(): Promise<void> {
   }
 }
 
+
+async function presentStripePaymentSheet(
+  clientSecret: string,
+): Promise<void> {
+  await initialiseStripeRuntime();
+
+  const {
+    initPaymentSheet,
+    presentPaymentSheet,
+  } = await import('@stripe/stripe-react-native');
+
+  const {
+    error: initialisationError,
+  } = await initPaymentSheet({
+    merchantDisplayName: 'Neighbour',
+    paymentIntentClientSecret: clientSecret,
+    returnURL: 'neighbour://stripe-redirect',
+  });
+
+  if (initialisationError) {
+    throw new Error(
+      initialisationError.message ||
+        'Stripe PaymentSheet could not be initialised.',
+    );
+  }
+
+  const {
+    error: presentationError,
+  } = await presentPaymentSheet();
+
+  if (presentationError) {
+    if (presentationError.code === 'Canceled') {
+      throw new Error('Payment cancelled.');
+    }
+
+    throw new Error(
+      presentationError.message ||
+        'Stripe PaymentSheet could not complete the payment.',
+    );
+  }
+}
+
 export default function MarketplaceTransactionDetailScreen({ navigation, route }: Props) {
   const { theme } = useNeighbourTheme();
   const { user } = useAuth();
@@ -208,6 +250,58 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
           ? caughtError.message
           : 'The Marketplace payment could not be created.',
       );
+    } finally {
+      setActing(false);
+    }
+  };
+
+
+  const continueStripePayment = async () => {
+    if (!payment) {
+      return;
+    }
+
+    if (payment.provider !== 'STRIPE') {
+      setError('This payment is not a Stripe payment.');
+      return;
+    }
+
+    if (payment.method !== 'CARD') {
+      setError('PaymentSheet is currently enabled for card payments only.');
+      return;
+    }
+
+    if (payment.status !== 'REQUIRES_ACTION') {
+      setError('This payment does not currently require card entry.');
+      return;
+    }
+
+    if (!payment.clientSecret) {
+      setError('Stripe client secret is unavailable for this payment.');
+      return;
+    }
+
+    setActing(true);
+    setError(null);
+
+    try {
+      await presentStripePaymentSheet(payment.clientSecret);
+
+      Alert.alert(
+        'PAYMENT SUBMITTED',
+        'Stripe accepted the payment. Neighbour will now refresh the payment status.',
+      );
+
+      await load();
+    } catch (caughtError) {
+      const message =
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Stripe payment could not be completed.';
+
+      if (message !== 'Payment cancelled.') {
+        setError(message);
+      }
     } finally {
       setActing(false);
     }
@@ -469,6 +563,34 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
             Payment has not yet been created by the buyer.
           </AppText>
         )}
+
+
+        {isBuyer &&
+        active &&
+        payment &&
+        payment.provider === 'STRIPE' &&
+        payment.method === 'CARD' &&
+        payment.status === 'REQUIRES_ACTION' ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Pay securely by card"
+            disabled={acting}
+            onPress={() => {
+              void continueStripePayment();
+            }}
+            style={[
+              styles.actionButton,
+              {
+                backgroundColor: theme.colors.primary,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <AppText variant="label" tone="inverse">
+              Pay securely by card
+            </AppText>
+          </Pressable>
+        ) : null}
 
         {active && payment && paymentCanBeCancelled ? (
           <Pressable
