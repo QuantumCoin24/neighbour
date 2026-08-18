@@ -222,3 +222,12 @@ export function leaveCommunity(slug: string): Promise<{
     method: 'DELETE',
   });
 }
+
+export function deleteCommunity(slug: string): Promise<{
+  deleted: true;
+  communityId: string;
+}> {
+  return apiRequest(`/communities/${encodeURIComponent(slug)}`, {
+    method: 'DELETE',
+  });
+}

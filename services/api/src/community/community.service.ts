@@ -332,6 +332,43 @@ export class CommunityService {
     };
   }
 
+  async delete(
+    userId: string,
+    slug: string,
+  ): Promise<{
+    deleted: true;
+    communityId: string;
+  }> {
+    const membership = await this.database.membership.findFirst({
+      where: {
+        userId,
+        role: MembershipRole.OWNER,
+        status: MembershipStatus.ACTIVE,
+        community: {
+          slug,
+        },
+      },
+      select: {
+        communityId: true,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('Only the community owner may delete this community.');
+    }
+
+    await this.database.community.delete({
+      where: {
+        id: membership.communityId,
+      },
+    });
+
+    return {
+      deleted: true,
+      communityId: membership.communityId,
+    };
+  }
+
   async leave(
     userId: string,
     slug: string,

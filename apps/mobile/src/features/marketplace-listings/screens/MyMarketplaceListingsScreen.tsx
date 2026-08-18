@@ -1,4 +1,5 @@
 import {
+  deleteMarketplaceListing,
   getMarketplaceTransactions,
   getMyMarketplaceListings,
   updateMarketplaceListing,
@@ -7,7 +8,14 @@ import {
   type MarketplaceTransaction,
 } from '@neighbour/api-client';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 
 import { AppText, Card, Screen } from '../../../components';
@@ -60,6 +68,46 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const deleteListing = async (listing: MarketplaceListing) => {
+    if (updatingId === listing.id) {
+      return;
+    }
+
+    setUpdatingId(listing.id);
+    setError(null);
+
+    try {
+      await deleteMarketplaceListing(listing.id);
+      setItems((current) => current.filter((item) => item.id !== listing.id));
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error ? caughtError.message : 'The listing could not be deleted.',
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const confirmDeleteListing = (listing: MarketplaceListing) => {
+    Alert.alert(
+      'Delete listing?',
+      `Delete "${listing.title}" permanently? This cannot be undone.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void deleteListing(listing);
+          },
+        },
+      ],
+    );
+  };
 
   const updateStatus = async (listing: MarketplaceListing, status: MarketplaceListingStatus) => {
     setUpdatingId(listing.id);
@@ -351,6 +399,31 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
                     </Pressable>
                   </>
                 ) : null}
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Delete ${listing.title}`}
+                  disabled={updatingId === listing.id}
+                  onPress={() => {
+                    confirmDeleteListing(listing);
+                  }}
+                  style={[
+                    styles.control,
+                    {
+                      borderColor: theme.colors.danger,
+                      borderRadius: theme.radius.pill,
+                    },
+                  ]}
+                >
+                  <AppText
+                    variant="caption"
+                    style={{
+                      color: theme.colors.danger,
+                    }}
+                  >
+                    Delete
+                  </AppText>
+                </Pressable>
 
                 {listing.status !== 'ARCHIVED' ? (
                   <Pressable

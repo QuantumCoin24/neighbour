@@ -1,8 +1,10 @@
+import { deleteCommunity } from '@neighbour/api-client';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -62,6 +64,59 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
   );
 
   const [section, setSection] = useState<CommunityDetailSection>('overview');
+  const [deletingCommunity, setDeletingCommunity] = useState(false);
+
+  const removeCommunity = async () => {
+    if (!detail.community || deletingCommunity) {
+      return;
+    }
+
+    setDeletingCommunity(true);
+
+    try {
+      await deleteCommunity(detail.community.slug);
+
+      Alert.alert('Community deleted', 'The community has been permanently deleted.', [
+        {
+          text: 'OK',
+          onPress: () => {
+            navigation.goBack();
+          },
+        },
+      ]);
+    } catch (caughtError) {
+      Alert.alert(
+        'Could not delete community',
+        caughtError instanceof Error ? caughtError.message : 'Please try again.',
+      );
+    } finally {
+      setDeletingCommunity(false);
+    }
+  };
+
+  const confirmDeleteCommunity = () => {
+    if (!detail.community) {
+      return;
+    }
+
+    Alert.alert(
+      'Delete community?',
+      `Delete "${detail.community.name}" permanently? Community content linked by deletion rules may also be removed. This cannot be undone.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete community',
+          style: 'destructive',
+          onPress: () => {
+            void removeCommunity();
+          },
+        },
+      ],
+    );
+  };
 
   if (detail.loading) {
     return (
@@ -178,6 +233,52 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
           }}
           postCount={detail.posts.length}
         />
+
+        {detail.membership?.role === 'OWNER' ? (
+          <Card
+            variant="muted"
+            style={[
+              styles.ownerDangerCard,
+              {
+                borderColor: theme.colors.danger,
+              },
+            ]}
+          >
+            <AppText variant="bodyStrong">Community owner controls</AppText>
+
+            <AppText variant="caption" tone="secondary">
+              Deleting a community is permanent and cannot be undone.
+            </AppText>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Delete community"
+              disabled={deletingCommunity}
+              onPress={confirmDeleteCommunity}
+              style={[
+                styles.deleteCommunityButton,
+                {
+                  borderColor: theme.colors.danger,
+                  borderRadius: theme.radius.pill,
+                  opacity: deletingCommunity ? 0.6 : 1,
+                },
+              ]}
+            >
+              {deletingCommunity ? (
+                <ActivityIndicator color={theme.colors.danger} size="small" />
+              ) : (
+                <AppText
+                  variant="label"
+                  style={{
+                    color: theme.colors.danger,
+                  }}
+                >
+                  Delete community
+                </AppText>
+              )}
+            </Pressable>
+          </Card>
+        ) : null}
 
         {detail.error ? (
           <Pressable
@@ -663,6 +764,17 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
 }
 
 const styles = StyleSheet.create({
+  ownerDangerCard: {
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 10,
+  },
+  deleteCommunityButton: {
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    minHeight: 46,
+    paddingHorizontal: 16,
+  },
   safeArea: {
     flex: 1,
   },

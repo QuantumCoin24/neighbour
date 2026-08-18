@@ -257,11 +257,12 @@ export class FulfilmentService {
       existingDelivery.courier === normalisedCourier &&
       existingDelivery.trackingNumber === normalisedTrackingNumber &&
       existingDelivery.instructions === normalisedInstructions &&
-      (existingDelivery.scheduledFor?.getTime() ?? null) ===
-        (scheduledFor?.getTime() ?? null) &&
-      fulfilment.status === MarketplaceFulfilmentStatus.SCHEDULED &&
-      (fulfilment.scheduledAt?.getTime() ?? null) ===
-        (scheduledFor?.getTime() ?? null);
+      (existingDelivery.scheduledFor?.getTime() ?? null) === (scheduledFor?.getTime() ?? null) &&
+      fulfilment.status ===
+        (scheduledFor
+          ? MarketplaceFulfilmentStatus.SCHEDULED
+          : MarketplaceFulfilmentStatus.PENDING) &&
+      (fulfilment.scheduledAt?.getTime() ?? null) === (scheduledFor?.getTime() ?? null);
 
     if (unchanged) {
       return this.map(fulfilment);
@@ -300,18 +301,25 @@ export class FulfilmentService {
           id: fulfilmentId,
         },
         data: {
-          status: MarketplaceFulfilmentStatus.SCHEDULED,
+          status: scheduledFor
+            ? MarketplaceFulfilmentStatus.SCHEDULED
+            : MarketplaceFulfilmentStatus.PENDING,
           scheduledAt: scheduledFor,
         },
       });
 
-      await tx.marketplaceFulfilmentEvent.create({
-        data: {
-          fulfilmentId,
-          actorId: userId,
-          type: MarketplaceFulfilmentEventType.DELIVERY_SCHEDULED,
-        },
-      });
+      if (scheduledFor) {
+        await tx.marketplaceFulfilmentEvent.create({
+          data: {
+            fulfilmentId,
+            actorId: userId,
+            type: MarketplaceFulfilmentEventType.DELIVERY_SCHEDULED,
+            metadata: {
+              scheduledFor: scheduledFor.toISOString(),
+            },
+          },
+        });
+      }
     });
 
     return this.findOne(userId, fulfilmentId);

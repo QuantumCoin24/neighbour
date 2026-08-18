@@ -53,6 +53,29 @@ export default function FulfilmentScreen({ route }: Props) {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (!fulfilment) {
+      return;
+    }
+
+    const details =
+      fulfilment.method === 'COLLECTION' ? fulfilment.collection : fulfilment.delivery;
+
+    if (!details) {
+      return;
+    }
+
+    setAddressLine1(details.addressLine1 ?? '');
+    setCity(details.city ?? '');
+    setPostcode(details.postcode ?? '');
+    setScheduledFor(details.scheduledFor ?? '');
+
+    if (fulfilment.delivery) {
+      setCourier(fulfilment.delivery.courier ?? '');
+      setTrackingNumber(fulfilment.delivery.trackingNumber ?? '');
+    }
+  }, [fulfilment]);
+
   const create = async (method: MarketplaceFulfilmentMethod) => {
     setActing(true);
     setError(null);

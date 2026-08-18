@@ -50,6 +50,14 @@ export class CommunityController {
     return this.communityService.leave(user.id, slug);
   }
 
+  @Delete(':slug')
+  delete(
+    @CurrentUser() user: AuthUser,
+    @Param('slug') slug: string,
+  ): Promise<{ deleted: true; communityId: string }> {
+    return this.communityService.delete(user.id, slug);
+  }
+
   @Public()
   @Get(':slug')
   findPublicBySlug(@Param('slug') slug: string): Promise<CommunitySummary> {
