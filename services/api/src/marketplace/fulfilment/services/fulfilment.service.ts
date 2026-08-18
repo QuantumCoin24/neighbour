@@ -238,6 +238,35 @@ export class FulfilmentService {
 
     const scheduledFor = dto.scheduledFor ? new Date(dto.scheduledFor) : null;
 
+    const normalisedAddressLine1 = dto.addressLine1.trim();
+    const normalisedAddressLine2 = dto.addressLine2?.trim() || null;
+    const normalisedCity = dto.city.trim();
+    const normalisedPostcode = dto.postcode.trim().toUpperCase();
+    const normalisedCourier = dto.courier?.trim() || null;
+    const normalisedTrackingNumber = dto.trackingNumber?.trim() || null;
+    const normalisedInstructions = dto.instructions?.trim() || null;
+
+    const existingDelivery = fulfilment.delivery;
+
+    const unchanged =
+      existingDelivery !== null &&
+      existingDelivery.addressLine1 === normalisedAddressLine1 &&
+      existingDelivery.addressLine2 === normalisedAddressLine2 &&
+      existingDelivery.city === normalisedCity &&
+      existingDelivery.postcode === normalisedPostcode &&
+      existingDelivery.courier === normalisedCourier &&
+      existingDelivery.trackingNumber === normalisedTrackingNumber &&
+      existingDelivery.instructions === normalisedInstructions &&
+      (existingDelivery.scheduledFor?.getTime() ?? null) ===
+        (scheduledFor?.getTime() ?? null) &&
+      fulfilment.status === MarketplaceFulfilmentStatus.SCHEDULED &&
+      (fulfilment.scheduledAt?.getTime() ?? null) ===
+        (scheduledFor?.getTime() ?? null);
+
+    if (unchanged) {
+      return this.map(fulfilment);
+    }
+
     await this.database.$transaction(async (tx) => {
       await tx.marketplaceDelivery.upsert({
         where: {
@@ -245,23 +274,23 @@ export class FulfilmentService {
         },
         create: {
           fulfilmentId,
-          addressLine1: dto.addressLine1.trim(),
-          addressLine2: dto.addressLine2?.trim() || null,
-          city: dto.city.trim(),
-          postcode: dto.postcode.trim().toUpperCase(),
-          courier: dto.courier?.trim() || null,
-          trackingNumber: dto.trackingNumber?.trim() || null,
-          instructions: dto.instructions?.trim() || null,
+          addressLine1: normalisedAddressLine1,
+          addressLine2: normalisedAddressLine2,
+          city: normalisedCity,
+          postcode: normalisedPostcode,
+          courier: normalisedCourier,
+          trackingNumber: normalisedTrackingNumber,
+          instructions: normalisedInstructions,
           scheduledFor,
         },
         update: {
-          addressLine1: dto.addressLine1.trim(),
-          addressLine2: dto.addressLine2?.trim() || null,
-          city: dto.city.trim(),
-          postcode: dto.postcode.trim().toUpperCase(),
-          courier: dto.courier?.trim() || null,
-          trackingNumber: dto.trackingNumber?.trim() || null,
-          instructions: dto.instructions?.trim() || null,
+          addressLine1: normalisedAddressLine1,
+          addressLine2: normalisedAddressLine2,
+          city: normalisedCity,
+          postcode: normalisedPostcode,
+          courier: normalisedCourier,
+          trackingNumber: normalisedTrackingNumber,
+          instructions: normalisedInstructions,
           scheduledFor,
         },
       });
