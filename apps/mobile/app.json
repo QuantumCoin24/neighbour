@@ -53,8 +53,7 @@
           "cameraPermission": "Allow Neighbour to take photos you want to share with your communities."
         }
       ],
-      "expo-iap",
-      "@stripe/stripe-react-native"
+      "expo-iap"
     ],
     "extra": {
       "eas": {
