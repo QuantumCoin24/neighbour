@@ -305,9 +305,16 @@ export class MarketplaceTransactionService {
     const reservedAt = new Date();
 
     const created = await this.database.$transaction(async (transaction) => {
-      const existingTransaction = await transaction.marketplaceTransaction.findUnique({
+      const existingTransaction = await transaction.marketplaceTransaction.findFirst({
         where: {
           listingId,
+          status: {
+            in: [
+              MarketplaceTransactionStatus.RESERVED,
+              MarketplaceTransactionStatus.COLLECTION_PENDING,
+              MarketplaceTransactionStatus.DELIVERY_PENDING,
+            ],
+          },
         },
         select: {
           id: true,
@@ -417,9 +424,16 @@ export class MarketplaceTransactionService {
     }
 
     const updated = await this.database.$transaction(async (transaction) => {
-      const existingTransaction = await transaction.marketplaceTransaction.findUnique({
+      const existingTransaction = await transaction.marketplaceTransaction.findFirst({
         where: {
           listingId: offer.listingId,
+          status: {
+            in: [
+              MarketplaceTransactionStatus.RESERVED,
+              MarketplaceTransactionStatus.COLLECTION_PENDING,
+              MarketplaceTransactionStatus.DELIVERY_PENDING,
+            ],
+          },
         },
         select: {
           id: true,

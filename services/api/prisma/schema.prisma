@@ -1510,7 +1510,7 @@ model MarketplaceListing {
   media               MarketplaceListingMedia[]
   savedBy             SavedMarketplaceListing[]
   offers              MarketplaceOffer[]
-  transaction         MarketplaceTransaction?
+  transactions        MarketplaceTransaction[]
 
   @@index([sellerId, status, createdAt])
   @@index([communityId, status, createdAt])
@@ -1578,6 +1578,7 @@ model MarketplaceOffer {
   transaction   MarketplaceTransaction?
 
   @@index([listingId, status, createdAt])
+  @@index([listingId])
   @@index([buyerId, status, createdAt])
   @@index([sellerId, status, createdAt])
   @@index([parentOfferId])
@@ -1604,7 +1605,7 @@ model MarketplaceOfferHistory {
 
 model MarketplaceTransaction {
   id               String                       @id @default(uuid()) @db.Uuid
-  listingId        String                       @unique @db.Uuid
+  listingId        String                       @db.Uuid
   acceptedOfferId  String?                      @unique @db.Uuid
   buyerId          String                       @db.Uuid
   sellerId         String                       @db.Uuid
@@ -1631,6 +1632,7 @@ model MarketplaceTransaction {
 
   disputes MarketplaceDispute[]
 
+  @@index([listingId])
   @@index([buyerId, status, createdAt])
   @@index([sellerId, status, createdAt])
   @@index([conversationId])
