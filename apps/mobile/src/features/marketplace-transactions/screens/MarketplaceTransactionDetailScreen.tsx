@@ -50,6 +50,45 @@ function formatPrice(value: number): string {
   }).format(value / 100);
 }
 
+let stripeInitialisationPromise: Promise<void> | null = null;
+
+async function initialiseStripeRuntime(): Promise<void> {
+  if (stripeInitialisationPromise) {
+    return stripeInitialisationPromise;
+  }
+
+  stripeInitialisationPromise = (async () => {
+    const publishableKey =
+      process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim();
+
+    if (!publishableKey) {
+      throw new Error('Stripe publishable key is unavailable.');
+    }
+
+    if (!publishableKey.startsWith('pk_test_')) {
+      throw new Error(
+        'Build 52 requires a Stripe test publishable key.',
+      );
+    }
+
+    const { initStripe } = await import(
+      '@stripe/stripe-react-native'
+    );
+
+    await initStripe({
+      publishableKey,
+      urlScheme: 'neighbour',
+    });
+  })();
+
+  try {
+    await stripeInitialisationPromise;
+  } catch (error) {
+    stripeInitialisationPromise = null;
+    throw error;
+  }
+}
+
 export default function MarketplaceTransactionDetailScreen({ navigation, route }: Props) {
   const { theme } = useNeighbourTheme();
   const { user } = useAuth();
@@ -64,6 +103,27 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    void initialiseStripeRuntime().catch((stripeError) => {
+      if (!active) {
+        return;
+      }
+
+      console.warn(
+        'Stripe runtime initialisation failed:',
+        stripeError instanceof Error
+          ? stripeError.message
+          : 'Unknown Stripe initialisation error',
+      );
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
