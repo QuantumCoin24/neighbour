@@ -1,8 +1,10 @@
 import {
+  getMarketplaceTransactions,
   getMyMarketplaceListings,
   updateMarketplaceListing,
   type MarketplaceListing,
   type MarketplaceListingStatus,
+  type MarketplaceTransaction,
 } from '@neighbour/api-client';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
@@ -20,6 +22,7 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
   const { theme } = useNeighbourTheme();
 
   const [items, setItems] = useState<MarketplaceListing[]>([]);
+  const [transactions, setTransactions] = useState<MarketplaceTransaction[]>([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +42,13 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
     setError(null);
 
     try {
-      setItems(await getMyMarketplaceListings());
+      const [listings, marketplaceTransactions] = await Promise.all([
+        getMyMarketplaceListings(),
+        getMarketplaceTransactions(),
+      ]);
+
+      setItems(listings);
+      setTransactions(marketplaceTransactions);
     } catch {
       setError('Your marketplace listings could not be loaded.');
     } finally {
@@ -198,6 +207,46 @@ export default function MyMarketplaceListingsScreen({ navigation }: Props) {
               </Pressable>
 
               <View style={styles.controls}>
+                {listing.status === 'RESERVED' &&
+                transactions.some(
+                  (transaction) =>
+                    transaction.listingId === listing.id &&
+                    transaction.status !== 'COMPLETED' &&
+                    transaction.status !== 'CANCELLED',
+                ) ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Open active transaction"
+                    onPress={() => {
+                      const activeTransaction = transactions.find(
+                        (transaction) =>
+                          transaction.listingId === listing.id &&
+                          transaction.status !== 'COMPLETED' &&
+                          transaction.status !== 'CANCELLED',
+                      );
+
+                      if (!activeTransaction) {
+                        return;
+                      }
+
+                      navigation.navigate('MarketplaceTransactionDetail', {
+                        transactionId: activeTransaction.id,
+                      });
+                    }}
+                    style={[
+                      styles.primaryControl,
+                      {
+                        backgroundColor: theme.colors.primary,
+                        borderRadius: theme.radius.pill,
+                      },
+                    ]}
+                  >
+                    <AppText variant="caption" tone="inverse">
+                      Open transaction
+                    </AppText>
+                  </Pressable>
+                ) : null}
+
                 {listing.status === 'DRAFT' ? (
                   <Pressable
                     accessibilityRole="button"
@@ -404,6 +453,10 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 12,
     paddingVertical: 8,
+  },
+  primaryControl: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
   empty: {
     gap: 8,
