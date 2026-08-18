@@ -1,22 +1,25 @@
 import { IsDateString, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateDeliveryDto {
+  @IsOptional()
   @IsString()
   @MaxLength(255)
-  addressLine1!: string;
+  addressLine1?: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(255)
   addressLine2?: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(120)
-  city!: string;
+  city?: string;
 
+  @IsOptional()
   @IsString()
   @MaxLength(16)
-  postcode!: string;
+  postcode?: string;
 
   @IsOptional()
   @IsString()

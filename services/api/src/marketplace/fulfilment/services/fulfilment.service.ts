@@ -232,83 +232,120 @@ export class FulfilmentService {
       throw new BadRequestException('Collection fulfilment cannot use delivery details.');
     }
 
-    if (userId !== fulfilment.transaction.sellerId) {
-      throw new ForbiddenException('Only the seller may configure delivery.');
+    const isBuyer = userId === fulfilment.transaction.buyerId;
+    const isSeller = userId === fulfilment.transaction.sellerId;
+
+    if (!isBuyer && !isSeller) {
+      throw new ForbiddenException('You are not part of this marketplace transaction.');
     }
-
-    const scheduledFor = dto.scheduledFor ? new Date(dto.scheduledFor) : null;
-
-    const normalisedAddressLine1 = dto.addressLine1.trim();
-    const normalisedAddressLine2 = dto.addressLine2?.trim() || null;
-    const normalisedCity = dto.city.trim();
-    const normalisedPostcode = dto.postcode.trim().toUpperCase();
-    const normalisedCourier = dto.courier?.trim() || null;
-    const normalisedTrackingNumber = dto.trackingNumber?.trim() || null;
-    const normalisedInstructions = dto.instructions?.trim() || null;
 
     const existingDelivery = fulfilment.delivery;
 
+    if (isBuyer) {
+      const addressLine1 = dto.addressLine1?.trim();
+      const addressLine2 = dto.addressLine2?.trim() || null;
+      const city = dto.city?.trim();
+      const postcode = dto.postcode?.trim().toUpperCase();
+      const instructions = dto.instructions?.trim() || null;
+
+      if (!addressLine1 || !city || !postcode) {
+        throw new BadRequestException('Delivery address, town or city, and postcode are required.');
+      }
+
+      const unchanged =
+        existingDelivery !== null &&
+        existingDelivery.addressLine1 === addressLine1 &&
+        existingDelivery.addressLine2 === addressLine2 &&
+        existingDelivery.city === city &&
+        existingDelivery.postcode === postcode &&
+        existingDelivery.instructions === instructions;
+
+      if (unchanged) {
+        return this.map(fulfilment);
+      }
+
+      if (existingDelivery) {
+        await this.database.marketplaceDelivery.update({
+          where: {
+            fulfilmentId,
+          },
+          data: {
+            addressLine1,
+            addressLine2,
+            city,
+            postcode,
+            instructions,
+          },
+        });
+      } else {
+        await this.database.marketplaceDelivery.create({
+          data: {
+            fulfilmentId,
+            addressLine1,
+            addressLine2,
+            city,
+            postcode,
+            instructions,
+          },
+        });
+      }
+
+      return this.findOne(userId, fulfilmentId);
+    }
+
+    if (!existingDelivery) {
+      throw new BadRequestException(
+        'The buyer must save their delivery address before dispatch details can be added.',
+      );
+    }
+
+    const courier =
+      dto.courier !== undefined ? dto.courier.trim() || null : existingDelivery.courier;
+
+    const trackingNumber =
+      dto.trackingNumber !== undefined
+        ? dto.trackingNumber.trim() || null
+        : existingDelivery.trackingNumber;
+
+    const scheduledFor =
+      dto.scheduledFor !== undefined ? new Date(dto.scheduledFor) : existingDelivery.scheduledFor;
+
+    if (dto.scheduledFor !== undefined && Number.isNaN(scheduledFor?.getTime())) {
+      throw new BadRequestException('Delivery schedule is invalid.');
+    }
+
     const unchanged =
-      existingDelivery !== null &&
-      existingDelivery.addressLine1 === normalisedAddressLine1 &&
-      existingDelivery.addressLine2 === normalisedAddressLine2 &&
-      existingDelivery.city === normalisedCity &&
-      existingDelivery.postcode === normalisedPostcode &&
-      existingDelivery.courier === normalisedCourier &&
-      existingDelivery.trackingNumber === normalisedTrackingNumber &&
-      existingDelivery.instructions === normalisedInstructions &&
-      (existingDelivery.scheduledFor?.getTime() ?? null) === (scheduledFor?.getTime() ?? null) &&
-      fulfilment.status ===
-        (scheduledFor
-          ? MarketplaceFulfilmentStatus.SCHEDULED
-          : MarketplaceFulfilmentStatus.PENDING) &&
-      (fulfilment.scheduledAt?.getTime() ?? null) === (scheduledFor?.getTime() ?? null);
+      existingDelivery.courier === courier &&
+      existingDelivery.trackingNumber === trackingNumber &&
+      (existingDelivery.scheduledFor?.getTime() ?? null) === (scheduledFor?.getTime() ?? null);
 
     if (unchanged) {
       return this.map(fulfilment);
     }
 
     await this.database.$transaction(async (tx) => {
-      await tx.marketplaceDelivery.upsert({
+      await tx.marketplaceDelivery.update({
         where: {
           fulfilmentId,
-        },
-        create: {
-          fulfilmentId,
-          addressLine1: normalisedAddressLine1,
-          addressLine2: normalisedAddressLine2,
-          city: normalisedCity,
-          postcode: normalisedPostcode,
-          courier: normalisedCourier,
-          trackingNumber: normalisedTrackingNumber,
-          instructions: normalisedInstructions,
-          scheduledFor,
-        },
-        update: {
-          addressLine1: normalisedAddressLine1,
-          addressLine2: normalisedAddressLine2,
-          city: normalisedCity,
-          postcode: normalisedPostcode,
-          courier: normalisedCourier,
-          trackingNumber: normalisedTrackingNumber,
-          instructions: normalisedInstructions,
-          scheduledFor,
-        },
-      });
-
-      await tx.marketplaceFulfilment.update({
-        where: {
-          id: fulfilmentId,
         },
         data: {
-          status: scheduledFor
-            ? MarketplaceFulfilmentStatus.SCHEDULED
-            : MarketplaceFulfilmentStatus.PENDING,
-          scheduledAt: scheduledFor,
+          courier,
+          trackingNumber,
+          scheduledFor,
         },
       });
 
-      if (scheduledFor) {
+      if (dto.scheduledFor !== undefined && scheduledFor) {
+        await tx.marketplaceFulfilment.update({
+          where: {
+            id: fulfilmentId,
+          },
+          data: {
+            status: MarketplaceFulfilmentStatus.SCHEDULED,
+            scheduledAt: scheduledFor,
+          },
+        });
+
         await tx.marketplaceFulfilmentEvent.create({
           data: {
             fulfilmentId,

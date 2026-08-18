@@ -131,47 +131,52 @@ export default function FulfilmentScreen({ route }: Props) {
       return;
     }
 
-    const normalisedAddressLine1 = addressLine1.trim();
-    const normalisedCity = city.trim();
-    const normalisedPostcode = postcode.trim().toUpperCase();
-    const normalisedCourier = courier.trim();
-    const normalisedTrackingNumber = trackingNumber.trim();
-
-    if (!normalisedAddressLine1 || !normalisedCity || !normalisedPostcode) {
-      setError('Enter the delivery address, town or city, and postcode before saving.');
-      return;
-    }
+    const isCurrentUserSeller = route.params.sellerId === user?.id;
 
     setActing(true);
     setError(null);
 
     try {
-      await createMarketplaceDelivery(fulfilment.id, {
-        addressLine1: normalisedAddressLine1,
-        city: normalisedCity,
-        postcode: normalisedPostcode,
-        ...(normalisedCourier
-          ? {
-              courier: normalisedCourier,
-            }
-          : {}),
-        ...(normalisedTrackingNumber
-          ? {
-              trackingNumber: normalisedTrackingNumber,
-            }
-          : {}),
-      });
+      if (isCurrentUserSeller) {
+        if (!fulfilment.delivery) {
+          throw new Error('The buyer has not added their delivery address yet.');
+        }
+
+        await createMarketplaceDelivery(fulfilment.id, {
+          courier: courier.trim(),
+          trackingNumber: trackingNumber.trim(),
+        });
+      } else {
+        const normalisedAddressLine1 = addressLine1.trim();
+        const normalisedCity = city.trim();
+        const normalisedPostcode = postcode.trim().toUpperCase();
+
+        if (!normalisedAddressLine1 || !normalisedCity || !normalisedPostcode) {
+          throw new Error('Enter your delivery address, town or city, and postcode.');
+        }
+
+        await createMarketplaceDelivery(fulfilment.id, {
+          addressLine1: normalisedAddressLine1,
+          city: normalisedCity,
+          postcode: normalisedPostcode,
+        });
+      }
 
       const refreshed = await getMarketplaceFulfilmentByTransaction(route.params.transactionId);
 
       setFulfilment(refreshed);
 
-      Alert.alert('Delivery saved', 'The delivery details have been saved successfully.');
+      Alert.alert(
+        isCurrentUserSeller ? 'Dispatch details saved' : 'Delivery address saved',
+        isCurrentUserSeller
+          ? 'Courier and tracking details have been saved.'
+          : 'Your delivery address has been securely saved for this transaction.',
+      );
     } catch (caughtError) {
       const message =
         caughtError instanceof Error
           ? caughtError.message
-          : 'We could not save the delivery details. Please try again.';
+          : 'The delivery details could not be saved.';
 
       setError(message);
 
@@ -363,12 +368,16 @@ export default function FulfilmentScreen({ route }: Props) {
         </Card>
       ) : null}
 
-      {isSeller && fulfilment.method !== 'COLLECTION' ? (
+      {isBuyer && fulfilment.method !== 'COLLECTION' ? (
         <Card style={styles.card}>
-          <AppText variant="subheading">Delivery details</AppText>
+          <AppText variant="subheading">Your delivery address</AppText>
+
+          <AppText variant="caption" tone="secondary">
+            The seller will use this address only to fulfil this marketplace transaction.
+          </AppText>
 
           <TextInput
-            placeholder="Collection or delivery address"
+            placeholder="Address"
             value={addressLine1}
             onChangeText={setAddressLine1}
             style={styles.input}
@@ -385,20 +394,7 @@ export default function FulfilmentScreen({ route }: Props) {
             placeholder="Postcode"
             value={postcode}
             onChangeText={setPostcode}
-            style={styles.input}
-          />
-
-          <TextInput
-            placeholder="Courier (optional)"
-            value={courier}
-            onChangeText={setCourier}
-            style={styles.input}
-          />
-
-          <TextInput
-            placeholder="Tracking number (optional)"
-            value={trackingNumber}
-            onChangeText={setTrackingNumber}
+            autoCapitalize="characters"
             style={styles.input}
           />
 
@@ -410,9 +406,69 @@ export default function FulfilmentScreen({ route }: Props) {
             }}
             style={styles.actionButton}
           >
-            <AppText variant="label">{acting ? 'Saving delivery…' : 'Save delivery'}</AppText>
+            <AppText variant="label">
+              {acting ? 'Saving address…' : 'Save delivery address'}
+            </AppText>
           </Pressable>
         </Card>
+      ) : null}
+
+      {isSeller && fulfilment.method !== 'COLLECTION' ? (
+        <>
+          <Card style={styles.card}>
+            <AppText variant="subheading">Deliver to</AppText>
+
+            {fulfilment.delivery ? (
+              <>
+                <AppText variant="bodyStrong">{fulfilment.delivery.addressLine1}</AppText>
+
+                <AppText tone="secondary">{fulfilment.delivery.city}</AppText>
+
+                <AppText tone="secondary">{fulfilment.delivery.postcode}</AppText>
+              </>
+            ) : (
+              <AppText tone="secondary">
+                Waiting for the buyer to save their delivery address.
+              </AppText>
+            )}
+          </Card>
+
+          <Card style={styles.card}>
+            <AppText variant="subheading">Dispatch details</AppText>
+
+            <TextInput
+              placeholder="Courier (optional)"
+              value={courier}
+              onChangeText={setCourier}
+              style={styles.input}
+            />
+
+            <TextInput
+              placeholder="Tracking number (optional)"
+              value={trackingNumber}
+              onChangeText={setTrackingNumber}
+              style={styles.input}
+            />
+
+            <Pressable
+              accessibilityRole="button"
+              disabled={acting || !fulfilment.delivery}
+              onPress={() => {
+                void saveDelivery();
+              }}
+              style={[
+                styles.actionButton,
+                {
+                  opacity: acting || !fulfilment.delivery ? 0.5 : 1,
+                },
+              ]}
+            >
+              <AppText variant="label">
+                {acting ? 'Saving dispatch…' : 'Save dispatch details'}
+              </AppText>
+            </Pressable>
+          </Card>
+        </>
       ) : null}
 
       {isSeller ? (

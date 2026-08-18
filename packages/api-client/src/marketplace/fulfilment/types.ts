@@ -109,10 +109,10 @@ export interface CreateCollectionInput {
 }
 
 export interface CreateDeliveryInput {
-  addressLine1: string;
+  addressLine1?: string;
   addressLine2?: string;
-  city: string;
-  postcode: string;
+  city?: string;
+  postcode?: string;
   courier?: string;
   trackingNumber?: string;
   instructions?: string;
