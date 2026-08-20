@@ -8,6 +8,9 @@ import {
 const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
+const WEB_API_BASE_URL =
+  process.env.NEXT_PUBLIC_NEIGHBOUR_API_URL?.trim();
+
 function browserAvailable(): boolean {
   return typeof window !== 'undefined';
 }
@@ -79,6 +82,7 @@ export function configureWebApiClient(): void {
   }
 
   configureApiClient({
+    baseUrl: WEB_API_BASE_URL || undefined,
     getAccessToken,
     refreshAccessToken: refreshBrowserAccessToken,
   });
