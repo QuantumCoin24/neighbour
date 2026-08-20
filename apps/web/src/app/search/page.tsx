@@ -1,7 +1,18 @@
 'use client';
 
-import { search, type SearchResponse } from '@neighbour/api-client';
-import { type FormEvent, useState } from 'react';
+import Link from 'next/link';
+
+import {
+  type FormEvent,
+  type ReactNode,
+  useMemo,
+  useState,
+} from 'react';
+
+import {
+  search,
+  type SearchResponse,
+} from '@neighbour/api-client';
 
 const EMPTY_RESULTS: SearchResponse = {
   users: [],
@@ -11,7 +22,9 @@ const EMPTY_RESULTS: SearchResponse = {
   posts: [],
 };
 
-function getResultCount(results: SearchResponse): number {
+function getResultCount(
+  results: SearchResponse,
+) {
   return (
     results.users.length +
     results.communities.length +
@@ -21,33 +34,53 @@ function getResultCount(results: SearchResponse): number {
   );
 }
 
-function formatEventDate(value: string): string {
+function formatEventDate(
+  value: string,
+) {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return 'Date unavailable';
   }
 
-  return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    'en-GB',
+    {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    },
+  ).format(date);
 }
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('');
-  const [searchedQuery, setSearchedQuery] = useState('');
-  const [results, setResults] = useState<SearchResponse>(EMPTY_RESULTS);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] =
+    useState('');
 
-  const resultCount = getResultCount(results);
+  const [searchedQuery, setSearchedQuery] =
+    useState('');
 
-  async function runSearch(event?: FormEvent<HTMLFormElement>) {
+  const [results, setResults] =
+    useState<SearchResponse>(
+      EMPTY_RESULTS,
+    );
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const resultCount =
+    useMemo(
+      () => getResultCount(results),
+      [results],
+    );
+
+  async function runSearch(
+    event?: FormEvent<HTMLFormElement>,
+  ) {
     event?.preventDefault();
 
     const term = query.trim();
@@ -56,7 +89,6 @@ export default function SearchPage() {
       setResults(EMPTY_RESULTS);
       setSearchedQuery('');
       setError(null);
-
       return;
     }
 
@@ -64,216 +96,675 @@ export default function SearchPage() {
     setError(null);
 
     try {
-      const data = await search(term);
+      const data =
+        await search(term);
 
       setResults(data);
       setSearchedQuery(term);
     } catch {
-      setError('Search could not reach Neighbour. Please try again.');
+      setError(
+        'Search could not reach Neighbour. Please try again.',
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main
-      style={{
-        margin: '0 auto',
-        maxWidth: '960px',
-        padding: '40px 24px 80px',
-      }}
-    >
-      <header>
-        <p
-          style={{
-            color: '#315c4c',
-            fontSize: '13px',
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            margin: 0,
-            textTransform: 'uppercase',
-          }}
-        >
-          Universal discovery
-        </p>
+    <main className="search-page">
+      <header className="search-header">
+        <div>
+          <div className="search-eyebrow">
+            DISCOVER NEIGHBOUR™
+          </div>
 
-        <h1 style={{ marginBottom: '8px' }}>Search Neighbour™</h1>
+          <h1>Search</h1>
 
-        <p
-          style={{
-            color: '#526159',
-            marginTop: 0,
-          }}
-        >
-          Find people, communities, neighbourhoods, events and local discussions.
-        </p>
+          <p>
+            Find people, communities,
+            neighbourhoods, events and local
+            conversations across Neighbour™.
+          </p>
+        </div>
+
+        {searchedQuery ? (
+          <div className="search-count">
+            <strong>
+              {resultCount}
+            </strong>
+
+            <span>
+              {resultCount === 1
+                ? 'result'
+                : 'results'}
+            </span>
+          </div>
+        ) : null}
       </header>
 
-      <form
-        onSubmit={runSearch}
-        style={{
-          display: 'flex',
-          gap: '10px',
-          marginTop: '24px',
-        }}
-      >
-        <input
-          aria-label="Search Neighbour"
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-          }}
-          placeholder="Search people, communities, events..."
-          style={{
-            border: '1px solid #c8d3cc',
-            borderRadius: '14px',
-            flex: 1,
-            fontSize: '16px',
-            minHeight: '50px',
-            padding: '12px 16px',
-          }}
-        />
-
-        <button
-          disabled={loading}
-          type="submit"
-          style={{
-            background: '#315c4c',
-            border: 'none',
-            borderRadius: '14px',
-            color: '#fff',
-            cursor: loading ? 'wait' : 'pointer',
-            fontWeight: 700,
-            minWidth: '120px',
-            padding: '12px 24px',
-          }}
+      <section className="search-hero">
+        <form
+          onSubmit={(event) =>
+            void runSearch(event)
+          }
         >
-          {loading ? 'Searching…' : 'Search'}
-        </button>
-      </form>
+          <div className="search-field">
+            <span>⌕</span>
+
+            <input
+              aria-label="Search Neighbour"
+              value={query}
+              onChange={(event) =>
+                setQuery(
+                  event.target.value,
+                )
+              }
+              placeholder="Search people, communities, areas, events or posts"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+          >
+            {loading
+              ? 'Searching…'
+              : 'Search Neighbour™'}
+          </button>
+        </form>
+
+        <div className="search-hints">
+          <span>People</span>
+          <span>Communities</span>
+          <span>Neighbourhoods</span>
+          <span>Events</span>
+          <span>Posts</span>
+        </div>
+      </section>
 
       {error ? (
-        <section
-          style={{
-            border: '1px solid #b54444',
-            borderRadius: '16px',
-            marginTop: '24px',
-            padding: '18px',
-          }}
-        >
-          <strong style={{ color: '#b54444' }}>Search unavailable</strong>
+        <section className="search-error">
+          <strong>
+            Search unavailable
+          </strong>
 
           <p>{error}</p>
         </section>
       ) : null}
 
-      {!loading && searchedQuery ? (
-        <p
-          style={{
-            color: '#526159',
-            marginTop: '28px',
-          }}
-        >
-          {resultCount === 1
-            ? `1 result for “${searchedQuery}”`
-            : `${resultCount} results for “${searchedQuery}”`}
-        </p>
-      ) : null}
+      {!searchedQuery &&
+      !loading ? (
+        <section className="search-start">
+          <div className="search-start-icon">
+            ⌖
+          </div>
 
-      {!loading && searchedQuery && !error && resultCount === 0 ? (
-        <section
-          style={{
-            background: '#eef2ee',
-            borderRadius: '18px',
-            marginTop: '20px',
-            padding: '22px',
-          }}
-        >
-          <h2 style={{ marginTop: 0 }}>No matches found</h2>
+          <div>
+            <div className="search-start-eyebrow">
+              UNIVERSAL DISCOVERY
+            </div>
 
-          <p style={{ marginBottom: 0 }}>Try another name, area or keyword.</p>
+            <h2>
+              Find what’s happening around you.
+            </h2>
+
+            <p>
+              Search across the whole Neighbour™
+              network from one place.
+            </p>
+          </div>
+
+          <div className="search-start-grid">
+            <div>
+              <strong>◎</strong>
+              <span>People</span>
+            </div>
+
+            <div>
+              <strong>⌂</strong>
+              <span>Communities</span>
+            </div>
+
+            <div>
+              <strong>⌖</strong>
+              <span>Nearby</span>
+            </div>
+
+            <div>
+              <strong>17</strong>
+              <span>Events</span>
+            </div>
+          </div>
         </section>
       ) : null}
 
-      {results.users.length > 0 ? (
-        <ResultSection title="People">
-          {results.users.map((person) => (
-            <ResultCard
-              key={person.id}
-              title={person.displayName}
-              description="Neighbour member"
-              metadata={`ID: ${person.id}`}
-            />
-          ))}
+      {!loading &&
+      searchedQuery &&
+      !error ? (
+        <div className="search-summary">
+          Showing {resultCount}{' '}
+          {resultCount === 1
+            ? 'result'
+            : 'results'}{' '}
+          for{' '}
+          <strong>
+            “{searchedQuery}”
+          </strong>
+        </div>
+      ) : null}
+
+      {!loading &&
+      searchedQuery &&
+      !error &&
+      resultCount === 0 ? (
+        <section className="search-empty">
+          <div>⌕</div>
+
+          <h2>No matches found</h2>
+
+          <p>
+            Try another name, area,
+            postcode or keyword.
+          </p>
+        </section>
+      ) : null}
+
+      {results.users.length >
+      0 ? (
+        <ResultSection
+          title="People"
+          description="Neighbours matching your search."
+        >
+          {results.users.map(
+            (person) => (
+              <ResultCard
+                key={person.id}
+                icon="◎"
+                title={
+                  person.displayName
+                }
+                description="Neighbour member"
+                metadata="Person"
+              />
+            ),
+          )}
         </ResultSection>
       ) : null}
 
-      {results.communities.length > 0 ? (
-        <ResultSection title="Communities">
-          {results.communities.map((community) => (
-            <ResultCard
-              key={community.id}
-              title={community.name}
-              description={`@${community.slug}`}
-              metadata={`ID: ${community.id}`}
-            />
-          ))}
+      {results.communities.length >
+      0 ? (
+        <ResultSection
+          title="Communities"
+          description="Local groups and community spaces."
+        >
+          {results.communities.map(
+            (community) => (
+              <ResultCard
+                key={community.id}
+                icon="⌂"
+                title={community.name}
+                description={`@${community.slug}`}
+                metadata="Community"
+                href={`/community/${community.slug}`}
+              />
+            ),
+          )}
         </ResultSection>
       ) : null}
 
-      {results.neighbourhoods.length > 0 ? (
-        <ResultSection title="Neighbourhoods">
-          {results.neighbourhoods.map((neighbourhood) => (
-            <ResultCard
-              key={neighbourhood.id}
-              title={neighbourhood.name}
-              description={neighbourhood.localArea ?? 'Local neighbourhood'}
-              metadata={`ID: ${neighbourhood.id}`}
-            />
-          ))}
+      {results.neighbourhoods.length >
+      0 ? (
+        <ResultSection
+          title="Neighbourhoods"
+          description="Local areas within the Neighbour™ network."
+        >
+          {results.neighbourhoods.map(
+            (neighbourhood) => (
+              <ResultCard
+                key={
+                  neighbourhood.id
+                }
+                icon="⌖"
+                title={
+                  neighbourhood.name
+                }
+                description={
+                  neighbourhood.localArea ??
+                  'Local neighbourhood'
+                }
+                metadata="Neighbourhood"
+                href="/my-community"
+              />
+            ),
+          )}
         </ResultSection>
       ) : null}
 
-      {results.events.length > 0 ? (
-        <ResultSection title="Events">
-          {results.events.map((event) => (
-            <ResultCard
-              key={event.id}
-              title={event.title}
-              description={event.community?.name ?? 'Neighbour event'}
-              metadata={formatEventDate(event.startsAt)}
-            />
-          ))}
+      {results.events.length >
+      0 ? (
+        <ResultSection
+          title="Events"
+          description="Things happening locally."
+        >
+          {results.events.map(
+            (event) => (
+              <ResultCard
+                key={event.id}
+                icon="17"
+                title={event.title}
+                description={
+                  event.community
+                    ?.name ??
+                  'Neighbour event'
+                }
+                metadata={formatEventDate(
+                  event.startsAt,
+                )}
+              />
+            ),
+          )}
         </ResultSection>
       ) : null}
 
-      {results.posts.length > 0 ? (
-        <ResultSection title="Posts">
-          {results.posts.map((post) => (
-            <ResultCard
-              key={post.id}
-              title={post.title?.trim() || 'Community post'}
-              description={post.content}
-              metadata={`ID: ${post.id}`}
-            />
-          ))}
+      {results.posts.length >
+      0 ? (
+        <ResultSection
+          title="Posts"
+          description="Local conversations and updates."
+        >
+          {results.posts.map(
+            (post) => (
+              <ResultCard
+                key={post.id}
+                icon="□"
+                title={
+                  post.title?.trim() ||
+                  'Community post'
+                }
+                description={
+                  post.content
+                }
+                metadata="Community post"
+              />
+            ),
+          )}
         </ResultSection>
       ) : null}
+
+      <style>{`
+        .search-page {
+          width: min(100% - 48px, 1300px);
+          margin: 0 auto;
+          padding: 42px 0 90px;
+        }
+
+        .search-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 24px;
+          margin-bottom: 25px;
+        }
+
+        .search-eyebrow {
+          margin-bottom: 8px;
+          color: #0a6945;
+          font-size: 10px;
+          font-weight: 850;
+          letter-spacing: .15em;
+        }
+
+        .search-header h1 {
+          margin: 0;
+          color: #102019;
+          font-size: clamp(34px,4vw,48px);
+          letter-spacing: -.045em;
+        }
+
+        .search-header p {
+          max-width: 670px;
+          margin: 9px 0 0;
+          color: #75827c;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .search-count {
+          min-width: 96px;
+          padding: 11px 14px;
+          border: 1px solid #dce4df;
+          border-radius: 14px;
+          background: #fff;
+          text-align: center;
+        }
+
+        .search-count strong {
+          display: block;
+          color: #086240;
+          font-size: 19px;
+        }
+
+        .search-count span {
+          color: #8b9690;
+          font-size: 9px;
+        }
+
+        .search-hero {
+          padding: 22px;
+          border-radius: 22px;
+          background:
+            linear-gradient(
+              120deg,
+              #09192b,
+              #143353
+            );
+        }
+
+        .search-hero form {
+          display: grid;
+          grid-template-columns:
+            minmax(0,1fr) auto;
+          gap: 10px;
+        }
+
+        .search-field {
+          min-height: 50px;
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          padding: 0 15px;
+          border-radius: 14px;
+          background: #fff;
+        }
+
+        .search-field span {
+          color: #086240;
+          font-size: 17px;
+        }
+
+        .search-field input {
+          width: 100%;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          font: inherit;
+          font-size: 13px;
+        }
+
+        .search-hero button {
+          min-width: 160px;
+          border: 0;
+          border-radius: 14px;
+          background: #0b754d;
+          color: #fff;
+          font: inherit;
+          font-size: 10px;
+          font-weight: 850;
+          cursor: pointer;
+        }
+
+        .search-hero button:disabled {
+          opacity: .6;
+          cursor: wait;
+        }
+
+        .search-hints {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 7px;
+          margin-top: 14px;
+        }
+
+        .search-hints span {
+          padding: 6px 9px;
+          border-radius: 999px;
+          background:
+            rgba(255,255,255,.08);
+          color:
+            rgba(255,255,255,.67);
+          font-size: 8px;
+          font-weight: 750;
+        }
+
+        .search-start {
+          display: grid;
+          grid-template-columns:
+            auto minmax(0,1fr);
+          gap: 18px;
+          margin-top: 26px;
+          padding: 28px;
+          border: 1px solid
+            rgba(18,48,38,.07);
+          border-radius: 21px;
+          background: #fff;
+        }
+
+        .search-start-icon {
+          width: 52px;
+          height: 52px;
+          display: grid;
+          place-items: center;
+          border-radius: 15px;
+          background: #eaf5ef;
+          color: #08704a;
+          font-size: 22px;
+        }
+
+        .search-start-eyebrow {
+          color: #0a6945;
+          font-size: 8px;
+          font-weight: 850;
+          letter-spacing: .13em;
+        }
+
+        .search-start h2 {
+          margin: 7px 0 0;
+          color: #102019;
+          font-size: 23px;
+          letter-spacing: -.03em;
+        }
+
+        .search-start p {
+          margin: 7px 0 0;
+          color: #78847e;
+          font-size: 11px;
+        }
+
+        .search-start-grid {
+          grid-column: 1 / -1;
+          display: grid;
+          grid-template-columns:
+            repeat(4,minmax(0,1fr));
+          gap: 9px;
+          margin-top: 8px;
+        }
+
+        .search-start-grid div {
+          padding: 15px;
+          border-radius: 13px;
+          background: #f7f9f8;
+          text-align: center;
+        }
+
+        .search-start-grid strong {
+          display: block;
+          color: #08704a;
+          font-size: 16px;
+        }
+
+        .search-start-grid span {
+          display: block;
+          margin-top: 5px;
+          color: #67776f;
+          font-size: 9px;
+          font-weight: 750;
+        }
+
+        .search-summary {
+          margin: 24px 2px 12px;
+          color: #74817b;
+          font-size: 10px;
+        }
+
+        .search-summary strong {
+          color: #31463c;
+        }
+
+        .search-error,
+        .search-empty {
+          margin-top: 20px;
+          padding: 24px;
+          border-radius: 17px;
+          background: #fff;
+          text-align: center;
+        }
+
+        .search-error strong {
+          color: #a33f3f;
+        }
+
+        .search-error p,
+        .search-empty p {
+          margin: 6px 0 0;
+          color: #7a8781;
+          font-size: 11px;
+        }
+
+        .search-empty div {
+          font-size: 26px;
+        }
+
+        .search-empty h2 {
+          margin: 8px 0 0;
+        }
+
+        .result-section {
+          margin-top: 28px;
+        }
+
+        .result-section-header {
+          margin-bottom: 12px;
+        }
+
+        .result-section-header h2 {
+          margin: 0;
+          color: #102019;
+          font-size: 19px;
+        }
+
+        .result-section-header p {
+          margin: 4px 0 0;
+          color: #7f8b85;
+          font-size: 10px;
+        }
+
+        .result-grid {
+          display: grid;
+          grid-template-columns:
+            repeat(2,minmax(0,1fr));
+          gap: 11px;
+        }
+
+        .result-card {
+          display: grid;
+          grid-template-columns:
+            auto minmax(0,1fr) auto;
+          gap: 12px;
+          align-items: center;
+          padding: 16px;
+          border: 1px solid #e0e7e2;
+          border-radius: 16px;
+          background: #fff;
+          color: inherit;
+          text-decoration: none;
+        }
+
+        .result-card-icon {
+          width: 39px;
+          height: 39px;
+          display: grid;
+          place-items: center;
+          border-radius: 12px;
+          background: #eaf5ef;
+          color: #08704a;
+          font-size: 13px;
+          font-weight: 850;
+        }
+
+        .result-card h3 {
+          margin: 0;
+          color: #21362d;
+          font-size: 12px;
+        }
+
+        .result-card p {
+          overflow: hidden;
+          margin: 4px 0 0;
+          color: #728078;
+          font-size: 10px;
+          line-height: 1.45;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .result-card small {
+          display: block;
+          margin-top: 5px;
+          color: #a0aaa5;
+          font-size: 8px;
+        }
+
+        .result-card-arrow {
+          color: #87948e;
+        }
+
+        @media (max-width: 760px) {
+          .search-page {
+            width: min(100% - 28px,680px);
+            padding-top: 24px;
+          }
+
+          .search-header {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .search-hero form,
+          .result-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .search-hero button {
+            min-height: 46px;
+          }
+
+          .search-start-grid {
+            grid-template-columns:
+              repeat(2,minmax(0,1fr));
+          }
+        }
+      `}</style>
     </main>
   );
 }
 
-function ResultSection({ title, children }: { title: string; children: React.ReactNode }) {
+function ResultSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
   return (
-    <section style={{ marginTop: '32px' }}>
-      <h2>{title}</h2>
+    <section className="result-section">
+      <div className="result-section-header">
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gap: '14px',
-        }}
-      >
+      <div className="result-grid">
         {children}
       </div>
     </section>
@@ -281,36 +772,46 @@ function ResultSection({ title, children }: { title: string; children: React.Rea
 }
 
 function ResultCard({
+  icon,
   title,
   description,
   metadata,
+  href,
 }: {
+  icon: string;
   title: string;
   description: string;
   metadata: string;
+  href?: string;
 }) {
-  return (
-    <article
-      style={{
-        background: '#fff',
-        border: '1px solid #dde4df',
-        borderRadius: '18px',
-        padding: '20px',
-      }}
+  const body = (
+    <>
+      <div className="result-card-icon">
+        {icon}
+      </div>
+
+      <div>
+        <h3>{title}</h3>
+        <p>{description}</p>
+        <small>{metadata}</small>
+      </div>
+
+      <div className="result-card-arrow">
+        {href ? '→' : '·'}
+      </div>
+    </>
+  );
+
+  return href ? (
+    <Link
+      href={href}
+      className="result-card"
     >
-      <h3 style={{ margin: '0 0 8px' }}>{title}</h3>
-
-      <p
-        style={{
-          color: '#526159',
-          margin: '0 0 10px',
-          whiteSpace: 'pre-wrap',
-        }}
-      >
-        {description}
-      </p>
-
-      <small style={{ color: '#7e8b84' }}>{metadata}</small>
+      {body}
+    </Link>
+  ) : (
+    <article className="result-card">
+      {body}
     </article>
   );
 }
