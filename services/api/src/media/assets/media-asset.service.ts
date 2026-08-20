@@ -8,6 +8,7 @@ import {
 import { randomUUID } from 'node:crypto';
 
 import { DatabaseService } from '../../database/database.service';
+import { SubscriptionService } from '../../payments/subscription/subscription.service';
 import type { CompleteUploadDto } from '../dto/complete-upload.dto';
 import type { CreateUploadDto } from '../dto/create-upload.dto';
 import type {
@@ -23,9 +24,35 @@ export class MediaAssetService {
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
     private readonly storage: ObjectStorageService,
+    private readonly subscriptions: SubscriptionService,
   ) {}
 
   async createUpload(ownerId: string, dto: CreateUploadDto): Promise<MediaUploadResponse> {
+    const storageLimitBytes = await this.subscriptions.getStorageLimitBytes(ownerId);
+
+    const usage = await this.database.mediaAsset.aggregate({
+      where: {
+        ownerId,
+        deletedAt: null,
+        status: {
+          not: 'DELETED',
+        },
+      },
+      _sum: {
+        sizeBytes: true,
+      },
+    });
+
+    const usedBytes = usage._sum.sizeBytes ?? 0;
+
+    if (usedBytes + dto.sizeBytes > storageLimitBytes) {
+      throw new ForbiddenException(
+        storageLimitBytes >= 1024 * 1024 * 1024
+          ? 'Your 1 GB Neighbour Premium storage allowance has been reached.'
+          : 'Your 100 MB free storage allowance has been reached. Upgrade for additional storage.',
+      );
+    }
+
     const extension = this.resolveExtension(dto.mimeType);
 
     const assetId = randomUUID();

@@ -17,6 +17,7 @@ import {
 import { useAuth } from '../auth/auth-context';
 import { AppText, Button, Card, Screen } from '../components';
 import { useMediaPicker, useMediaUpload } from '../features/media';
+import { usePremium } from '../features/premium';
 import { ProfileStats, useProfileHub, type ProfileSection } from '../features/profile';
 import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
@@ -59,6 +60,7 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { theme } = useNeighbourTheme();
   const profile = useProfileHub();
+  const premium = usePremium();
   const mediaPicker = useMediaPicker();
   const mediaUpload = useMediaUpload();
 
@@ -190,6 +192,15 @@ export default function ProfileScreen() {
           <AppText variant="title" tone="inverse">
             Profile
           </AppText>
+
+          {premium.overview?.entitlements.premiumProfile ? (
+            <AppText variant="overline" tone="inverse">
+              {premium.overview.subscription.plan === 'BUSINESS'
+                ? 'NEIGHBOUR BUSINESS'
+                : 'NEIGHBOUR PLUS'}{' '}
+              ✓
+            </AppText>
+          ) : null}
 
           <AppText
             variant="caption"

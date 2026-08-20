@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
 
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import type { AuthUser } from '../../auth/interfaces/auth-user.interface';
@@ -22,5 +22,17 @@ export class SubscriptionController {
   @Patch('me/internal-plan')
   activateInternalPlan(@CurrentUser() user: AuthUser, @Body() dto: ActivateSubscriptionDto) {
     return this.subscriptions.activateInternalPlan(user.id, dto.plan);
+  }
+
+  @Post('support')
+  submitPrioritySupport(
+    @CurrentUser() user: AuthUser,
+    @Body()
+    body: {
+      subject: string;
+      message: string;
+    },
+  ) {
+    return this.subscriptions.submitPrioritySupport(user.id, body);
   }
 }

@@ -1,17 +1,25 @@
 import { Controller, Get, Query } from '@nestjs/common';
 
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { AuthUser } from '../auth/interfaces/auth-user.interface';
+import { SubscriptionService } from '../payments/subscription/subscription.service';
 import { SearchService } from './search.service';
 
 @Controller('search')
 export class SearchController {
-  constructor(private readonly service: SearchService) {}
+  constructor(
+    private readonly service: SearchService,
+    private readonly subscriptions: SubscriptionService,
+  ) {}
 
   @Get()
-  search(@Query('q') query: string) {
+  async search(@CurrentUser() user: AuthUser, @Query('q') query: string) {
     if (!query) {
       return [];
     }
 
-    return this.service.search(query);
+    const limit = await this.subscriptions.getSearchResultLimit(user.id);
+
+    return this.service.search(query, limit);
   }
 }

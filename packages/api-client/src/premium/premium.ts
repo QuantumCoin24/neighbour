@@ -18,3 +18,21 @@ export function activateInternalPremiumPlan(plan: PremiumPlanId): Promise<Premiu
     }),
   });
 }
+
+export interface PrioritySupportRequestResponse {
+  id: string;
+  subject: string;
+  priority: boolean;
+  status: string;
+  createdAt: string;
+}
+
+export function submitPrioritySupportRequest(input: {
+  subject: string;
+  message: string;
+}): Promise<PrioritySupportRequestResponse> {
+  return apiRequest<PrioritySupportRequestResponse>('/premium/support', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}

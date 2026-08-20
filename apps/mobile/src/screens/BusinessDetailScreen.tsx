@@ -622,22 +622,33 @@ export default function BusinessDetailScreen({ navigation, route }: BusinessDeta
         ) : null}
 
         {section === 'insights' ? (
-          <Card style={styles.section}>
-            <AppText variant="subheading">Reach and engagement</AppText>
+          detail.analytics ? (
+            <Card style={styles.section}>
+              <AppText variant="subheading">Reach and engagement</AppText>
 
-            {[
-              ['Profile views', detail.analytics?.profileViews ?? 0],
-              ['Offer views', detail.analytics?.offerViews ?? 0],
-              ['Event views', detail.analytics?.eventViews ?? 0],
-              ['Total reach', detail.analytics?.totalReach ?? 0],
-            ].map(([label, value]) => (
-              <View key={String(label)} style={styles.row}>
-                <AppText tone="secondary">{label}</AppText>
+              {[
+                ['Profile views', detail.analytics.profileViews],
+                ['Offer views', detail.analytics.offerViews],
+                ['Event views', detail.analytics.eventViews],
+                ['Total reach', detail.analytics.totalReach],
+              ].map(([label, value]) => (
+                <View key={String(label)} style={styles.row}>
+                  <AppText tone="secondary">{label}</AppText>
 
-                <AppText variant="bodyStrong">{value}</AppText>
-              </View>
-            ))}
-          </Card>
+                  <AppText variant="bodyStrong">{value}</AppText>
+                </View>
+              ))}
+            </Card>
+          ) : (
+            <Card variant="muted" style={styles.section}>
+              <AppText variant="subheading">Neighbour Business analytics</AppText>
+
+              <AppText tone="secondary">
+                Upgrade to Neighbour Business to unlock private profile views, offer views, event
+                views and total reach analytics.
+              </AppText>
+            </Card>
+          )
         ) : null}
       </ScrollView>
     </SafeAreaView>

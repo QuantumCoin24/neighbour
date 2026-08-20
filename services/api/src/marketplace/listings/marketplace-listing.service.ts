@@ -7,6 +7,7 @@ import {
 
 import { MarketplaceListingStatus, Prisma } from '../../generated/prisma/client';
 import { DatabaseService } from '../../database/database.service';
+import { SubscriptionService } from '../../payments/subscription/subscription.service';
 import type { CreateMarketplaceListingDto } from './dto/create-marketplace-listing.dto';
 import type { SearchMarketplaceListingsDto } from './dto/search-marketplace-listings.dto';
 import type { UpdateMarketplaceListingDto } from './dto/update-marketplace-listing.dto';
@@ -54,7 +55,10 @@ type ListingWithRelations = Prisma.MarketplaceListingGetPayload<{
 
 @Injectable()
 export class MarketplaceListingService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly subscriptions: SubscriptionService,
+  ) {}
 
   async create(
     sellerId: string,
@@ -242,8 +246,17 @@ export class MarketplaceListingService {
 
     const items = hasNext ? rows.slice(0, query.limit) : rows;
 
+    const ranked = await Promise.all(
+      items.map(async (listing) => ({
+        listing,
+        boosted: await this.subscriptions.hasEntitlement(listing.sellerId, 'marketplaceBoosts'),
+      })),
+    );
+
+    ranked.sort((left, right) => Number(right.boosted) - Number(left.boosted));
+
     return {
-      items: items.map((listing) => this.map(listing, currentUserId)),
+      items: ranked.map(({ listing }) => this.map(listing, currentUserId)),
       nextCursor: hasNext ? (items.at(-1)?.id ?? null) : null,
     };
   }

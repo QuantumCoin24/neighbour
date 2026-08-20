@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '../database/database.service';
+import { SubscriptionService } from '../payments/subscription/subscription.service';
 import { SearchIntelligenceService } from './intelligence/search-intelligence.service';
 
 @Injectable()
@@ -8,9 +9,10 @@ export class SearchService {
   constructor(
     private readonly database: DatabaseService,
     private readonly intelligence: SearchIntelligenceService,
+    private readonly subscriptions: SubscriptionService,
   ) {}
 
-  async search(query: string) {
+  async search(query: string, limit = 10) {
     const term = query.trim();
 
     if (!term) {
@@ -49,7 +51,7 @@ export class SearchService {
           id: true,
           displayName: true,
         },
-        take: 10,
+        take: limit,
       }),
 
       this.database.community.findMany({
@@ -68,7 +70,7 @@ export class SearchService {
           name: true,
           slug: true,
         },
-        take: 10,
+        take: limit,
       }),
 
       this.database.neighbourhood.findMany({
@@ -87,7 +89,7 @@ export class SearchService {
           name: true,
           localArea: true,
         },
-        take: 10,
+        take: limit,
       }),
 
       this.database.event.findMany({
@@ -111,7 +113,7 @@ export class SearchService {
             },
           },
         },
-        take: 10,
+        take: limit,
       }),
 
       this.database.post.findMany({
@@ -130,18 +132,49 @@ export class SearchService {
           title: true,
           content: true,
         },
-        take: 10,
+        take: limit,
       }),
     ]);
+
+    const rankedCommunities = this.intelligence.rank(communities, (item) =>
+      this.intelligence.scoreText(item.name, term),
+    );
+
+    if (rankedCommunities.length > 0) {
+      const owners = await this.database.membership.findMany({
+        where: {
+          communityId: {
+            in: rankedCommunities.map((community) => community.id),
+          },
+          role: 'OWNER',
+          status: 'ACTIVE',
+        },
+        select: {
+          communityId: true,
+          userId: true,
+        },
+      });
+
+      const boostedCommunityIds = new Set<string>();
+
+      for (const owner of owners) {
+        if (await this.subscriptions.hasEntitlement(owner.userId, 'communityBoosts')) {
+          boostedCommunityIds.add(owner.communityId);
+        }
+      }
+
+      rankedCommunities.sort(
+        (left, right) =>
+          Number(boostedCommunityIds.has(right.id)) - Number(boostedCommunityIds.has(left.id)),
+      );
+    }
 
     return {
       users: this.intelligence.rank(users, (item) =>
         this.intelligence.scoreText(item.displayName, term),
       ),
 
-      communities: this.intelligence.rank(communities, (item) =>
-        this.intelligence.scoreText(item.name, term),
-      ),
+      communities: rankedCommunities,
 
       neighbourhoods: this.intelligence.rank(neighbourhoods, (item) =>
         this.intelligence.scoreText(item.name, term),

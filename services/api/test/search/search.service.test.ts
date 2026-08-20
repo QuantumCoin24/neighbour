@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 
 import type { DatabaseService } from '../../src/database/database.service';
 import { SearchIntelligenceService } from '../../src/search/intelligence/search-intelligence.service';
+import type { SubscriptionService } from '../../src/payments/subscription/subscription.service';
 import { SearchService } from '../../src/search/search.service';
 
 interface FakeDatabase {
@@ -27,6 +28,9 @@ interface FakeDatabase {
   };
   post: {
     findMany(): Promise<Array<{ id: string; title: string | null; content: string }>>;
+  };
+  membership: {
+    findMany(): Promise<Array<{ communityId: string; userId: string }>>;
   };
 }
 
@@ -69,11 +73,21 @@ describe('SearchService', () => {
           return [];
         },
       },
+      membership: {
+        async findMany() {
+          return [];
+        },
+      },
+    };
+
+    const subscriptions = {
+      hasEntitlement: async () => false,
     };
 
     const service = new SearchService(
       database as unknown as DatabaseService,
       new SearchIntelligenceService(),
+      subscriptions as unknown as SubscriptionService,
     );
 
     const result = await service.search('Blackley');
@@ -85,7 +99,15 @@ describe('SearchService', () => {
   it('returns empty result groups for a blank query', async () => {
     const database = {} as unknown as DatabaseService;
 
-    const service = new SearchService(database, new SearchIntelligenceService());
+    const subscriptions = {
+      hasEntitlement: async () => false,
+    };
+
+    const service = new SearchService(
+      database,
+      new SearchIntelligenceService(),
+      subscriptions as unknown as SubscriptionService,
+    );
 
     const result = await service.search('   ');
 

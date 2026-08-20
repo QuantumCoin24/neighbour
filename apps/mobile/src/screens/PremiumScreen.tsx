@@ -8,6 +8,7 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +21,9 @@ import {
   type AppleSubscriptionProductId,
   useStoreKitSubscriptions,
 } from '../features/storekit';
+import { submitPrioritySupportRequest } from '@neighbour/api-client';
+import { useState } from 'react';
+
 import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
@@ -52,10 +56,43 @@ function displayStorePrice(
 export default function PremiumScreen({ navigation }: PremiumScreenProps) {
   const { theme } = useNeighbourTheme();
   const premium = usePremium();
+  const [supportSubject, setSupportSubject] = useState('');
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportBusy, setSupportBusy] = useState(false);
 
   const storeKit = useStoreKitSubscriptions(async () => {
     await premium.refresh();
   });
+
+  async function submitPrioritySupport(): Promise<void> {
+    const subject = supportSubject.trim();
+    const message = supportMessage.trim();
+
+    if (!subject || !message || supportBusy) {
+      return;
+    }
+
+    setSupportBusy(true);
+
+    try {
+      const request = await submitPrioritySupportRequest({
+        subject,
+        message,
+      });
+
+      setSupportSubject('');
+      setSupportMessage('');
+
+      Alert.alert(
+        'Priority support sent',
+        `Your priority support request ${request.id.slice(0, 8)} has been opened.`,
+      );
+    } catch {
+      Alert.alert('Support request not sent', 'Please check the details and try again.');
+    } finally {
+      setSupportBusy(false);
+    }
+  }
 
   async function manageSubscription(): Promise<void> {
     const url = 'https://apps.apple.com/account/subscriptions';
@@ -331,6 +368,104 @@ export default function PremiumScreen({ navigation }: PremiumScreenProps) {
           </Pressable>
         ) : null}
 
+        {premium.overview ? (
+          <Card style={styles.notice}>
+            <AppText variant="subheading">Your active Premium benefits</AppText>
+
+            {[
+              ['Premium profile', premium.overview.entitlements.premiumProfile],
+              [
+                'Advanced search — up to 50 results per category',
+                premium.overview.entitlements.advancedSearch,
+              ],
+              ['Enhanced storage — up to 1 GB', premium.overview.entitlements.enhancedStorage],
+              ['Community discovery boosts', premium.overview.entitlements.communityBoosts],
+              ['Marketplace boosts', premium.overview.entitlements.marketplaceBoosts],
+              ['Business analytics', premium.overview.entitlements.businessAnalytics],
+              ['Scheduled business offers', premium.overview.entitlements.scheduledOffers],
+              ['Priority support', premium.overview.entitlements.prioritySupport],
+            ]
+              .filter(([, enabled]) => enabled)
+              .map(([label]) => (
+                <AppText key={String(label)} tone="secondary">
+                  ✓ {String(label)}
+                </AppText>
+              ))}
+
+            {premium.overview.subscription.plan === 'FREE' ? (
+              <AppText tone="secondary">
+                Upgrade to Plus or Business to activate additional Premium benefits.
+              </AppText>
+            ) : null}
+          </Card>
+        ) : null}
+
+        {premium.overview?.entitlements.prioritySupport ? (
+          <Card style={styles.notice}>
+            <AppText variant="subheading">Priority support</AppText>
+
+            <AppText variant="caption" tone="secondary">
+              Plus and Business requests enter the Premium support queue.
+            </AppText>
+
+            <TextInput
+              placeholder="What do you need help with?"
+              placeholderTextColor={theme.colors.textMuted}
+              value={supportSubject}
+              onChangeText={setSupportSubject}
+              style={[
+                styles.supportInput,
+                {
+                  borderColor: theme.colors.border,
+                  color: theme.colors.text,
+                  borderRadius: theme.radius.lg,
+                },
+              ]}
+            />
+
+            <TextInput
+              multiline
+              placeholder="Tell us what happened"
+              placeholderTextColor={theme.colors.textMuted}
+              value={supportMessage}
+              onChangeText={setSupportMessage}
+              style={[
+                styles.supportMessage,
+                {
+                  borderColor: theme.colors.border,
+                  color: theme.colors.text,
+                  borderRadius: theme.radius.lg,
+                },
+              ]}
+            />
+
+            <Pressable
+              accessibilityRole="button"
+              disabled={supportBusy || !supportSubject.trim() || !supportMessage.trim()}
+              onPress={() => {
+                void submitPrioritySupport();
+              }}
+              style={[
+                styles.primaryButton,
+                {
+                  backgroundColor: theme.colors.primary,
+                  borderRadius: theme.radius.lg,
+                  opacity:
+                    supportBusy || !supportSubject.trim() || !supportMessage.trim() ? 0.55 : 1,
+                },
+              ]}
+            >
+              {supportBusy ? (
+                <ActivityIndicator color={theme.colors.inverseText} size="small" />
+              ) : (
+                <AppText variant="label" tone="inverse">
+                  Send priority request
+                </AppText>
+              )}
+            </Pressable>
+          </Card>
+        ) : null}
+
         <Card variant="muted" style={styles.notice}>
           <AppText variant="bodyStrong">Secure billing</AppText>
 
@@ -428,5 +563,18 @@ const styles = StyleSheet.create({
   },
   success: {
     gap: 7,
+  },
+  supportInput: {
+    borderWidth: 1,
+    minHeight: 48,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  supportMessage: {
+    borderWidth: 1,
+    minHeight: 110,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    textAlignVertical: 'top',
   },
 });

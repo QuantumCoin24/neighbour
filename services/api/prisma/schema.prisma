@@ -596,6 +596,7 @@ model User {
   organisationMemberships  OrganisationMember[]
   businessVerifications    BusinessVerification[]    @relation("BusinessVerificationReviewer")
   subscriptions            Subscription[]
+  supportRequests          SupportRequest[]
   createdAt                DateTime                  @default(now())
   updatedAt                DateTime                  @updatedAt
 
@@ -682,6 +683,23 @@ model Subscription {
   @@index([plan])
   @@index([provider])
   @@map("subscriptions")
+}
+
+model SupportRequest {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  subject   String
+  message   String
+  priority  Boolean  @default(false)
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, createdAt])
+  @@index([priority, status, createdAt])
+  @@map("support_requests")
 }
 
 model Neighbourhood {

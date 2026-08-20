@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '../../database/database.service';
 import type { SubscriptionEntity, SubscriptionPlan } from './subscription.entity';
@@ -345,6 +345,56 @@ export class SubscriptionService {
       scheduledOffers: false,
       prioritySupport: false,
     };
+  }
+
+  async getSearchResultLimit(ownerId: string): Promise<number> {
+    return (await this.hasEntitlement(ownerId, 'advancedSearch')) ? 50 : 10;
+  }
+
+  async getStorageLimitBytes(ownerId: string): Promise<number> {
+    return (await this.hasEntitlement(ownerId, 'enhancedStorage'))
+      ? 1024 * 1024 * 1024
+      : 100 * 1024 * 1024;
+  }
+
+  async submitPrioritySupport(
+    ownerId: string,
+    input: {
+      subject: string;
+      message: string;
+    },
+  ) {
+    if (!(await this.hasEntitlement(ownerId, 'prioritySupport'))) {
+      throw new ForbiddenException('Priority support requires Neighbour Plus or Business.');
+    }
+
+    const subject = input.subject.trim();
+    const message = input.message.trim();
+
+    if (!subject || !message) {
+      throw new BadRequestException('A support subject and message are required.');
+    }
+
+    if (subject.length > 160 || message.length > 5000) {
+      throw new BadRequestException('The support request is too long.');
+    }
+
+    return this.database.supportRequest.create({
+      data: {
+        userId: ownerId,
+        subject,
+        message,
+        priority: true,
+        status: 'OPEN',
+      },
+      select: {
+        id: true,
+        subject: true,
+        priority: true,
+        status: true,
+        createdAt: true,
+      },
+    });
   }
 
   private async cancelActiveSubscriptions(ownerId: string): Promise<void> {
