@@ -37,12 +37,11 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
-    const existing = await this.database.user.findUnique({
+    const existingUser = await this.database.user.findUnique({
       where: { email: dto.email },
-      select: { id: true },
     });
 
-    if (existing) {
+    if (existingUser) {
       throw new ConflictException('An account with this email already exists.');
     }
 
@@ -50,27 +49,62 @@ export class AuthService {
       type: argon2.argon2id,
     });
 
-    const user = await this.database.user.create({
-      data: {
-        email: dto.email,
-        displayName: dto.displayName,
-        passwordHash,
-      },
-    });
+    const preferredUsername =
+      dto.email
+        .split('@')[0]
+        ?.trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]/g, '')
+        .replace(/^[._-]+|[._-]+$/g, '') ||
+      dto.displayName
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]/g, '')
+        .replace(/^[._-]+|[._-]+$/g, '') ||
+      'neighbour';
 
-    await this.profileService.create({
-      id: randomUUID(),
-      userId: user.id,
-      username: dto.email.split('@')[0] ?? dto.displayName.toLowerCase().replace(/\s+/g, ''),
-      displayName: user.displayName,
-      localArea: null,
-      showLocalArea: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    const user = await this.database.$transaction(async (tx) => {
+      let username = preferredUsername;
+      let suffix = 2;
+
+      while (
+        await tx.userProfile.findUnique({
+          where: { username },
+          select: { id: true },
+        })
+      ) {
+        username = `${preferredUsername}-${suffix}`;
+        suffix += 1;
+      }
+
+      const createdUser = await tx.user.create({
+        data: {
+          email: dto.email,
+          displayName: dto.displayName,
+          passwordHash,
+        },
+      });
+
+      await tx.userProfile.create({
+        data: {
+          userId: createdUser.id,
+          username,
+          bio: null,
+          avatarUrl: null,
+          localArea: null,
+          showLocalArea: true,
+        },
+      });
+
+      return createdUser;
     });
 
     const tokens = await this.issueTokenPair(user);
-    return { user: this.toPublicUser(user), ...tokens };
+
+    return {
+      user: this.toPublicUser(user),
+      ...tokens,
+    };
   }
 
   async login(dto: LoginDto): Promise<AuthResponse> {
