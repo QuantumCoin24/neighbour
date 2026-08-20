@@ -23,6 +23,14 @@ export class BusinessService {
       select: {
         id: true,
         allowBusinesses: true,
+        latitude: true,
+        longitude: true,
+        locationAccuracyM: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        postcode: true,
+        locationVisibility: true,
       },
     });
 
@@ -52,7 +60,27 @@ export class BusinessService {
       );
     }
 
-    return this.repository.save(business);
+    const created = await this.repository.save(business);
+
+    if (community.latitude !== null && community.longitude !== null) {
+      await this.database.business.update({
+        where: {
+          id: created.id,
+        },
+        data: {
+          latitude: community.latitude,
+          longitude: community.longitude,
+          locationAccuracyM: community.locationAccuracyM,
+          addressLine1: community.addressLine1,
+          addressLine2: community.addressLine2,
+          city: community.city,
+          postcode: community.postcode,
+          locationVisibility: community.locationVisibility,
+        },
+      });
+    }
+
+    return created;
   }
 
   findCommunityBusinesses(communityId: string): Promise<BusinessEntity[]> {

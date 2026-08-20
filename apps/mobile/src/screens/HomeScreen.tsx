@@ -340,9 +340,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             </AppText>
           </View>
 
-          <AppText variant="label" tone="brand">
-            See all
-          </AppText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="See all communities"
+            onPress={() => {
+              navigation.navigate('Communities');
+            }}
+          >
+            <AppText variant="label" tone="brand">
+              See all
+            </AppText>
+          </Pressable>
         </View>
 
         <View style={styles.statGrid}>
@@ -406,9 +414,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             </AppText>
           </View>
 
-          <AppText variant="label" tone="brand">
-            See all
-          </AppText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="See all local activity"
+            onPress={() => {
+              navigation.navigate('Communities');
+            }}
+          >
+            <AppText variant="label" tone="brand">
+              See all
+            </AppText>
+          </Pressable>
         </View>
 
         {feed.loading ? (

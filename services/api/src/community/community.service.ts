@@ -38,6 +38,61 @@ const communityWithCount = Prisma.validator<Prisma.CommunityDefaultArgs>()({
 
 type CommunityWithCount = Prisma.CommunityGetPayload<typeof communityWithCount>;
 
+interface PostcodeLookupResponse {
+  status: number;
+  result?: {
+    latitude?: number;
+    longitude?: number;
+  } | null;
+}
+
+async function resolveUkPostcodeCoordinates(
+  postcode: string | undefined,
+): Promise<{ latitude: number; longitude: number } | null> {
+  const normalised = postcode?.trim().toUpperCase();
+
+  if (!normalised) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.postcodes.io/postcodes/${encodeURIComponent(normalised)}`,
+      {
+        headers: {
+          Accept: 'application/json',
+        },
+        signal: AbortSignal.timeout(5000),
+      },
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as PostcodeLookupResponse;
+
+    const latitude = payload.result?.latitude;
+    const longitude = payload.result?.longitude;
+
+    if (
+      typeof latitude !== 'number' ||
+      typeof longitude !== 'number' ||
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
+      return null;
+    }
+
+    return {
+      latitude,
+      longitude,
+    };
+  } catch {
+    return null;
+  }
+}
+
 @Injectable()
 export class CommunityService {
   constructor(
@@ -52,6 +107,14 @@ export class CommunityService {
 
     const approvalRequired =
       dto.joinPolicy === CommunityJoinPolicy.APPROVAL || dto.approvalRequired;
+
+    const postcodeCoordinates =
+      dto.latitude === undefined || dto.longitude === undefined
+        ? await resolveUkPostcodeCoordinates(dto.postcode)
+        : null;
+
+    const latitude = dto.latitude ?? postcodeCoordinates?.latitude;
+    const longitude = dto.longitude ?? postcodeCoordinates?.longitude;
 
     const community = await this.database.community.create({
       data: {
@@ -76,15 +139,15 @@ export class CommunityService {
         allowEvents: dto.allowEvents,
         discoverable: dto.discoverable,
 
-        ...(dto.latitude !== undefined
+        ...(latitude !== undefined
           ? {
-              latitude: dto.latitude,
+              latitude,
             }
           : {}),
 
-        ...(dto.longitude !== undefined
+        ...(longitude !== undefined
           ? {
-              longitude: dto.longitude,
+              longitude,
             }
           : {}),
 
