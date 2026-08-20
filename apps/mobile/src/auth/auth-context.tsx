@@ -1,5 +1,6 @@
 import {
   ApiClientError,
+  deleteCurrentAccount,
   getCurrentUser,
   loginUser,
   logoutUser,
@@ -18,7 +19,14 @@ import {
   useState,
 } from 'react';
 
-import { clearSession, createSession, getSession, loadSession, saveSession } from './session';
+import {
+  clearSession,
+  createSession,
+  getSession,
+  loadSession,
+  refreshSessionAccessToken,
+  saveSession,
+} from './session';
 
 export type AuthStatus = 'restoring' | 'anonymous' | 'authenticating' | 'authenticated';
 
@@ -29,6 +37,7 @@ interface AuthContextValue {
   login: (credentials: LoginRequest) => Promise<void>;
   register: (details: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -72,15 +81,46 @@ export function AuthProviderContext({ children }: PropsWithChildren) {
       const restoredSession = await loadSession();
 
       if (!restoredSession) {
+        setUser(null);
         setStatus('anonymous');
 
         return;
       }
 
-      const currentUser = await getCurrentUser();
+      let currentUser: AuthUser;
+
+      try {
+        currentUser = await getCurrentUser();
+      } catch (caughtError) {
+        if (!(caughtError instanceof ApiClientError) || caughtError.status !== 401) {
+          throw caughtError;
+        }
+
+        const refreshedAccessToken = await refreshSessionAccessToken();
+
+        if (!refreshedAccessToken) {
+          await clearSession();
+          setUser(null);
+          setStatus('anonymous');
+
+          return;
+        }
+
+        currentUser = await getCurrentUser();
+      }
+
+      const activeSession = getSession();
+
+      if (!activeSession) {
+        await clearSession();
+        setUser(null);
+        setStatus('anonymous');
+
+        return;
+      }
 
       await saveSession({
-        ...restoredSession,
+        ...activeSession,
         user: currentUser,
       });
 
@@ -159,6 +199,22 @@ export function AuthProviderContext({ children }: PropsWithChildren) {
     }
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    setError(null);
+
+    try {
+      await deleteCurrentAccount();
+      await clearSession();
+
+      setUser(null);
+      setStatus('anonymous');
+    } catch (caughtError) {
+      setError(getAuthenticationError(caughtError));
+
+      throw caughtError;
+    }
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -167,9 +223,10 @@ export function AuthProviderContext({ children }: PropsWithChildren) {
       login,
       register,
       logout,
+      deleteAccount,
       clearError,
     }),
-    [user, status, error, login, register, logout, clearError],
+    [user, status, error, login, register, logout, deleteAccount, clearError],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

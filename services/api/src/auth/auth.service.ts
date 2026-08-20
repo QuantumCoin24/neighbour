@@ -134,6 +134,57 @@ export class AuthService {
     return { success: true };
   }
 
+  async deleteAccount(userId: string): Promise<{ success: true }> {
+    const deletedPasswordHash = await argon2.hash(randomUUID(), {
+      type: argon2.argon2id,
+    });
+
+    await this.database.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+
+      if (!user || user.status !== UserStatus.ACTIVE) {
+        throw new UnauthorizedException('Authentication is no longer valid.');
+      }
+
+      await tx.refreshToken.deleteMany({
+        where: {
+          userId,
+        },
+      });
+
+      await tx.userProfile.deleteMany({
+        where: {
+          userId,
+        },
+      });
+
+      await tx.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          email: `deleted-${userId}@deleted.neighbour.invalid`,
+          displayName: 'Deleted Neighbour',
+          passwordHash: deletedPasswordHash,
+          status: UserStatus.DELETED,
+          emailVerifiedAt: null,
+        },
+      });
+    });
+
+    return {
+      success: true,
+    };
+  }
+
   async findAuthenticatedUser(userId: string) {
     const user = await this.database.user.findUnique({
       where: { id: userId },

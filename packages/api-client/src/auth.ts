@@ -67,3 +67,9 @@ export function logoutUser(refreshToken: string): Promise<{ success: true }> {
     }),
   });
 }
+
+export function deleteCurrentAccount(): Promise<{ success: true }> {
+  return apiRequest<{ success: true }>('/auth/account', {
+    method: 'DELETE',
+  });
+}

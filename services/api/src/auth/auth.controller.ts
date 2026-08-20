@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
 
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -43,5 +43,10 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser() user: AuthUser): AuthUser {
     return user;
+  }
+
+  @Delete('account')
+  deleteAccount(@CurrentUser() user: AuthUser): Promise<{ success: true }> {
+    return this.authService.deleteAccount(user.id);
   }
 }

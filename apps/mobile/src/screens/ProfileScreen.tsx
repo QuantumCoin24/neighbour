@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   RefreshControl,
@@ -54,7 +55,7 @@ function formatCustomerStatus(value: string): string {
 }
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, deleteAccount } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { theme } = useNeighbourTheme();
   const profile = useProfileHub();
@@ -74,6 +75,7 @@ export default function ProfileScreen() {
   const [localArea, setLocalArea] = useState('');
   const [showLocalArea, setShowLocalArea] = useState(false);
   const [profilePhotoError, setProfilePhotoError] = useState<string | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     setUsername(profile.profile?.username ?? '');
@@ -82,6 +84,39 @@ export default function ProfileScreen() {
     setLocalArea(profile.profile?.localArea ?? '');
     setShowLocalArea(profile.profile?.showLocalArea ?? false);
   }, [profile.profile]);
+
+  const requestAccountDeletion = () => {
+    Alert.alert(
+      'Delete your account?',
+      'Your Neighbour profile and personal account information will be removed. Historical transaction records may be retained in anonymised form. This cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete account',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              setDeletingAccount(true);
+
+              try {
+                await deleteAccount();
+              } catch {
+                setDeletingAccount(false);
+
+                Alert.alert(
+                  'Account not deleted',
+                  'Neighbour could not delete your account. Please try again.',
+                );
+              }
+            })();
+          },
+        },
+      ],
+    );
+  };
 
   const trustScore = profile.trustIntelligence?.score ?? 0;
 
@@ -666,6 +701,15 @@ export default function ProfileScreen() {
           />
 
           <Button
+            disabled={deletingAccount}
+            label="Delete account & information"
+            loading={deletingAccount}
+            onPress={requestAccountDeletion}
+            variant="secondary"
+          />
+
+          <Button
+            disabled={deletingAccount}
             label="Sign out of Neighbour"
             onPress={() => {
               void logout();
