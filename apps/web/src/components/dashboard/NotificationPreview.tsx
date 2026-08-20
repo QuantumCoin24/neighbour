@@ -30,13 +30,14 @@ export default function NotificationPreview({ token }: Props) {
   return (
     <NeighbourCard
       style={{
-        marginTop: '24px',
+        marginTop: 0,
+        padding: '18px',
       }}
     >
       <h2
         style={{
           margin: 0,
-          fontSize: '24px',
+          fontSize: '18px',
         }}
       >
         🔔 Notifications
@@ -54,8 +55,8 @@ export default function NotificationPreview({ token }: Props) {
       {notifications.length === 0 ? (
         <div
           style={{
-            marginTop: '20px',
-            padding: '20px',
+            marginTop: '14px',
+            padding: '14px',
             background: '#F7F9FC',
             borderRadius: '16px',
           }}
@@ -76,9 +77,9 @@ export default function NotificationPreview({ token }: Props) {
             key={notification.id}
 
             style={{
-              marginTop: '20px',
+              marginTop: '12px',
 
-              padding: '16px',
+              padding: '12px',
 
               background: '#F7F9FC',
 
@@ -102,7 +103,7 @@ export default function NotificationPreview({ token }: Props) {
 
       <div
         style={{
-          marginTop: '20px',
+          marginTop: '14px',
         }}
       >
         <NeighbourButton>View Notifications</NeighbourButton>
