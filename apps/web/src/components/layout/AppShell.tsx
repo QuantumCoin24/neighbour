@@ -1,11 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import Navigation from './Navigation';
 import MobileNavigation from './MobileNavigation';
 
+import { configureWebApiClient } from '../../lib/auth';
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    configureWebApiClient();
+  }, []);
+
   return (
     <div
       style={{

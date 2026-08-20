@@ -103,7 +103,7 @@ export default function MobileNavigation() {
         );
       })}
 
-      <style jsx>{`
+      <style>{`
         @media (min-width: 769px) {
           .mobile-neighbour-nav {
             display: none !important;

@@ -13,6 +13,7 @@ const links = [
   { href: '/search', label: 'Search', icon: '◌' },
   { href: '/profile/setup', label: 'Profile', icon: '◎' },
   { href: '/business/dashboard', label: 'Business Centre', icon: '▣' },
+  { href: '/settings', label: 'Settings', icon: '⚙' },
 ];
 
 export default function Navigation() {

@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getMyCommunities, type MembershipCommunity } from '@neighbour/api-client';
+import { getMyCommunities, type CommunityMembership } from '@neighbour/api-client';
 import Link from 'next/link';
 
 export default function MyCommunityPage() {
-  const [communities, setCommunities] = useState<MembershipCommunity[]>([]);
+  const [communities, setCommunities] = useState<CommunityMembership[]>([]);
 
   const [message, setMessage] = useState('');
 

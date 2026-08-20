@@ -10,12 +10,13 @@
   },
   "dependencies": {
     "@neighbour/api-client": "workspace:*",
+    "@neighbour/design-system": "workspace:*",
     "next": "^15.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@neighbour/design-system": "workspace:*"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@types/react": "19.2.18",
     "typescript": "^5.9.2"
   }
 }
