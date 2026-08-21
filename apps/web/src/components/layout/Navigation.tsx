@@ -19,7 +19,7 @@ const discoveryLinks = [
 const accountLinks = [
   { href: '/profile/setup', label: 'Profile', icon: '◎' },
   {
-    href: '/business/dashboard',
+    href: '/business',
     label: 'Business Centre',
     icon: '▣',
   },
