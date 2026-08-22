@@ -39,6 +39,10 @@ export class OfferService {
     return this.repository.findByBusiness(businessId);
   }
 
+  async findActive() {
+    return this.repository.findActive();
+  }
+
   async findById(id: string) {
     return this.repository.findById(id);
   }

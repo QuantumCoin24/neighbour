@@ -69,12 +69,17 @@ export class OfferController {
     });
   }
 
+  @Get('offers/discover')
+  discoverOffers() {
+    return this.service.findActive();
+  }
+
   @Get(':businessId/offers')
   findBusinessOffers(@Param('businessId') businessId: string) {
     return this.service.findByBusiness(businessId);
   }
 
-  @Get('/offers/:id')
+  @Get('offers/:id')
   findOne(@Param('id') id: string) {
     return this.service.findById(id);
   }
