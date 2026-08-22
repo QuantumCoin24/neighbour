@@ -44,6 +44,83 @@ function presentation(type: GeoEntityType) {
   return FILTERS.find((filter) => filter.type === type) ?? FILTERS[0];
 }
 
+
+const TILE_SIZE = 256;
+
+function mapZoomForRadius(radiusKm: number) {
+  if (radiusKm <= 2) return 14;
+  if (radiusKm <= 5) return 13;
+  if (radiusKm <= 10) return 12;
+  if (radiusKm <= 25) return 11;
+  return 10;
+}
+
+function worldPixel(
+  latitude: number,
+  longitude: number,
+  zoom: number,
+) {
+  const scale = TILE_SIZE * 2 ** zoom;
+  const sinLatitude = Math.sin((latitude * Math.PI) / 180);
+  const bounded = Math.min(Math.max(sinLatitude, -0.9999), 0.9999);
+
+  return {
+    x: ((longitude + 180) / 360) * scale,
+    y:
+      (0.5 -
+        Math.log((1 + bounded) / (1 - bounded)) /
+          (4 * Math.PI)) *
+      scale,
+  };
+}
+
+function osmTiles(
+  origin: GeoPoint,
+  radiusKm: number,
+) {
+  const zoom = mapZoomForRadius(radiusKm);
+  const centre = worldPixel(
+    origin.latitude,
+    origin.longitude,
+    zoom,
+  );
+
+  const centreTileX = Math.floor(centre.x / TILE_SIZE);
+  const centreTileY = Math.floor(centre.y / TILE_SIZE);
+
+  const tiles = [];
+
+  // 7 × 7 tiles gives enough coverage at every supported radius
+  // while remaining lightweight.
+  for (let dy = -3; dy <= 3; dy += 1) {
+    for (let dx = -3; dx <= 3; dx += 1) {
+      const x = centreTileX + dx;
+      const y = centreTileY + dy;
+
+      tiles.push({
+        key: `${zoom}-${x}-${y}`,
+        x,
+        y,
+        zoom,
+        left:
+          x * TILE_SIZE -
+          centre.x +
+          50 * TILE_SIZE,
+        top:
+          y * TILE_SIZE -
+          centre.y +
+          50 * TILE_SIZE,
+      });
+    }
+  }
+
+  return {
+    zoom,
+    centre,
+    tiles,
+  };
+}
+
 export default function NearbyPage() {
   const sequence = useRef(0);
 
@@ -189,22 +266,24 @@ export default function NearbyPage() {
     void load(origin, radius, types);
   };
 
+  const mapData = useMemo(
+    () => osmTiles(origin, radiusKm),
+    [origin, radiusKm],
+  );
+
   const markerPosition = (item: NearbyGeoItem) => {
-    const radius = Math.max(radiusKm, 2);
+    const point = worldPixel(
+      item.latitude,
+      item.longitude,
+      mapData.zoom,
+    );
 
-    const latitudeScale = radius / 111;
-    const longitudeScale =
-      radius /
-      (111 * Math.max(Math.cos((origin.latitude * Math.PI) / 180), 0.25));
-
-    const x =
-      50 + ((item.longitude - origin.longitude) / longitudeScale) * 43;
-    const y =
-      50 - ((item.latitude - origin.latitude) / latitudeScale) * 43;
+    const deltaX = point.x - mapData.centre.x;
+    const deltaY = point.y - mapData.centre.y;
 
     return {
-      left: `${Math.max(4, Math.min(96, x))}%`,
-      top: `${Math.max(5, Math.min(95, y))}%`,
+      left: `calc(50% + ${deltaX}px)`,
+      top: `calc(50% + ${deltaY}px)`,
     };
   };
 
@@ -312,7 +391,31 @@ export default function NearbyPage() {
             </div>
           ) : (
             <>
-              <div className="map-grid" />
+              <div className="osm-map" aria-label="OpenStreetMap">
+                <div className="osm-tiles">
+                  {mapData.tiles.map((tile) => (
+                    <img
+                      key={tile.key}
+                      alt=""
+                      draggable={false}
+                      src={`https://tile.openstreetmap.org/${tile.zoom}/${tile.x}/${tile.y}.png`}
+                      style={{
+                        left: `calc(50% + ${tile.left - 50 * TILE_SIZE}px)`,
+                        top: `calc(50% + ${tile.top - 50 * TILE_SIZE}px)`,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <a
+                className="osm-attribution"
+                href="https://www.openstreetmap.org/copyright"
+                target="_blank"
+                rel="noreferrer"
+              >
+                © OpenStreetMap contributors
+              </a>
 
               <div
                 className="origin-marker"
@@ -646,26 +749,44 @@ export default function NearbyPage() {
           box-shadow: 0 18px 50px rgba(20,55,37,.09);
         }
 
-        .map-grid {
+        .osm-map {
           position: absolute;
           inset: 0;
-          opacity: .48;
-          background-image:
-            linear-gradient(rgba(255,255,255,.95) 2px, transparent 2px),
-            linear-gradient(90deg, rgba(255,255,255,.95) 2px, transparent 2px),
-            linear-gradient(rgba(6,63,42,.08) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(6,63,42,.08) 1px, transparent 1px);
-          background-size:
-            160px 160px,
-            160px 160px,
-            40px 40px,
-            40px 40px;
-          transform: rotate(-7deg) scale(1.15);
+          z-index: 1;
+          overflow: hidden;
+          background: #dce7df;
+        }
+
+        .osm-tiles {
+          position: absolute;
+          inset: 0;
+        }
+
+        .osm-tiles img {
+          position: absolute;
+          width: 256px;
+          height: 256px;
+          max-width: none;
+          user-select: none;
+          pointer-events: none;
+        }
+
+        .osm-attribution {
+          position: absolute;
+          right: 0;
+          bottom: 0;
+          z-index: 7;
+          padding: 3px 7px;
+          border-radius: 7px 0 0 0;
+          background: rgba(255, 255, 255, .88);
+          color: #526159;
+          font-size: 10px;
+          text-decoration: none;
         }
 
         .origin-marker {
           position: absolute;
-          z-index: 4;
+          z-index: 5;
           left: 50%;
           top: 50%;
           transform: translate(-50%, -50%);
