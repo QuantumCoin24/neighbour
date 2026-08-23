@@ -27,13 +27,7 @@ const accountLinks = [
   { href: '/settings', label: 'Settings', icon: '⚙' },
 ];
 
-function NavigationGroup({
-  label,
-  links,
-}: {
-  label: string;
-  links: typeof primaryLinks;
-}) {
+function NavigationGroup({ label, links }: { label: string; links: typeof primaryLinks }) {
   const pathname = usePathname();
 
   return (
@@ -59,25 +53,19 @@ function NavigationGroup({
         }}
       >
         {links.map((link) => {
-          const active =
-            pathname === link.href ||
-            pathname.startsWith(`${link.href}/`);
+          const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
 
           return (
             <Link
               key={link.href}
               href={link.href}
               className={
-                active
-                  ? 'neighbour-nav-link neighbour-nav-link-active'
-                  : 'neighbour-nav-link'
+                active ? 'neighbour-nav-link neighbour-nav-link-active' : 'neighbour-nav-link'
               }
             >
               <span
                 className={
-                  active
-                    ? 'neighbour-nav-icon neighbour-nav-icon-active'
-                    : 'neighbour-nav-icon'
+                  active ? 'neighbour-nav-icon neighbour-nav-icon-active' : 'neighbour-nav-icon'
                 }
               >
                 {link.icon}
@@ -107,20 +95,11 @@ function NavigationGroup({
 export default function Navigation() {
   return (
     <nav>
-      <NavigationGroup
-        label="Neighbourhood"
-        links={primaryLinks}
-      />
+      <NavigationGroup label="Neighbourhood" links={primaryLinks} />
 
-      <NavigationGroup
-        label="Explore"
-        links={discoveryLinks}
-      />
+      <NavigationGroup label="Explore" links={discoveryLinks} />
 
-      <NavigationGroup
-        label="You"
-        links={accountLinks}
-      />
+      <NavigationGroup label="You" links={accountLinks} />
 
       <style>{`
         .neighbour-nav-link {

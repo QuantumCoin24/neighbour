@@ -8,8 +8,7 @@ import {
 const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
-const WEB_API_BASE_URL =
-  process.env.NEXT_PUBLIC_NEIGHBOUR_API_URL?.trim();
+const WEB_API_BASE_URL = process.env.NEXT_PUBLIC_NEIGHBOUR_API_URL?.trim();
 
 function browserAvailable(): boolean {
   return typeof window !== 'undefined';
@@ -35,10 +34,7 @@ export function hasSession(): boolean {
   return Boolean(getAccessToken() && getRefreshToken());
 }
 
-export function saveTokens(
-  accessToken: string,
-  refreshToken: string,
-): void {
+export function saveTokens(accessToken: string, refreshToken: string): void {
   if (!browserAvailable()) {
     return;
   }

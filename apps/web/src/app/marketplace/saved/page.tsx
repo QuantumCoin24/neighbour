@@ -1,9 +1,6 @@
 'use client';
 
-import {
-  getSavedMarketplaceListings,
-  type MarketplaceListing,
-} from '@neighbour/api-client';
+import { getSavedMarketplaceListings, type MarketplaceListing } from '@neighbour/api-client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -21,11 +18,7 @@ export default function SavedMarketplaceListingsPage() {
     try {
       setItems(await getSavedMarketplaceListings());
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Saved listings could not be loaded.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Saved listings could not be loaded.');
     } finally {
       setLoading(false);
     }
@@ -42,9 +35,7 @@ export default function SavedMarketplaceListingsPage() {
       </Link>
 
       <h1>Saved listings</h1>
-      <p style={{ color: '#718078' }}>
-        Things you've bookmarked for later.
-      </p>
+      <p style={{ color: '#718078' }}>Things you've bookmarked for later.</p>
 
       {error ? <p>{error}</p> : null}
 
@@ -53,16 +44,11 @@ export default function SavedMarketplaceListingsPage() {
       ) : items.length ? (
         <section style={grid}>
           {items.map((item) => (
-            <MarketplaceListingCard
-              key={item.id}
-              listing={item}
-            />
+            <MarketplaceListingCard key={item.id} listing={item} />
           ))}
         </section>
       ) : (
-        <section style={empty}>
-          You haven't saved any Marketplace listings yet.
-        </section>
+        <section style={empty}>You haven't saved any Marketplace listings yet.</section>
       )}
     </main>
   );

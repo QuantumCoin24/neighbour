@@ -10,25 +10,16 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import MediaPicker from '../../../components/media/MediaPicker';
-import {
-  CATEGORIES,
-  CONDITIONS,
-  label,
-} from '../../../components/marketplace/marketplace-ui';
-import {
-  uploadWebMedia,
-  type WebPendingMedia,
-} from '../../../lib/media/upload';
+import { CATEGORIES, CONDITIONS, label } from '../../../components/marketplace/marketplace-ui';
+import { uploadWebMedia, type WebPendingMedia } from '../../../lib/media/upload';
 
 export default function CreateMarketplaceListingPage() {
   const router = useRouter();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] =
-    useState<MarketplaceListingCategory>('OTHER');
-  const [condition, setCondition] =
-    useState<MarketplaceListingCondition>('GOOD');
+  const [category, setCategory] = useState<MarketplaceListingCategory>('OTHER');
+  const [condition, setCondition] = useState<MarketplaceListingCondition>('GOOD');
   const [price, setPrice] = useState('');
   const [isFree, setIsFree] = useState(false);
 
@@ -47,9 +38,7 @@ export default function CreateMarketplaceListingPage() {
 
     const parsed = Number.parseFloat(price.trim());
 
-    return Number.isFinite(parsed) && parsed >= 0
-      ? Math.round(parsed * 100)
-      : undefined;
+    return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed * 100) : undefined;
   }, [isFree, price]);
 
   async function submit(status: MarketplaceListingStatus) {
@@ -70,11 +59,7 @@ export default function CreateMarketplaceListingPage() {
       return;
     }
 
-    if (
-      !collectionAvailable &&
-      !deliveryAvailable &&
-      !postageAvailable
-    ) {
+    if (!collectionAvailable && !deliveryAvailable && !postageAvailable) {
       setError('Select at least one way for the buyer to receive the item.');
       return;
     }
@@ -87,14 +72,9 @@ export default function CreateMarketplaceListingPage() {
       const uploaded = [];
 
       for (let index = 0; index < media.length; index += 1) {
-        const result = await uploadWebMedia(
-          media[index],
-          (fileProgress) => {
-            setProgress(
-              (index + fileProgress) / Math.max(1, media.length),
-            );
-          },
-        );
+        const result = await uploadWebMedia(media[index], (fileProgress) => {
+          setProgress((index + fileProgress) / Math.max(1, media.length));
+        });
 
         uploaded.push(result);
       }
@@ -111,31 +91,20 @@ export default function CreateMarketplaceListingPage() {
         deliveryAvailable,
         postageAvailable,
         ...(pricePence !== undefined ? { pricePence } : {}),
-        ...(localArea.trim()
-          ? { localArea: localArea.trim() }
-          : {}),
+        ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
         ...(postcodeDistrict.trim()
           ? {
-              postcodeDistrict:
-                postcodeDistrict.trim().toUpperCase(),
+              postcodeDistrict: postcodeDistrict.trim().toUpperCase(),
             }
           : {}),
-        ...(uploaded.length
-          ? { mediaIds: uploaded.map((item) => item.id) }
-          : {}),
+        ...(uploaded.length ? { mediaIds: uploaded.map((item) => item.id) } : {}),
       });
 
-      media.forEach((item) =>
-        URL.revokeObjectURL(item.previewUrl),
-      );
+      media.forEach((item) => URL.revokeObjectURL(item.previewUrl));
 
       router.replace(`/marketplace/${listing.id}`);
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'The listing could not be saved.',
-      );
+      setError(caught instanceof Error ? caught.message : 'The listing could not be saved.');
     } finally {
       setBusy(false);
     }
@@ -143,21 +112,14 @@ export default function CreateMarketplaceListingPage() {
 
   return (
     <main style={shell}>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => router.back()}
-        style={back}
-      >
+      <button type="button" disabled={busy} onClick={() => router.back()} style={back}>
         ← Marketplace
       </button>
 
       <div style={{ marginTop: 22 }}>
         <div style={eyebrow}>Neighbour Marketplace™</div>
         <h1 style={heading}>Create a listing</h1>
-        <p style={subheading}>
-          Sell or give something to people nearby.
-        </p>
+        <p style={subheading}>Sell or give something to people nearby.</p>
       </div>
 
       <section style={card}>
@@ -197,9 +159,7 @@ export default function CreateMarketplaceListingPage() {
             <select
               disabled={busy}
               value={category}
-              onChange={(e) =>
-                setCategory(e.target.value as MarketplaceListingCategory)
-              }
+              onChange={(e) => setCategory(e.target.value as MarketplaceListingCategory)}
               style={input}
             >
               {CATEGORIES.map((value) => (
@@ -214,11 +174,7 @@ export default function CreateMarketplaceListingPage() {
             <select
               disabled={busy}
               value={condition}
-              onChange={(e) =>
-                setCondition(
-                  e.target.value as MarketplaceListingCondition,
-                )
-              }
+              onChange={(e) => setCondition(e.target.value as MarketplaceListingCondition)}
               style={input}
             >
               {CONDITIONS.map((value) => (
@@ -256,17 +212,13 @@ export default function CreateMarketplaceListingPage() {
           </Field>
         ) : null}
 
-        
-
         <h3 style={{ marginTop: 28 }}>How can buyers receive it?</h3>
 
         <label style={check}>
           <input
             type="checkbox"
             checked={collectionAvailable}
-            onChange={(e) =>
-              setCollectionAvailable(e.target.checked)
-            }
+            onChange={(e) => setCollectionAvailable(e.target.checked)}
           />
           Collection
         </label>
@@ -275,9 +227,7 @@ export default function CreateMarketplaceListingPage() {
           <input
             type="checkbox"
             checked={deliveryAvailable}
-            onChange={(e) =>
-              setDeliveryAvailable(e.target.checked)
-            }
+            onChange={(e) => setDeliveryAvailable(e.target.checked)}
           />
           Local delivery
         </label>
@@ -286,9 +236,7 @@ export default function CreateMarketplaceListingPage() {
           <input
             type="checkbox"
             checked={postageAvailable}
-            onChange={(e) =>
-              setPostageAvailable(e.target.checked)
-            }
+            onChange={(e) => setPostageAvailable(e.target.checked)}
           />
           Postage
         </label>
@@ -306,9 +254,7 @@ export default function CreateMarketplaceListingPage() {
           <Field label="Postcode district">
             <input
               value={postcodeDistrict}
-              onChange={(e) =>
-                setPostcodeDistrict(e.target.value)
-              }
+              onChange={(e) => setPostcodeDistrict(e.target.value)}
               placeholder="e.g. M9"
               style={input}
             />
@@ -316,9 +262,7 @@ export default function CreateMarketplaceListingPage() {
         </div>
 
         {busy && media.length ? (
-          <div style={progressBox}>
-            Uploading photos — {Math.round(progress * 100)}%
-          </div>
+          <div style={progressBox}>Uploading photos — {Math.round(progress * 100)}%</div>
         ) : null}
 
         {error ? <p style={errorStyle}>{error}</p> : null}
@@ -347,18 +291,10 @@ export default function CreateMarketplaceListingPage() {
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label style={{ display: 'block', marginTop: 20 }}>
-      <strong style={{ display: 'block', marginBottom: 7 }}>
-        {label}
-      </strong>
+      <strong style={{ display: 'block', marginBottom: 7 }}>{label}</strong>
       {children}
     </label>
   );

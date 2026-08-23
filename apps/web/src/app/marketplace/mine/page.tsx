@@ -10,10 +10,7 @@ import {
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import {
-  priceLabel,
-  statusLabel,
-} from '../../../components/marketplace/marketplace-ui';
+import { priceLabel, statusLabel } from '../../../components/marketplace/marketplace-ui';
 
 export default function MyMarketplaceListingsPage() {
   const [items, setItems] = useState<MarketplaceListing[]>([]);
@@ -28,11 +25,7 @@ export default function MyMarketplaceListingsPage() {
     try {
       setItems(await getMyMarketplaceListings());
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Your listings could not be loaded.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Your listings could not be loaded.');
     } finally {
       setLoading(false);
     }
@@ -42,40 +35,22 @@ export default function MyMarketplaceListingsPage() {
     void load();
   }, []);
 
-  async function changeStatus(
-    listing: MarketplaceListing,
-    status: MarketplaceListingStatus,
-  ) {
+  async function changeStatus(listing: MarketplaceListing, status: MarketplaceListingStatus) {
     setWorkingId(listing.id);
 
     try {
-      const updated = await updateMarketplaceListing(
-        listing.id,
-        { status },
-      );
+      const updated = await updateMarketplaceListing(listing.id, { status });
 
-      setItems((current) =>
-        current.map((item) =>
-          item.id === updated.id ? updated : item,
-        ),
-      );
+      setItems((current) => current.map((item) => (item.id === updated.id ? updated : item)));
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Listing status could not be changed.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Listing status could not be changed.');
     } finally {
       setWorkingId(null);
     }
   }
 
   async function remove(listing: MarketplaceListing) {
-    if (
-      !window.confirm(
-        `Delete "${listing.title}" permanently?`,
-      )
-    ) {
+    if (!window.confirm(`Delete "${listing.title}" permanently?`)) {
       return;
     }
 
@@ -84,15 +59,9 @@ export default function MyMarketplaceListingsPage() {
     try {
       await deleteMarketplaceListing(listing.id);
 
-      setItems((current) =>
-        current.filter((item) => item.id !== listing.id),
-      );
+      setItems((current) => current.filter((item) => item.id !== listing.id));
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Listing could not be deleted.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Listing could not be deleted.');
     } finally {
       setWorkingId(null);
     }
@@ -125,10 +94,7 @@ export default function MyMarketplaceListingsPage() {
 
             return (
               <article key={listing.id} style={row}>
-                <Link
-                  href={`/marketplace/${listing.id}`}
-                  style={imageBox}
-                >
+                <Link href={`/marketplace/${listing.id}`} style={imageBox}>
                   {image ? (
                     <img
                       alt={listing.title}
@@ -145,38 +111,23 @@ export default function MyMarketplaceListingsPage() {
                 </Link>
 
                 <div style={{ flex: 1 }}>
-                  <Link
-                    href={`/marketplace/${listing.id}`}
-                    style={listingLink}
-                  >
+                  <Link href={`/marketplace/${listing.id}`} style={listingLink}>
                     {listing.title}
                   </Link>
 
-                  <div style={price}>
-                    {priceLabel(
-                      listing.pricePence,
-                      listing.isFree,
-                    )}
-                  </div>
+                  <div style={price}>{priceLabel(listing.pricePence, listing.isFree)}</div>
 
                   <small>
-                    {statusLabel(listing.status)} ·{' '}
-                    {listing.viewCount} views
+                    {statusLabel(listing.status)} · {listing.viewCount} views
                   </small>
                 </div>
 
                 <div style={controls}>
-                  {listing.status === 'DRAFT' ||
-                  listing.status === 'ARCHIVED' ? (
+                  {listing.status === 'DRAFT' || listing.status === 'ARCHIVED' ? (
                     <button
                       disabled={busy}
                       type="button"
-                      onClick={() =>
-                        void changeStatus(
-                          listing,
-                          'PUBLISHED',
-                        )
-                      }
+                      onClick={() => void changeStatus(listing, 'PUBLISHED')}
                     >
                       Publish
                     </button>
@@ -186,12 +137,7 @@ export default function MyMarketplaceListingsPage() {
                     <button
                       disabled={busy}
                       type="button"
-                      onClick={() =>
-                        void changeStatus(
-                          listing,
-                          'ARCHIVED',
-                        )
-                      }
+                      onClick={() => void changeStatus(listing, 'ARCHIVED')}
                     >
                       Archive
                     </button>

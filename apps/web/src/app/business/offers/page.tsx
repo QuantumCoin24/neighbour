@@ -2,10 +2,7 @@
 
 import Link from 'next/link';
 
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   createBusinessOffer,
@@ -16,46 +13,33 @@ import {
 } from '@neighbour/api-client';
 
 export default function BusinessOffersPage() {
-  const [business, setBusiness] =
-    useState<Business | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
 
-  const [offers, setOffers] =
-    useState<BusinessOffer[]>([]);
+  const [offers, setOffers] = useState<BusinessOffer[]>([]);
 
-  const [title, setTitle] =
-    useState('');
+  const [title, setTitle] = useState('');
 
-  const [description, setDescription] =
-    useState('');
+  const [description, setDescription] = useState('');
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [busy, setBusy] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const [message, setMessage] =
-    useState('');
+  const [message, setMessage] = useState('');
 
   async function load() {
     try {
-      const current =
-        await getMyBusiness();
+      const current = await getMyBusiness();
 
       setBusiness(current);
 
       if (current) {
-        const result =
-          await getBusinessOffers(
-            current.id,
-          );
+        const result = await getBusinessOffers(current.id);
 
         setOffers(result);
       }
     } catch {
-      setMessage(
-        'Unable to load business offers.',
-      );
+      setMessage('Unable to load business offers.');
     } finally {
       setLoading(false);
     }
@@ -66,12 +50,7 @@ export default function BusinessOffersPage() {
   }, []);
 
   async function create() {
-    if (
-      !business ||
-      busy ||
-      !title.trim() ||
-      !description.trim()
-    ) {
+    if (!business || busy || !title.trim() || !description.trim()) {
       return;
     }
 
@@ -79,16 +58,11 @@ export default function BusinessOffersPage() {
     setMessage('');
 
     try {
-      await createBusinessOffer(
-        business.id,
-        {
-          title:
-            title.trim(),
-          description:
-            description.trim(),
-          active: true,
-        },
-      );
+      await createBusinessOffer(business.id, {
+        title: title.trim(),
+        description: description.trim(),
+        active: true,
+      });
 
       setTitle('');
       setDescription('');
@@ -96,9 +70,7 @@ export default function BusinessOffersPage() {
 
       await load();
     } catch {
-      setMessage(
-        'Offer creation failed.',
-      );
+      setMessage('Offer creation failed.');
     } finally {
       setBusy(false);
     }
@@ -108,7 +80,6 @@ export default function BusinessOffersPage() {
     return (
       <main className="offers-loading">
         Loading business offers…
-
         <style>{`
           .offers-loading {
             width: min(100% - 48px,900px);
@@ -127,9 +98,7 @@ export default function BusinessOffersPage() {
       <main className="offers-empty-business">
         <h1>No business profile</h1>
 
-        <Link href="/business/profile">
-          Create business profile
-        </Link>
+        <Link href="/business/profile">Create business profile</Link>
 
         <style>{`
           .offers-empty-business {
@@ -149,21 +118,14 @@ export default function BusinessOffersPage() {
     <main className="offers-page">
       <header className="offers-header">
         <div>
-          <div className="offers-eyebrow">
-            LOCAL BUSINESS OFFERS
-          </div>
+          <div className="offers-eyebrow">LOCAL BUSINESS OFFERS</div>
 
           <h1>Offers</h1>
 
-          <p>
-            Create reasons for nearby customers to
-            discover and engage with your business.
-          </p>
+          <p>Create reasons for nearby customers to discover and engage with your business.</p>
         </div>
 
-        <Link href="/business/dashboard">
-          Dashboard
-        </Link>
+        <Link href="/business/dashboard">Dashboard</Link>
       </header>
 
       <section className="offers-overview">
@@ -176,15 +138,9 @@ export default function BusinessOffersPage() {
         </div>
 
         <div className="offers-overview-count">
-          <strong>
-            {offers.length}
-          </strong>
+          <strong>{offers.length}</strong>
 
-          <span>
-            {offers.length === 1
-              ? 'offer'
-              : 'offers'}
-          </span>
+          <span>{offers.length === 1 ? 'offer' : 'offers'}</span>
         </div>
       </section>
 
@@ -193,14 +149,9 @@ export default function BusinessOffersPage() {
           <div className="offers-panel-heading">
             <span>CREATE OFFER</span>
 
-            <h2>
-              Publish a local offer
-            </h2>
+            <h2>Publish a local offer</h2>
 
-            <p>
-              Your offer will be attached directly
-              to {business.name}.
-            </p>
+            <p>Your offer will be attached directly to {business.name}.</p>
           </div>
 
           <label>
@@ -208,11 +159,7 @@ export default function BusinessOffersPage() {
 
             <input
               value={title}
-              onChange={(event) =>
-                setTitle(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setTitle(event.target.value)}
               placeholder="Example: 10% off for local neighbours"
             />
           </label>
@@ -222,36 +169,20 @@ export default function BusinessOffersPage() {
 
             <textarea
               value={description}
-              onChange={(event) =>
-                setDescription(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setDescription(event.target.value)}
               placeholder="Describe the offer"
             />
           </label>
 
           <button
             type="button"
-            disabled={
-              busy ||
-              !title.trim() ||
-              !description.trim()
-            }
-            onClick={() =>
-              void create()
-            }
+            disabled={busy || !title.trim() || !description.trim()}
+            onClick={() => void create()}
           >
-            {busy
-              ? 'Publishing…'
-              : 'Publish offer'}
+            {busy ? 'Publishing…' : 'Publish offer'}
           </button>
 
-          {message ? (
-            <div className="offers-message">
-              {message}
-            </div>
-          ) : null}
+          {message ? <div className="offers-message">{message}</div> : null}
         </div>
 
         <section className="offers-current">
@@ -260,70 +191,38 @@ export default function BusinessOffersPage() {
 
             <h2>Current offers</h2>
 
-            <p>
-              Offers currently attached to your
-              Neighbour™ business.
-            </p>
+            <p>Offers currently attached to your Neighbour™ business.</p>
           </div>
 
           {offers.length === 0 ? (
             <div className="offers-empty">
               <div>◇</div>
 
-              <strong>
-                No offers yet
-              </strong>
+              <strong>No offers yet</strong>
 
-              <p>
-                Create your first local offer
-                using the form beside this panel.
-              </p>
+              <p>Create your first local offer using the form beside this panel.</p>
             </div>
           ) : (
             <div className="offers-list">
               {offers.map((offer) => (
-                <article
-                  key={offer.id}
-                  className="offer-card"
-                >
+                <article key={offer.id} className="offer-card">
                   <div className="offer-card-top">
                     <div>
-                      <span>
-                        {offer.active
-                          ? 'ACTIVE'
-                          : 'INACTIVE'}
-                      </span>
+                      <span>{offer.active ? 'ACTIVE' : 'INACTIVE'}</span>
 
-                      <h3>
-                        {offer.title}
-                      </h3>
+                      <h3>{offer.title}</h3>
                     </div>
 
                     <div
-                      className={
-                        offer.active
-                          ? 'offer-state offer-state-active'
-                          : 'offer-state'
-                      }
+                      className={offer.active ? 'offer-state offer-state-active' : 'offer-state'}
                     >
-                      {offer.active
-                        ? 'Live'
-                        : 'Inactive'}
+                      {offer.active ? 'Live' : 'Inactive'}
                     </div>
                   </div>
 
-                  <p>
-                    {offer.description}
-                  </p>
+                  <p>{offer.description}</p>
 
-                  <small>
-                    Created{' '}
-                    {new Date(
-                      offer.createdAt,
-                    ).toLocaleDateString(
-                      'en-GB',
-                    )}
-                  </small>
+                  <small>Created {new Date(offer.createdAt).toLocaleDateString('en-GB')}</small>
                 </article>
               ))}
             </div>

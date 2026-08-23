@@ -20,14 +20,7 @@ interface StatCardProps {
   onPress: () => void;
 }
 
-function StatCard({
-  symbol,
-  value,
-  label,
-  description,
-  accent,
-  onPress,
-}: StatCardProps) {
+function StatCard({ symbol, value, label, description, accent, onPress }: StatCardProps) {
   const { theme } = useNeighbourTheme();
 
   return (
@@ -277,54 +270,52 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <Card
           style={[
             styles.neighbourhoodCard,
-          {
-            backgroundColor: theme.colors.primaryStrong,
-          },
-        ]}
-      >
-        <View style={styles.neighbourhoodTop}>
-          <View
-            style={[
-              styles.locationIcon,
-              {
-                backgroundColor: 'rgba(255,255,255,0.14)',
-                borderRadius: theme.radius.lg,
-              },
-            ]}
-          >
-            <AppText tone="inverse" style={styles.locationSymbol}>
-              ⌖
-            </AppText>
+            {
+              backgroundColor: theme.colors.primaryStrong,
+            },
+          ]}
+        >
+          <View style={styles.neighbourhoodTop}>
+            <View
+              style={[
+                styles.locationIcon,
+                {
+                  backgroundColor: 'rgba(255,255,255,0.14)',
+                  borderRadius: theme.radius.lg,
+                },
+              ]}
+            >
+              <AppText tone="inverse" style={styles.locationSymbol}>
+                ⌖
+              </AppText>
+            </View>
+
+            <View style={styles.neighbourhoodCopy}>
+              <AppText variant="overline" tone="inverse">
+                YOUR NEIGHBOURHOOD
+              </AppText>
+
+              <AppText variant="heading" tone="inverse" style={styles.neighbourhoodTitle}>
+                {localArea}
+              </AppText>
+            </View>
           </View>
 
-          <View style={styles.neighbourhoodCopy}>
-            <AppText variant="overline" tone="inverse">
-              YOUR NEIGHBOURHOOD
+          <AppText variant="body" tone="inverse" style={styles.neighbourhoodDescription}>
+            {dashboard?.profile
+              ? 'Explore communities, events and local activity around you.'
+              : 'Complete your profile to discover communities, events and local updates around you.'}
+          </AppText>
+
+          <View style={styles.exploreRow}>
+            <AppText variant="bodyStrong" tone="inverse">
+              {dashboard?.profile?.localArea?.trim() ? 'Explore your area' : 'Set your local area'}
             </AppText>
 
-            <AppText variant="heading" tone="inverse" style={styles.neighbourhoodTitle}>
-              {localArea}
+            <AppText variant="bodyStrong" tone="inverse">
+              →
             </AppText>
           </View>
-        </View>
-
-        <AppText variant="body" tone="inverse" style={styles.neighbourhoodDescription}>
-          {dashboard?.profile
-            ? 'Explore communities, events and local activity around you.'
-            : 'Complete your profile to discover communities, events and local updates around you.'}
-        </AppText>
-
-        <View style={styles.exploreRow}>
-          <AppText variant="bodyStrong" tone="inverse">
-            {dashboard?.profile?.localArea?.trim()
-              ? 'Explore your area'
-              : 'Set your local area'}
-          </AppText>
-
-          <AppText variant="bodyStrong" tone="inverse">
-            →
-          </AppText>
-        </View>
         </Card>
       </Pressable>
 

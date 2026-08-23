@@ -3,20 +3,14 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import {
-  getCommunityEvents,
-  type EventItem,
-} from '@neighbour/api-client';
+import { getCommunityEvents, type EventItem } from '@neighbour/api-client';
 
 interface Props {
   communityId?: string;
 }
 
-export default function EventPreview({
-  communityId,
-}: Props) {
-  const [events, setEvents] =
-    useState<EventItem[]>([]);
+export default function EventPreview({ communityId }: Props) {
+  const [events, setEvents] = useState<EventItem[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -25,10 +19,7 @@ export default function EventPreview({
       }
 
       try {
-        const response =
-          await getCommunityEvents(
-            communityId,
-          );
+        const response = await getCommunityEvents(communityId);
 
         setEvents(response.slice(0, 3));
       } catch {
@@ -45,14 +36,10 @@ export default function EventPreview({
         <div>
           <span>UPCOMING</span>
           <h2>Local events</h2>
-          <p>
-            What’s happening around you.
-          </p>
+          <p>What’s happening around you.</p>
         </div>
 
-        <Link href="/community">
-          View all
-        </Link>
+        <Link href="/community">View all</Link>
       </div>
 
       {events.length === 0 ? (
@@ -60,47 +47,30 @@ export default function EventPreview({
           <div>17</div>
 
           <section>
-            <strong>
-              Nothing scheduled yet
-            </strong>
-            <p>
-              Your next local event can start here.
-            </p>
+            <strong>Nothing scheduled yet</strong>
+            <p>Your next local event can start here.</p>
           </section>
         </div>
       ) : (
         <div className="event-list">
           {events.map((event) => {
-            const date =
-              new Date(event.startsAt);
+            const date = new Date(event.startsAt);
 
             return (
-              <article
-                key={event.id}
-                className="event-item"
-              >
+              <article key={event.id} className="event-item">
                 <div className="event-date">
-                  <strong>
-                    {date.getDate()}
-                  </strong>
+                  <strong>{date.getDate()}</strong>
                   <span>
-                    {date.toLocaleDateString(
-                      undefined,
-                      {
-                        month: 'short',
-                      },
-                    )}
+                    {date.toLocaleDateString(undefined, {
+                      month: 'short',
+                    })}
                   </span>
                 </div>
 
                 <div>
-                  <strong>
-                    {event.title}
-                  </strong>
+                  <strong>{event.title}</strong>
 
-                  <p>
-                    {event.description}
-                  </p>
+                  <p>{event.description}</p>
                 </div>
               </article>
             );

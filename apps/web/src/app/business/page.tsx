@@ -1,59 +1,46 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  getMyBusiness,
-  type Business,
-} from '@neighbour/api-client';
+import { getMyBusiness, type Business } from '@neighbour/api-client';
 
 const tools = [
   {
     title: 'Business dashboard',
-    description:
-      'Your live local business command centre.',
+    description: 'Your live local business command centre.',
     href: '/business/dashboard',
     icon: '▣',
   },
   {
     title: 'Business profile',
-    description:
-      'Manage how your business appears locally.',
+    description: 'Manage how your business appears locally.',
     href: '/business/profile',
     icon: '◎',
   },
   {
     title: 'Verification',
-    description:
-      'Build visible trust with neighbours.',
+    description: 'Build visible trust with neighbours.',
     href: '/business/verification',
     icon: '✓',
   },
   {
     title: 'Offers',
-    description:
-      'Create and manage local offers.',
+    description: 'Create and manage local offers.',
     href: '/business/offers',
     icon: '◇',
   },
 ];
 
 export default function BusinessCentrePage() {
-  const [business, setBusiness] =
-    useState<Business | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const current =
-          await getMyBusiness();
+        const current = await getMyBusiness();
 
         setBusiness(current);
       } catch {
@@ -70,24 +57,18 @@ export default function BusinessCentrePage() {
     <main className="business-page">
       <header className="business-header">
         <div>
-          <div className="business-eyebrow">
-            NEIGHBOUR™ FOR BUSINESS
-          </div>
+          <div className="business-eyebrow">NEIGHBOUR™ FOR BUSINESS</div>
 
           <h1>Business Centre</h1>
 
           <p>
-            Build your local presence, connect
-            with neighbours and manage your
-            business inside the community.
+            Build your local presence, connect with neighbours and manage your business inside the
+            community.
           </p>
         </div>
 
         {business ? (
-          <Link
-            href="/business/dashboard"
-            className="business-header-action"
-          >
+          <Link href="/business/dashboard" className="business-header-action">
             Open dashboard
           </Link>
         ) : null}
@@ -95,30 +76,16 @@ export default function BusinessCentrePage() {
 
       <section className="business-hero">
         <div className="business-hero-copy">
-          <div className="business-hero-kicker">
-            LOCAL BUSINESS, CONNECTED
-          </div>
+          <div className="business-hero-kicker">LOCAL BUSINESS, CONNECTED</div>
 
-          <h2>
-            Grow where your customers already
-            live.
-          </h2>
+          <h2>Grow where your customers already live.</h2>
 
-          <p>
-            Neighbour™ Business connects local
-            businesses directly with nearby
-            communities.
-          </p>
+          <p>Neighbour™ Business connects local businesses directly with nearby communities.</p>
 
           <div className="business-hero-actions">
-            <Link href="/business/dashboard">
-              Business dashboard
-            </Link>
+            <Link href="/business/dashboard">Business dashboard</Link>
 
-            <Link
-              href="/business/discover"
-              className="business-secondary"
-            >
+            <Link href="/business/discover" className="business-secondary">
               Discover businesses
             </Link>
           </div>
@@ -137,25 +104,16 @@ export default function BusinessCentrePage() {
 
               <div className="business-live-status">
                 <span />
-                {business.verified
-                  ? 'Verified'
-                  : 'Business active'}
+                {business.verified ? 'Verified' : 'Business active'}
               </div>
             </>
           ) : (
             <>
-              <strong>
-                No business profile yet
-              </strong>
+              <strong>No business profile yet</strong>
 
-              <p>
-                Create your local business
-                presence.
-              </p>
+              <p>Create your local business presence.</p>
 
-              <Link href="/business/profile">
-                Get started →
-              </Link>
+              <Link href="/business/profile">Get started →</Link>
             </>
           )}
         </div>
@@ -166,30 +124,19 @@ export default function BusinessCentrePage() {
           <div>
             <h2>Manage your business</h2>
 
-            <p>
-              Everything you need to operate
-              inside Neighbour™.
-            </p>
+            <p>Everything you need to operate inside Neighbour™.</p>
           </div>
         </div>
 
         <div className="business-tools">
           {tools.map((tool) => (
-            <Link
-              key={tool.href}
-              href={tool.href}
-              className="business-tool"
-            >
-              <div className="business-tool-icon">
-                {tool.icon}
-              </div>
+            <Link key={tool.href} href={tool.href} className="business-tool">
+              <div className="business-tool-icon">{tool.icon}</div>
 
               <div>
                 <h3>{tool.title}</h3>
 
-                <p>
-                  {tool.description}
-                </p>
+                <p>{tool.description}</p>
               </div>
 
               <span>→</span>
@@ -202,28 +149,19 @@ export default function BusinessCentrePage() {
         <article>
           <strong>Local discovery</strong>
 
-          <p>
-            Be visible where neighbours are
-            already looking.
-          </p>
+          <p>Be visible where neighbours are already looking.</p>
         </article>
 
         <article>
           <strong>Community trust</strong>
 
-          <p>
-            Build reputation and verification
-            inside your local network.
-          </p>
+          <p>Build reputation and verification inside your local network.</p>
         </article>
 
         <article>
           <strong>Offers & engagement</strong>
 
-          <p>
-            Give nearby customers a reason to
-            visit and return.
-          </p>
+          <p>Give nearby customers a reason to visit and return.</p>
         </article>
       </section>
 

@@ -5,30 +5,18 @@ interface Props {
   memberCount: number | null;
 }
 
-export default function CommunityStats({
-  communityName,
-  memberCount,
-}: Props) {
+export default function CommunityStats({ communityName, memberCount }: Props) {
   const count = memberCount ?? 0;
 
-  const activityLabel =
-    count > 50
-      ? 'Active network'
-      : 'Growing network';
+  const activityLabel = count > 50 ? 'Active network' : 'Growing network';
 
   return (
     <section className="snapshot-card">
-      <div className="snapshot-kicker">
-        COMMUNITY SNAPSHOT
-      </div>
+      <div className="snapshot-kicker">COMMUNITY SNAPSHOT</div>
 
-      <h2>
-        {communityName ?? 'Your community'}
-      </h2>
+      <h2>{communityName ?? 'Your community'}</h2>
 
-      <p>
-        Your local connection at a glance.
-      </p>
+      <p>Your local connection at a glance.</p>
 
       <div className="snapshot-stats">
         <div>
@@ -37,9 +25,7 @@ export default function CommunityStats({
         </div>
 
         <div>
-          <strong>
-            {count > 0 ? 'Live' : 'New'}
-          </strong>
+          <strong>{count > 0 ? 'Live' : 'New'}</strong>
           <span>{activityLabel}</span>
         </div>
       </div>

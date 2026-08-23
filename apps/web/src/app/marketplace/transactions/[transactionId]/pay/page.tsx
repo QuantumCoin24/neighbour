@@ -1,21 +1,14 @@
 'use client';
 
-import {
-  PaymentElement,
-  useElements,
-  useStripe,
-} from '@stripe/react-stripe-js';
+import { PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { useParams, useSearchParams } from 'next/navigation';
 import { FormEvent, useMemo, useState } from 'react';
 
-const publishableKey =
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() ?? '';
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() ?? '';
 
-const stripePromise = publishableKey
-  ? loadStripe(publishableKey)
-  : null;
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 function StripePaymentForm({
   transactionId,
@@ -62,29 +55,22 @@ function StripePaymentForm({
     });
 
     if (result.error) {
-      setError(
-        result.error.message ??
-          'Stripe could not complete the payment.',
-      );
+      setError(result.error.message ?? 'Stripe could not complete the payment.');
       setBusy(false);
       return;
     }
 
     if (
       result.paymentIntent &&
-      (
-        result.paymentIntent.status === 'succeeded' ||
+      (result.paymentIntent.status === 'succeeded' ||
         result.paymentIntent.status === 'processing' ||
-        result.paymentIntent.status === 'requires_capture'
-      )
+        result.paymentIntent.status === 'requires_capture')
     ) {
       window.location.assign(returnUrl);
       return;
     }
 
-    setError(
-      'Payment has not completed yet. Please try again.',
-    );
+    setError('Payment has not completed yet. Please try again.');
     setBusy(false);
   }
 
@@ -143,14 +129,11 @@ export default function MarketplaceStripePaymentPage() {
   const params = useParams<{ transactionId: string }>();
   const searchParams = useSearchParams();
 
-  const clientSecret =
-    searchParams.get('clientSecret')?.trim() ?? '';
+  const clientSecret = searchParams.get('clientSecret')?.trim() ?? '';
 
-  const fulfilment =
-    searchParams.get('fulfilment')?.trim() ?? 'Confirmed';
+  const fulfilment = searchParams.get('fulfilment')?.trim() ?? 'Confirmed';
 
-  const paymentMethod =
-    searchParams.get('payment')?.trim() ?? 'CARD';
+  const paymentMethod = searchParams.get('payment')?.trim() ?? 'CARD';
 
   const options = useMemo(
     () => ({
@@ -167,9 +150,7 @@ export default function MarketplaceStripePaymentPage() {
       <main style={page}>
         <section style={shell}>
           <h1 style={heading}>Payment unavailable</h1>
-          <p style={muted}>
-            Stripe is not configured for the web application.
-          </p>
+          <p style={muted}>Stripe is not configured for the web application.</p>
         </section>
       </main>
     );
@@ -180,9 +161,7 @@ export default function MarketplaceStripePaymentPage() {
       <main style={page}>
         <section style={shell}>
           <h1 style={heading}>Payment unavailable</h1>
-          <p style={muted}>
-            The Stripe payment session is unavailable.
-          </p>
+          <p style={muted}>The Stripe payment session is unavailable.</p>
         </section>
       </main>
     );
@@ -196,15 +175,11 @@ export default function MarketplaceStripePaymentPage() {
         <h1 style={heading}>Secure payment</h1>
 
         <p style={muted}>
-          Complete your card payment securely with Stripe.
-          Your purchase is confirmed only after the payment
-          has been accepted.
+          Complete your card payment securely with Stripe. Your purchase is confirmed only after the
+          payment has been accepted.
         </p>
 
-        <Elements
-          stripe={stripePromise}
-          options={options}
-        >
+        <Elements stripe={stripePromise} options={options}>
           <StripePaymentForm
             transactionId={params.transactionId}
             fulfilment={fulfilment}

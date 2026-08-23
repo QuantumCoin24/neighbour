@@ -3,11 +3,7 @@
 import type { PostMedia } from '@neighbour/api-client';
 import { useEffect, useState } from 'react';
 
-export default function MediaGallery({
-  items,
-}: {
-  items: PostMedia[];
-}) {
+export default function MediaGallery({ items }: { items: PostMedia[] }) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -25,9 +21,7 @@ export default function MediaGallery({
       }
 
       if (event.key === 'ArrowLeft') {
-        setViewerIndex((current) =>
-          current === null ? null : Math.max(0, current - 1),
-        );
+        setViewerIndex((current) => (current === null ? null : Math.max(0, current - 1)));
       }
     }
 
@@ -40,14 +34,11 @@ export default function MediaGallery({
 
   const visible = items.slice(0, 4);
   const overflow = Math.max(0, items.length - 4);
-  const selected =
-    viewerIndex === null ? null : items[viewerIndex];
+  const selected = viewerIndex === null ? null : items[viewerIndex];
 
   return (
     <>
-      <div
-        className={`gallery gallery-${Math.min(items.length, 4)}`}
-      >
+      <div className={`gallery gallery-${Math.min(items.length, 4)}`}>
         {visible.map((item, index) => (
           <button
             aria-label={item.altText ?? `Open photo ${index + 1}`}
@@ -56,27 +47,18 @@ export default function MediaGallery({
             type="button"
           >
             {item.asset.url ? (
-              <img
-                alt={item.altText ?? `Photo ${index + 1}`}
-                src={item.asset.url}
-              />
+              <img alt={item.altText ?? `Photo ${index + 1}`} src={item.asset.url} />
             ) : (
               <span>Photo unavailable</span>
             )}
 
-            {index === 3 && overflow > 0 ? (
-              <strong className="overflow">+{overflow}</strong>
-            ) : null}
+            {index === 3 && overflow > 0 ? <strong className="overflow">+{overflow}</strong> : null}
           </button>
         ))}
       </div>
 
       {selected ? (
-        <div
-          aria-modal="true"
-          className="viewer"
-          role="dialog"
-        >
+        <div aria-modal="true" className="viewer" role="dialog">
           <div className="viewer-top">
             <button
               aria-label="Close photo viewer"
@@ -98,9 +80,7 @@ export default function MediaGallery({
               aria-label="Previous photo"
               disabled={viewerIndex === 0}
               onClick={() =>
-                setViewerIndex((current) =>
-                  current === null ? null : Math.max(0, current - 1),
-                )
+                setViewerIndex((current) => (current === null ? null : Math.max(0, current - 1)))
               }
               type="button"
             >
@@ -121,9 +101,7 @@ export default function MediaGallery({
               disabled={viewerIndex === items.length - 1}
               onClick={() =>
                 setViewerIndex((current) =>
-                  current === null
-                    ? null
-                    : Math.min(items.length - 1, current + 1),
+                  current === null ? null : Math.min(items.length - 1, current + 1),
                 )
               }
               type="button"
@@ -185,7 +163,7 @@ export default function MediaGallery({
           inset: 0;
           display: grid;
           place-items: center;
-          background: rgba(0,0,0,.52);
+          background: rgba(0, 0, 0, 0.52);
           color: white;
           font-size: 32px;
         }
@@ -194,7 +172,7 @@ export default function MediaGallery({
           position: fixed;
           inset: 0;
           z-index: 1000;
-          background: rgba(0,0,0,.96);
+          background: rgba(0, 0, 0, 0.96);
           color: white;
         }
 
@@ -239,7 +217,7 @@ export default function MediaGallery({
         }
 
         .viewer-body button:disabled {
-          opacity: .2;
+          opacity: 0.2;
           cursor: default;
         }
 

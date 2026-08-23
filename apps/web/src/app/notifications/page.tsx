@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   getNotifications,
@@ -13,38 +9,24 @@ import {
   type Notification,
 } from '@neighbour/api-client';
 
-function notificationLabel(
-  type: string,
-) {
+function notificationLabel(type: string) {
   return type
     .toLowerCase()
     .split('_')
-    .map(
-      (part) =>
-        part.charAt(0).toUpperCase() +
-        part.slice(1),
-    )
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 }
 
-function notificationIcon(
-  type: string,
-) {
+function notificationIcon(type: string) {
   if (type.includes('MESSAGE')) {
     return '□';
   }
 
-  if (
-    type.includes('COMMUNITY')
-  ) {
+  if (type.includes('COMMUNITY')) {
     return '⌂';
   }
 
-  if (
-    type.includes('REACTION') ||
-    type.includes('COMMENT') ||
-    type.includes('REPLY')
-  ) {
+  if (type.includes('REACTION') || type.includes('COMMENT') || type.includes('REPLY')) {
     return '♡';
   }
 
@@ -52,9 +34,7 @@ function notificationIcon(
     return '◎';
   }
 
-  if (
-    type.includes('MARKETPLACE')
-  ) {
+  if (type.includes('MARKETPLACE')) {
     return '▣';
   }
 
@@ -62,36 +42,27 @@ function notificationIcon(
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleString(
-    [],
-    {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    },
-  );
+  return new Date(value).toLocaleString([], {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 export default function NotificationsPage() {
-  const [items, setItems] =
-    useState<Notification[]>([]);
+  const [items, setItems] = useState<Notification[]>([]);
 
-  const [unread, setUnread] =
-    useState(0);
+  const [unread, setUnread] = useState(0);
 
-  const [filter, setFilter] =
-    useState<'all' | 'unread'>('all');
+  const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  const [message, setMessage] =
-    useState('Loading notifications…');
+  const [message, setMessage] = useState('Loading notifications…');
 
-  const [busy, setBusy] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
 
   async function load() {
-    const token =
-      localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken');
 
     if (!token) {
       setMessage('Please sign in first.');
@@ -99,23 +70,15 @@ export default function NotificationsPage() {
     }
 
     try {
-      const result =
-        await getNotifications(
-          token,
-          {
-            limit: 100,
-          },
-        );
+      const result = await getNotifications(token, {
+        limit: 100,
+      });
 
       setItems(result.items);
       setUnread(result.unreadCount);
       setMessage('');
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'Unable to load notifications.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Unable to load notifications.');
     }
   }
 
@@ -123,40 +86,26 @@ export default function NotificationsPage() {
     void load();
   }, []);
 
-  const visible =
-    useMemo(
-      () =>
-        filter === 'unread'
-          ? items.filter(
-              (item) =>
-                !item.readAt,
-            )
-          : items,
-      [items, filter],
-    );
+  const visible = useMemo(
+    () => (filter === 'unread' ? items.filter((item) => !item.readAt) : items),
+    [items, filter],
+  );
 
   async function read(id: string) {
-    const token =
-      localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken');
 
     if (!token) {
       return;
     }
 
-    const target =
-      items.find(
-        (item) => item.id === id,
-      );
+    const target = items.find((item) => item.id === id);
 
     if (target?.readAt) {
       return;
     }
 
     try {
-      await markNotificationRead(
-        token,
-        id,
-      );
+      await markNotificationRead(token, id);
 
       await load();
     } catch {
@@ -165,23 +114,16 @@ export default function NotificationsPage() {
   }
 
   async function readAll() {
-    const token =
-      localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken');
 
-    if (
-      !token ||
-      busy ||
-      unread === 0
-    ) {
+    if (!token || busy || unread === 0) {
       return;
     }
 
     setBusy(true);
 
     try {
-      await markAllNotificationsRead(
-        token,
-      );
+      await markAllNotificationsRead(token);
 
       await load();
     } finally {
@@ -193,31 +135,15 @@ export default function NotificationsPage() {
     <main className="notifications-page">
       <header className="notifications-header">
         <div>
-          <div className="notifications-eyebrow">
-            STAY CONNECTED
-          </div>
+          <div className="notifications-eyebrow">STAY CONNECTED</div>
 
           <h1>Notifications</h1>
 
-          <p>
-            Activity from your neighbourhood,
-            conversations and local network.
-          </p>
+          <p>Activity from your neighbourhood, conversations and local network.</p>
         </div>
 
-        <button
-          type="button"
-          disabled={
-            busy ||
-            unread === 0
-          }
-          onClick={() =>
-            void readAll()
-          }
-        >
-          {busy
-            ? 'Updating…'
-            : 'Mark all as read'}
+        <button type="button" disabled={busy || unread === 0} onClick={() => void readAll()}>
+          {busy ? 'Updating…' : 'Mark all as read'}
         </button>
       </header>
 
@@ -227,21 +153,13 @@ export default function NotificationsPage() {
 
           <strong>{unread}</strong>
 
-          <p>
-            items needing your attention
-          </p>
+          <p>items needing your attention</p>
         </div>
 
         <section>
-          <h2>
-            Your neighbourhood activity
-          </h2>
+          <h2>Your neighbourhood activity</h2>
 
-          <p>
-            Messages, reactions, community
-            activity and account updates all
-            appear here.
-          </p>
+          <p>Messages, reactions, community activity and account updates all appear here.</p>
         </section>
 
         <div className="notifications-live">
@@ -254,96 +172,57 @@ export default function NotificationsPage() {
         <div>
           <button
             type="button"
-            className={
-              filter === 'all'
-                ? 'notification-filter-active'
-                : ''
-            }
-            onClick={() =>
-              setFilter('all')
-            }
+            className={filter === 'all' ? 'notification-filter-active' : ''}
+            onClick={() => setFilter('all')}
           >
             All
           </button>
 
           <button
             type="button"
-            className={
-              filter === 'unread'
-                ? 'notification-filter-active'
-                : ''
-            }
-            onClick={() =>
-              setFilter('unread')
-            }
+            className={filter === 'unread' ? 'notification-filter-active' : ''}
+            onClick={() => setFilter('unread')}
           >
             Unread
           </button>
         </div>
 
         <span>
-          {visible.length}{' '}
-          {visible.length === 1
-            ? 'notification'
-            : 'notifications'}
+          {visible.length} {visible.length === 1 ? 'notification' : 'notifications'}
         </span>
       </section>
 
       {message ? (
-        <div className="notifications-message">
-          {message}
-        </div>
+        <div className="notifications-message">{message}</div>
       ) : visible.length === 0 ? (
         <section className="notifications-empty">
           <div>◇</div>
 
-          <h2>
-            You’re all caught up.
-          </h2>
+          <h2>You’re all caught up.</h2>
 
-          <p>
-            New neighbourhood activity will
-            appear here.
-          </p>
+          <p>New neighbourhood activity will appear here.</p>
         </section>
       ) : (
         <section className="notifications-list">
           {visible.map((item) => {
-            const isUnread =
-              !item.readAt;
+            const isUnread = !item.readAt;
 
             return (
               <button
                 key={item.id}
                 type="button"
                 className={
-                  isUnread
-                    ? 'notification-item notification-item-unread'
-                    : 'notification-item'
+                  isUnread ? 'notification-item notification-item-unread' : 'notification-item'
                 }
-                onClick={() =>
-                  void read(item.id)
-                }
+                onClick={() => void read(item.id)}
               >
-                <div className="notification-icon">
-                  {notificationIcon(
-                    item.type,
-                  )}
-                </div>
+                <div className="notification-icon">{notificationIcon(item.type)}</div>
 
                 <div className="notification-copy">
                   <div className="notification-title">
-                    <strong>
-                      {notificationLabel(
-                        item.type,
-                      )}
-                    </strong>
+                    <strong>{notificationLabel(item.type)}</strong>
 
-                    {isUnread ? (
-                      <span>
-                        New
-                      </span>
-                    ) : null}
+                    {isUnread ? <span>New</span> : null}
                   </div>
 
                   <p>
@@ -352,16 +231,10 @@ export default function NotificationsPage() {
                       : 'Neighbour™ activity update.'}
                   </p>
 
-                  <small>
-                    {formatDate(
-                      item.createdAt,
-                    )}
-                  </small>
+                  <small>{formatDate(item.createdAt)}</small>
                 </div>
 
-                <div className="notification-arrow">
-                  →
-                </div>
+                <div className="notification-arrow">→</div>
               </button>
             );
           })}

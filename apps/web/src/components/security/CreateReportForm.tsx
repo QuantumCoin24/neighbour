@@ -1,55 +1,32 @@
 'use client';
 
-import {
-  useState,
-} from 'react';
+import { useState } from 'react';
 
-import {
-  createSecurityReport,
-} from '@neighbour/api-client';
+import { createSecurityReport } from '@neighbour/api-client';
 
 export default function CreateReportForm() {
-  const [
-    targetType,
-    setTargetType,
-  ] = useState('POST');
+  const [targetType, setTargetType] = useState('POST');
 
-  const [targetId, setTargetId] =
-    useState('');
+  const [targetId, setTargetId] = useState('');
 
-  const [reason, setReason] =
-    useState('');
+  const [reason, setReason] = useState('');
 
-  const [
-    description,
-    setDescription,
-  ] = useState('');
+  const [description, setDescription] = useState('');
 
-  const [message, setMessage] =
-    useState('');
+  const [message, setMessage] = useState('');
 
-  const [busy, setBusy] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
 
   async function submit() {
-    const token =
-      localStorage.getItem(
-        'accessToken',
-      );
+    const token = localStorage.getItem('accessToken');
 
     if (!token) {
-      setMessage(
-        'No active session.',
-      );
+      setMessage('No active session.');
 
       return;
     }
 
-    if (
-      !targetId.trim() ||
-      !reason.trim() ||
-      busy
-    ) {
+    if (!targetId.trim() || !reason.trim() || busy) {
       return;
     }
 
@@ -57,30 +34,20 @@ export default function CreateReportForm() {
     setMessage('');
 
     try {
-      await createSecurityReport(
-        token,
-        {
-          targetType,
-          targetId:
-            targetId.trim(),
-          reason:
-            reason.trim(),
-          description:
-            description.trim(),
-        },
-      );
+      await createSecurityReport(token, {
+        targetType,
+        targetId: targetId.trim(),
+        reason: reason.trim(),
+        description: description.trim(),
+      });
 
-      setMessage(
-        'Report submitted successfully.',
-      );
+      setMessage('Report submitted successfully.');
 
       setTargetId('');
       setReason('');
       setDescription('');
     } catch {
-      setMessage(
-        'Unable to submit report.',
-      );
+      setMessage('Unable to submit report.');
     } finally {
       setBusy(false);
     }
@@ -91,15 +58,11 @@ export default function CreateReportForm() {
       <div className="direct-report-heading">
         <span>ADVANCED REPORT</span>
 
-        <h2>
-          Report specific content
-        </h2>
+        <h2>Report specific content</h2>
 
         <p>
-          Most content can be reported directly
-          from its Report button. Use this form
-          when you already have the exact target
-          reference.
+          Most content can be reported directly from its Report button. Use this form when you
+          already have the exact target reference.
         </p>
       </div>
 
@@ -107,33 +70,16 @@ export default function CreateReportForm() {
         <label>
           <span>Content type</span>
 
-          <select
-            value={targetType}
-            onChange={(event) =>
-              setTargetType(
-                event.target.value,
-              )
-            }
-          >
-            <option value="POST">
-              Post
-            </option>
+          <select value={targetType} onChange={(event) => setTargetType(event.target.value)}>
+            <option value="POST">Post</option>
 
-            <option value="USER">
-              User
-            </option>
+            <option value="USER">User</option>
 
-            <option value="COMMENT">
-              Comment
-            </option>
+            <option value="COMMENT">Comment</option>
 
-            <option value="MESSAGE">
-              Message
-            </option>
+            <option value="MESSAGE">Message</option>
 
-            <option value="EVENT">
-              Event
-            </option>
+            <option value="EVENT">Event</option>
           </select>
         </label>
 
@@ -142,11 +88,7 @@ export default function CreateReportForm() {
 
           <input
             value={targetId}
-            onChange={(event) =>
-              setTargetId(
-                event.target.value,
-              )
-            }
+            onChange={(event) => setTargetId(event.target.value)}
             placeholder="Exact target ID"
           />
         </label>
@@ -157,59 +99,35 @@ export default function CreateReportForm() {
 
         <input
           value={reason}
-          onChange={(event) =>
-            setReason(
-              event.target.value,
-            )
-          }
+          onChange={(event) => setReason(event.target.value)}
           placeholder="Why are you reporting this?"
         />
       </label>
 
       <label className="direct-report-field">
-        <span>
-          Additional details
-        </span>
+        <span>Additional details</span>
 
         <textarea
           value={description}
-          onChange={(event) =>
-            setDescription(
-              event.target.value,
-            )
-          }
+          onChange={(event) => setDescription(event.target.value)}
           placeholder="Add any useful context"
         />
       </label>
 
       <div className="direct-report-footer">
-        <span>
-          Reports are submitted to the
-          Neighbour™ Trust & Safety system.
-        </span>
+        <span>Reports are submitted to the Neighbour™ Trust & Safety system.</span>
 
         <button
           type="button"
-          disabled={
-            busy ||
-            !targetId.trim() ||
-            !reason.trim()
-          }
-          onClick={() =>
-            void submit()
-          }
+          disabled={busy || !targetId.trim() || !reason.trim()}
+          onClick={() => void submit()}
         >
-          {busy
-            ? 'Submitting…'
-            : 'Submit report'}
+          {busy ? 'Submitting…' : 'Submit report'}
         </button>
       </div>
 
       {message ? (
-        <div
-          className="direct-report-message"
-          role="status"
-        >
+        <div className="direct-report-message" role="status">
           {message}
         </div>
       ) : null}

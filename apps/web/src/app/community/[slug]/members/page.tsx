@@ -113,8 +113,7 @@ export default function MembersPage() {
           padding: '34px 36px',
           marginBottom: 24,
           color: '#fff',
-          background:
-            'linear-gradient(135deg, #071426 0%, #102d4a 100%)',
+          background: 'linear-gradient(135deg, #071426 0%, #102d4a 100%)',
         }}
       >
         <div
@@ -170,9 +169,7 @@ export default function MembersPage() {
               border: '1px solid rgba(255,255,255,.12)',
             }}
           >
-            <div style={{ fontSize: 30, fontWeight: 850 }}>
-              {community.memberCount}
-            </div>
+            <div style={{ fontSize: 30, fontWeight: 850 }}>{community.memberCount}</div>
             <div style={{ color: 'rgba(255,255,255,.68)' }}>
               {community.memberCount === 1 ? 'neighbour' : 'neighbours'}
             </div>
@@ -213,13 +210,9 @@ export default function MembersPage() {
                 Your membership
               </div>
 
-              <h2 style={{ margin: '7px 0 4px', fontSize: 29 }}>
-                {community.name}
-              </h2>
+              <h2 style={{ margin: '7px 0 4px', fontSize: 29 }}>{community.name}</h2>
 
-              <div style={{ color: '#6c7972' }}>
-                {location || 'Local community'}
-              </div>
+              <div style={{ color: '#6c7972' }}>{location || 'Local community'}</div>
             </div>
 
             <span
@@ -265,9 +258,7 @@ export default function MembersPage() {
               </div>
 
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 850, fontSize: 18 }}>
-                  Your community membership
-                </div>
+                <div style={{ fontWeight: 850, fontSize: 18 }}>Your community membership</div>
 
                 <div style={{ marginTop: 4, color: '#6b7771' }}>
                   Role: {membership.role.toLowerCase()}
@@ -277,8 +268,7 @@ export default function MembersPage() {
               <div
                 style={{
                   fontWeight: 850,
-                  color:
-                    membership.status === 'ACTIVE' ? '#08754b' : '#7d6215',
+                  color: membership.status === 'ACTIVE' ? '#08754b' : '#7d6215',
                 }}
               >
                 {membership.status}
@@ -311,9 +301,7 @@ export default function MembersPage() {
             Member directory
           </div>
 
-          <h3 style={{ margin: '8px 0 8px', fontSize: 22 }}>
-            Built for privacy
-          </h3>
+          <h3 style={{ margin: '8px 0 8px', fontSize: 22 }}>Built for privacy</h3>
 
           <p
             style={{
@@ -322,10 +310,9 @@ export default function MembersPage() {
               lineHeight: 1.6,
             }}
           >
-            Neighbour™ currently exposes the community total and your own
-            membership state. A public member-directory API is not currently
-            exposed, so this page will not invent or display unverified member
-            identities.
+            Neighbour™ currently exposes the community total and your own membership state. A public
+            member-directory API is not currently exposed, so this page will not invent or display
+            unverified member identities.
           </p>
 
           <Link

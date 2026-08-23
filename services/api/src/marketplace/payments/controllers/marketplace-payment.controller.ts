@@ -46,10 +46,7 @@ export class MarketplacePaymentController {
     let event;
 
     try {
-      event = this.stripe.constructWebhookEvent(
-        request.rawBody,
-        signature,
-      );
+      event = this.stripe.constructWebhookEvent(request.rawBody, signature);
     } catch {
       throw new BadRequestException('Invalid Stripe webhook signature.');
     }

@@ -3,24 +3,13 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import {
-  apiRequest,
-  getMyProfile,
-} from '@neighbour/api-client';
+import { apiRequest, getMyProfile } from '@neighbour/api-client';
 
-import {
-  NeighbourCard,
-} from '@neighbour/design-system';
+import { NeighbourCard } from '@neighbour/design-system';
 
-import {
-  getNeighbourContext,
-  type NeighbourContext,
-} from '../../lib/neighbour-context';
+import { getNeighbourContext, type NeighbourContext } from '../../lib/neighbour-context';
 
-import {
-  getCommunityActivity,
-  type CommunityActivityData,
-} from '../../lib/community-activity';
+import { getCommunityActivity, type CommunityActivityData } from '../../lib/community-activity';
 
 import NeighbourHeader from '../../components/dashboard/NeighbourHeader';
 import ProfileSummary from '../../components/dashboard/ProfileSummary';
@@ -49,69 +38,51 @@ interface Profile {
 }
 
 export default function HomePage() {
-  const [user, setUser] =
-    useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
-  const [profile, setProfile] =
-    useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
-  const [context, setContext] =
-    useState<NeighbourContext | null>(null);
+  const [context, setContext] = useState<NeighbourContext | null>(null);
 
-  const [activity, setActivity] =
-    useState<CommunityActivityData | null>(null);
+  const [activity, setActivity] = useState<CommunityActivityData | null>(null);
 
-  const [message, setMessage] =
-    useState('Loading your neighbourhood...');
+  const [message, setMessage] = useState('Loading your neighbourhood...');
 
   useEffect(() => {
     async function load() {
       try {
-        const token =
-          localStorage.getItem('accessToken');
+        const token = localStorage.getItem('accessToken');
 
         if (!token) {
           setMessage('No active session found.');
           return;
         }
 
-        const response =
-          await apiRequest<User>(
-            '/auth/me',
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
+        const response = await apiRequest<User>('/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         setUser(response);
 
-        const profileResponse =
-          await getMyProfile(token);
+        const profileResponse = await getMyProfile(token);
 
         setProfile(profileResponse);
 
-        const neighbourContext =
-          await getNeighbourContext(
-            token,
-            profileResponse.localArea,
-          );
+        const neighbourContext = await getNeighbourContext(token, profileResponse.localArea);
 
         setContext(neighbourContext);
 
-        const activityData =
-          await getCommunityActivity(
-            token,
-            neighbourContext.communitySlug,
-            neighbourContext.communityId,
-          );
+        const activityData = await getCommunityActivity(
+          token,
+          neighbourContext.communitySlug,
+          neighbourContext.communityId,
+        );
 
         setActivity(activityData);
       } catch {
-        setMessage(
-          'Unable to load your neighbourhood.',
-        );
+        setMessage('Unable to load your neighbourhood.');
       }
     }
 
@@ -123,10 +94,7 @@ export default function HomePage() {
       <div className="home-loading">
         <NeighbourCard>
           <h2>{message}</h2>
-          <p>
-            Connecting you to your local
-            Neighbour™ community.
-          </p>
+          <p>Connecting you to your local Neighbour™ community.</p>
         </NeighbourCard>
 
         <style>{`
@@ -139,54 +107,34 @@ export default function HomePage() {
     );
   }
 
-  const token =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('accessToken') ?? ''
-      : '';
+  const token = typeof window !== 'undefined' ? (localStorage.getItem('accessToken') ?? '') : '';
 
-  const firstName =
-    user.displayName.split(' ')[0] ||
-    user.displayName;
+  const firstName = user.displayName.split(' ')[0] || user.displayName;
 
   return (
     <main className="home-page">
       <header className="home-topbar">
         <div>
-          <div className="home-eyebrow">
-            YOUR NEIGHBOURHOOD
-          </div>
+          <div className="home-eyebrow">YOUR NEIGHBOURHOOD</div>
 
-          <h1>
-            Good evening, {firstName} 👋
-          </h1>
+          <h1>Good evening, {firstName} 👋</h1>
 
-          <p>
-            Here’s what is happening around you.
-          </p>
+          <p>Here’s what is happening around you.</p>
         </div>
 
         <div className="home-top-actions">
-          <Link
-            href="/search"
-            className="home-action home-action-secondary"
-          >
+          <Link href="/search" className="home-action home-action-secondary">
             Search
           </Link>
 
-          <Link
-            href="/community"
-            className="home-action home-action-primary"
-          >
+          <Link href="/community" className="home-action home-action-primary">
             + Create post
           </Link>
         </div>
       </header>
 
       <section className="home-hero">
-        <NeighbourHeader
-          name={user.displayName}
-          area={profile?.localArea ?? null}
-        />
+        <NeighbourHeader name={user.displayName} area={profile?.localArea ?? null} />
       </section>
 
       <section className="home-layout">
@@ -194,80 +142,43 @@ export default function HomePage() {
           <div className="home-section-heading">
             <div>
               <span>Neighbourhood feed</span>
-              <p>
-                Latest updates from your local community.
-              </p>
+              <p>Latest updates from your local community.</p>
             </div>
 
-            <Link href="/community">
-              View all
-            </Link>
+            <Link href="/community">View all</Link>
           </div>
 
-          <FeedPreview
-            token={token}
-            communitySlug={
-              context?.communitySlug ??
-              undefined
-            }
-          />
+          <FeedPreview token={token} communitySlug={context?.communitySlug ?? undefined} />
 
           <div className="home-two-column">
-            <EventPreview
-              communityId={
-                context?.communityId ??
-                undefined
-              }
-            />
+            <EventPreview communityId={context?.communityId ?? undefined} />
 
-            <CommunityPulse
-              area={profile?.localArea ?? null}
-            />
+            <CommunityPulse area={profile?.localArea ?? null} />
           </div>
 
           <div className="home-section-heading home-section-spacing">
             <div>
               <span>Your local community</span>
-              <p>
-                People, conversations and activity
-                around you.
-              </p>
+              <p>People, conversations and activity around you.</p>
             </div>
           </div>
 
           <CommunityIdentity
-            neighbourhoodName={
-              context?.neighbourhoodName ??
-              null
-            }
-            communityName={
-              context?.communityName ?? null
-            }
+            neighbourhoodName={context?.neighbourhoodName ?? null}
+            communityName={context?.communityName ?? null}
           />
 
           <CommunityActivity
-            memberCount={
-              context?.communityMemberCount ??
-              null
-            }
-            postCount={
-              activity?.postCount ?? 0
-            }
-            eventCount={
-              activity?.eventCount ?? 0
-            }
-            conversationCount={
-              activity?.conversationCount ?? 0
-            }
+            memberCount={context?.communityMemberCount ?? null}
+            postCount={activity?.postCount ?? 0}
+            eventCount={activity?.eventCount ?? 0}
+            conversationCount={activity?.conversationCount ?? 0}
           />
 
           <div className="home-section-heading home-section-spacing">
             <div>
               <span>Inbox & activity</span>
-              <p>
-                Messages and neighbourhood updates
-                that need your attention.
-              </p>
+              <p>Messages and neighbourhood updates that need your attention.</p>
             </div>
           </div>
 
@@ -280,20 +191,13 @@ export default function HomePage() {
 
         <aside className="home-right-rail">
           <div className="home-rail-card home-profile-card">
-            <div className="home-rail-label">
-              YOUR PROFILE
-            </div>
+            <div className="home-rail-label">YOUR PROFILE</div>
 
-            <ProfileSummary
-              name={user.displayName}
-              bio={profile?.bio}
-            />
+            <ProfileSummary name={user.displayName} bio={profile?.bio} />
           </div>
 
           <div className="home-rail-card">
-            <div className="home-rail-heading">
-              Quick actions
-            </div>
+            <div className="home-rail-heading">Quick actions</div>
 
             <div className="home-quick-actions">
               <Link href="/community">
@@ -319,13 +223,8 @@ export default function HomePage() {
           </div>
 
           <CommunityStats
-            communityName={
-              context?.communityName ?? null
-            }
-            memberCount={
-              context?.communityMemberCount ??
-              null
-            }
+            communityName={context?.communityName ?? null}
+            memberCount={context?.communityMemberCount ?? null}
           />
 
           <ActionCentre />
@@ -336,10 +235,7 @@ export default function HomePage() {
             <div>
               <strong>Your local space</strong>
 
-              <p>
-                Everything here is centred around
-                your neighbourhood.
-              </p>
+              <p>Everything here is centred around your neighbourhood.</p>
             </div>
           </div>
         </aside>

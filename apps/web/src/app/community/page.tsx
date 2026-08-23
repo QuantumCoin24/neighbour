@@ -1,11 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   getCommunities,
@@ -18,11 +14,7 @@ function formatCategory(value: string) {
   return value
     .toLowerCase()
     .split('_')
-    .map(
-      (part) =>
-        part.charAt(0).toUpperCase() +
-        part.slice(1),
-    )
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 }
 
@@ -36,26 +28,19 @@ function initials(name: string) {
 }
 
 export default function CommunityPage() {
-  const [communities, setCommunities] =
-    useState<Community[]>([]);
+  const [communities, setCommunities] = useState<Community[]>([]);
 
-  const [joinedIds, setJoinedIds] =
-    useState<Set<string>>(new Set());
+  const [joinedIds, setJoinedIds] = useState<Set<string>>(new Set());
 
   const [query, setQuery] = useState('');
-  const [message, setMessage] = useState(
-    'Loading communities...',
-  );
+  const [message, setMessage] = useState('Loading communities...');
 
-  const [joining, setJoining] =
-    useState<string | null>(null);
+  const [joining, setJoining] = useState<string | null>(null);
 
-  const [token, setToken] =
-    useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedToken =
-      localStorage.getItem('accessToken');
+    const storedToken = localStorage.getItem('accessToken');
 
     setToken(storedToken);
 
@@ -69,22 +54,11 @@ export default function CommunityPage() {
 
         if (storedToken) {
           try {
-            const mine =
-              await getMyCommunities(
-                storedToken,
-              );
+            const mine = await getMyCommunities(storedToken);
 
             setJoinedIds(
               new Set(
-                mine
-                  .filter(
-                    (item) =>
-                      item.status === 'ACTIVE',
-                  )
-                  .map(
-                    (item) =>
-                      item.community.id,
-                  ),
+                mine.filter((item) => item.status === 'ACTIVE').map((item) => item.community.id),
               ),
             );
           } catch {
@@ -95,11 +69,7 @@ export default function CommunityPage() {
 
         setMessage('');
       } catch (error) {
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : 'Unable to load communities.',
-        );
+        setMessage(error instanceof Error ? error.message : 'Unable to load communities.');
       }
     }
 
@@ -107,40 +77,33 @@ export default function CommunityPage() {
   }, []);
 
   const filtered = useMemo(() => {
-    const normalized =
-      query.trim().toLowerCase();
+    const normalized = query.trim().toLowerCase();
 
     if (!normalized) {
       return communities;
     }
 
-    return communities.filter(
-      (community) => {
-        const haystack = [
-          community.name,
-          community.shortDescription,
-          community.description,
-          community.city,
-          community.postcode,
-          community.category,
-          ...community.tags,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
+    return communities.filter((community) => {
+      const haystack = [
+        community.name,
+        community.shortDescription,
+        community.description,
+        community.city,
+        community.postcode,
+        community.category,
+        ...community.tags,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
 
-        return haystack.includes(normalized);
-      },
-    );
+      return haystack.includes(normalized);
+    });
   }, [communities, query]);
 
-  async function handleJoin(
-    community: Community,
-  ) {
+  async function handleJoin(community: Community) {
     if (!token) {
-      setMessage(
-        'Please sign in before joining a community.',
-      );
+      setMessage('Please sign in before joining a community.');
       return;
     }
 
@@ -152,24 +115,11 @@ export default function CommunityPage() {
     setMessage('');
 
     try {
-      await joinCommunity(
-        token,
-        community.slug,
-      );
+      await joinCommunity(token, community.slug);
 
-      setJoinedIds(
-        (current) =>
-          new Set([
-            ...current,
-            community.id,
-          ]),
-      );
+      setJoinedIds((current) => new Set([...current, community.id]));
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'Unable to join community.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Unable to join community.');
     } finally {
       setJoining(null);
     }
@@ -179,70 +129,45 @@ export default function CommunityPage() {
     <main className="communities-page">
       <header className="communities-header">
         <div>
-          <div className="communities-eyebrow">
-            DISCOVER LOCAL
-          </div>
+          <div className="communities-eyebrow">DISCOVER LOCAL</div>
 
           <h1>Communities</h1>
 
-          <p>
-            Find the people, places and
-            conversations that make your local
-            area feel connected.
-          </p>
+          <p>Find the people, places and conversations that make your local area feel connected.</p>
         </div>
 
-        <Link
-          href="/my-community"
-          className="communities-my-button"
-        >
+        <Link href="/my-community" className="communities-my-button">
           My communities
         </Link>
       </header>
 
       <section className="communities-search-panel">
-        <div className="communities-search-icon">
-          ⌕
-        </div>
+        <div className="communities-search-icon">⌕</div>
 
         <div>
-          <label htmlFor="community-search">
-            Find a community
-          </label>
+          <label htmlFor="community-search">Find a community</label>
 
           <input
             id="community-search"
             value={query}
-            onChange={(event) =>
-              setQuery(event.target.value)
-            }
+            onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by area, name, postcode or interest"
           />
         </div>
 
         <div className="communities-count">
           <strong>{filtered.length}</strong>
-          <span>
-            {filtered.length === 1
-              ? 'community'
-              : 'communities'}
-          </span>
+          <span>{filtered.length === 1 ? 'community' : 'communities'}</span>
         </div>
       </section>
 
-      {message ? (
-        <div className="communities-message">
-          {message}
-        </div>
-      ) : null}
+      {message ? <div className="communities-message">{message}</div> : null}
 
       <section className="communities-section">
         <div className="communities-section-heading">
           <div>
             <h2>Explore communities</h2>
-            <p>
-              Local spaces you can discover and join.
-            </p>
+            <p>Local spaces you can discover and join.</p>
           </div>
         </div>
 
@@ -252,66 +177,38 @@ export default function CommunityPage() {
 
             <h3>No communities found</h3>
 
-            <p>
-              Try another area, postcode or search
-              term.
-            </p>
+            <p>Try another area, postcode or search term.</p>
           </div>
         ) : (
           <div className="communities-grid">
             {filtered.map((community) => {
-              const joined =
-                joinedIds.has(community.id);
+              const joined = joinedIds.has(community.id);
 
-              const location = [
-                community.city,
-                community.postcode,
-              ]
-                .filter(Boolean)
-                .join(' · ');
+              const location = [community.city, community.postcode].filter(Boolean).join(' · ');
 
               return (
-                <article
-                  key={community.id}
-                  className="community-card"
-                >
+                <article key={community.id} className="community-card">
                   <div className="community-card-top">
                     {community.logoUrl ? (
-                      <img
-                        src={community.logoUrl}
-                        alt=""
-                        className="community-logo"
-                      />
+                      <img src={community.logoUrl} alt="" className="community-logo" />
                     ) : (
                       <div className="community-logo community-logo-fallback">
-                        {initials(
-                          community.name,
-                        ) || 'N'}
+                        {initials(community.name) || 'N'}
                       </div>
                     )}
 
                     <div className="community-card-status">
-                      {joined
-                        ? '✓ Joined'
-                        : community.joinPolicy ===
-                            'OPEN'
-                          ? 'Open'
-                          : 'Request'}
+                      {joined ? '✓ Joined' : community.joinPolicy === 'OPEN' ? 'Open' : 'Request'}
                     </div>
                   </div>
 
-                  <div className="community-category">
-                    {formatCategory(
-                      community.category,
-                    )}
-                  </div>
+                  <div className="community-category">{formatCategory(community.category)}</div>
 
                   <h3>{community.name}</h3>
 
                   <div className="community-location">
                     <span>⌖</span>
-                    {location ||
-                      'Local community'}
+                    {location || 'Local community'}
                   </div>
 
                   <p className="community-description">
@@ -323,54 +220,33 @@ export default function CommunityPage() {
                   <div className="community-meta">
                     <span>
                       👥 {community.memberCount}{' '}
-                      {community.memberCount === 1
-                        ? 'neighbour'
-                        : 'neighbours'}
+                      {community.memberCount === 1 ? 'neighbour' : 'neighbours'}
                     </span>
 
-                    <span>
-                      {community.allowEvents
-                        ? '📅 Events'
-                        : '🏘 Local'}
-                    </span>
+                    <span>{community.allowEvents ? '📅 Events' : '🏘 Local'}</span>
                   </div>
 
                   <div className="community-actions">
                     {joined ? (
-                      <Link
-                        href={`/community/${community.slug}`}
-                        className="community-primary"
-                      >
+                      <Link href={`/community/${community.slug}`} className="community-primary">
                         Open community
                       </Link>
                     ) : (
                       <button
                         type="button"
                         className="community-primary"
-                        disabled={
-                          joining ===
-                          community.id
-                        }
-                        onClick={() =>
-                          void handleJoin(
-                            community,
-                          )
-                        }
+                        disabled={joining === community.id}
+                        onClick={() => void handleJoin(community)}
                       >
-                        {joining ===
-                        community.id
+                        {joining === community.id
                           ? 'Joining…'
-                          : community.joinPolicy ===
-                              'OPEN'
+                          : community.joinPolicy === 'OPEN'
                             ? 'Join community'
                             : 'Request to join'}
                       </button>
                     )}
 
-                    <Link
-                      href={`/community/${community.slug}`}
-                      className="community-secondary"
-                    >
+                    <Link href={`/community/${community.slug}`} className="community-secondary">
                       View
                     </Link>
                   </div>

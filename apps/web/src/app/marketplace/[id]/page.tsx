@@ -215,9 +215,7 @@ export default function MarketplaceListingDetailPage() {
                 {listing.saved ? '♥ Saved' : '♡ Save listing'}
               </button>
 
-              {listing.status === 'PUBLISHED' &&
-              !listing.isFree &&
-              listing.pricePence !== null ? (
+              {listing.status === 'PUBLISHED' && !listing.isFree && listing.pricePence !== null ? (
                 <div style={notice}>
                   <strong>Buy now</strong>
 

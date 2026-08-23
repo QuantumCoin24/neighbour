@@ -2,14 +2,9 @@
 
 import Link from 'next/link';
 
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  useParams,
-} from 'next/navigation';
+import { useParams } from 'next/navigation';
 
 import ReportButton from '../../../components/security/ReportButton';
 
@@ -23,41 +18,31 @@ import {
 } from '@neighbour/api-client';
 
 function formatMessageTime(value: string) {
-  return new Date(value).toLocaleString(
-    [],
-    {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    },
-  );
+  return new Date(value).toLocaleString([], {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 export default function ConversationPage() {
   const params = useParams();
 
-  const conversationId =
-    params.conversationId as string;
+  const conversationId = params.conversationId as string;
 
-  const [conversation, setConversation] =
-    useState<Conversation | null>(null);
+  const [conversation, setConversation] = useState<Conversation | null>(null);
 
-  const [messages, setMessages] =
-    useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const [content, setContent] =
-    useState('');
+  const [content, setContent] = useState('');
 
-  const [busy, setBusy] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const [error, setError] =
-    useState('');
+  const [error, setError] = useState('');
 
   async function load() {
-    const token =
-      localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken');
 
     if (!token) {
       setError('Please sign in first.');
@@ -65,37 +50,19 @@ export default function ConversationPage() {
     }
 
     try {
-      const conversationResponse =
-        await getConversation(
-          token,
-          conversationId,
-        );
+      const conversationResponse = await getConversation(token, conversationId);
 
-      setConversation(
-        conversationResponse,
-      );
+      setConversation(conversationResponse);
 
-      const feed =
-        await getMessages(
-          token,
-          conversationId,
-          {
-            limit: 100,
-          },
-        );
+      const feed = await getMessages(token, conversationId, {
+        limit: 100,
+      });
 
       setMessages(feed.items);
 
-      await markConversationRead(
-        token,
-        conversationId,
-      );
+      await markConversationRead(token, conversationId);
     } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : 'Unable to load conversation.',
-      );
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load conversation.');
     }
   }
 
@@ -104,14 +71,9 @@ export default function ConversationPage() {
   }, [conversationId]);
 
   async function send() {
-    const token =
-      localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken');
 
-    if (
-      !token ||
-      !content.trim() ||
-      busy
-    ) {
+    if (!token || !content.trim() || busy) {
       return;
     }
 
@@ -119,21 +81,13 @@ export default function ConversationPage() {
     setError('');
 
     try {
-      await sendMessage(
-        token,
-        conversationId,
-        content.trim(),
-      );
+      await sendMessage(token, conversationId, content.trim());
 
       setContent('');
 
       await load();
     } catch (sendError) {
-      setError(
-        sendError instanceof Error
-          ? sendError.message
-          : 'Unable to send message.',
-      );
+      setError(sendError instanceof Error ? sendError.message : 'Unable to send message.');
     } finally {
       setBusy(false);
     }
@@ -142,8 +96,7 @@ export default function ConversationPage() {
   if (!conversation) {
     return (
       <main className="conversation-loading">
-        {error ||
-          'Loading conversation…'}
+        {error || 'Loading conversation…'}
 
         <style>{`
           .conversation-loading {
@@ -162,10 +115,7 @@ export default function ConversationPage() {
   const title =
     conversation.title ||
     conversation.members
-      .map(
-        (member) =>
-          member.user.displayName,
-      )
+      .map((member) => member.user.displayName)
       .slice(0, 4)
       .join(', ') ||
     'Conversation';
@@ -173,24 +123,17 @@ export default function ConversationPage() {
   return (
     <main className="conversation-page">
       <header className="conversation-header">
-        <Link href="/messages">
-          ← Messages
-        </Link>
+        <Link href="/messages">← Messages</Link>
 
         <div className="conversation-heading">
           <div>
-            <div className="conversation-eyebrow">
-              NEIGHBOUR™ MESSAGE
-            </div>
+            <div className="conversation-eyebrow">NEIGHBOUR™ MESSAGE</div>
 
             <h1>{title}</h1>
 
             <p>
               {conversation.members.length}{' '}
-              {conversation.members.length ===
-              1
-                ? 'member'
-                : 'members'}
+              {conversation.members.length === 1 ? 'member' : 'members'}
             </p>
           </div>
 
@@ -207,52 +150,28 @@ export default function ConversationPage() {
             <div className="conversation-empty">
               <div>□</div>
 
-              <h2>
-                Start the conversation
-              </h2>
+              <h2>Start the conversation</h2>
 
-              <p>
-                Send the first message below.
-              </p>
+              <p>Send the first message below.</p>
             </div>
           ) : (
             messages.map((message) => (
-              <article
-                key={message.id}
-                className="message-bubble"
-              >
+              <article key={message.id} className="message-bubble">
                 <div className="message-avatar">
-                  {message.sender.displayName
-                    .slice(0, 2)
-                    .toUpperCase()}
+                  {message.sender.displayName.slice(0, 2).toUpperCase()}
                 </div>
 
                 <div className="message-content">
                   <div className="message-author">
-                    <strong>
-                      {
-                        message.sender
-                          .displayName
-                      }
-                    </strong>
+                    <strong>{message.sender.displayName}</strong>
 
-                    <span>
-                      {formatMessageTime(
-                        message.createdAt,
-                      )}
-                    </span>
+                    <span>{formatMessageTime(message.createdAt)}</span>
                   </div>
 
-                  <p>
-                    {message.content ||
-                      'Message'}
-                  </p>
+                  <p>{message.content || 'Message'}</p>
 
                   <div className="message-safety">
-                    <ReportButton
-                      targetType="MESSAGE"
-                      targetId={message.id}
-                    />
+                    <ReportButton targetType="MESSAGE" targetId={message.id} />
                   </div>
                 </div>
               </article>
@@ -261,90 +180,45 @@ export default function ConversationPage() {
         </div>
 
         <aside className="conversation-info">
-          <div className="conversation-info-label">
-            CONVERSATION
-          </div>
+          <div className="conversation-info-label">CONVERSATION</div>
 
           <h2>Participants</h2>
 
           <div className="participant-list">
-            {conversation.members.map(
-              (member) => (
-                <div
-                  key={member.user.id}
-                  className="participant"
-                >
-                  <div>
-                    {member.user.displayName
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </div>
+            {conversation.members.map((member) => (
+              <div key={member.user.id} className="participant">
+                <div>{member.user.displayName.slice(0, 2).toUpperCase()}</div>
 
-                  <section>
-                    <strong>
-                      {
-                        member.user
-                          .displayName
-                      }
-                    </strong>
+                <section>
+                  <strong>{member.user.displayName}</strong>
 
-                    <span>
-                      {member.role}
-                    </span>
-                  </section>
-                </div>
-              ),
-            )}
+                  <span>{member.role}</span>
+                </section>
+              </div>
+            ))}
           </div>
 
           <div className="conversation-safety-note">
-            <strong>
-              Neighbour™ safety
-            </strong>
+            <strong>Neighbour™ safety</strong>
 
-            <p>
-              Report individual messages whenever
-              something needs review.
-            </p>
+            <p>Report individual messages whenever something needs review.</p>
           </div>
         </aside>
 
         <section className="conversation-composer">
-          {error ? (
-            <div className="conversation-error">
-              {error}
-            </div>
-          ) : null}
+          {error ? <div className="conversation-error">{error}</div> : null}
 
           <textarea
             value={content}
-            onChange={(event) =>
-              setContent(
-                event.target.value,
-              )
-            }
+            onChange={(event) => setContent(event.target.value)}
             placeholder="Write a message…"
           />
 
           <div className="composer-footer">
-            <span>
-              Keep conversations respectful
-              and local.
-            </span>
+            <span>Keep conversations respectful and local.</span>
 
-            <button
-              type="button"
-              disabled={
-                busy ||
-                !content.trim()
-              }
-              onClick={() =>
-                void send()
-              }
-            >
-              {busy
-                ? 'Sending…'
-                : 'Send message'}
+            <button type="button" disabled={busy || !content.trim()} onClick={() => void send()}>
+              {busy ? 'Sending…' : 'Send message'}
             </button>
           </div>
         </section>

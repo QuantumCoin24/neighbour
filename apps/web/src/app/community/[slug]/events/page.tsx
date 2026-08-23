@@ -64,10 +64,7 @@ export default function EventsPage() {
 
   const sortedEvents = useMemo(
     () =>
-      [...events].sort(
-        (a, b) =>
-          new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
-      ),
+      [...events].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()),
     [events],
   );
 
@@ -83,8 +80,7 @@ export default function EventsPage() {
           padding: '34px 36px',
           marginBottom: 24,
           color: '#fff',
-          background:
-            'linear-gradient(135deg, #071426 0%, #102d4a 100%)',
+          background: 'linear-gradient(135deg, #071426 0%, #102d4a 100%)',
         }}
       >
         <div
@@ -142,9 +138,7 @@ export default function EventsPage() {
               border: '1px solid rgba(255,255,255,.12)',
             }}
           >
-            <div style={{ fontSize: 30, fontWeight: 850 }}>
-              {events.length}
-            </div>
+            <div style={{ fontSize: 30, fontWeight: 850 }}>{events.length}</div>
             <div style={{ color: 'rgba(255,255,255,.68)' }}>
               {events.length === 1 ? 'event' : 'events'}
             </div>
@@ -184,9 +178,7 @@ export default function EventsPage() {
               17
             </div>
 
-            <h2 style={{ margin: 0, fontSize: 30 }}>
-              Nothing scheduled yet
-            </h2>
+            <h2 style={{ margin: 0, fontSize: 30 }}>Nothing scheduled yet</h2>
 
             <p
               style={{
@@ -196,8 +188,8 @@ export default function EventsPage() {
                 margin: '10px auto 0',
               }}
             >
-              This community does not currently have any scheduled events.
-              When local events are published, they will appear here.
+              This community does not currently have any scheduled events. When local events are
+              published, they will appear here.
             </p>
 
             <Link
@@ -248,9 +240,7 @@ export default function EventsPage() {
                     Community event
                   </div>
 
-                  <h2 style={{ margin: '7px 0 6px', fontSize: 27 }}>
-                    {event.title}
-                  </h2>
+                  <h2 style={{ margin: '7px 0 6px', fontSize: 27 }}>{event.title}</h2>
 
                   {event.description ? (
                     <p
@@ -264,9 +254,7 @@ export default function EventsPage() {
                     </p>
                   ) : null}
 
-                  <strong>
-                    {new Date(event.startsAt).toLocaleString()}
-                  </strong>
+                  <strong>{new Date(event.startsAt).toLocaleString()}</strong>
                 </div>
 
                 <ReportButton targetType="EVENT" targetId={event.id} />

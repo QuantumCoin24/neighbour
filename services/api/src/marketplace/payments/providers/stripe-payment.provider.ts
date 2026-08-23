@@ -18,9 +18,7 @@ export class StripePaymentProvider implements MarketplacePaymentProviderAdapter 
     return Boolean(this.getSecretKey());
   }
 
-  async createPayment(
-    input: CreateProviderPaymentInput,
-  ): Promise<CreateProviderPaymentResult> {
+  async createPayment(input: CreateProviderPaymentInput): Promise<CreateProviderPaymentResult> {
     const stripe = this.getStripe();
 
     const intent = await stripe.paymentIntents.create(
@@ -82,10 +80,7 @@ export class StripePaymentProvider implements MarketplacePaymentProviderAdapter 
     await stripe.paymentIntents.cancel(providerReference);
   }
 
-  async refundPayment(
-    providerReference: string,
-    amountPence: number,
-  ): Promise<string> {
+  async refundPayment(providerReference: string, amountPence: number): Promise<string> {
     const stripe = this.getStripe();
 
     const refund = await stripe.refunds.create({
@@ -96,22 +91,14 @@ export class StripePaymentProvider implements MarketplacePaymentProviderAdapter 
     return refund.id;
   }
 
-  constructWebhookEvent(
-    payload: Buffer,
-    signature: string,
-  ): Stripe.Event {
-    const webhookSecret =
-      this.config.get<string>('app.stripeWebhookSecret')?.trim() ?? '';
+  constructWebhookEvent(payload: Buffer, signature: string): Stripe.Event {
+    const webhookSecret = this.config.get<string>('app.stripeWebhookSecret')?.trim() ?? '';
 
     if (!webhookSecret) {
       throw new Error('Stripe webhook secret is not configured.');
     }
 
-    return this.getStripe().webhooks.constructEvent(
-      payload,
-      signature,
-      webhookSecret,
-    );
+    return this.getStripe().webhooks.constructEvent(payload, signature, webhookSecret);
   }
 
   private getSecretKey(): string {

@@ -8,13 +8,7 @@ import {
 export const MAX_MEDIA_ITEMS = 9;
 export const MAX_MEDIA_FILE_SIZE = 20 * 1024 * 1024;
 
-const SUPPORTED = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/heic',
-  'image/heif',
-]);
+const SUPPORTED = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
 
 export interface WebPendingMedia {
   localId: string;
@@ -26,12 +20,7 @@ function resolveMimeType(file: File) {
   const normalized = file.type.toLowerCase();
 
   if (SUPPORTED.has(normalized)) {
-    return normalized as
-      | 'image/jpeg'
-      | 'image/png'
-      | 'image/webp'
-      | 'image/heic'
-      | 'image/heif';
+    return normalized as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/heic' | 'image/heif';
   }
 
   return null;
@@ -81,9 +70,7 @@ export async function uploadWebMedia(
     });
 
     if (!response.ok) {
-      throw new Error(
-        `Storage upload failed with status ${response.status}.`,
-      );
+      throw new Error(`Storage upload failed with status ${response.status}.`);
     }
 
     onProgress?.(0.82);

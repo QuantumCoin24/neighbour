@@ -2,10 +2,7 @@
 
 import Link from 'next/link';
 
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   getBusinessVerification,
@@ -16,45 +13,31 @@ import {
 } from '@neighbour/api-client';
 
 export default function BusinessVerificationPage() {
-  const [business, setBusiness] =
-    useState<Business | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
 
-  const [verification, setVerification] =
-    useState<BusinessVerification | null>(
-      null,
-    );
+  const [verification, setVerification] = useState<BusinessVerification | null>(null);
 
-  const [notes, setNotes] =
-    useState('');
+  const [notes, setNotes] = useState('');
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [busy, setBusy] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const [message, setMessage] =
-    useState('');
+  const [message, setMessage] = useState('');
 
   async function load() {
     try {
-      const current =
-        await getMyBusiness();
+      const current = await getMyBusiness();
 
       setBusiness(current);
 
       if (current) {
-        const status =
-          await getBusinessVerification(
-            current.id,
-          );
+        const status = await getBusinessVerification(current.id);
 
         setVerification(status);
       }
     } catch {
-      setMessage(
-        'Unable to load business verification.',
-      );
+      setMessage('Unable to load business verification.');
     } finally {
       setLoading(false);
     }
@@ -65,10 +48,7 @@ export default function BusinessVerificationPage() {
   }, []);
 
   async function submit() {
-    if (
-      !business ||
-      busy
-    ) {
+    if (!business || busy) {
       return;
     }
 
@@ -76,27 +56,15 @@ export default function BusinessVerificationPage() {
     setMessage('');
 
     try {
-      const result =
-        await submitBusinessVerification(
-          business.id,
-          {
-            notes:
-              notes.trim() ||
-              undefined,
-          },
-        );
+      const result = await submitBusinessVerification(business.id, {
+        notes: notes.trim() || undefined,
+      });
 
       setVerification(result);
 
-      setMessage(
-        'Verification request submitted.',
-      );
+      setMessage('Verification request submitted.');
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'Verification submission failed.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Verification submission failed.');
     } finally {
       setBusy(false);
     }
@@ -106,7 +74,6 @@ export default function BusinessVerificationPage() {
     return (
       <main className="verification-loading">
         Loading verification…
-
         <style>{`
           .verification-loading {
             width: min(100% - 48px,900px);
@@ -125,9 +92,7 @@ export default function BusinessVerificationPage() {
       <main className="verification-empty">
         <h1>No business profile</h1>
 
-        <Link href="/business/profile">
-          Create business profile
-        </Link>
+        <Link href="/business/profile">Create business profile</Link>
 
         <style>{`
           .verification-empty {
@@ -143,32 +108,22 @@ export default function BusinessVerificationPage() {
     );
   }
 
-  const status =
-    verification?.status ??
-    'NOT SUBMITTED';
+  const status = verification?.status ?? 'NOT SUBMITTED';
 
-  const approved =
-    status === 'APPROVED';
+  const approved = status === 'APPROVED';
 
   return (
     <main className="verification-page">
       <header className="verification-header">
         <div>
-          <div className="verification-eyebrow">
-            BUSINESS TRUST
-          </div>
+          <div className="verification-eyebrow">BUSINESS TRUST</div>
 
           <h1>Verification</h1>
 
-          <p>
-            Build visible trust around your local
-            business identity.
-          </p>
+          <p>Build visible trust around your local business identity.</p>
         </div>
 
-        <Link href="/business/dashboard">
-          Dashboard
-        </Link>
+        <Link href="/business/dashboard">Dashboard</Link>
       </header>
 
       <section className="verification-hero">
@@ -181,17 +136,9 @@ export default function BusinessVerificationPage() {
         </div>
 
         <div className="verification-status">
-          <span
-            className={
-              approved
-                ? 'verification-dot-approved'
-                : ''
-            }
-          />
+          <span className={approved ? 'verification-dot-approved' : ''} />
 
-          {approved
-            ? 'Verified business'
-            : 'Verification workflow'}
+          {approved ? 'Verified business' : 'Verification workflow'}
         </div>
       </section>
 
@@ -202,25 +149,16 @@ export default function BusinessVerificationPage() {
 
             <h2>{business.name}</h2>
 
-            <p>
-              {business.description ||
-                'Neighbour™ business profile.'}
-            </p>
+            <p>{business.description || 'Neighbour™ business profile.'}</p>
 
             <div className="verification-business-meta">
               <div>
-                <strong>
-                  {business.category}
-                </strong>
+                <strong>{business.category}</strong>
                 <small>Category</small>
               </div>
 
               <div>
-                <strong>
-                  {approved
-                    ? 'Trusted'
-                    : 'Active'}
-                </strong>
+                <strong>{approved ? 'Trusted' : 'Active'}</strong>
                 <small>Trust state</small>
               </div>
             </div>
@@ -230,27 +168,15 @@ export default function BusinessVerificationPage() {
             <div className="verification-card">
               <span>REQUEST VERIFICATION</span>
 
-              <h2>
-                Tell us about your business
-              </h2>
+              <h2>Tell us about your business</h2>
 
               <textarea
                 value={notes}
-                onChange={(event) =>
-                  setNotes(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setNotes(event.target.value)}
                 placeholder="Optional notes supporting your verification request"
               />
 
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() =>
-                  void submit()
-                }
-              >
+              <button type="button" disabled={busy} onClick={() => void submit()}>
                 {busy
                   ? 'Submitting…'
                   : verification
@@ -263,14 +189,10 @@ export default function BusinessVerificationPage() {
               <div>✓</div>
 
               <section>
-                <strong>
-                  Verification approved
-                </strong>
+                <strong>Verification approved</strong>
 
                 <p>
-                  FPSHQ has an approved business
-                  verification record and no new
-                  request is required.
+                  FPSHQ has an approved business verification record and no new request is required.
                 </p>
               </section>
             </div>
@@ -283,11 +205,7 @@ export default function BusinessVerificationPage() {
 
             <strong>
               {verification?.submittedAt
-                ? new Date(
-                    verification.submittedAt,
-                  ).toLocaleDateString(
-                    'en-GB',
-                  )
+                ? new Date(verification.submittedAt).toLocaleDateString('en-GB')
                 : '—'}
             </strong>
           </div>
@@ -297,34 +215,23 @@ export default function BusinessVerificationPage() {
 
             <strong>
               {verification?.reviewedAt
-                ? new Date(
-                    verification.reviewedAt,
-                  ).toLocaleDateString(
-                    'en-GB',
-                  )
+                ? new Date(verification.reviewedAt).toLocaleDateString('en-GB')
                 : '—'}
             </strong>
           </div>
 
           <div className="verification-trust-note">
-            <strong>
-              Neighbour™ trust
-            </strong>
+            <strong>Neighbour™ trust</strong>
 
             <p>
-              Verification gives neighbours a
-              clearer signal that the business
-              has completed the trust process.
+              Verification gives neighbours a clearer signal that the business has completed the
+              trust process.
             </p>
           </div>
         </aside>
       </section>
 
-      {message ? (
-        <div className="verification-message">
-          {message}
-        </div>
-      ) : null}
+      {message ? <div className="verification-message">{message}</div> : null}
 
       <style>{`
         .verification-page {

@@ -31,11 +31,7 @@ const ALL_TYPES = FILTERS.map((item) => item.type);
 type Mode = 'map' | 'list';
 
 function addressFor(item: NearbyGeoItem) {
-  return [
-    item.address.addressLine1,
-    item.address.city,
-    item.address.postcode,
-  ]
+  return [item.address.addressLine1, item.address.city, item.address.postcode]
     .filter((value): value is string => Boolean(value?.trim()))
     .join(', ');
 }
@@ -43,7 +39,6 @@ function addressFor(item: NearbyGeoItem) {
 function presentation(type: GeoEntityType) {
   return FILTERS.find((filter) => filter.type === type) ?? FILTERS[0];
 }
-
 
 const TILE_SIZE = 256;
 
@@ -55,35 +50,20 @@ function mapZoomForRadius(radiusKm: number) {
   return 10;
 }
 
-function worldPixel(
-  latitude: number,
-  longitude: number,
-  zoom: number,
-) {
+function worldPixel(latitude: number, longitude: number, zoom: number) {
   const scale = TILE_SIZE * 2 ** zoom;
   const sinLatitude = Math.sin((latitude * Math.PI) / 180);
   const bounded = Math.min(Math.max(sinLatitude, -0.9999), 0.9999);
 
   return {
     x: ((longitude + 180) / 360) * scale,
-    y:
-      (0.5 -
-        Math.log((1 + bounded) / (1 - bounded)) /
-          (4 * Math.PI)) *
-      scale,
+    y: (0.5 - Math.log((1 + bounded) / (1 - bounded)) / (4 * Math.PI)) * scale,
   };
 }
 
-function osmTiles(
-  origin: GeoPoint,
-  radiusKm: number,
-) {
+function osmTiles(origin: GeoPoint, radiusKm: number) {
   const zoom = mapZoomForRadius(radiusKm);
-  const centre = worldPixel(
-    origin.latitude,
-    origin.longitude,
-    zoom,
-  );
+  const centre = worldPixel(origin.latitude, origin.longitude, zoom);
 
   const centreTileX = Math.floor(centre.x / TILE_SIZE);
   const centreTileY = Math.floor(centre.y / TILE_SIZE);
@@ -102,14 +82,8 @@ function osmTiles(
         x,
         y,
         zoom,
-        left:
-          x * TILE_SIZE -
-          centre.x +
-          50 * TILE_SIZE,
-        top:
-          y * TILE_SIZE -
-          centre.y +
-          50 * TILE_SIZE,
+        left: x * TILE_SIZE - centre.x + 50 * TILE_SIZE,
+        top: y * TILE_SIZE - centre.y + 50 * TILE_SIZE,
       });
     }
   }
@@ -136,11 +110,7 @@ export default function NearbyPage() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(
-    async (
-      point: GeoPoint = origin,
-      radius = radiusKm,
-      selectedTypes = types,
-    ) => {
+    async (point: GeoPoint = origin, radius = radiusKm, selectedTypes = types) => {
       const requestId = ++sequence.current;
 
       setLoading(true);
@@ -159,9 +129,7 @@ export default function NearbyPage() {
         setItems(response.items);
 
         setSelectedId((current) =>
-          current && response.items.some((item) => item.id === current)
-            ? current
-            : null,
+          current && response.items.some((item) => item.id === current) ? current : null,
         );
       } catch {
         if (requestId === sequence.current) {
@@ -239,18 +207,12 @@ export default function NearbyPage() {
     return result;
   }, [items]);
 
-  const filtered = useMemo(
-    () => items.filter((item) => types.includes(item.type)),
-    [items, types],
-  );
+  const filtered = useMemo(() => items.filter((item) => types.includes(item.type)), [items, types]);
 
-  const selected =
-    filtered.find((item) => item.id === selectedId) ?? null;
+  const selected = filtered.find((item) => item.id === selectedId) ?? null;
 
   const toggleType = (type: GeoEntityType) => {
-    const next = types.includes(type)
-      ? types.filter((item) => item !== type)
-      : [...types, type];
+    const next = types.includes(type) ? types.filter((item) => item !== type) : [...types, type];
 
     const safeNext = next.length ? next : [type];
 
@@ -266,17 +228,10 @@ export default function NearbyPage() {
     void load(origin, radius, types);
   };
 
-  const mapData = useMemo(
-    () => osmTiles(origin, radiusKm),
-    [origin, radiusKm],
-  );
+  const mapData = useMemo(() => osmTiles(origin, radiusKm), [origin, radiusKm]);
 
   const markerPosition = (item: NearbyGeoItem) => {
-    const point = worldPixel(
-      item.latitude,
-      item.longitude,
-      mapData.zoom,
-    );
+    const point = worldPixel(item.latitude, item.longitude, mapData.zoom);
 
     const deltaX = point.x - mapData.centre.x;
     const deltaY = point.y - mapData.centre.y;
@@ -293,9 +248,7 @@ export default function NearbyPage() {
         <div>
           <div className="eyebrow">NEIGHBOUR MAPS™</div>
           <h1>Explore nearby</h1>
-          <p>
-            Discover communities, events and local places around you.
-          </p>
+          <p>Discover communities, events and local places around you.</p>
         </div>
 
         <div className="mode-control">
@@ -351,16 +304,12 @@ export default function NearbyPage() {
           <div>
             <strong>Manchester launch area</strong>
             <p>
-              Nearby results are using the Manchester launch area until
-              you choose to share your location.
+              Nearby results are using the Manchester launch area until you choose to share your
+              location.
             </p>
           </div>
 
-          <button
-            disabled={locating}
-            onClick={requestLocation}
-            type="button"
-          >
+          <button disabled={locating} onClick={requestLocation} type="button">
             {locating ? 'Locating…' : 'Use my location'}
           </button>
         </section>
@@ -373,10 +322,7 @@ export default function NearbyPage() {
             <p>{error}</p>
           </div>
 
-          <button
-            onClick={() => void load()}
-            type="button"
-          >
+          <button onClick={() => void load()} type="button">
             Retry
           </button>
         </section>
@@ -479,8 +425,8 @@ export default function NearbyPage() {
             <div className="empty">
               <strong>No nearby places yet</strong>
               <p>
-                Location-enabled communities, events and businesses
-                within this radius will appear here as records are added.
+                Location-enabled communities, events and businesses within this radius will appear
+                here as records are added.
               </p>
             </div>
           ) : (
@@ -492,11 +438,7 @@ export default function NearbyPage() {
                 return (
                   <button
                     key={`${item.type}-${item.id}`}
-                    className={
-                      selectedId === item.id
-                        ? 'place-card selected'
-                        : 'place-card'
-                    }
+                    className={selectedId === item.id ? 'place-card selected' : 'place-card'}
                     onClick={() => setSelectedId(item.id)}
                     type="button"
                   >
@@ -511,14 +453,10 @@ export default function NearbyPage() {
                       <span className="type-label">{meta.label}</span>
 
                       {item.description ? (
-                        <span className="description">
-                          {item.description}
-                        </span>
+                        <span className="description">{item.description}</span>
                       ) : null}
 
-                      {address ? (
-                        <span className="address">{address}</span>
-                      ) : null}
+                      {address ? <span className="address">{address}</span> : null}
                     </span>
 
                     <span className="chevron">›</span>
@@ -532,14 +470,8 @@ export default function NearbyPage() {
 
       {selected ? (
         <aside className="selection">
-          <button
-            className="selection-main"
-            onClick={() => setSelectedId(null)}
-            type="button"
-          >
-            <span className="place-icon">
-              {presentation(selected.type).symbol}
-            </span>
+          <button className="selection-main" onClick={() => setSelectedId(null)} type="button">
+            <span className="place-icon">{presentation(selected.type).symbol}</span>
 
             <span className="place-copy">
               <span className="place-heading">
@@ -547,9 +479,7 @@ export default function NearbyPage() {
                 <em>{selected.distanceKm.toFixed(1)} km</em>
               </span>
 
-              <span className="type-label">
-                {presentation(selected.type).label}
-              </span>
+              <span className="type-label">{presentation(selected.type).label}</span>
 
               {addressFor(selected) ? (
                 <span className="address">{addressFor(selected)}</span>
@@ -588,28 +518,28 @@ export default function NearbyPage() {
           border-radius: 28px;
           color: white;
           background:
-            radial-gradient(circle at 85% 20%, rgba(255,255,255,.12), transparent 30%),
+            radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.12), transparent 30%),
             linear-gradient(135deg, #063f2a, #08714a);
-          box-shadow: 0 22px 50px rgba(6,63,42,.18);
+          box-shadow: 0 22px 50px rgba(6, 63, 42, 0.18);
         }
 
         .eyebrow {
           font-size: 11px;
           font-weight: 900;
-          letter-spacing: .16em;
-          opacity: .72;
+          letter-spacing: 0.16em;
+          opacity: 0.72;
         }
 
         h1 {
           margin: 7px 0 6px;
           font-size: clamp(32px, 5vw, 52px);
-          letter-spacing: -.045em;
+          letter-spacing: -0.045em;
         }
 
         .nearby-hero p {
           margin: 0;
           max-width: 620px;
-          color: rgba(255,255,255,.78);
+          color: rgba(255, 255, 255, 0.78);
           font-size: 16px;
         }
 
@@ -618,7 +548,7 @@ export default function NearbyPage() {
           flex: 0 0 auto;
           padding: 4px;
           border-radius: 999px;
-          background: rgba(255,255,255,.12);
+          background: rgba(255, 255, 255, 0.12);
         }
 
         button {
@@ -679,12 +609,12 @@ export default function NearbyPage() {
           min-width: 22px;
           padding: 2px 6px;
           border-radius: 999px;
-          background: rgba(0,0,0,.06);
+          background: rgba(0, 0, 0, 0.06);
           font-size: 11px;
         }
 
         .filter.active .count {
-          background: rgba(255,255,255,.18);
+          background: rgba(255, 255, 255, 0.18);
         }
 
         .radius {
@@ -743,10 +673,9 @@ export default function NearbyPage() {
           border: 1px solid #dce8e1;
           border-radius: 28px;
           background:
-            radial-gradient(circle at 25% 25%, rgba(8,113,74,.10), transparent 22%),
-            radial-gradient(circle at 72% 65%, rgba(30,120,180,.08), transparent 25%),
-            #edf4ef;
-          box-shadow: 0 18px 50px rgba(20,55,37,.09);
+            radial-gradient(circle at 25% 25%, rgba(8, 113, 74, 0.1), transparent 22%),
+            radial-gradient(circle at 72% 65%, rgba(30, 120, 180, 0.08), transparent 25%), #edf4ef;
+          box-shadow: 0 18px 50px rgba(20, 55, 37, 0.09);
         }
 
         .osm-map {
@@ -778,7 +707,7 @@ export default function NearbyPage() {
           z-index: 7;
           padding: 3px 7px;
           border-radius: 7px 0 0 0;
-          background: rgba(255, 255, 255, .88);
+          background: rgba(255, 255, 255, 0.88);
           color: #526159;
           font-size: 10px;
           text-decoration: none;
@@ -798,7 +727,7 @@ export default function NearbyPage() {
           border-radius: 50%;
           background: #1676d2;
           color: white;
-          box-shadow: 0 4px 14px rgba(0,0,0,.25);
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
           font-size: 12px;
         }
 
@@ -812,7 +741,7 @@ export default function NearbyPage() {
           border-radius: 50% 50% 50% 8px;
           background: #08714a;
           color: white;
-          box-shadow: 0 7px 18px rgba(0,0,0,.20);
+          box-shadow: 0 7px 18px rgba(0, 0, 0, 0.2);
           cursor: pointer;
           font-weight: 900;
         }
@@ -832,7 +761,7 @@ export default function NearbyPage() {
         .marker.selected {
           z-index: 8;
           transform: translate(-50%, -50%) scale(1.25);
-          box-shadow: 0 8px 24px rgba(6,63,42,.35);
+          box-shadow: 0 8px 24px rgba(6, 63, 42, 0.35);
         }
 
         .map-caption {
@@ -844,10 +773,10 @@ export default function NearbyPage() {
           flex-direction: column;
           gap: 2px;
           padding: 12px 15px;
-          border: 1px solid rgba(255,255,255,.8);
+          border: 1px solid rgba(255, 255, 255, 0.8);
           border-radius: 16px;
-          background: rgba(255,255,255,.92);
-          box-shadow: 0 8px 25px rgba(0,0,0,.10);
+          background: rgba(255, 255, 255, 0.92);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
         .map-caption span {
@@ -864,9 +793,9 @@ export default function NearbyPage() {
           height: 48px;
           border: 1px solid #dce8e1;
           border-radius: 50%;
-          background: rgba(255,255,255,.94);
+          background: rgba(255, 255, 255, 0.94);
           color: #08714a;
-          box-shadow: 0 8px 25px rgba(0,0,0,.12);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
           cursor: pointer;
           font-size: 20px;
           font-weight: 900;
@@ -889,11 +818,13 @@ export default function NearbyPage() {
           border: 3px solid #dbe9e1;
           border-top-color: #08714a;
           border-radius: 50%;
-          animation: spin .75s linear infinite;
+          animation: spin 0.75s linear infinite;
         }
 
         @keyframes spin {
-          to { transform: rotate(360deg); }
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         .list-shell {
@@ -941,7 +872,7 @@ export default function NearbyPage() {
         .place-card.selected {
           border-color: #8bbda4;
           background: white;
-          box-shadow: 0 9px 24px rgba(6,63,42,.07);
+          box-shadow: 0 9px 24px rgba(6, 63, 42, 0.07);
         }
 
         .place-icon {
@@ -1024,8 +955,8 @@ export default function NearbyPage() {
           padding: 10px;
           border: 1px solid #dce8e1;
           border-radius: 23px;
-          background: rgba(255,255,255,.97);
-          box-shadow: 0 20px 60px rgba(0,0,0,.18);
+          background: rgba(255, 255, 255, 0.97);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
           backdrop-filter: blur(18px);
         }
 

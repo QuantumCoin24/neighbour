@@ -2,16 +2,9 @@
 
 import Link from 'next/link';
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import {
-  getConversations,
-  type Conversation,
-} from '@neighbour/api-client';
+import { getConversations, type Conversation } from '@neighbour/api-client';
 
 function initials(value: string) {
   return value
@@ -31,8 +24,7 @@ function formatTime(value: string | null) {
 
   const now = new Date();
 
-  const sameDay =
-    date.toDateString() === now.toDateString();
+  const sameDay = date.toDateString() === now.toDateString();
 
   if (sameDay) {
     return date.toLocaleTimeString([], {
@@ -48,21 +40,17 @@ function formatTime(value: string | null) {
 }
 
 export default function MessagesPage() {
-  const [conversations, setConversations] =
-    useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
   const [query, setQuery] = useState('');
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [message, setMessage] =
-    useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     async function load() {
-      const token =
-        localStorage.getItem('accessToken');
+      const token = localStorage.getItem('accessToken');
 
       if (!token) {
         setMessage('Please sign in first.');
@@ -71,21 +59,13 @@ export default function MessagesPage() {
       }
 
       try {
-        const result =
-          await getConversations(
-            token,
-            {
-              limit: 100,
-            },
-          );
+        const result = await getConversations(token, {
+          limit: 100,
+        });
 
         setConversations(result.items);
       } catch (error) {
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : 'Unable to load conversations.',
-        );
+        setMessage(error instanceof Error ? error.message : 'Unable to load conversations.');
       } finally {
         setLoading(false);
       }
@@ -94,68 +74,45 @@ export default function MessagesPage() {
     void load();
   }, []);
 
-  const filtered =
-    useMemo(() => {
-      const normalized =
-        query.trim().toLowerCase();
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
 
-      if (!normalized) {
-        return conversations;
-      }
+    if (!normalized) {
+      return conversations;
+    }
 
-      return conversations.filter(
-        (conversation) => {
-          const memberNames =
-            conversation.members
-              .map(
-                (member) =>
-                  member.user.displayName,
-              )
-              .join(' ');
+    return conversations.filter((conversation) => {
+      const memberNames = conversation.members.map((member) => member.user.displayName).join(' ');
 
-          const haystack = [
-            conversation.title,
-            conversation.lastMessage?.content,
-            memberNames,
-            conversation.type,
-          ]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase();
+      const haystack = [
+        conversation.title,
+        conversation.lastMessage?.content,
+        memberNames,
+        conversation.type,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
 
-          return haystack.includes(
-            normalized,
-          );
-        },
-      );
-    }, [conversations, query]);
+      return haystack.includes(normalized);
+    });
+  }, [conversations, query]);
 
   return (
     <main className="messages-page">
       <header className="messages-header">
         <div>
-          <div className="messages-eyebrow">
-            YOUR CONVERSATIONS
-          </div>
+          <div className="messages-eyebrow">YOUR CONVERSATIONS</div>
 
           <h1>Messages</h1>
 
-          <p>
-            Private conversations with neighbours
-            and people in your local network.
-          </p>
+          <p>Private conversations with neighbours and people in your local network.</p>
         </div>
 
         <div className="messages-count">
-          <strong>
-            {conversations.length}
-          </strong>
+          <strong>{conversations.length}</strong>
 
-          <span>
-            {conversations.length === 1
-              ? 'conversation'
-              : 'conversations'}
-          </span>
+          <span>{conversations.length === 1 ? 'conversation' : 'conversations'}</span>
         </div>
       </header>
 
@@ -166,9 +123,7 @@ export default function MessagesPage() {
 
             <input
               value={query}
-              onChange={(event) =>
-                setQuery(event.target.value)
-              }
+              onChange={(event) => setQuery(event.target.value)}
               placeholder="Search conversations"
             />
           </div>
@@ -176,141 +131,90 @@ export default function MessagesPage() {
           <div className="messages-list-heading">
             <strong>Inbox</strong>
 
-            <span>
-              {filtered.length}
-            </span>
+            <span>{filtered.length}</span>
           </div>
 
           {loading ? (
-            <div className="messages-state">
-              Loading conversations…
-            </div>
+            <div className="messages-state">Loading conversations…</div>
           ) : message ? (
-            <div className="messages-state">
-              {message}
-            </div>
+            <div className="messages-state">{message}</div>
           ) : filtered.length === 0 ? (
             <div className="messages-empty">
               <div>□</div>
 
-              <strong>
-                No conversations found
-              </strong>
+              <strong>No conversations found</strong>
 
-              <p>
-                Your neighbour conversations will
-                appear here.
-              </p>
+              <p>Your neighbour conversations will appear here.</p>
             </div>
           ) : (
             <div className="messages-list">
-              {filtered.map(
-                (conversation) => {
-                  const label =
-                    conversation.title ||
-                    conversation.members
-                      .map(
-                        (member) =>
-                          member.user
-                            .displayName,
-                      )
-                      .slice(0, 3)
-                      .join(', ') ||
-                    'Conversation';
+              {filtered.map((conversation) => {
+                const label =
+                  conversation.title ||
+                  conversation.members
+                    .map((member) => member.user.displayName)
+                    .slice(0, 3)
+                    .join(', ') ||
+                  'Conversation';
 
-                  const latest =
-                    conversation.lastMessage
-                      ?.content ||
-                    'No messages yet';
+                const latest = conversation.lastMessage?.content || 'No messages yet';
 
-                  return (
-                    <Link
-                      key={conversation.id}
-                      href={`/messages/${conversation.id}`}
-                      className="conversation-row"
-                    >
-                      <div className="conversation-avatar">
-                        {initials(label) ||
-                          'N'}
+                return (
+                  <Link
+                    key={conversation.id}
+                    href={`/messages/${conversation.id}`}
+                    className="conversation-row"
+                  >
+                    <div className="conversation-avatar">{initials(label) || 'N'}</div>
+
+                    <div className="conversation-copy">
+                      <div className="conversation-title-line">
+                        <strong>{label}</strong>
+
+                        <span>{formatTime(conversation.lastMessageAt)}</span>
                       </div>
 
-                      <div className="conversation-copy">
-                        <div className="conversation-title-line">
-                          <strong>
-                            {label}
-                          </strong>
+                      <p>{latest}</p>
 
-                          <span>
-                            {formatTime(
-                              conversation.lastMessageAt,
-                            )}
-                          </span>
-                        </div>
+                      <div className="conversation-meta">
+                        <span>
+                          {conversation.members.length}{' '}
+                          {conversation.members.length === 1 ? 'member' : 'members'}
+                        </span>
 
-                        <p>{latest}</p>
-
-                        <div className="conversation-meta">
-                          <span>
-                            {conversation.members
-                              .length}{' '}
-                            {conversation.members
-                              .length === 1
-                              ? 'member'
-                              : 'members'}
-                          </span>
-
-                          <span>
-                            {conversation.type}
-                          </span>
-                        </div>
+                        <span>{conversation.type}</span>
                       </div>
-                    </Link>
-                  );
-                },
-              )}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </aside>
 
         <section className="messages-welcome">
-          <div className="messages-welcome-mark">
-            N
-          </div>
+          <div className="messages-welcome-mark">N</div>
 
-          <div className="messages-welcome-eyebrow">
-            NEIGHBOUR™ MESSAGING
-          </div>
+          <div className="messages-welcome-eyebrow">NEIGHBOUR™ MESSAGING</div>
 
-          <h2>
-            Your local conversations,
-            together.
-          </h2>
+          <h2>Your local conversations, together.</h2>
 
-          <p>
-            Select a conversation from your inbox
-            to continue talking with neighbours.
-          </p>
+          <p>Select a conversation from your inbox to continue talking with neighbours.</p>
 
           <div className="messages-feature-grid">
             <div>
               <span>□</span>
-              <strong>
-                Private conversations
-              </strong>
+              <strong>Private conversations</strong>
             </div>
 
             <div>
               <span>⌂</span>
-              <strong>
-                Local connections
-              </strong>
+              <strong>Local connections</strong>
             </div>
 
             <div>
               <span>◇</span>
-              <strong>
-                Built-in safety tools
-              </strong>
+              <strong>Built-in safety tools</strong>
             </div>
           </div>
         </section>

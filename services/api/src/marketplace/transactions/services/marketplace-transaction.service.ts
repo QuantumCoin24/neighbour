@@ -1179,9 +1179,7 @@ export class MarketplaceTransactionService {
       });
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : 'Unknown marketplace conversation error.';
+        error instanceof Error ? error.message : 'Unknown marketplace conversation error.';
 
       this.logger.warn(
         `Marketplace transaction ${transactionId} completed without a conversation: ${message}`,

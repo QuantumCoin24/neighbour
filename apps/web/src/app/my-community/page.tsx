@@ -1,45 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  getMyCommunities,
-  type CommunityMembership,
-} from '@neighbour/api-client';
+import { getMyCommunities, type CommunityMembership } from '@neighbour/api-client';
 
 function formatRole(value: string) {
-  return (
-    value.charAt(0) +
-    value.slice(1).toLowerCase()
-  );
+  return value.charAt(0) + value.slice(1).toLowerCase();
 }
 
 function formatCategory(value: string) {
   return value
     .toLowerCase()
     .split('_')
-    .map(
-      (part) =>
-        part.charAt(0).toUpperCase() +
-        part.slice(1),
-    )
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 }
 
 export default function MyCommunityPage() {
-  const [communities, setCommunities] =
-    useState<CommunityMembership[]>([]);
+  const [communities, setCommunities] = useState<CommunityMembership[]>([]);
 
-  const [message, setMessage] =
-    useState('Loading your local communities...');
+  const [message, setMessage] = useState('Loading your local communities...');
 
   useEffect(() => {
-    const token =
-      localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken');
 
     if (!token) {
       setMessage('Please sign in first.');
@@ -52,38 +36,24 @@ export default function MyCommunityPage() {
         setMessage('');
       })
       .catch((error) =>
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : 'Unable to load your communities.',
-        ),
+        setMessage(error instanceof Error ? error.message : 'Unable to load your communities.'),
       );
   }, []);
 
-  const active = communities.filter(
-    (item) => item.status === 'ACTIVE',
-  );
+  const active = communities.filter((item) => item.status === 'ACTIVE');
 
   return (
     <main className="nearby-page">
       <header className="nearby-header">
         <div>
-          <div className="nearby-eyebrow">
-            YOUR LOCAL NETWORK
-          </div>
+          <div className="nearby-eyebrow">YOUR LOCAL NETWORK</div>
 
           <h1>Nearby</h1>
 
-          <p>
-            Your communities, local memberships
-            and places you’re connected to.
-          </p>
+          <p>Your communities, local memberships and places you’re connected to.</p>
         </div>
 
-        <Link
-          href="/community"
-          className="nearby-discover"
-        >
+        <Link href="/community" className="nearby-discover">
           + Discover communities
         </Link>
       </header>
@@ -92,20 +62,13 @@ export default function MyCommunityPage() {
         <div className="nearby-overview-primary">
           <span>CONNECTED COMMUNITIES</span>
           <strong>{active.length}</strong>
-          <p>
-            {active.length === 1
-              ? 'local community'
-              : 'local communities'}
-          </p>
+          <p>{active.length === 1 ? 'local community' : 'local communities'}</p>
         </div>
 
         <div className="nearby-overview-copy">
           <h2>Your neighbourhood network</h2>
 
-          <p>
-            Open a community to see local posts,
-            events, members and conversations.
-          </p>
+          <p>Open a community to see local posts, events, members and conversations.</p>
         </div>
 
         <div className="nearby-status">
@@ -114,30 +77,17 @@ export default function MyCommunityPage() {
         </div>
       </section>
 
-      {message ? (
-        <div className="nearby-message">
-          {message}
-        </div>
-      ) : null}
+      {message ? <div className="nearby-message">{message}</div> : null}
 
       {!message && active.length === 0 ? (
         <section className="nearby-empty">
-          <div className="nearby-empty-icon">
-            ⌖
-          </div>
+          <div className="nearby-empty-icon">⌖</div>
 
-          <h2>
-            Your local network starts here.
-          </h2>
+          <h2>Your local network starts here.</h2>
 
-          <p>
-            Discover a nearby community and connect
-            with the people around you.
-          </p>
+          <p>Discover a nearby community and connect with the people around you.</p>
 
-          <Link href="/community">
-            Find communities
-          </Link>
+          <Link href="/community">Find communities</Link>
         </section>
       ) : null}
 
@@ -146,51 +96,28 @@ export default function MyCommunityPage() {
           <div className="nearby-section-title">
             <h2>Your communities</h2>
 
-            <p>
-              Communities where your membership is
-              active.
-            </p>
+            <p>Communities where your membership is active.</p>
           </div>
 
           <div className="nearby-grid">
             {active.map((item) => {
-              const community =
-                item.community;
+              const community = item.community;
 
-              const location = [
-                community.city,
-                community.postcode,
-              ]
-                .filter(Boolean)
-                .join(' · ');
+              const location = [community.city, community.postcode].filter(Boolean).join(' · ');
 
               return (
-                <article
-                  key={item.id}
-                  className="nearby-card"
-                >
+                <article key={item.id} className="nearby-card">
                   <div className="nearby-card-header">
-                    <div className="nearby-pin">
-                      ⌖
-                    </div>
+                    <div className="nearby-pin">⌖</div>
 
-                    <div className="nearby-role">
-                      {formatRole(item.role)}
-                    </div>
+                    <div className="nearby-role">{formatRole(item.role)}</div>
                   </div>
 
-                  <div className="nearby-category">
-                    {formatCategory(
-                      community.category,
-                    )}
-                  </div>
+                  <div className="nearby-category">{formatCategory(community.category)}</div>
 
                   <h3>{community.name}</h3>
 
-                  <p className="nearby-location">
-                    {location ||
-                      'Local community'}
-                  </p>
+                  <p className="nearby-location">{location || 'Local community'}</p>
 
                   <p className="nearby-description">
                     {community.shortDescription ||
@@ -200,36 +127,22 @@ export default function MyCommunityPage() {
 
                   <div className="nearby-card-stats">
                     <div>
-                      <strong>
-                        {community.memberCount}
-                      </strong>
+                      <strong>{community.memberCount}</strong>
                       <span>Neighbours</span>
                     </div>
 
                     <div>
-                      <strong>
-                        {community.allowEvents
-                          ? 'Yes'
-                          : '—'}
-                      </strong>
+                      <strong>{community.allowEvents ? 'Yes' : '—'}</strong>
                       <span>Events</span>
                     </div>
 
                     <div>
-                      <strong>
-                        {item.status ===
-                        'ACTIVE'
-                          ? 'Live'
-                          : item.status}
-                      </strong>
+                      <strong>{item.status === 'ACTIVE' ? 'Live' : item.status}</strong>
                       <span>Status</span>
                     </div>
                   </div>
 
-                  <Link
-                    href={`/community/${community.slug}`}
-                    className="nearby-open"
-                  >
+                  <Link href={`/community/${community.slug}`} className="nearby-open">
                     Open community →
                   </Link>
                 </article>

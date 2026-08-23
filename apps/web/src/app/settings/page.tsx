@@ -2,65 +2,41 @@
 
 import Link from 'next/link';
 
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  getCurrentUser,
-  type AuthUser,
-} from '@neighbour/api-client';
+import { getCurrentUser, type AuthUser } from '@neighbour/api-client';
 
-import {
-  deleteAccount,
-  getAccessToken,
-  logout,
-} from '../../lib/auth';
+import { deleteAccount, getAccessToken, logout } from '../../lib/auth';
 
 export default function SettingsPage() {
-  const [user, setUser] =
-    useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [action, setAction] =
-    useState<
-      'logout' | 'delete' | null
-    >(null);
+  const [action, setAction] = useState<'logout' | 'delete' | null>(null);
 
-  const [message, setMessage] =
-    useState('');
+  const [message, setMessage] = useState('');
 
-  const [
-    confirmDelete,
-    setConfirmDelete,
-  ] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     let active = true;
 
     async function loadAccount() {
       if (!getAccessToken()) {
-        window.location.replace(
-          '/auth',
-        );
+        window.location.replace('/auth');
         return;
       }
 
       try {
-        const currentUser =
-          await getCurrentUser();
+        const currentUser = await getCurrentUser();
 
         if (active) {
           setUser(currentUser);
         }
       } catch {
         if (active) {
-          setMessage(
-            'We could not load your account details.',
-          );
+          setMessage('We could not load your account details.');
         }
       } finally {
         if (active) {
@@ -85,9 +61,7 @@ export default function SettingsPage() {
     } catch {
       setAction(null);
 
-      setMessage(
-        'Unable to sign out. Please try again.',
-      );
+      setMessage('Unable to sign out. Please try again.');
     }
   }
 
@@ -95,9 +69,7 @@ export default function SettingsPage() {
     if (!confirmDelete) {
       setConfirmDelete(true);
 
-      setMessage(
-        'Account deletion is permanent. Select Delete account permanently to confirm.',
-      );
+      setMessage('Account deletion is permanent. Select Delete account permanently to confirm.');
 
       return;
     }
@@ -111,9 +83,7 @@ export default function SettingsPage() {
       setAction(null);
       setConfirmDelete(false);
 
-      setMessage(
-        'Unable to delete your account. Please try again.',
-      );
+      setMessage('Unable to delete your account. Please try again.');
     }
   }
 
@@ -121,7 +91,6 @@ export default function SettingsPage() {
     return (
       <main className="settings-loading">
         Loading account settings…
-
         <style>{`
           .settings-loading {
             width: min(100% - 48px,900px);
@@ -140,16 +109,11 @@ export default function SettingsPage() {
     <main className="settings-page">
       <header className="settings-header">
         <div>
-          <div className="settings-eyebrow">
-            YOUR ACCOUNT
-          </div>
+          <div className="settings-eyebrow">YOUR ACCOUNT</div>
 
           <h1>Settings</h1>
 
-          <p>
-            Manage your Neighbour™ account,
-            session, safety and privacy.
-          </p>
+          <p>Manage your Neighbour™ account, session, safety and privacy.</p>
         </div>
 
         <div className="settings-session-state">
@@ -159,31 +123,18 @@ export default function SettingsPage() {
       </header>
 
       <section className="settings-identity">
-        <div className="settings-avatar">
-          {user?.displayName
-            ?.slice(0, 2)
-            .toUpperCase() || 'N'}
-        </div>
+        <div className="settings-avatar">{user?.displayName?.slice(0, 2).toUpperCase() || 'N'}</div>
 
         <div>
           <span>NEIGHBOUR™ ACCOUNT</span>
 
-          <h2>
-            {user?.displayName ??
-              'Neighbour'}
-          </h2>
+          <h2>{user?.displayName ?? 'Neighbour'}</h2>
 
-          <p>
-            {user?.email ??
-              'Account information unavailable'}
-          </p>
+          <p>{user?.email ?? 'Account information unavailable'}</p>
         </div>
 
         <div className="settings-account-state">
-          <strong>
-            {user?.status ??
-              'Unknown'}
-          </strong>
+          <strong>{user?.status ?? 'Unknown'}</strong>
 
           <span>Status</span>
         </div>
@@ -195,57 +146,39 @@ export default function SettingsPage() {
             <div className="settings-card-heading">
               <span>ACCOUNT</span>
 
-              <h2>
-                Account information
-              </h2>
+              <h2>Account information</h2>
 
-              <p>
-                Core account details attached to
-                your Neighbour™ identity.
-              </p>
+              <p>Core account details attached to your Neighbour™ identity.</p>
             </div>
 
             {user ? (
               <div className="settings-account-grid">
                 <div>
-                  <span>
-                    Display name
-                  </span>
+                  <span>Display name</span>
 
-                  <strong>
-                    {user.displayName}
-                  </strong>
+                  <strong>{user.displayName}</strong>
                 </div>
 
                 <div>
                   <span>Email</span>
 
-                  <strong>
-                    {user.email}
-                  </strong>
+                  <strong>{user.email}</strong>
                 </div>
 
                 <div>
                   <span>Account status</span>
 
-                  <strong>
-                    {user.status}
-                  </strong>
+                  <strong>{user.status}</strong>
                 </div>
 
                 <div>
                   <span>Account role</span>
 
-                  <strong>
-                    {user.role}
-                  </strong>
+                  <strong>{user.role}</strong>
                 </div>
               </div>
             ) : (
-              <p className="settings-muted">
-                Account information is
-                unavailable.
-              </p>
+              <p className="settings-muted">Account information is unavailable.</p>
             )}
           </section>
 
@@ -253,51 +186,31 @@ export default function SettingsPage() {
             <div className="settings-card-heading">
               <span>YOUR EXPERIENCE</span>
 
-              <h2>
-                Profile & safety
-              </h2>
+              <h2>Profile & safety</h2>
 
-              <p>
-                Manage your public identity and
-                review your Trust & Safety
-                activity.
-              </p>
+              <p>Manage your public identity and review your Trust & Safety activity.</p>
             </div>
 
             <div className="settings-links">
               <Link href="/profile/setup">
-                <div className="settings-link-icon">
-                  ◎
-                </div>
+                <div className="settings-link-icon">◎</div>
 
                 <section>
-                  <strong>
-                    Profile
-                  </strong>
+                  <strong>Profile</strong>
 
-                  <span>
-                    Manage your public
-                    Neighbour™ identity.
-                  </span>
+                  <span>Manage your public Neighbour™ identity.</span>
                 </section>
 
                 <b>→</b>
               </Link>
 
               <Link href="/security">
-                <div className="settings-link-icon">
-                  ◇
-                </div>
+                <div className="settings-link-icon">◇</div>
 
                 <section>
-                  <strong>
-                    Trust & Safety
-                  </strong>
+                  <strong>Trust & Safety</strong>
 
-                  <span>
-                    Review reports and access
-                    safety tools.
-                  </span>
+                  <span>Review reports and access safety tools.</span>
                 </section>
 
                 <b>→</b>
@@ -309,30 +222,18 @@ export default function SettingsPage() {
             <div className="settings-card-heading">
               <span>SESSION</span>
 
-              <h2>
-                Sign out
-              </h2>
+              <h2>Sign out</h2>
 
-              <p>
-                End this browser session and
-                return to the Neighbour™ sign-in
-                screen.
-              </p>
+              <p>End this browser session and return to the Neighbour™ sign-in screen.</p>
             </div>
 
             <button
               type="button"
               className="settings-signout"
-              disabled={
-                action !== null
-              }
-              onClick={() =>
-                void handleLogout()
-              }
+              disabled={action !== null}
+              onClick={() => void handleLogout()}
             >
-              {action === 'logout'
-                ? 'Signing out…'
-                : 'Sign out of Neighbour™'}
+              {action === 'logout' ? 'Signing out…' : 'Sign out of Neighbour™'}
             </button>
           </section>
         </div>
@@ -341,15 +242,11 @@ export default function SettingsPage() {
           <section className="settings-rail-card">
             <span>ACCOUNT SECURITY</span>
 
-            <h3>
-              Your session
-            </h3>
+            <h3>Your session</h3>
 
             <p>
-              Neighbour™ automatically refreshes
-              your authenticated web session
-              while valid credentials remain
-              available.
+              Neighbour™ automatically refreshes your authenticated web session while valid
+              credentials remain available.
             </p>
 
             <div className="settings-live-row">
@@ -361,18 +258,11 @@ export default function SettingsPage() {
           <section className="settings-rail-card">
             <span>PRIVACY</span>
 
-            <h3>
-              Profile controls
-            </h3>
+            <h3>Profile controls</h3>
 
-            <p>
-              Your local-area visibility can be
-              managed from your Profile page.
-            </p>
+            <p>Your local-area visibility can be managed from your Profile page.</p>
 
-            <Link href="/profile/setup">
-              Open profile →
-            </Link>
+            <Link href="/profile/setup">Open profile →</Link>
           </section>
         </aside>
       </section>
@@ -383,22 +273,14 @@ export default function SettingsPage() {
 
           <h2>Delete account</h2>
 
-          <p>
-            Permanently delete your Neighbour™
-            account. This action cannot be
-            reversed.
-          </p>
+          <p>Permanently delete your Neighbour™ account. This action cannot be reversed.</p>
         </div>
 
         <div className="settings-danger-actions">
           <button
             type="button"
-            disabled={
-              action !== null
-            }
-            onClick={() =>
-              void handleDeleteAccount()
-            }
+            disabled={action !== null}
+            onClick={() => void handleDeleteAccount()}
           >
             {action === 'delete'
               ? 'Deleting account…'
@@ -407,15 +289,12 @@ export default function SettingsPage() {
                 : 'Delete account'}
           </button>
 
-          {confirmDelete &&
-          action === null ? (
+          {confirmDelete && action === null ? (
             <button
               type="button"
               className="settings-cancel-delete"
               onClick={() => {
-                setConfirmDelete(
-                  false,
-                );
+                setConfirmDelete(false);
 
                 setMessage('');
               }}
@@ -427,11 +306,7 @@ export default function SettingsPage() {
       </section>
 
       {message ? (
-        <div
-          role="status"
-          aria-live="polite"
-          className="settings-message"
-        >
+        <div role="status" aria-live="polite" className="settings-message">
           {message}
         </div>
       ) : null}

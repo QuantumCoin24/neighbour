@@ -5,11 +5,7 @@ import Link from 'next/link';
 
 import { label, priceLabel } from './marketplace-ui';
 
-export default function MarketplaceListingCard({
-  listing,
-}: {
-  listing: MarketplaceListing;
-}) {
+export default function MarketplaceListingCard({ listing }: { listing: MarketplaceListing }) {
   const image = listing.media[0]?.asset.url;
 
   return (
@@ -78,9 +74,7 @@ export default function MarketplaceListingCard({
             {listing.title}
           </strong>
 
-          {listing.saved ? (
-            <span title="Saved">♥</span>
-          ) : null}
+          {listing.saved ? <span title="Saved">♥</span> : null}
         </div>
 
         <div

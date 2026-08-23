@@ -2,35 +2,23 @@
 
 import Link from 'next/link';
 
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  getBusinessAnalytics,
-  getBusinessDashboard,
-  getMyBusiness,
-} from '@neighbour/api-client';
+import { getBusinessAnalytics, getBusinessDashboard, getMyBusiness } from '@neighbour/api-client';
 
 export default function BusinessDashboardPage() {
-  const [dashboard, setDashboard] =
-    useState<any>(null);
+  const [dashboard, setDashboard] = useState<any>(null);
 
-  const [analytics, setAnalytics] =
-    useState<any>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [error, setError] =
-    useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     async function load() {
       try {
-        const business =
-          await getMyBusiness();
+        const business = await getMyBusiness();
 
         if (!business) {
           setDashboard(null);
@@ -38,10 +26,7 @@ export default function BusinessDashboardPage() {
         }
 
         try {
-          const dashboardData =
-            await getBusinessDashboard(
-              business.id,
-            );
+          const dashboardData = await getBusinessDashboard(business.id);
 
           setDashboard(
             dashboardData?.business
@@ -49,15 +34,9 @@ export default function BusinessDashboardPage() {
               : {
                   ...dashboardData,
                   business,
-                  verification:
-                    dashboardData?.verification ??
-                    null,
-                  offers:
-                    dashboardData?.offers ??
-                    [],
-                  events:
-                    dashboardData?.events ??
-                    [],
+                  verification: dashboardData?.verification ?? null,
+                  offers: dashboardData?.offers ?? [],
+                  events: dashboardData?.events ?? [],
                 },
           );
         } catch {
@@ -68,25 +47,18 @@ export default function BusinessDashboardPage() {
             events: [],
           });
 
-          setError(
-            'Some business dashboard data is temporarily unavailable.',
-          );
+          setError('Some business dashboard data is temporarily unavailable.');
         }
 
         try {
-          const analyticsData =
-            await getBusinessAnalytics(
-              business.id,
-            );
+          const analyticsData = await getBusinessAnalytics(business.id);
 
           setAnalytics(analyticsData);
         } catch {
           setAnalytics(null);
         }
       } catch {
-        setError(
-          'Unable to load your business account.',
-        );
+        setError('Unable to load your business account.');
       } finally {
         setLoading(false);
       }
@@ -99,7 +71,6 @@ export default function BusinessDashboardPage() {
     return (
       <main className="business-loading">
         Loading your business centre…
-
         <style>{`
           .business-loading {
             width: min(100% - 48px,900px);
@@ -119,18 +90,11 @@ export default function BusinessDashboardPage() {
       <main className="business-empty">
         <div>▣</div>
 
-        <h1>
-          Start your business presence
-        </h1>
+        <h1>Start your business presence</h1>
 
-        <p>
-          Create your Neighbour™ business
-          profile before opening the dashboard.
-        </p>
+        <p>Create your Neighbour™ business profile before opening the dashboard.</p>
 
-        <Link href="/business/profile">
-          Create business profile
-        </Link>
+        <Link href="/business/profile">Create business profile</Link>
 
         <style>{`
           .business-empty {
@@ -173,64 +137,42 @@ export default function BusinessDashboardPage() {
     );
   }
 
-  const business =
-    dashboard.business;
+  const business = dashboard.business;
 
-  const verification =
-    dashboard.verification;
+  const verification = dashboard.verification;
 
-  const offers =
-    dashboard.offers ?? [];
+  const offers = dashboard.offers ?? [];
 
-  const events =
-    dashboard.events ?? [];
+  const events = dashboard.events ?? [];
 
   return (
     <main className="dashboard-page">
       <header className="dashboard-header">
         <div>
-          <div className="dashboard-eyebrow">
-            BUSINESS COMMAND CENTRE
-          </div>
+          <div className="dashboard-eyebrow">BUSINESS COMMAND CENTRE</div>
 
           <h1>{business.name}</h1>
 
-          <p>
-            Manage your local presence,
-            engagement and business activity.
-          </p>
+          <p>Manage your local presence, engagement and business activity.</p>
         </div>
 
-        <Link href="/business/profile">
-          Edit business
-        </Link>
+        <Link href="/business/profile">Edit business</Link>
       </header>
 
-      {error ? (
-        <div className="dashboard-error">
-          {error}
-        </div>
-      ) : null}
+      {error ? <div className="dashboard-error">{error}</div> : null}
 
       <section className="dashboard-identity">
         <div>
           <span>BUSINESS STATUS</span>
 
-          <h2>
-            {business.name}
-          </h2>
+          <h2>{business.name}</h2>
 
-          <p>
-            {business.category}
-          </p>
+          <p>{business.category}</p>
         </div>
 
         <div className="dashboard-verification">
           <span />
-          {verification?.status ??
-            (business.verified
-              ? 'Verified'
-              : 'Active')}
+          {verification?.status ?? (business.verified ? 'Verified' : 'Active')}
         </div>
       </section>
 
@@ -238,41 +180,17 @@ export default function BusinessDashboardPage() {
         <div className="dashboard-section-heading">
           <h2>Overview</h2>
 
-          <p>
-            Your business activity at a glance.
-          </p>
+          <p>Your business activity at a glance.</p>
         </div>
 
         <div className="dashboard-metrics">
-          <Metric
-            label="Active offers"
-            value={offers.length}
-            icon="◇"
-          />
+          <Metric label="Active offers" value={offers.length} icon="◇" />
 
-          <Metric
-            label="Upcoming events"
-            value={events.length}
-            icon="17"
-          />
+          <Metric label="Upcoming events" value={events.length} icon="17" />
 
-          <Metric
-            label="Profile views"
-            value={
-              analytics?.profileViews ??
-              0
-            }
-            icon="◎"
-          />
+          <Metric label="Profile views" value={analytics?.profileViews ?? 0} icon="◎" />
 
-          <Metric
-            label="Total reach"
-            value={
-              analytics?.totalReach ??
-              0
-            }
-            icon="⌖"
-          />
+          <Metric label="Total reach" value={analytics?.totalReach ?? 0} icon="⌖" />
         </div>
       </section>
 
@@ -283,36 +201,25 @@ export default function BusinessDashboardPage() {
               <div>
                 <span>ENGAGEMENT</span>
 
-                <h2>
-                  Local performance
-                </h2>
+                <h2>Local performance</h2>
               </div>
             </div>
 
             <div className="engagement-grid">
               <div>
-                <strong>
-                  {analytics?.offerViews ??
-                    0}
-                </strong>
+                <strong>{analytics?.offerViews ?? 0}</strong>
 
                 <span>Offer views</span>
               </div>
 
               <div>
-                <strong>
-                  {analytics?.eventViews ??
-                    0}
-                </strong>
+                <strong>{analytics?.eventViews ?? 0}</strong>
 
                 <span>Event views</span>
               </div>
 
               <div>
-                <strong>
-                  {analytics?.profileViews ??
-                    0}
-                </strong>
+                <strong>{analytics?.profileViews ?? 0}</strong>
 
                 <span>Profile views</span>
               </div>
@@ -324,34 +231,24 @@ export default function BusinessDashboardPage() {
               <div>
                 <span>ACTIVITY</span>
 
-                <h2>
-                  Business tools
-                </h2>
+                <h2>Business tools</h2>
               </div>
             </div>
 
             <div className="dashboard-actions">
               <Link href="/business/offers">
                 <strong>Create offer</strong>
-                <span>
-                  Publish something for nearby
-                  customers.
-                </span>
+                <span>Publish something for nearby customers.</span>
               </Link>
 
               <Link href="/business/profile">
                 <strong>Edit profile</strong>
-                <span>
-                  Keep your business identity
-                  current.
-                </span>
+                <span>Keep your business identity current.</span>
               </Link>
 
               <Link href="/business/verification">
                 <strong>Verification</strong>
-                <span>
-                  Review your trust status.
-                </span>
+                <span>Review your trust status.</span>
               </Link>
             </div>
           </div>
@@ -361,32 +258,19 @@ export default function BusinessDashboardPage() {
           <div className="dashboard-rail-card">
             <span>VERIFICATION</span>
 
-            <h3>
-              {verification?.status ??
-                'Pending'}
-            </h3>
+            <h3>{verification?.status ?? 'Pending'}</h3>
 
-            <p>
-              Build trust with neighbours and
-              strengthen your local presence.
-            </p>
+            <p>Build trust with neighbours and strengthen your local presence.</p>
 
-            <Link href="/business/verification">
-              View verification →
-            </Link>
+            <Link href="/business/verification">View verification →</Link>
           </div>
 
           <div className="dashboard-rail-card">
             <span>BUSINESS REACH</span>
 
-            <h3>
-              {analytics?.totalReach ??
-                0}
-            </h3>
+            <h3>{analytics?.totalReach ?? 0}</h3>
 
-            <p>
-              Total recorded community activity.
-            </p>
+            <p>Total recorded community activity.</p>
           </div>
         </aside>
       </section>
@@ -702,20 +586,10 @@ export default function BusinessDashboardPage() {
   );
 }
 
-function Metric({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  icon: string;
-}) {
+function Metric({ label, value, icon }: { label: string; value: string | number; icon: string }) {
   return (
     <article className="metric">
-      <div className="metric-icon">
-        {icon}
-      </div>
+      <div className="metric-icon">{icon}</div>
 
       <strong>{value}</strong>
 

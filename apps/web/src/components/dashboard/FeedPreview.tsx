@@ -3,25 +3,16 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import {
-  getCommunityFeed,
-  type Post,
-} from '@neighbour/api-client';
+import { getCommunityFeed, type Post } from '@neighbour/api-client';
 
-import {
-  NeighbourAvatar,
-  NeighbourBadge,
-} from '@neighbour/design-system';
+import { NeighbourAvatar, NeighbourBadge } from '@neighbour/design-system';
 
 interface Props {
   token: string;
   communitySlug?: string;
 }
 
-export default function FeedPreview({
-  token,
-  communitySlug,
-}: Props) {
+export default function FeedPreview({ token, communitySlug }: Props) {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
@@ -31,11 +22,7 @@ export default function FeedPreview({
       }
 
       try {
-        const response =
-          await getCommunityFeed(
-            token,
-            communitySlug,
-          );
+        const response = await getCommunityFeed(token, communitySlug);
 
         setPosts(response.items.slice(0, 4));
       } catch {
@@ -50,77 +37,46 @@ export default function FeedPreview({
     <section className="feed-module">
       <div className="feed-header">
         <div>
-          <div className="feed-kicker">
-            LIVE LOCALLY
-          </div>
+          <div className="feed-kicker">LIVE LOCALLY</div>
 
           <h2>Community feed</h2>
 
-          <p>
-            Conversations and updates from your
-            neighbours.
-          </p>
+          <p>Conversations and updates from your neighbours.</p>
         </div>
 
-        <Link href="/community">
-          Open feed →
-        </Link>
+        <Link href="/community">Open feed →</Link>
       </div>
 
       {posts.length === 0 ? (
         <div className="feed-empty">
-          <div className="feed-empty-icon">
-            ✦
-          </div>
+          <div className="feed-empty-icon">✦</div>
 
           <div>
-            <strong>
-              Your neighbourhood feed is ready.
-            </strong>
+            <strong>Your neighbourhood feed is ready.</strong>
 
-            <p>
-              No posts yet. Be the first neighbour
-              to start the conversation.
-            </p>
+            <p>No posts yet. Be the first neighbour to start the conversation.</p>
           </div>
 
-          <Link href="/community">
-            Share an update
-          </Link>
+          <Link href="/community">Share an update</Link>
         </div>
       ) : (
         <div className="feed-list">
           {posts.map((post) => (
-            <article
-              key={post.id}
-              className="feed-post"
-            >
+            <article key={post.id} className="feed-post">
               <div className="feed-author">
-                <NeighbourAvatar
-                  name={
-                    post.author.displayName
-                  }
-                />
+                <NeighbourAvatar name={post.author.displayName} />
 
                 <div>
-                  <strong>
-                    {post.author.displayName}
-                  </strong>
+                  <strong>{post.author.displayName}</strong>
 
                   <div className="feed-meta">
-                    <NeighbourBadge>
-                      {post.community?.name ??
-                        'Neighbour'}
-                    </NeighbourBadge>
+                    <NeighbourBadge>{post.community?.name ?? 'Neighbour'}</NeighbourBadge>
                   </div>
                 </div>
               </div>
 
               <div className="feed-post-copy">
-                <h3>
-                  {post.title ??
-                    'Neighbour update'}
-                </h3>
+                <h3>{post.title ?? 'Neighbour update'}</h3>
 
                 <p>{post.content}</p>
               </div>

@@ -4,10 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 
-import {
-  getCommunity,
-  type Community,
-} from '@neighbour/api-client';
+import { getCommunity, type Community } from '@neighbour/api-client';
 
 import CommunityTabs from '../../../../components/community/CommunityTabs';
 
@@ -67,12 +64,7 @@ export default function AboutPage() {
   const location = useMemo(() => {
     if (!community) return '';
 
-    return [
-      community.addressLine1,
-      community.addressLine2,
-      community.city,
-      community.postcode,
-    ]
+    return [community.addressLine1, community.addressLine2, community.city, community.postcode]
       .filter(Boolean)
       .join(', ');
   }, [community]);
@@ -100,8 +92,7 @@ export default function AboutPage() {
           padding: '34px 36px',
           marginBottom: 24,
           color: '#fff',
-          background:
-            'linear-gradient(135deg, #071426 0%, #102d4a 100%)',
+          background: 'linear-gradient(135deg, #071426 0%, #102d4a 100%)',
         }}
       >
         <div
@@ -164,9 +155,7 @@ export default function AboutPage() {
               Community
             </div>
 
-            <h2 style={{ margin: '8px 0 12px', fontSize: 29 }}>
-              About {community.name}
-            </h2>
+            <h2 style={{ margin: '8px 0 12px', fontSize: 29 }}>About {community.name}</h2>
 
             <p
               style={{
@@ -196,9 +185,7 @@ export default function AboutPage() {
                 Welcome
               </div>
 
-              <h2 style={{ margin: '8px 0 12px', fontSize: 27 }}>
-                A message to neighbours
-              </h2>
+              <h2 style={{ margin: '8px 0 12px', fontSize: 27 }}>A message to neighbours</h2>
 
               <p
                 style={{
@@ -225,9 +212,7 @@ export default function AboutPage() {
               Community rules
             </div>
 
-            <h2 style={{ margin: '8px 0 16px', fontSize: 27 }}>
-              Local standards
-            </h2>
+            <h2 style={{ margin: '8px 0 16px', fontSize: 27 }}>Local standards</h2>
 
             {community.rules.length > 0 ? (
               <div style={{ display: 'grid', gap: 10 }}>
@@ -241,10 +226,7 @@ export default function AboutPage() {
                       lineHeight: 1.5,
                     }}
                   >
-                    <strong style={{ color: '#08754b' }}>
-                      {index + 1}.
-                    </strong>{' '}
-                    {rule}
+                    <strong style={{ color: '#08754b' }}>{index + 1}.</strong> {rule}
                   </div>
                 ))}
               </div>
@@ -270,44 +252,32 @@ export default function AboutPage() {
               Community snapshot
             </div>
 
-            <h3 style={{ margin: '8px 0 18px', fontSize: 23 }}>
-              At a glance
-            </h3>
+            <h3 style={{ margin: '8px 0 18px', fontSize: 23 }}>At a glance</h3>
 
             <div style={{ display: 'grid', gap: 13 }}>
               <div>
                 <small style={{ color: '#819087' }}>Members</small>
-                <div style={{ fontWeight: 850, fontSize: 18 }}>
-                  {community.memberCount}
-                </div>
+                <div style={{ fontWeight: 850, fontSize: 18 }}>{community.memberCount}</div>
               </div>
 
               <div>
                 <small style={{ color: '#819087' }}>Category</small>
-                <div style={{ fontWeight: 800 }}>
-                  {formatLabel(community.category)}
-                </div>
+                <div style={{ fontWeight: 800 }}>{formatLabel(community.category)}</div>
               </div>
 
               <div>
                 <small style={{ color: '#819087' }}>Visibility</small>
-                <div style={{ fontWeight: 800 }}>
-                  {formatLabel(community.visibility)}
-                </div>
+                <div style={{ fontWeight: 800 }}>{formatLabel(community.visibility)}</div>
               </div>
 
               <div>
                 <small style={{ color: '#819087' }}>Join policy</small>
-                <div style={{ fontWeight: 800 }}>
-                  {formatLabel(community.joinPolicy)}
-                </div>
+                <div style={{ fontWeight: 800 }}>{formatLabel(community.joinPolicy)}</div>
               </div>
 
               <div>
                 <small style={{ color: '#819087' }}>Location</small>
-                <div style={{ fontWeight: 800 }}>
-                  {location || 'Local area'}
-                </div>
+                <div style={{ fontWeight: 800 }}>{location || 'Local area'}</div>
               </div>
             </div>
           </section>
@@ -325,9 +295,7 @@ export default function AboutPage() {
               Community features
             </div>
 
-            <h3 style={{ margin: '8px 0 16px', fontSize: 23 }}>
-              What’s enabled
-            </h3>
+            <h3 style={{ margin: '8px 0 16px', fontSize: 23 }}>What’s enabled</h3>
 
             <div style={{ display: 'grid', gap: 10 }}>
               {[

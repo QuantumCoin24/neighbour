@@ -8,20 +8,14 @@ import MobileNavigation from './MobileNavigation';
 
 import { configureWebApiClient } from '../../lib/auth';
 
-export default function AppShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
     configureWebApiClient();
   }, []);
 
-  const publicRoute =
-    pathname === '/auth' ||
-    pathname.startsWith('/auth/');
+  const publicRoute = pathname === '/auth' || pathname.startsWith('/auth/');
 
   if (publicRoute) {
     return (

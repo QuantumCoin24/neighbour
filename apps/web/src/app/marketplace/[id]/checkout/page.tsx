@@ -21,8 +21,7 @@ export default function MarketplaceCheckoutPage() {
   const router = useRouter();
 
   const [listing, setListing] = useState<MarketplaceListing | null>(null);
-  const [fulfilmentMethod, setFulfilmentMethod] =
-    useState<MarketplaceFulfilmentMethod | ''>('');
+  const [fulfilmentMethod, setFulfilmentMethod] = useState<MarketplaceFulfilmentMethod | ''>('');
   const [paymentMethod, setPaymentMethod] = useState('');
 
   const [addressLine1, setAddressLine1] = useState('');
@@ -31,8 +30,9 @@ export default function MarketplaceCheckoutPage() {
   const [postcode, setPostcode] = useState('');
   const [instructions, setInstructions] = useState('');
 
-  const [paymentMethods, setPaymentMethods] =
-    useState<Awaited<ReturnType<typeof getMarketplacePaymentMethods>> | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<Awaited<
+    ReturnType<typeof getMarketplacePaymentMethods>
+  > | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -40,10 +40,7 @@ export default function MarketplaceCheckoutPage() {
   useEffect(() => {
     let active = true;
 
-    void Promise.all([
-      getMarketplaceListing(params.id),
-      getMarketplacePaymentMethods(),
-    ])
+    void Promise.all([getMarketplaceListing(params.id), getMarketplacePaymentMethods()])
       .then(([loadedListing, loadedPaymentMethods]) => {
         if (!active) return;
 
@@ -60,19 +57,14 @@ export default function MarketplaceCheckoutPage() {
           setFulfilmentMethod(available[0]);
         }
 
-        const firstEnabled =
-          loadedPaymentMethods.methods?.find((method) => method.enabled);
+        const firstEnabled = loadedPaymentMethods.methods?.find((method) => method.enabled);
 
         setPaymentMethod(firstEnabled?.id ?? '');
       })
       .catch((caught) => {
         if (!active) return;
 
-        setError(
-          caught instanceof Error
-            ? caught.message
-            : 'Checkout could not be loaded.',
-        );
+        setError(caught instanceof Error ? caught.message : 'Checkout could not be loaded.');
       });
 
     return () => {
@@ -116,26 +108,14 @@ export default function MarketplaceCheckoutPage() {
     return options;
   }, [listing]);
 
-  const needsAddress =
-    fulfilmentMethod === 'DELIVERY' ||
-    fulfilmentMethod === 'POSTAGE';
+  const needsAddress = fulfilmentMethod === 'DELIVERY' || fulfilmentMethod === 'POSTAGE';
 
   const addressComplete =
     !needsAddress ||
-    (
-      addressLine1.trim().length > 0 &&
-      city.trim().length > 0 &&
-      postcode.trim().length > 0
-    );
+    (addressLine1.trim().length > 0 && city.trim().length > 0 && postcode.trim().length > 0);
 
   async function confirmPurchase() {
-    if (
-      !listing ||
-      !fulfilmentMethod ||
-      !paymentMethod ||
-      !addressComplete ||
-      busy
-    ) {
+    if (!listing || !fulfilmentMethod || !paymentMethod || !addressComplete || busy) {
       return;
     }
 
@@ -155,24 +135,17 @@ export default function MarketplaceCheckoutPage() {
 
       const transaction = await purchaseMarketplaceListing(listing.id);
 
-      const fulfilment = await createMarketplaceFulfilment(
-        transaction.id,
-        {
-          method: fulfilmentMethod,
-        },
-      );
+      const fulfilment = await createMarketplaceFulfilment(transaction.id, {
+        method: fulfilmentMethod,
+      });
 
       if (needsAddress) {
         await createMarketplaceDelivery(fulfilment.id, {
           addressLine1: addressLine1.trim(),
-          ...(addressLine2.trim()
-            ? { addressLine2: addressLine2.trim() }
-            : {}),
+          ...(addressLine2.trim() ? { addressLine2: addressLine2.trim() } : {}),
           city: city.trim(),
           postcode: postcode.trim().toUpperCase(),
-          ...(instructions.trim()
-            ? { instructions: instructions.trim() }
-            : {}),
+          ...(instructions.trim() ? { instructions: instructions.trim() } : {}),
         });
       }
 
@@ -182,17 +155,9 @@ export default function MarketplaceCheckoutPage() {
         amountPence: transaction.agreedPricePence,
       });
 
-      if (
-        payment.provider === 'STRIPE' &&
-        payment.method === 'CARD'
-      ) {
-        if (
-          payment.status !== 'REQUIRES_ACTION' ||
-          !payment.clientSecret
-        ) {
-          throw new Error(
-            'Stripe card payment could not be started.',
-          );
+      if (payment.provider === 'STRIPE' && payment.method === 'CARD') {
+        if (payment.status !== 'REQUIRES_ACTION' || !payment.clientSecret) {
+          throw new Error('Stripe card payment could not be started.');
         }
 
         const paymentParams = new URLSearchParams({
@@ -201,9 +166,7 @@ export default function MarketplaceCheckoutPage() {
           payment: paymentMethod,
         });
 
-        router.push(
-          `/marketplace/transactions/${transaction.id}/pay?${paymentParams.toString()}`,
-        );
+        router.push(`/marketplace/transactions/${transaction.id}/pay?${paymentParams.toString()}`);
 
         return;
       }
@@ -214,15 +177,9 @@ export default function MarketplaceCheckoutPage() {
         payment: paymentMethod,
       });
 
-      router.push(
-        `/marketplace/transactions/${transaction.id}?${confirmationParams.toString()}`,
-      );
+      router.push(`/marketplace/transactions/${transaction.id}?${confirmationParams.toString()}`);
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Your purchase could not be completed.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Your purchase could not be completed.');
     } finally {
       setBusy(false);
     }
@@ -233,9 +190,7 @@ export default function MarketplaceCheckoutPage() {
       <main style={page}>
         <section style={shell}>
           <p style={eyebrow}>NEIGHBOUR™ MARKETPLACE</p>
-          <h1 style={title}>
-            {error ? 'Checkout unavailable' : 'Opening checkout…'}
-          </h1>
+          <h1 style={title}>{error ? 'Checkout unavailable' : 'Opening checkout…'}</h1>
 
           {error ? <div style={errorBox}>{error}</div> : null}
         </section>
@@ -243,8 +198,7 @@ export default function MarketplaceCheckoutPage() {
     );
   }
 
-  const enabledPaymentMethods =
-    paymentMethods?.methods?.filter((method) => method.enabled) ?? [];
+  const enabledPaymentMethods = paymentMethods?.methods?.filter((method) => method.enabled) ?? [];
 
   return (
     <main style={page}>
@@ -256,9 +210,7 @@ export default function MarketplaceCheckoutPage() {
 
           <p style={eyebrow}>NEIGHBOUR™ MARKETPLACE</p>
           <h1 style={title}>Checkout</h1>
-          <p style={muted}>
-            Choose how you want it and complete your purchase.
-          </p>
+          <p style={muted}>Choose how you want it and complete your purchase.</p>
         </header>
 
         {error ? <div style={errorBox}>{error}</div> : null}
@@ -266,9 +218,7 @@ export default function MarketplaceCheckoutPage() {
         <section style={card}>
           <p style={sectionLabel}>YOUR ITEM</p>
           <h2 style={itemTitle}>{listing.title}</h2>
-          <strong style={price}>
-            {priceLabel(listing.pricePence, false)}
-          </strong>
+          <strong style={price}>{priceLabel(listing.pricePence, false)}</strong>
         </section>
 
         <section style={card}>
@@ -285,9 +235,7 @@ export default function MarketplaceCheckoutPage() {
                   style={{
                     ...optionCard,
                     borderColor: selected ? '#08714a' : '#ddddda',
-                    boxShadow: selected
-                      ? '0 0 0 1px #08714a'
-                      : 'none',
+                    boxShadow: selected ? '0 0 0 1px #08714a' : 'none',
                   }}
                 >
                   <input
@@ -299,9 +247,7 @@ export default function MarketplaceCheckoutPage() {
 
                   <span>
                     <strong>{option.title}</strong>
-                    <small style={optionDescription}>
-                      {option.description}
-                    </small>
+                    <small style={optionDescription}>{option.description}</small>
                   </span>
                 </label>
               );
@@ -312,9 +258,7 @@ export default function MarketplaceCheckoutPage() {
         {needsAddress ? (
           <section style={card}>
             <p style={sectionLabel}>
-              {fulfilmentMethod === 'POSTAGE'
-                ? 'POSTAGE ADDRESS'
-                : 'DELIVERY ADDRESS'}
+              {fulfilmentMethod === 'POSTAGE' ? 'POSTAGE ADDRESS' : 'DELIVERY ADDRESS'}
             </p>
 
             <h2 style={cardTitle}>Where should it go?</h2>
@@ -322,9 +266,7 @@ export default function MarketplaceCheckoutPage() {
             <div style={formGrid}>
               <input
                 value={addressLine1}
-                onChange={(event) =>
-                  setAddressLine1(event.target.value)
-                }
+                onChange={(event) => setAddressLine1(event.target.value)}
                 placeholder="Address line 1"
                 autoComplete="address-line1"
                 style={input}
@@ -332,9 +274,7 @@ export default function MarketplaceCheckoutPage() {
 
               <input
                 value={addressLine2}
-                onChange={(event) =>
-                  setAddressLine2(event.target.value)
-                }
+                onChange={(event) => setAddressLine2(event.target.value)}
                 placeholder="Address line 2 (optional)"
                 autoComplete="address-line2"
                 style={input}
@@ -343,9 +283,7 @@ export default function MarketplaceCheckoutPage() {
               <div style={twoColumns}>
                 <input
                   value={city}
-                  onChange={(event) =>
-                    setCity(event.target.value)
-                  }
+                  onChange={(event) => setCity(event.target.value)}
                   placeholder="Town or city"
                   autoComplete="address-level2"
                   style={input}
@@ -353,9 +291,7 @@ export default function MarketplaceCheckoutPage() {
 
                 <input
                   value={postcode}
-                  onChange={(event) =>
-                    setPostcode(event.target.value)
-                  }
+                  onChange={(event) => setPostcode(event.target.value)}
                   placeholder="Postcode"
                   autoComplete="postal-code"
                   style={input}
@@ -364,9 +300,7 @@ export default function MarketplaceCheckoutPage() {
 
               <textarea
                 value={instructions}
-                onChange={(event) =>
-                  setInstructions(event.target.value)
-                }
+                onChange={(event) => setInstructions(event.target.value)}
                 placeholder="Delivery instructions (optional)"
                 style={{
                   ...input,
@@ -393,9 +327,7 @@ export default function MarketplaceCheckoutPage() {
                     style={{
                       ...optionCard,
                       borderColor: selected ? '#08714a' : '#ddddda',
-                      boxShadow: selected
-                        ? '0 0 0 1px #08714a'
-                        : 'none',
+                      boxShadow: selected ? '0 0 0 1px #08714a' : 'none',
                     }}
                   >
                     <input
@@ -407,18 +339,14 @@ export default function MarketplaceCheckoutPage() {
 
                     <span>
                       <strong>{humanise(method.id)}</strong>
-                      <small style={optionDescription}>
-                        {method.provider}
-                      </small>
+                      <small style={optionDescription}>{method.provider}</small>
                     </span>
                   </label>
                 );
               })}
             </div>
           ) : (
-            <p style={muted}>
-              No Marketplace payment methods are currently enabled.
-            </p>
+            <p style={muted}>No Marketplace payment methods are currently enabled.</p>
           )}
         </section>
 
@@ -432,20 +360,12 @@ export default function MarketplaceCheckoutPage() {
 
           <div style={summaryRow}>
             <span>Getting it</span>
-            <strong>
-              {fulfilmentMethod
-                ? humanise(fulfilmentMethod)
-                : 'Not selected'}
-            </strong>
+            <strong>{fulfilmentMethod ? humanise(fulfilmentMethod) : 'Not selected'}</strong>
           </div>
 
           <div style={summaryRow}>
             <span>Payment</span>
-            <strong>
-              {paymentMethod
-                ? humanise(paymentMethod)
-                : 'Not selected'}
-            </strong>
+            <strong>{paymentMethod ? humanise(paymentMethod) : 'Not selected'}</strong>
           </div>
 
           <div style={divider} />
@@ -457,35 +377,20 @@ export default function MarketplaceCheckoutPage() {
 
           <button
             type="button"
-            disabled={
-              busy ||
-              !fulfilmentMethod ||
-              !paymentMethod ||
-              !addressComplete
-            }
+            disabled={busy || !fulfilmentMethod || !paymentMethod || !addressComplete}
             onClick={() => void confirmPurchase()}
             style={{
               ...primaryButton,
-              opacity:
-                busy ||
-                !fulfilmentMethod ||
-                !paymentMethod ||
-                !addressComplete
-                  ? 0.55
-                  : 1,
+              opacity: busy || !fulfilmentMethod || !paymentMethod || !addressComplete ? 0.55 : 1,
             }}
           >
             {busy
               ? 'Completing purchase…'
-              : `Confirm purchase — ${priceLabel(
-                  listing.pricePence,
-                  false,
-                )}`}
+              : `Confirm purchase — ${priceLabel(listing.pricePence, false)}`}
           </button>
 
           <p style={secureNote}>
-            Neighbour™ handles the transaction, payment and fulfilment
-            securely in the background.
+            Neighbour™ handles the transaction, payment and fulfilment securely in the background.
           </p>
         </section>
       </section>

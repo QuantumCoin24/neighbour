@@ -1,17 +1,13 @@
 'use client';
 
-import {
-  getMarketplaceTransactions,
-  type MarketplaceTransaction,
-} from '@neighbour/api-client';
+import { getMarketplaceTransactions, type MarketplaceTransaction } from '@neighbour/api-client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { priceLabel } from '../../../components/marketplace/marketplace-ui';
 
 export default function MarketplaceTransactionsPage() {
-  const [items, setItems] =
-    useState<MarketplaceTransaction[]>([]);
+  const [items, setItems] = useState<MarketplaceTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -42,24 +38,17 @@ export default function MarketplaceTransactionsPage() {
 
         <h1 style={heading}>Transactions</h1>
 
-        <p style={subtitle}>
-          Track reserved and completed Marketplace trades.
-        </p>
+        <p style={subtitle}>Track reserved and completed Marketplace trades.</p>
       </section>
 
       {error ? (
         <section style={empty}>{error}</section>
       ) : loading ? (
-        <section style={empty}>
-          Loading transactions…
-        </section>
+        <section style={empty}>Loading transactions…</section>
       ) : items.length === 0 ? (
         <section style={empty}>
           <strong>No transactions yet.</strong>
-          <p>
-            Accepted Marketplace offers and direct purchases
-            will appear here.
-          </p>
+          <p>Accepted Marketplace offers and direct purchases will appear here.</p>
         </section>
       ) : (
         <section style={list}>
@@ -70,9 +59,7 @@ export default function MarketplaceTransactionsPage() {
               style={card}
             >
               <div>
-                <strong>
-                  Marketplace trade
-                </strong>
+                <strong>Marketplace trade</strong>
 
                 <div style={meta}>
                   Listing {transaction.listingId.slice(0, 8)}
@@ -84,18 +71,9 @@ export default function MarketplaceTransactionsPage() {
               </div>
 
               <div style={right}>
-                <strong style={amount}>
-                  {priceLabel(
-                    transaction.agreedPricePence,
-                    false,
-                  )}
-                </strong>
+                <strong style={amount}>{priceLabel(transaction.agreedPricePence, false)}</strong>
 
-                <span style={status}>
-                  {transaction.status
-                    .replaceAll('_', ' ')
-                    .toLowerCase()}
-                </span>
+                <span style={status}>{transaction.status.replaceAll('_', ' ').toLowerCase()}</span>
               </div>
             </Link>
           ))}

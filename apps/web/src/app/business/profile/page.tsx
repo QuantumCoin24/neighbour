@@ -2,10 +2,7 @@
 
 import Link from 'next/link';
 
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   createBusiness,
@@ -15,69 +12,44 @@ import {
 } from '@neighbour/api-client';
 
 export default function BusinessProfilePage() {
-  const [business, setBusiness] =
-    useState<Business | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
 
-  const [communities, setCommunities] =
-    useState<any[]>([]);
+  const [communities, setCommunities] = useState<any[]>([]);
 
-  const [communityId, setCommunityId] =
-    useState('');
+  const [communityId, setCommunityId] = useState('');
 
-  const [name, setName] =
-    useState('');
+  const [name, setName] = useState('');
 
-  const [category, setCategory] =
-    useState('');
+  const [category, setCategory] = useState('');
 
-  const [description, setDescription] =
-    useState('');
+  const [description, setDescription] = useState('');
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [busy, setBusy] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const [message, setMessage] =
-    useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     async function load() {
       try {
-        const current =
-          await getMyBusiness();
+        const current = await getMyBusiness();
 
         setBusiness(current);
 
         if (!current) {
-          const token =
-            localStorage.getItem(
-              'accessToken',
-            );
+          const token = localStorage.getItem('accessToken');
 
           if (token) {
             try {
-              const memberships =
-                await getMyCommunities(
-                  token,
-                );
+              const memberships = await getMyCommunities(token);
 
-              const active =
-                memberships.filter(
-                  (item: any) =>
-                    item.status ===
-                    'ACTIVE',
-                );
+              const active = memberships.filter((item: any) => item.status === 'ACTIVE');
 
               setCommunities(active);
 
-              if (
-                active.length > 0
-              ) {
-                setCommunityId(
-                  active[0].community.id,
-                );
+              if (active.length > 0) {
+                setCommunityId(active[0].community.id);
               }
             } catch {
               setCommunities([]);
@@ -85,9 +57,7 @@ export default function BusinessProfilePage() {
           }
         }
       } catch {
-        setMessage(
-          'Unable to load your business profile.',
-        );
+        setMessage('Unable to load your business profile.');
       } finally {
         setLoading(false);
       }
@@ -97,12 +67,7 @@ export default function BusinessProfilePage() {
   }, []);
 
   async function create() {
-    if (
-      busy ||
-      !communityId ||
-      !name.trim() ||
-      !category.trim()
-    ) {
+    if (busy || !communityId || !name.trim() || !category.trim()) {
       return;
     }
 
@@ -110,26 +75,17 @@ export default function BusinessProfilePage() {
     setMessage('');
 
     try {
-      const created =
-        await createBusiness({
-          communityId,
-          name: name.trim(),
-          category:
-            category.trim(),
-          description:
-            description.trim(),
-        });
+      const created = await createBusiness({
+        communityId,
+        name: name.trim(),
+        category: category.trim(),
+        description: description.trim(),
+      });
 
       setBusiness(created);
-      setMessage(
-        'Business profile created.',
-      );
+      setMessage('Business profile created.');
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'Business creation failed.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Business creation failed.');
     } finally {
       setBusy(false);
     }
@@ -139,7 +95,6 @@ export default function BusinessProfilePage() {
     return (
       <main className="business-profile-loading">
         Loading business profile…
-
         <style>{`
           .business-profile-loading {
             width: min(100% - 48px,900px);
@@ -158,55 +113,35 @@ export default function BusinessProfilePage() {
     <main className="business-profile-page">
       <header className="business-profile-header">
         <div>
-          <div className="business-profile-eyebrow">
-            BUSINESS IDENTITY
-          </div>
+          <div className="business-profile-eyebrow">BUSINESS IDENTITY</div>
 
           <h1>Business Profile</h1>
 
-          <p>
-            Manage the identity Neighbour™ uses
-            across your local business presence.
-          </p>
+          <p>Manage the identity Neighbour™ uses across your local business presence.</p>
         </div>
 
-        {business ? (
-          <Link href="/business/dashboard">
-            Dashboard
-          </Link>
-        ) : null}
+        {business ? <Link href="/business/dashboard">Dashboard</Link> : null}
       </header>
 
       {business ? (
         <section className="business-profile-layout">
           <aside className="business-profile-preview">
-            <div className="business-profile-mark">
-              {business.name
-                .slice(0, 2)
-                .toUpperCase()}
-            </div>
+            <div className="business-profile-mark">{business.name.slice(0, 2).toUpperCase()}</div>
 
-            <div className="business-profile-label">
-              YOUR BUSINESS
-            </div>
+            <div className="business-profile-label">YOUR BUSINESS</div>
 
             <h2>{business.name}</h2>
 
-            <p className="business-profile-category">
-              {business.category}
-            </p>
+            <p className="business-profile-category">{business.category}</p>
 
             <div className="business-profile-description">
-              {business.description ||
-                'No business description has been added.'}
+              {business.description || 'No business description has been added.'}
             </div>
 
             <div className="business-profile-state">
               <span />
 
-              {business.verified
-                ? 'Verified business'
-                : 'Business active'}
+              {business.verified ? 'Verified business' : 'Business active'}
             </div>
           </aside>
 
@@ -214,81 +149,53 @@ export default function BusinessProfilePage() {
             <div className="business-profile-details-heading">
               <span>LIVE PROFILE</span>
 
-              <h2>
-                Business information
-              </h2>
+              <h2>Business information</h2>
 
-              <p>
-                This information is currently
-                stored in the Neighbour™ business
-                service.
-              </p>
+              <p>This information is currently stored in the Neighbour™ business service.</p>
             </div>
 
             <div className="business-profile-fields">
               <div>
                 <span>Business name</span>
-                <strong>
-                  {business.name}
-                </strong>
+                <strong>{business.name}</strong>
               </div>
 
               <div>
                 <span>Category</span>
-                <strong>
-                  {business.category}
-                </strong>
+                <strong>{business.category}</strong>
               </div>
 
               <div>
                 <span>Verification</span>
-                <strong>
-                  {business.verified
-                    ? 'Verified'
-                    : 'Active'}
-                </strong>
+                <strong>{business.verified ? 'Verified' : 'Active'}</strong>
               </div>
 
               <div>
                 <span>Community</span>
-                <strong>
-                  Connected
-                </strong>
+                <strong>Connected</strong>
               </div>
             </div>
 
             <div className="business-profile-description-panel">
               <span>ABOUT YOUR BUSINESS</span>
 
-              <p>
-                {business.description ||
-                  'No description currently stored.'}
-              </p>
+              <p>{business.description || 'No description currently stored.'}</p>
             </div>
 
             <div className="business-profile-api-note">
-              <strong>
-                Business editing
-              </strong>
+              <strong>Business editing</strong>
 
               <p>
-                Your existing business is loaded
-                safely. The current backend does
-                not expose a business-update
-                operation, so this screen will not
-                pretend to save changes that the
+                Your existing business is loaded safely. The current backend does not expose a
+                business-update operation, so this screen will not pretend to save changes that the
                 API cannot persist.
               </p>
             </div>
 
             <div className="business-profile-actions">
-              <Link href="/business/verification">
-                Verification
-              </Link>
+              <Link href="/business/verification">Verification</Link>
 
-              <Link href="/business/offers">
-                Manage offers
-              </Link>
+              <Link href="/business/offers">Manage offers</Link>
             </div>
           </section>
         </section>
@@ -297,58 +204,30 @@ export default function BusinessProfilePage() {
           <div className="business-create-heading">
             <span>GET STARTED</span>
 
-            <h2>
-              Create your business profile
-            </h2>
+            <h2>Create your business profile</h2>
 
-            <p>
-              Establish your Neighbour™ business
-              identity in one of your communities.
-            </p>
+            <p>Establish your Neighbour™ business identity in one of your communities.</p>
           </div>
 
           <div className="business-create-grid">
             <label>
               <span>Community</span>
 
-              {communities.length >
-              0 ? (
+              {communities.length > 0 ? (
                 <select
                   value={communityId}
-                  onChange={(event) =>
-                    setCommunityId(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setCommunityId(event.target.value)}
                 >
-                  {communities.map(
-                    (membership: any) => (
-                      <option
-                        key={
-                          membership.community
-                            .id
-                        }
-                        value={
-                          membership.community
-                            .id
-                        }
-                      >
-                        {
-                          membership.community
-                            .name
-                        }
-                      </option>
-                    ),
-                  )}
+                  {communities.map((membership: any) => (
+                    <option key={membership.community.id} value={membership.community.id}>
+                      {membership.community.name}
+                    </option>
+                  ))}
                 </select>
               ) : (
                 <input
                   value={communityId}
-                  onChange={(event) =>
-                    setCommunityId(
-                      event.target.value,
-                    )
-                  }
+                  onChange={(event) => setCommunityId(event.target.value)}
                   placeholder="Community ID"
                 />
               )}
@@ -359,11 +238,7 @@ export default function BusinessProfilePage() {
 
               <input
                 value={name}
-                onChange={(event) =>
-                  setName(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setName(event.target.value)}
                 placeholder="Business name"
               />
             </label>
@@ -373,11 +248,7 @@ export default function BusinessProfilePage() {
 
               <input
                 value={category}
-                onChange={(event) =>
-                  setCategory(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setCategory(event.target.value)}
                 placeholder="Business category"
               />
             </label>
@@ -388,36 +259,19 @@ export default function BusinessProfilePage() {
 
             <textarea
               value={description}
-              onChange={(event) =>
-                setDescription(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setDescription(event.target.value)}
               placeholder="Tell your local community about your business"
             />
           </label>
 
-          {message ? (
-            <div className="business-profile-message">
-              {message}
-            </div>
-          ) : null}
+          {message ? <div className="business-profile-message">{message}</div> : null}
 
           <button
             type="button"
-            disabled={
-              busy ||
-              !communityId ||
-              !name.trim() ||
-              !category.trim()
-            }
-            onClick={() =>
-              void create()
-            }
+            disabled={busy || !communityId || !name.trim() || !category.trim()}
+            onClick={() => void create()}
           >
-            {busy
-              ? 'Creating…'
-              : 'Create business profile'}
+            {busy ? 'Creating…' : 'Create business profile'}
           </button>
         </section>
       )}

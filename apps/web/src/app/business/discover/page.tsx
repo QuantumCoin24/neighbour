@@ -79,11 +79,7 @@ export default function BusinessDiscoverPage() {
     } catch (err) {
       setResults([]);
       setSearched(true);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to search businesses right now.',
-      );
+      setError(err instanceof Error ? err.message : 'Unable to search businesses right now.');
     } finally {
       setLoading(false);
     }
@@ -96,8 +92,7 @@ export default function BusinessDiscoverPage() {
           borderRadius: 30,
           padding: '36px 38px',
           color: '#fff',
-          background:
-            'linear-gradient(135deg, #071426 0%, #113452 100%)',
+          background: 'linear-gradient(135deg, #071426 0%, #113452 100%)',
           boxShadow: '0 22px 55px rgba(7,20,38,.12)',
         }}
       >
@@ -216,12 +211,10 @@ export default function BusinessDiscoverPage() {
             padding: '0 18px',
             borderRadius: 14,
             border: 0,
-            background:
-              loading || !query.trim() ? '#98b9a8' : '#08754b',
+            background: loading || !query.trim() ? '#98b9a8' : '#08754b',
             color: '#fff',
             fontWeight: 850,
-            cursor:
-              loading || !query.trim() ? 'default' : 'pointer',
+            cursor: loading || !query.trim() ? 'default' : 'pointer',
           }}
         >
           {loading ? 'Searching…' : 'Search'}
@@ -257,9 +250,7 @@ export default function BusinessDiscoverPage() {
                 ⌕
               </div>
 
-              <h2 style={{ margin: 0, fontSize: 30 }}>
-                Find businesses nearby
-              </h2>
+              <h2 style={{ margin: 0, fontSize: 30 }}>Find businesses nearby</h2>
 
               <p
                 style={{
@@ -269,8 +260,8 @@ export default function BusinessDiscoverPage() {
                   lineHeight: 1.6,
                 }}
               >
-                Search Neighbour™ for local businesses, services and
-                organisations connected to your community.
+                Search Neighbour™ for local businesses, services and organisations connected to your
+                community.
               </p>
             </div>
           </div>
@@ -311,9 +302,7 @@ export default function BusinessDiscoverPage() {
             }}
           >
             <div>
-              <h2 style={{ margin: 0, fontSize: 28 }}>
-                No businesses found
-              </h2>
+              <h2 style={{ margin: 0, fontSize: 28 }}>No businesses found</h2>
 
               <p
                 style={{
@@ -323,8 +312,8 @@ export default function BusinessDiscoverPage() {
                   lineHeight: 1.6,
                 }}
               >
-                No connected business matched “{query.trim()}”. Try a
-                broader name, category or service.
+                No connected business matched “{query.trim()}”. Try a broader name, category or
+                service.
               </p>
             </div>
           </div>
@@ -354,32 +343,25 @@ export default function BusinessDiscoverPage() {
                   Search results
                 </div>
 
-                <h2 style={{ margin: '6px 0 0', fontSize: 30 }}>
-                  Businesses found
-                </h2>
+                <h2 style={{ margin: '6px 0 0', fontSize: 30 }}>Businesses found</h2>
               </div>
 
               <div style={{ color: '#6e7c74', fontWeight: 700 }}>
-                {results.length}{' '}
-                {results.length === 1 ? 'result' : 'results'}
+                {results.length} {results.length === 1 ? 'result' : 'results'}
               </div>
             </div>
 
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns:
-                  'repeat(auto-fit, minmax(300px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                 gap: 18,
               }}
             >
               {results.map((business) => {
-                const location = [business.city, business.postcode]
-                  .filter(Boolean)
-                  .join(' · ');
+                const location = [business.city, business.postcode].filter(Boolean).join(' · ');
 
-                const verified =
-                  business.verificationStatus === 'APPROVED';
+                const verified = business.verificationStatus === 'APPROVED';
 
                 return (
                   <article
@@ -482,9 +464,7 @@ export default function BusinessDiscoverPage() {
                       <span>{location || 'Neighbour™ business'}</span>
 
                       {business.status ? (
-                        <strong style={{ color: '#08754b' }}>
-                          {formatLabel(business.status)}
-                        </strong>
+                        <strong style={{ color: '#08754b' }}>{formatLabel(business.status)}</strong>
                       ) : null}
                     </div>
                   </article>

@@ -1,21 +1,13 @@
 'use client';
 
-import {
-  useState,
-  type CSSProperties,
-  type FormEvent,
-} from 'react';
+import { useState, type CSSProperties, type FormEvent } from 'react';
 
-import {
-  loginUser,
-  registerUser,
-} from '@neighbour/api-client';
+import { loginUser, registerUser } from '@neighbour/api-client';
 
 import { saveTokens } from '../../lib/auth';
 
 export default function AuthPage() {
-  const [mode, setMode] =
-    useState<'register' | 'login'>('login');
+  const [mode, setMode] = useState<'register' | 'login'>('login');
 
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -24,9 +16,7 @@ export default function AuthPage() {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
-  async function handleSubmit(
-    event?: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
 
     if (busy) {
@@ -49,21 +39,11 @@ export default function AuthPage() {
               password,
             });
 
-      saveTokens(
-        response.accessToken,
-        response.refreshToken,
-      );
+      saveTokens(response.accessToken, response.refreshToken);
 
-      window.location.href =
-        mode === 'register'
-          ? '/profile/setup'
-          : '/home';
+      window.location.href = mode === 'register' ? '/profile/setup' : '/home';
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'Authentication failed.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Authentication failed.');
 
       setBusy(false);
     }
@@ -75,28 +55,17 @@ export default function AuthPage() {
     <main className="neighbour-auth-page">
       <section className="neighbour-auth-story">
         <div className="neighbour-auth-brand">
-          <img
-            src="/brand/neighbour-mark.svg"
-            alt="Neighbour"
-            width={54}
-            height={54}
-          />
+          <img src="/brand/neighbour-mark.svg" alt="Neighbour" width={54} height={54} />
 
           <div>
-            <div className="neighbour-auth-wordmark">
-              Neighbour™
-            </div>
+            <div className="neighbour-auth-wordmark">Neighbour™</div>
 
-            <div className="neighbour-auth-tagline">
-              Stronger together. Local forever.
-            </div>
+            <div className="neighbour-auth-tagline">Stronger together. Local forever.</div>
           </div>
         </div>
 
         <div className="neighbour-auth-story-copy">
-          <div className="neighbour-auth-eyebrow">
-            YOUR NEIGHBOURHOOD, CONNECTED
-          </div>
+          <div className="neighbour-auth-eyebrow">YOUR NEIGHBOURHOOD, CONNECTED</div>
 
           <h1>
             Local life,
@@ -105,8 +74,7 @@ export default function AuthPage() {
           </h1>
 
           <p>
-            Connect with neighbours, discover what is
-            happening nearby and build a stronger local
+            Connect with neighbours, discover what is happening nearby and build a stronger local
             community.
           </p>
 
@@ -135,12 +103,7 @@ export default function AuthPage() {
 
       <section className="neighbour-auth-panel">
         <div className="neighbour-auth-mobile-brand">
-          <img
-            src="/brand/neighbour-mark.svg"
-            alt=""
-            width={42}
-            height={42}
-          />
+          <img src="/brand/neighbour-mark.svg" alt="" width={42} height={42} />
 
           <strong>Neighbour™</strong>
         </div>
@@ -151,85 +114,55 @@ export default function AuthPage() {
               {loginMode ? 'Welcome back' : 'Join Neighbour™'}
             </div>
 
-            <h2>
-              {loginMode
-                ? 'Sign in to your neighbourhood'
-                : 'Create your local account'}
-            </h2>
+            <h2>{loginMode ? 'Sign in to your neighbourhood' : 'Create your local account'}</h2>
 
-            <p>
-              {loginMode
-                ? 'Continue where you left off.'
-                : 'Your neighbourhood is waiting.'}
-            </p>
+            <p>{loginMode ? 'Continue where you left off.' : 'Your neighbourhood is waiting.'}</p>
           </div>
 
-          <form
-            onSubmit={(event) => void handleSubmit(event)}
-          >
+          <form onSubmit={(event) => void handleSubmit(event)}>
             {!loginMode ? (
               <label style={styles.field}>
-                <span style={styles.label}>
-                  Display name
-                </span>
+                <span style={styles.label}>Display name</span>
 
                 <input
                   autoComplete="name"
                   placeholder="How neighbours will know you"
                   value={displayName}
-                  onChange={(event) =>
-                    setDisplayName(event.target.value)
-                  }
+                  onChange={(event) => setDisplayName(event.target.value)}
                   style={styles.input}
                 />
               </label>
             ) : null}
 
             <label style={styles.field}>
-              <span style={styles.label}>
-                Email address
-              </span>
+              <span style={styles.label}>Email address</span>
 
               <input
                 autoComplete="email"
                 placeholder="you@example.com"
                 type="email"
                 value={email}
-                onChange={(event) =>
-                  setEmail(event.target.value)
-                }
+                onChange={(event) => setEmail(event.target.value)}
                 style={styles.input}
                 required
               />
             </label>
 
             <label style={styles.field}>
-              <span style={styles.label}>
-                Password
-              </span>
+              <span style={styles.label}>Password</span>
 
               <input
-                autoComplete={
-                  loginMode
-                    ? 'current-password'
-                    : 'new-password'
-                }
+                autoComplete={loginMode ? 'current-password' : 'new-password'}
                 placeholder="Your password"
                 type="password"
                 value={password}
-                onChange={(event) =>
-                  setPassword(event.target.value)
-                }
+                onChange={(event) => setPassword(event.target.value)}
                 style={styles.input}
                 required
               />
             </label>
 
-            <button
-              type="submit"
-              disabled={busy}
-              className="neighbour-auth-primary"
-            >
+            <button type="submit" disabled={busy} className="neighbour-auth-primary">
               {busy
                 ? loginMode
                   ? 'Signing in…'
@@ -241,11 +174,7 @@ export default function AuthPage() {
           </form>
 
           {message ? (
-            <div
-              role="status"
-              aria-live="polite"
-              className="neighbour-auth-message"
-            >
+            <div role="status" aria-live="polite" className="neighbour-auth-message">
               {message}
             </div>
           ) : null}
@@ -260,20 +189,16 @@ export default function AuthPage() {
             type="button"
             className="neighbour-auth-secondary"
             onClick={() => {
-              setMode(
-                loginMode ? 'register' : 'login',
-              );
+              setMode(loginMode ? 'register' : 'login');
               setMessage('');
             }}
           >
-            {loginMode
-              ? 'Create a new Neighbour™ account'
-              : 'Already have an account? Sign in'}
+            {loginMode ? 'Create a new Neighbour™ account' : 'Already have an account? Sign in'}
           </button>
 
           <p className="neighbour-auth-smallprint">
-            By continuing, you are joining a community built
-            around local connection, trust and safety.
+            By continuing, you are joining a community built around local connection, trust and
+            safety.
           </p>
         </div>
       </section>

@@ -14,11 +14,7 @@ interface Props {
   onChange: (items: WebPendingMedia[]) => void;
 }
 
-export default function MediaPicker({
-  items,
-  disabled = false,
-  onChange,
-}: Props) {
+export default function MediaPicker({ items, disabled = false, onChange }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -176,7 +172,7 @@ export default function MediaPicker({
           place-items: center;
           border: 0;
           border-radius: 50%;
-          background: rgba(255,255,255,.94);
+          background: rgba(255, 255, 255, 0.94);
           color: #10231a;
           cursor: pointer;
           font-size: 19px;

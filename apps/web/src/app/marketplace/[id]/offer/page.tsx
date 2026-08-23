@@ -14,8 +14,7 @@ export default function MakeMarketplaceOfferPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
 
-  const [listing, setListing] =
-    useState<MarketplaceListing | null>(null);
+  const [listing, setListing] = useState<MarketplaceListing | null>(null);
 
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
@@ -39,11 +38,7 @@ export default function MakeMarketplaceOfferPage() {
         }
       } catch (caught) {
         if (active) {
-          setError(
-            caught instanceof Error
-              ? caught.message
-              : 'The listing could not be loaded.',
-          );
+          setError(caught instanceof Error ? caught.message : 'The listing could not be loaded.');
         }
       } finally {
         if (active) {
@@ -79,23 +74,14 @@ export default function MakeMarketplaceOfferPage() {
     setError('');
 
     try {
-      const offer = await createMarketplacePeerOffer(
-        listing.id,
-        {
-          amountPence,
-          ...(message.trim()
-            ? { message: message.trim() }
-            : {}),
-        },
-      );
+      const offer = await createMarketplacePeerOffer(listing.id, {
+        amountPence,
+        ...(message.trim() ? { message: message.trim() } : {}),
+      });
 
       router.replace(`/marketplace/offers/${offer.id}`);
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Your offer could not be sent.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Your offer could not be sent.');
     } finally {
       setSubmitting(false);
     }
@@ -106,20 +92,12 @@ export default function MakeMarketplaceOfferPage() {
   }
 
   if (!listing) {
-    return (
-      <main style={shell}>
-        {error || 'Listing unavailable.'}
-      </main>
-    );
+    return <main style={shell}>{error || 'Listing unavailable.'}</main>;
   }
 
   return (
     <main style={shell}>
-      <button
-        type="button"
-        onClick={() => router.back()}
-        style={back}
-      >
+      <button type="button" onClick={() => router.back()} style={back}>
         ← Back
       </button>
 
@@ -131,27 +109,20 @@ export default function MakeMarketplaceOfferPage() {
         <p style={subtitle}>{listing.title}</p>
 
         <strong style={asking}>
-          Asking price:{' '}
-          {priceLabel(
-            listing.pricePence,
-            listing.isFree,
-          )}
+          Asking price: {priceLabel(listing.pricePence, listing.isFree)}
         </strong>
       </section>
 
       <section style={card}>
         <label style={labelStyle}>
           Your offer
-
           <div style={money}>
             <span>£</span>
 
             <input
               inputMode="decimal"
               value={amount}
-              onChange={(event) =>
-                setAmount(event.target.value)
-              }
+              onChange={(event) => setAmount(event.target.value)}
               disabled={submitting}
               style={input}
             />
@@ -160,12 +131,9 @@ export default function MakeMarketplaceOfferPage() {
 
         <label style={labelStyle}>
           Message to seller
-
           <textarea
             value={message}
-            onChange={(event) =>
-              setMessage(event.target.value)
-            }
+            onChange={(event) => setMessage(event.target.value)}
             maxLength={1000}
             placeholder="Optional message"
             disabled={submitting}
@@ -174,18 +142,12 @@ export default function MakeMarketplaceOfferPage() {
         </label>
 
         <div style={notice}>
-          Offers are not payments. Only agree to
-          collection or payment arrangements you understand.
+          Offers are not payments. Only agree to collection or payment arrangements you understand.
         </div>
 
         {error ? <p style={errorStyle}>{error}</p> : null}
 
-        <button
-          type="button"
-          disabled={submitting}
-          onClick={() => void submit()}
-          style={primary}
-        >
+        <button type="button" disabled={submitting} onClick={() => void submit()} style={primary}>
           {submitting ? 'Sending…' : 'Send offer'}
         </button>
       </section>
@@ -211,8 +173,7 @@ const hero: React.CSSProperties = {
   marginTop: 20,
   padding: 28,
   borderRadius: 24,
-  background:
-    'linear-gradient(135deg,#071b14,#0a6847)',
+  background: 'linear-gradient(135deg,#071b14,#0a6847)',
   color: '#fff',
 };
 

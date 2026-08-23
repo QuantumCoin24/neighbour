@@ -2,56 +2,36 @@
 
 import Link from 'next/link';
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import {
-  getMySecurityReports,
-  type SecurityReport,
-} from '@neighbour/api-client';
+import { getMySecurityReports, type SecurityReport } from '@neighbour/api-client';
 
 import CreateReportForm from '../../components/security/CreateReportForm';
 
 export default function SecurityPage() {
-  const [reports, setReports] =
-    useState<SecurityReport[]>([]);
+  const [reports, setReports] = useState<SecurityReport[]>([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [message, setMessage] =
-    useState('');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     async function load() {
-      const token =
-        localStorage.getItem(
-          'accessToken',
-        );
+      const token = localStorage.getItem('accessToken');
 
       if (!token) {
-        setMessage(
-          'No active session.',
-        );
+        setMessage('No active session.');
 
         setLoading(false);
         return;
       }
 
       try {
-        const response =
-          await getMySecurityReports(
-            token,
-          );
+        const response = await getMySecurityReports(token);
 
         setReports(response);
       } catch {
-        setMessage(
-          'Unable to load your safety reports.',
-        );
+        setMessage('Unable to load your safety reports.');
       } finally {
         setLoading(false);
       }
@@ -60,70 +40,47 @@ export default function SecurityPage() {
     void load();
   }, []);
 
-  const openCount =
-    useMemo(
-      () =>
-        reports.filter(
-          (report) =>
-            report.status !==
-              'RESOLVED' &&
-            report.status !==
-              'CLOSED',
-        ).length,
-      [reports],
-    );
+  const openCount = useMemo(
+    () =>
+      reports.filter((report) => report.status !== 'RESOLVED' && report.status !== 'CLOSED').length,
+    [reports],
+  );
 
   return (
     <main className="security-page">
       <header className="security-header">
         <div>
-          <div className="security-eyebrow">
-            TRUST & SAFETY
-          </div>
+          <div className="security-eyebrow">TRUST & SAFETY</div>
 
           <h1>Safety Centre</h1>
 
-          <p>
-            Review your safety activity and
-            report behaviour or content that
-            needs attention.
-          </p>
+          <p>Review your safety activity and report behaviour or content that needs attention.</p>
         </div>
 
-        <Link href="/settings">
-          Account settings
-        </Link>
+        <Link href="/settings">Account settings</Link>
       </header>
 
       <section className="security-hero">
         <div>
           <span>YOUR SAFETY ACTIVITY</span>
 
-          <h2>
-            Help keep your neighbourhood
-            trusted.
-          </h2>
+          <h2>Help keep your neighbourhood trusted.</h2>
 
           <p>
-            Neighbour™ combines contextual
-            reporting with a central record of
-            reports you have submitted.
+            Neighbour™ combines contextual reporting with a central record of reports you have
+            submitted.
           </p>
         </div>
 
         <div className="security-hero-stats">
           <div>
-            <strong>
-              {reports.length}
-            </strong>
+            <strong>{reports.length}</strong>
 
             <span>Total reports</span>
           </div>
 
           <div>
-            <strong>
-              {openCount}
-            </strong>
+            <strong>{openCount}</strong>
 
             <span>Open</span>
           </div>
@@ -136,65 +93,38 @@ export default function SecurityPage() {
             <div className="security-section-heading">
               <span>YOUR REPORTS</span>
 
-              <h2>
-                Report history
-              </h2>
+              <h2>Report history</h2>
 
-              <p>
-                Reports submitted from this
-                Neighbour™ account.
-              </p>
+              <p>Reports submitted from this Neighbour™ account.</p>
             </div>
 
             {loading ? (
-              <div className="security-empty">
-                Loading reports…
-              </div>
-            ) : reports.length ===
-              0 ? (
+              <div className="security-empty">Loading reports…</div>
+            ) : reports.length === 0 ? (
               <div className="security-empty">
                 <div>◇</div>
 
-                <strong>
-                  No reports submitted
-                </strong>
+                <strong>No reports submitted</strong>
 
-                <p>
-                  Your submitted reports will
-                  appear here.
-                </p>
+                <p>Your submitted reports will appear here.</p>
               </div>
             ) : (
               <div className="security-report-list">
-                {reports.map(
-                  (report) => (
-                    <article
-                      key={report.id}
-                      className="security-report"
-                    >
-                      <div className="security-report-icon">
-                        ◇
+                {reports.map((report) => (
+                  <article key={report.id} className="security-report">
+                    <div className="security-report-icon">◇</div>
+
+                    <div>
+                      <div className="security-report-heading">
+                        <strong>{report.reason}</strong>
+
+                        <span>{report.status}</span>
                       </div>
 
-                      <div>
-                        <div className="security-report-heading">
-                          <strong>
-                            {report.reason}
-                          </strong>
-
-                          <span>
-                            {report.status}
-                          </span>
-                        </div>
-
-                        <p>
-                          Safety report submitted
-                          to Neighbour™.
-                        </p>
-                      </div>
-                    </article>
-                  ),
-                )}
+                      <p>Safety report submitted to Neighbour™.</p>
+                    </div>
+                  </article>
+                ))}
               </div>
             )}
           </section>
@@ -206,16 +136,11 @@ export default function SecurityPage() {
           <section className="security-rail-card">
             <span>CONTEXTUAL REPORTING</span>
 
-            <h3>
-              Report where it happens
-            </h3>
+            <h3>Report where it happens</h3>
 
             <p>
-              Messages and supported community
-              content expose Report controls
-              directly in context. That is the
-              preferred route because Neighbour™
-              already knows the target.
+              Messages and supported community content expose Report controls directly in context.
+              That is the preferred route because Neighbour™ already knows the target.
             </p>
           </section>
 
@@ -224,58 +149,35 @@ export default function SecurityPage() {
 
             <div className="security-guidance">
               <div>
-                <strong>
-                  Harmful behaviour
-                </strong>
+                <strong>Harmful behaviour</strong>
 
-                <p>
-                  Threats, harassment or abuse.
-                </p>
+                <p>Threats, harassment or abuse.</p>
               </div>
 
               <div>
-                <strong>
-                  Unsafe content
-                </strong>
+                <strong>Unsafe content</strong>
 
-                <p>
-                  Content that may put others at
-                  risk.
-                </p>
+                <p>Content that may put others at risk.</p>
               </div>
 
               <div>
-                <strong>
-                  Community concerns
-                </strong>
+                <strong>Community concerns</strong>
 
-                <p>
-                  Misuse of Neighbour™ community
-                  features.
-                </p>
+                <p>Misuse of Neighbour™ community features.</p>
               </div>
             </div>
           </section>
 
           <section className="security-note">
-            <strong>
-              Neighbour™ safety
-            </strong>
+            <strong>Neighbour™ safety</strong>
 
-            <p>
-              Reports create a moderation record.
-              They are not emergency-service
-              requests.
-            </p>
+            <p>Reports create a moderation record. They are not emergency-service requests.</p>
           </section>
         </aside>
       </section>
 
       {message ? (
-        <div
-          role="status"
-          className="security-message"
-        >
+        <div role="status" className="security-message">
           {message}
         </div>
       ) : null}

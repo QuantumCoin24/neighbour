@@ -2,17 +2,9 @@
 
 import Link from 'next/link';
 
-import {
-  type FormEvent,
-  type ReactNode,
-  useMemo,
-  useState,
-} from 'react';
+import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
 
-import {
-  search,
-  type SearchResponse,
-} from '@neighbour/api-client';
+import { search, type SearchResponse } from '@neighbour/api-client';
 
 const EMPTY_RESULTS: SearchResponse = {
   users: [],
@@ -22,9 +14,7 @@ const EMPTY_RESULTS: SearchResponse = {
   posts: [],
 };
 
-function getResultCount(
-  results: SearchResponse,
-) {
+function getResultCount(results: SearchResponse) {
   return (
     results.users.length +
     results.communities.length +
@@ -34,53 +24,35 @@ function getResultCount(
   );
 }
 
-function formatEventDate(
-  value: string,
-) {
+function formatEventDate(value: string) {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return 'Date unavailable';
   }
 
-  return new Intl.DateTimeFormat(
-    'en-GB',
-    {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    },
-  ).format(date);
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
 }
 
 export default function SearchPage() {
-  const [query, setQuery] =
-    useState('');
+  const [query, setQuery] = useState('');
 
-  const [searchedQuery, setSearchedQuery] =
-    useState('');
+  const [searchedQuery, setSearchedQuery] = useState('');
 
-  const [results, setResults] =
-    useState<SearchResponse>(
-      EMPTY_RESULTS,
-    );
+  const [results, setResults] = useState<SearchResponse>(EMPTY_RESULTS);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const resultCount =
-    useMemo(
-      () => getResultCount(results),
-      [results],
-    );
+  const resultCount = useMemo(() => getResultCount(results), [results]);
 
-  async function runSearch(
-    event?: FormEvent<HTMLFormElement>,
-  ) {
+  async function runSearch(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
 
     const term = query.trim();
@@ -96,15 +68,12 @@ export default function SearchPage() {
     setError(null);
 
     try {
-      const data =
-        await search(term);
+      const data = await search(term);
 
       setResults(data);
       setSearchedQuery(term);
     } catch {
-      setError(
-        'Search could not reach Neighbour. Please try again.',
-      );
+      setError('Search could not reach Neighbour. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -114,62 +83,40 @@ export default function SearchPage() {
     <main className="search-page">
       <header className="search-header">
         <div>
-          <div className="search-eyebrow">
-            DISCOVER NEIGHBOUR™
-          </div>
+          <div className="search-eyebrow">DISCOVER NEIGHBOUR™</div>
 
           <h1>Search</h1>
 
           <p>
-            Find people, communities,
-            neighbourhoods, events and local
-            conversations across Neighbour™.
+            Find people, communities, neighbourhoods, events and local conversations across
+            Neighbour™.
           </p>
         </div>
 
         {searchedQuery ? (
           <div className="search-count">
-            <strong>
-              {resultCount}
-            </strong>
+            <strong>{resultCount}</strong>
 
-            <span>
-              {resultCount === 1
-                ? 'result'
-                : 'results'}
-            </span>
+            <span>{resultCount === 1 ? 'result' : 'results'}</span>
           </div>
         ) : null}
       </header>
 
       <section className="search-hero">
-        <form
-          onSubmit={(event) =>
-            void runSearch(event)
-          }
-        >
+        <form onSubmit={(event) => void runSearch(event)}>
           <div className="search-field">
             <span>⌕</span>
 
             <input
               aria-label="Search Neighbour"
               value={query}
-              onChange={(event) =>
-                setQuery(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setQuery(event.target.value)}
               placeholder="Search people, communities, areas, events or posts"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-          >
-            {loading
-              ? 'Searching…'
-              : 'Search Neighbour™'}
+          <button type="submit" disabled={loading}>
+            {loading ? 'Searching…' : 'Search Neighbour™'}
           </button>
         </form>
 
@@ -184,34 +131,22 @@ export default function SearchPage() {
 
       {error ? (
         <section className="search-error">
-          <strong>
-            Search unavailable
-          </strong>
+          <strong>Search unavailable</strong>
 
           <p>{error}</p>
         </section>
       ) : null}
 
-      {!searchedQuery &&
-      !loading ? (
+      {!searchedQuery && !loading ? (
         <section className="search-start">
-          <div className="search-start-icon">
-            ⌖
-          </div>
+          <div className="search-start-icon">⌖</div>
 
           <div>
-            <div className="search-start-eyebrow">
-              UNIVERSAL DISCOVERY
-            </div>
+            <div className="search-start-eyebrow">UNIVERSAL DISCOVERY</div>
 
-            <h2>
-              Find what’s happening around you.
-            </h2>
+            <h2>Find what’s happening around you.</h2>
 
-            <p>
-              Search across the whole Neighbour™
-              network from one place.
-            </p>
+            <p>Search across the whole Neighbour™ network from one place.</p>
           </div>
 
           <div className="search-start-grid">
@@ -238,156 +173,95 @@ export default function SearchPage() {
         </section>
       ) : null}
 
-      {!loading &&
-      searchedQuery &&
-      !error ? (
+      {!loading && searchedQuery && !error ? (
         <div className="search-summary">
-          Showing {resultCount}{' '}
-          {resultCount === 1
-            ? 'result'
-            : 'results'}{' '}
-          for{' '}
-          <strong>
-            “{searchedQuery}”
-          </strong>
+          Showing {resultCount} {resultCount === 1 ? 'result' : 'results'} for{' '}
+          <strong>“{searchedQuery}”</strong>
         </div>
       ) : null}
 
-      {!loading &&
-      searchedQuery &&
-      !error &&
-      resultCount === 0 ? (
+      {!loading && searchedQuery && !error && resultCount === 0 ? (
         <section className="search-empty">
           <div>⌕</div>
 
           <h2>No matches found</h2>
 
-          <p>
-            Try another name, area,
-            postcode or keyword.
-          </p>
+          <p>Try another name, area, postcode or keyword.</p>
         </section>
       ) : null}
 
-      {results.users.length >
-      0 ? (
-        <ResultSection
-          title="People"
-          description="Neighbours matching your search."
-        >
-          {results.users.map(
-            (person) => (
-              <ResultCard
-                key={person.id}
-                icon="◎"
-                title={
-                  person.displayName
-                }
-                description="Neighbour member"
-                metadata="Person"
-              />
-            ),
-          )}
+      {results.users.length > 0 ? (
+        <ResultSection title="People" description="Neighbours matching your search.">
+          {results.users.map((person) => (
+            <ResultCard
+              key={person.id}
+              icon="◎"
+              title={person.displayName}
+              description="Neighbour member"
+              metadata="Person"
+            />
+          ))}
         </ResultSection>
       ) : null}
 
-      {results.communities.length >
-      0 ? (
-        <ResultSection
-          title="Communities"
-          description="Local groups and community spaces."
-        >
-          {results.communities.map(
-            (community) => (
-              <ResultCard
-                key={community.id}
-                icon="⌂"
-                title={community.name}
-                description={`@${community.slug}`}
-                metadata="Community"
-                href={`/community/${community.slug}`}
-              />
-            ),
-          )}
+      {results.communities.length > 0 ? (
+        <ResultSection title="Communities" description="Local groups and community spaces.">
+          {results.communities.map((community) => (
+            <ResultCard
+              key={community.id}
+              icon="⌂"
+              title={community.name}
+              description={`@${community.slug}`}
+              metadata="Community"
+              href={`/community/${community.slug}`}
+            />
+          ))}
         </ResultSection>
       ) : null}
 
-      {results.neighbourhoods.length >
-      0 ? (
+      {results.neighbourhoods.length > 0 ? (
         <ResultSection
           title="Neighbourhoods"
           description="Local areas within the Neighbour™ network."
         >
-          {results.neighbourhoods.map(
-            (neighbourhood) => (
-              <ResultCard
-                key={
-                  neighbourhood.id
-                }
-                icon="⌖"
-                title={
-                  neighbourhood.name
-                }
-                description={
-                  neighbourhood.localArea ??
-                  'Local neighbourhood'
-                }
-                metadata="Neighbourhood"
-                href="/my-community"
-              />
-            ),
-          )}
+          {results.neighbourhoods.map((neighbourhood) => (
+            <ResultCard
+              key={neighbourhood.id}
+              icon="⌖"
+              title={neighbourhood.name}
+              description={neighbourhood.localArea ?? 'Local neighbourhood'}
+              metadata="Neighbourhood"
+              href="/my-community"
+            />
+          ))}
         </ResultSection>
       ) : null}
 
-      {results.events.length >
-      0 ? (
-        <ResultSection
-          title="Events"
-          description="Things happening locally."
-        >
-          {results.events.map(
-            (event) => (
-              <ResultCard
-                key={event.id}
-                icon="17"
-                title={event.title}
-                description={
-                  event.community
-                    ?.name ??
-                  'Neighbour event'
-                }
-                metadata={formatEventDate(
-                  event.startsAt,
-                )}
-              />
-            ),
-          )}
+      {results.events.length > 0 ? (
+        <ResultSection title="Events" description="Things happening locally.">
+          {results.events.map((event) => (
+            <ResultCard
+              key={event.id}
+              icon="17"
+              title={event.title}
+              description={event.community?.name ?? 'Neighbour event'}
+              metadata={formatEventDate(event.startsAt)}
+            />
+          ))}
         </ResultSection>
       ) : null}
 
-      {results.posts.length >
-      0 ? (
-        <ResultSection
-          title="Posts"
-          description="Local conversations and updates."
-        >
-          {results.posts.map(
-            (post) => (
-              <ResultCard
-                key={post.id}
-                icon="□"
-                title={
-                  post.title?.trim() ||
-                  'Community post'
-                }
-                description={
-                  post.content
-                }
-                metadata="Community post"
-              />
-            ),
-          )}
+      {results.posts.length > 0 ? (
+        <ResultSection title="Posts" description="Local conversations and updates.">
+          {results.posts.map((post) => (
+            <ResultCard
+              key={post.id}
+              icon="□"
+              title={post.title?.trim() || 'Community post'}
+              description={post.content}
+              metadata="Community post"
+            />
+          ))}
         </ResultSection>
       ) : null}
 
@@ -764,9 +638,7 @@ function ResultSection({
         <p>{description}</p>
       </div>
 
-      <div className="result-grid">
-        {children}
-      </div>
+      <div className="result-grid">{children}</div>
     </section>
   );
 }
@@ -786,9 +658,7 @@ function ResultCard({
 }) {
   const body = (
     <>
-      <div className="result-card-icon">
-        {icon}
-      </div>
+      <div className="result-card-icon">{icon}</div>
 
       <div>
         <h3>{title}</h3>
@@ -796,22 +666,15 @@ function ResultCard({
         <small>{metadata}</small>
       </div>
 
-      <div className="result-card-arrow">
-        {href ? '→' : '·'}
-      </div>
+      <div className="result-card-arrow">{href ? '→' : '·'}</div>
     </>
   );
 
   return href ? (
-    <Link
-      href={href}
-      className="result-card"
-    >
+    <Link href={href} className="result-card">
       {body}
     </Link>
   ) : (
-    <article className="result-card">
-      {body}
-    </article>
+    <article className="result-card">{body}</article>
   );
 }

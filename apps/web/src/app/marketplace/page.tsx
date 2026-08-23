@@ -9,16 +9,12 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import MarketplaceListingCard from '../../components/marketplace/MarketplaceListingCard';
-import {
-  CATEGORIES,
-  label,
-} from '../../components/marketplace/marketplace-ui';
+import { CATEGORIES, label } from '../../components/marketplace/marketplace-ui';
 
 export default function MarketplacePage() {
   const [items, setItems] = useState<MarketplaceListing[]>([]);
   const [query, setQuery] = useState('');
-  const [category, setCategory] =
-    useState<MarketplaceListingCategory | undefined>();
+  const [category, setCategory] = useState<MarketplaceListingCategory | undefined>();
   const [freeOnly, setFreeOnly] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,15 +35,11 @@ export default function MarketplacePage() {
           ...(cursor ? { cursor } : {}),
         });
 
-        setItems((current) =>
-          cursor ? [...current, ...page.items] : page.items,
-        );
+        setItems((current) => (cursor ? [...current, ...page.items] : page.items));
         setNextCursor(page.nextCursor);
       } catch (caught) {
         setError(
-          caught instanceof Error
-            ? caught.message
-            : 'Community listings could not be loaded.',
+          caught instanceof Error ? caught.message : 'Community listings could not be loaded.',
         );
       } finally {
         setLoading(false);
@@ -58,10 +50,7 @@ export default function MarketplacePage() {
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(
-      () => void load(),
-      query.trim() ? 300 : 0,
-    );
+    const timer = window.setTimeout(() => void load(), query.trim() ? 300 : 0);
 
     return () => window.clearTimeout(timer);
   }, [load, query]);
@@ -74,9 +63,7 @@ export default function MarketplacePage() {
         <div style={heroRow}>
           <div>
             <h1 style={title}>Buy, sell & give locally.</h1>
-            <p style={subtitle}>
-              Discover useful things from people in your local community.
-            </p>
+            <p style={subtitle}>Discover useful things from people in your local community.</p>
           </div>
 
           <Link href="/marketplace/create" style={heroButton}>
@@ -116,10 +103,7 @@ export default function MarketplacePage() {
           aria-label="Listing category"
           value={category ?? ''}
           onChange={(event) =>
-            setCategory(
-              (event.target.value ||
-                undefined) as MarketplaceListingCategory | undefined,
-            )
+            setCategory((event.target.value || undefined) as MarketplaceListingCategory | undefined)
           }
           style={select}
         >
@@ -170,10 +154,7 @@ export default function MarketplacePage() {
         <>
           <section style={grid}>
             {items.map((listing) => (
-              <MarketplaceListingCard
-                key={listing.id}
-                listing={listing}
-              />
+              <MarketplaceListingCard key={listing.id} listing={listing} />
             ))}
           </section>
 

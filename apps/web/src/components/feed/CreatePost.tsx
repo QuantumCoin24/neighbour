@@ -33,11 +33,7 @@ export default function CreatePost({
         value={content}
       />
 
-      <MediaPicker
-        disabled={busy}
-        items={media}
-        onChange={setMedia}
-      />
+      <MediaPicker disabled={busy} items={media} onChange={setMedia} />
 
       {busy ? (
         <div className="progress">
@@ -94,7 +90,7 @@ export default function CreatePost({
 
         textarea:focus {
           border-color: #76ad91;
-          box-shadow: 0 0 0 3px rgba(8,113,74,.08);
+          box-shadow: 0 0 0 3px rgba(8, 113, 74, 0.08);
         }
 
         .actions {
@@ -115,7 +111,7 @@ export default function CreatePost({
 
         .actions button:disabled {
           cursor: not-allowed;
-          opacity: .52;
+          opacity: 0.52;
         }
 
         .progress {
@@ -145,7 +141,7 @@ export default function CreatePost({
           height: 100%;
           border-radius: inherit;
           background: #08714a;
-          transition: width .2s ease;
+          transition: width 0.2s ease;
         }
 
         .error {

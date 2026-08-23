@@ -34,11 +34,7 @@ const card: React.CSSProperties = {
 };
 
 function businessName(offer: OfferResult) {
-  return (
-    offer.business?.name ||
-    offer.businessName ||
-    'Neighbour™ local business'
-  );
+  return offer.business?.name || offer.businessName || 'Neighbour™ local business';
 }
 
 export default function OfferDiscoverPage() {
@@ -55,11 +51,7 @@ export default function OfferDiscoverPage() {
       setOffers(Array.isArray(data) ? data : []);
     } catch (err) {
       setOffers([]);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to load local offers right now.',
-      );
+      setError(err instanceof Error ? err.message : 'Unable to load local offers right now.');
     } finally {
       setLoading(false);
     }
@@ -72,10 +64,7 @@ export default function OfferDiscoverPage() {
   const activeOffers = useMemo(
     () =>
       offers.filter(
-        (offer) =>
-          !offer.status ||
-          offer.status === 'ACTIVE' ||
-          offer.status === 'PUBLISHED',
+        (offer) => !offer.status || offer.status === 'ACTIVE' || offer.status === 'PUBLISHED',
       ),
     [offers],
   );
@@ -87,8 +76,7 @@ export default function OfferDiscoverPage() {
           borderRadius: 30,
           padding: '36px 38px',
           color: '#fff',
-          background:
-            'linear-gradient(135deg, #071426 0%, #113452 100%)',
+          background: 'linear-gradient(135deg, #071426 0%, #113452 100%)',
           boxShadow: '0 22px 55px rgba(7,20,38,.12)',
         }}
       >
@@ -133,8 +121,7 @@ export default function OfferDiscoverPage() {
                 lineHeight: 1.55,
               }}
             >
-              Discover offers published by businesses connected to
-              Neighbour™ communities.
+              Discover offers published by businesses connected to Neighbour™ communities.
             </p>
           </div>
 
@@ -147,9 +134,7 @@ export default function OfferDiscoverPage() {
               border: '1px solid rgba(255,255,255,.12)',
             }}
           >
-            <div style={{ fontSize: 30, fontWeight: 850 }}>
-              {activeOffers.length}
-            </div>
+            <div style={{ fontSize: 30, fontWeight: 850 }}>{activeOffers.length}</div>
             <div style={{ color: 'rgba(255,255,255,.68)' }}>
               {activeOffers.length === 1 ? 'offer' : 'offers'}
             </div>
@@ -180,9 +165,7 @@ export default function OfferDiscoverPage() {
             Discover locally
           </div>
 
-          <h2 style={{ margin: '6px 0 0', fontSize: 30 }}>
-            Current offers
-          </h2>
+          <h2 style={{ margin: '6px 0 0', fontSize: 30 }}>Current offers</h2>
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>
@@ -246,9 +229,7 @@ export default function OfferDiscoverPage() {
                 N
               </div>
 
-              <strong style={{ fontSize: 18 }}>
-                Loading local offers…
-              </strong>
+              <strong style={{ fontSize: 18 }}>Loading local offers…</strong>
             </div>
           </div>
         ) : null}
@@ -329,9 +310,7 @@ export default function OfferDiscoverPage() {
                 ◇
               </div>
 
-              <h2 style={{ margin: 0, fontSize: 31 }}>
-                No local offers yet
-              </h2>
+              <h2 style={{ margin: 0, fontSize: 31 }}>No local offers yet</h2>
 
               <p
                 style={{
@@ -341,9 +320,8 @@ export default function OfferDiscoverPage() {
                   lineHeight: 1.65,
                 }}
               >
-                There are currently no active business offers to show.
-                New offers from connected local businesses will appear
-                here automatically.
+                There are currently no active business offers to show. New offers from connected
+                local businesses will appear here automatically.
               </p>
 
               <Link
@@ -369,8 +347,7 @@ export default function OfferDiscoverPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns:
-                'repeat(auto-fit, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
               gap: 18,
             }}
           >
@@ -458,9 +435,7 @@ export default function OfferDiscoverPage() {
                   }}
                 >
                   {offer.endsAt
-                    ? `Available until ${new Date(
-                        offer.endsAt,
-                      ).toLocaleDateString()}`
+                    ? `Available until ${new Date(offer.endsAt).toLocaleDateString()}`
                     : 'Available through Neighbour™'}
                 </div>
               </article>

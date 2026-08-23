@@ -16,10 +16,7 @@ import CommunityTabs from '../../../components/community/CommunityTabs';
 import PostCard from '../../../components/feed/PostCard';
 import CreatePost from '../../../components/feed/CreatePost';
 import EmptyFeed from '../../../components/feed/EmptyFeed';
-import {
-  uploadWebMedia,
-  type WebPendingMedia,
-} from '../../../lib/media/upload';
+import { uploadWebMedia, type WebPendingMedia } from '../../../lib/media/upload';
 
 export default function CommunityPage() {
   const params = useParams();
@@ -76,8 +73,7 @@ export default function CommunityPage() {
         const item = media[index];
 
         const asset = await uploadWebMedia(item, (fileProgress) => {
-          const overall =
-            (index + fileProgress) / Math.max(1, media.length);
+          const overall = (index + fileProgress) / Math.max(1, media.length);
 
           setUploadProgress(overall);
         });
@@ -102,11 +98,7 @@ export default function CommunityPage() {
 
       await load();
     } catch (error) {
-      setPublishError(
-        error instanceof Error
-          ? error.message
-          : 'The post could not be published.',
-      );
+      setPublishError(error instanceof Error ? error.message : 'The post could not be published.');
     } finally {
       setPublishing(false);
     }

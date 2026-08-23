@@ -41,10 +41,7 @@ export function label(value: string) {
     .join(' ');
 }
 
-export function priceLabel(
-  pricePence: number | null,
-  isFree: boolean,
-) {
+export function priceLabel(pricePence: number | null, isFree: boolean) {
   if (isFree) return 'Free';
 
   if (pricePence === null) return 'Price unavailable';

@@ -14,10 +14,7 @@ export class MarketplaceTransactionController {
   constructor(private readonly service: MarketplaceTransactionService) {}
 
   @Post('listings/:listingId/purchase')
-  purchaseListing(
-    @CurrentUser() user: AuthUser,
-    @Param('listingId') listingId: string,
-  ) {
+  purchaseListing(@CurrentUser() user: AuthUser, @Param('listingId') listingId: string) {
     return this.service.purchaseListing(user.id, listingId);
   }
 

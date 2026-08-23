@@ -1,78 +1,44 @@
 'use client';
 
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  getMyProfile,
-  updateMyProfile,
-  type PrivateProfile,
-} from '@neighbour/api-client';
+import { getMyProfile, updateMyProfile, type PrivateProfile } from '@neighbour/api-client';
 
 export default function ProfilePage() {
-  const [profile, setProfile] =
-    useState<PrivateProfile | null>(
-      null,
-    );
+  const [profile, setProfile] = useState<PrivateProfile | null>(null);
 
-  const [username, setUsername] =
-    useState('');
+  const [username, setUsername] = useState('');
 
-  const [localArea, setLocalArea] =
-    useState('');
+  const [localArea, setLocalArea] = useState('');
 
-  const [bio, setBio] =
-    useState('');
+  const [bio, setBio] = useState('');
 
-  const [
-    showLocalArea,
-    setShowLocalArea,
-  ] = useState(true);
+  const [showLocalArea, setShowLocalArea] = useState(true);
 
-  const [message, setMessage] =
-    useState('Loading your profile…');
+  const [message, setMessage] = useState('Loading your profile…');
 
-  const [busy, setBusy] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     async function load() {
-      const token =
-        localStorage.getItem('accessToken');
+      const token = localStorage.getItem('accessToken');
 
       if (!token) {
-        setMessage(
-          'No active session.',
-        );
+        setMessage('No active session.');
         return;
       }
 
       try {
-        const current =
-          await getMyProfile(token);
+        const current = await getMyProfile(token);
 
         setProfile(current);
-        setUsername(
-          current.username ?? '',
-        );
-        setLocalArea(
-          current.localArea ?? '',
-        );
-        setBio(
-          current.bio ?? '',
-        );
-        setShowLocalArea(
-          current.showLocalArea,
-        );
+        setUsername(current.username ?? '');
+        setLocalArea(current.localArea ?? '');
+        setBio(current.bio ?? '');
+        setShowLocalArea(current.showLocalArea);
         setMessage('');
       } catch (error) {
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : 'Unable to load profile.',
-        );
+        setMessage(error instanceof Error ? error.message : 'Unable to load profile.');
       }
     }
 
@@ -80,42 +46,30 @@ export default function ProfilePage() {
   }, []);
 
   async function saveProfile() {
-    const token =
-      localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken');
 
     if (!token || busy) {
       return;
     }
 
     setBusy(true);
-    setMessage(
-      'Saving your profile…',
-    );
+    setMessage('Saving your profile…');
 
     try {
-      const updated =
-        await updateMyProfile(
-          {
-            username:
-              username.trim(),
-            localArea:
-              localArea.trim(),
-            bio: bio.trim(),
-            showLocalArea,
-          },
-          token,
-        );
+      const updated = await updateMyProfile(
+        {
+          username: username.trim(),
+          localArea: localArea.trim(),
+          bio: bio.trim(),
+          showLocalArea,
+        },
+        token,
+      );
 
       setProfile(updated);
-      setMessage(
-        'Profile saved successfully.',
-      );
+      setMessage('Profile saved successfully.');
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'Profile save failed.',
-      );
+      setMessage(error instanceof Error ? error.message : 'Profile save failed.');
     } finally {
       setBusy(false);
     }
@@ -126,26 +80,18 @@ export default function ProfilePage() {
       ?.split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
-      .map(
-        (part) =>
-          part[0]?.toUpperCase(),
-      )
+      .map((part) => part[0]?.toUpperCase())
       .join('') || 'N';
 
   return (
     <main className="profile-page">
       <header className="profile-header">
         <div>
-          <div className="profile-eyebrow">
-            YOUR NEIGHBOUR™ IDENTITY
-          </div>
+          <div className="profile-eyebrow">YOUR NEIGHBOUR™ IDENTITY</div>
 
           <h1>Profile</h1>
 
-          <p>
-            Manage how you appear to neighbours
-            across the Neighbour™ network.
-          </p>
+          <p>Manage how you appear to neighbours across the Neighbour™ network.</p>
         </div>
 
         <div className="profile-status">
@@ -157,46 +103,26 @@ export default function ProfilePage() {
       <section className="profile-layout">
         <aside className="profile-preview">
           <div className="profile-preview-top">
-            <div className="profile-avatar">
-              {initials}
-            </div>
+            <div className="profile-avatar">{initials}</div>
 
             <div>
-              <div className="profile-preview-label">
-                YOUR PROFILE
-              </div>
+              <div className="profile-preview-label">YOUR PROFILE</div>
 
-              <h2>
-                {profile?.displayName ??
-                  'Neighbour'}
-              </h2>
+              <h2>{profile?.displayName ?? 'Neighbour'}</h2>
 
-              <p>
-                @{username ||
-                  profile?.username ||
-                  'neighbour'}
-              </p>
+              <p>@{username || profile?.username || 'neighbour'}</p>
             </div>
           </div>
 
-          <div className="profile-local-badge">
-            ⌖{' '}
-            {localArea ||
-              'Local area not set'}
-          </div>
+          <div className="profile-local-badge">⌖ {localArea || 'Local area not set'}</div>
 
           <div className="profile-bio-preview">
-            {bio ||
-              'Tell your neighbours a little about yourself.'}
+            {bio || 'Tell your neighbours a little about yourself.'}
           </div>
 
           <div className="profile-preview-grid">
             <div>
-              <strong>
-                {showLocalArea
-                  ? 'Visible'
-                  : 'Private'}
-              </strong>
+              <strong>{showLocalArea ? 'Visible' : 'Private'}</strong>
               <span>Local area</span>
             </div>
 
@@ -207,14 +133,9 @@ export default function ProfilePage() {
           </div>
 
           <div className="profile-safety">
-            <strong>
-              Your privacy
-            </strong>
+            <strong>Your privacy</strong>
 
-            <p>
-              You control whether your local area
-              appears on your profile.
-            </p>
+            <p>You control whether your local area appears on your profile.</p>
           </div>
         </aside>
 
@@ -223,14 +144,9 @@ export default function ProfilePage() {
             <div>
               <span>EDIT PROFILE</span>
 
-              <h2>
-                Your public information
-              </h2>
+              <h2>Your public information</h2>
 
-              <p>
-                Keep your Neighbour™ identity
-                current and useful.
-              </p>
+              <p>Keep your Neighbour™ identity current and useful.</p>
             </div>
           </div>
 
@@ -240,11 +156,7 @@ export default function ProfilePage() {
 
               <input
                 value={username}
-                onChange={(event) =>
-                  setUsername(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setUsername(event.target.value)}
                 placeholder="Username"
               />
             </label>
@@ -254,11 +166,7 @@ export default function ProfilePage() {
 
               <input
                 value={localArea}
-                onChange={(event) =>
-                  setLocalArea(
-                    event.target.value,
-                  )
-                }
+                onChange={(event) => setLocalArea(event.target.value)}
                 placeholder="Your local area"
               />
             </label>
@@ -269,75 +177,41 @@ export default function ProfilePage() {
 
             <textarea
               value={bio}
-              onChange={(event) =>
-                setBio(
-                  event.target.value,
-                )
-              }
+              onChange={(event) => setBio(event.target.value)}
               placeholder="Tell your neighbours about yourself"
             />
 
             <small>
-              A short introduction helps local
-              neighbours know who they’re
-              connecting with.
+              A short introduction helps local neighbours know who they’re connecting with.
             </small>
           </label>
 
           <div className="profile-privacy-row">
             <div>
-              <strong>
-                Show local area
-              </strong>
+              <strong>Show local area</strong>
 
-              <p>
-                Allow your local area to appear
-                on your public profile.
-              </p>
+              <p>Allow your local area to appear on your public profile.</p>
             </div>
 
             <button
               type="button"
-              className={
-                showLocalArea
-                  ? 'profile-toggle profile-toggle-on'
-                  : 'profile-toggle'
-              }
-              aria-pressed={
-                showLocalArea
-              }
-              onClick={() =>
-                setShowLocalArea(
-                  (current) =>
-                    !current,
-                )
-              }
+              className={showLocalArea ? 'profile-toggle profile-toggle-on' : 'profile-toggle'}
+              aria-pressed={showLocalArea}
+              onClick={() => setShowLocalArea((current) => !current)}
             >
               <span />
             </button>
           </div>
 
-          {message ? (
-            <div className="profile-message">
-              {message}
-            </div>
-          ) : null}
+          {message ? <div className="profile-message">{message}</div> : null}
 
           <div className="profile-actions">
             <button
               type="button"
-              disabled={
-                busy ||
-                !profile ||
-                !username.trim()
-              }
-              onClick={() =>
-                void saveProfile()
-              }
+              disabled={busy || !profile || !username.trim()}
+              onClick={() => void saveProfile()}
             >
-              {busy
-                ? 'Saving…'
-                : 'Save profile'}
+              {busy ? 'Saving…' : 'Save profile'}
             </button>
           </div>
         </section>

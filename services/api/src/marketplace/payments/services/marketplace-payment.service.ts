@@ -155,8 +155,7 @@ export class MarketplacePaymentService {
       method === MarketplacePaymentMethod.BANK_TRANSFER;
 
     const isStripeMethod =
-      method === MarketplacePaymentMethod.CARD ||
-      method === MarketplacePaymentMethod.APPLE_PAY;
+      method === MarketplacePaymentMethod.CARD || method === MarketplacePaymentMethod.APPLE_PAY;
 
     if (!isManualMethod && !isStripeMethod) {
       throw new BadRequestException('This payment method is not enabled yet.');
@@ -230,9 +229,7 @@ export class MarketplacePaymentService {
       });
     });
 
-    const providerAdapter = isStripeMethod
-      ? this.stripeProvider
-      : this.manualProvider;
+    const providerAdapter = isStripeMethod ? this.stripeProvider : this.manualProvider;
 
     const providerResult = await providerAdapter.createPayment({
       paymentId: created.id,
@@ -304,9 +301,7 @@ export class MarketplacePaymentService {
     }
 
     if (payment.provider !== MarketplacePaymentProvider.MANUAL) {
-      throw new ConflictException(
-        'Provider-managed payments cannot be manually confirmed.',
-      );
+      throw new ConflictException('Provider-managed payments cannot be manually confirmed.');
     }
 
     if (payment.status === MarketplacePaymentStatus.CAPTURED) {
@@ -379,10 +374,7 @@ export class MarketplacePaymentService {
       return this.map(payment);
     }
 
-    if (
-      payment.provider === MarketplacePaymentProvider.STRIPE &&
-      payment.providerReference
-    ) {
+    if (payment.provider === MarketplacePaymentProvider.STRIPE && payment.providerReference) {
       await this.stripeProvider.cancelPayment(payment.providerReference);
     }
 
@@ -450,10 +442,7 @@ export class MarketplacePaymentService {
 
     let providerRefundReference: string | null = null;
 
-    if (
-      payment.provider === MarketplacePaymentProvider.STRIPE &&
-      payment.providerReference
-    ) {
+    if (payment.provider === MarketplacePaymentProvider.STRIPE && payment.providerReference) {
       providerRefundReference = await this.stripeProvider.refundPayment(
         payment.providerReference,
         dto.amountPence,
@@ -700,12 +689,7 @@ export class MarketplacePaymentService {
         });
       });
 
-      await this.notify(
-        payment.sellerId,
-        payment.buyerId,
-        payment.id,
-        'captured',
-      );
+      await this.notify(payment.sellerId, payment.buyerId, payment.id, 'captured');
 
       return;
     }
@@ -723,11 +707,9 @@ export class MarketplacePaymentService {
           data: {
             status: MarketplacePaymentStatus.FAILED,
             failureReason:
-              object.last_payment_error?.message ??
-              'Stripe reported that the payment failed.',
+              object.last_payment_error?.message ?? 'Stripe reported that the payment failed.',
           },
         });
-
       });
 
       return;
@@ -748,7 +730,6 @@ export class MarketplacePaymentService {
             cancelledAt: payment.cancelledAt ?? now,
           },
         });
-
       });
     }
   }
