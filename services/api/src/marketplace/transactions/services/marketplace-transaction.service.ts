@@ -672,24 +672,37 @@ export class MarketplaceTransactionService {
     query: MarketplaceOfferQueryDto,
   ): Promise<MarketplaceOfferListResponse> {
     await this.expireStaleMarketplaceState();
+
     const offers = await this.database.marketplaceOffer.findMany({
       where: {
-        buyerId: userId,
-        ...(query.status !== undefined
+        OR: [
+          {
+            buyerId: userId,
+          },
+          {
+            sellerId: userId,
+          },
+        ],
+        ...(query.status
           ? {
               status: query.status,
             }
           : {}),
       },
-      include: offerInclude,
       orderBy: {
         createdAt: 'desc',
       },
-      take: query.limit,
+      include: offerInclude,
+    });
+
+    const sent = offers.filter((offer) => {
+      const creatorId = offer.history.at(0)?.actorId ?? null;
+
+      return creatorId === userId;
     });
 
     return {
-      items: offers.map((offer) => this.mapOffer(offer)),
+      items: sent.slice(0, query.limit ?? 50).map((offer) => this.mapOffer(offer)),
     };
   }
 
@@ -698,24 +711,37 @@ export class MarketplaceTransactionService {
     query: MarketplaceOfferQueryDto,
   ): Promise<MarketplaceOfferListResponse> {
     await this.expireStaleMarketplaceState();
+
     const offers = await this.database.marketplaceOffer.findMany({
       where: {
-        sellerId: userId,
-        ...(query.status !== undefined
+        OR: [
+          {
+            buyerId: userId,
+          },
+          {
+            sellerId: userId,
+          },
+        ],
+        ...(query.status
           ? {
               status: query.status,
             }
           : {}),
       },
-      include: offerInclude,
       orderBy: {
         createdAt: 'desc',
       },
-      take: query.limit,
+      include: offerInclude,
+    });
+
+    const received = offers.filter((offer) => {
+      const creatorId = offer.history.at(0)?.actorId ?? null;
+
+      return creatorId !== null && creatorId !== userId;
     });
 
     return {
-      items: offers.map((offer) => this.mapOffer(offer)),
+      items: received.slice(0, query.limit ?? 50).map((offer) => this.mapOffer(offer)),
     };
   }
 
