@@ -3,7 +3,6 @@
 import {
   getCurrentUser,
   getMarketplaceListing,
-  purchaseMarketplaceListing,
   toggleMarketplaceListingSaved,
   type MarketplaceListing,
 } from '@neighbour/api-client';
@@ -19,7 +18,6 @@ export default function MarketplaceListingDetailPage() {
   const [listing, setListing] = useState<MarketplaceListing | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [purchasing, setPurchasing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [identityLoaded, setIdentityLoaded] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -82,10 +80,9 @@ export default function MarketplaceListingDetailPage() {
     }
   }
 
-  async function purchaseNow() {
+  function purchaseNow() {
     if (
       !listing ||
-      purchasing ||
       !identityLoaded ||
       userId === null ||
       listing.seller.id === userId ||
@@ -96,21 +93,7 @@ export default function MarketplaceListingDetailPage() {
       return;
     }
 
-    setPurchasing(true);
-    setError('');
-
-    try {
-      const transaction = await purchaseMarketplaceListing(listing.id);
-      router.push(`/marketplace/transactions/${transaction.id}`);
-    } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'This listing could not be purchased.',
-      );
-    } finally {
-      setPurchasing(false);
-    }
+    router.push(`/marketplace/${listing.id}/checkout`);
   }
 
   if (error && !listing) {
@@ -239,14 +222,13 @@ export default function MarketplaceListingDetailPage() {
                   <strong>Buy now</strong>
 
                   <div style={{ marginTop: 6 }}>
-                    Reserve this item at the seller&apos;s asking price and continue to payment.
+                    Choose how you want the item, select payment, and complete your purchase.
                   </div>
 
                   <div style={{ marginTop: 10 }}>
                     <button
                       type="button"
-                      disabled={purchasing}
-                      onClick={() => void purchaseNow()}
+                      onClick={() => purchaseNow()}
                       style={{
                         display: 'inline-block',
                         padding: '10px 14px',
@@ -254,13 +236,11 @@ export default function MarketplaceListingDetailPage() {
                         borderRadius: 999,
                         background: '#08714a',
                         color: '#fff',
-                        cursor: purchasing ? 'wait' : 'pointer',
+                        cursor: 'pointer',
                         fontWeight: 850,
                       }}
                     >
-                      {purchasing
-                        ? 'Reserving…'
-                        : `Buy now — ${priceLabel(listing.pricePence, false)}`}
+                      {`Buy now — ${priceLabel(listing.pricePence, false)}`}
                     </button>
                   </div>
                 </div>

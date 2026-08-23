@@ -13,7 +13,7 @@ import {
   type MarketplaceTransaction,
 } from '@neighbour/api-client';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { priceLabel } from '../../../../components/marketplace/marketplace-ui';
@@ -24,6 +24,10 @@ type WebMarketplacePaymentMethods = Awaited<ReturnType<typeof getMarketplacePaym
 
 export default function MarketplaceTransactionDetailPage() {
   const params = useParams<{ transactionId: string }>();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const purchaseConfirmed =
+    searchParams.get('purchase') === 'confirmed';
 
   const [transaction, setTransaction] = useState<MarketplaceTransaction | null>(null);
 
@@ -157,6 +161,165 @@ export default function MarketplaceTransactionDetailPage() {
   }
 
   const active = transaction.status !== 'COMPLETED' && transaction.status !== 'CANCELLED';
+
+  if (purchaseConfirmed) {
+    const fulfilmentValue = searchParams.get('fulfilment');
+    const paymentValue = searchParams.get('payment');
+
+    const fulfilmentLabel = fulfilmentValue
+      ? humanisePurchaseValue(fulfilmentValue)
+      : 'Confirmed';
+
+    const paymentLabel = paymentValue
+      ? humanisePurchaseValue(paymentValue)
+      : 'Payment started';
+
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background: '#f5f5f3',
+          padding: '48px 18px 90px',
+        }}
+      >
+        <section
+          style={{
+            width: '100%',
+            maxWidth: 640,
+            margin: '0 auto',
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              border: '1px solid #e2e2de',
+              borderRadius: 24,
+              padding: 28,
+              boxShadow: '0 12px 35px rgba(0,0,0,0.05)',
+            }}
+          >
+            <div
+              style={{
+                width: 58,
+                height: 58,
+                borderRadius: '50%',
+                display: 'grid',
+                placeItems: 'center',
+                background: '#08714a',
+                color: '#fff',
+                fontSize: 28,
+                fontWeight: 900,
+                marginBottom: 20,
+              }}
+            >
+              ✓
+            </div>
+
+            <p
+              style={{
+                margin: '0 0 7px',
+                fontSize: 12,
+                fontWeight: 850,
+                letterSpacing: 1.3,
+              }}
+            >
+              NEIGHBOUR™ MARKETPLACE
+            </p>
+
+            <h1
+              style={{
+                margin: '0 0 10px',
+                fontSize: 36,
+                lineHeight: 1.05,
+              }}
+            >
+              Purchase confirmed
+            </h1>
+
+            <p
+              style={{
+                color: '#626262',
+                lineHeight: 1.6,
+                marginBottom: 26,
+              }}
+            >
+              That's it. Your purchase is secured. Neighbour™
+              will guide you through anything else that is needed.
+            </p>
+
+            <div
+              style={{
+                display: 'grid',
+                gap: 12,
+                padding: 18,
+                background: '#f7f7f4',
+                borderRadius: 16,
+                marginBottom: 22,
+              }}
+            >
+              <div style={purchaseSummaryRow}>
+                <span>Price</span>
+                <strong>
+                  £{(transaction.agreedPricePence / 100).toFixed(2)}
+                </strong>
+              </div>
+
+              <div style={purchaseSummaryRow}>
+                <span>Getting it</span>
+                <strong>{fulfilmentLabel}</strong>
+              </div>
+
+              <div style={purchaseSummaryRow}>
+                <span>Payment</span>
+                <strong>{paymentLabel}</strong>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                router.replace(
+                  `/marketplace/transactions/${transaction.id}`,
+                )
+              }
+              style={{
+                width: '100%',
+                border: 0,
+                borderRadius: 14,
+                padding: '15px 18px',
+                background: '#08714a',
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: 850,
+                cursor: 'pointer',
+              }}
+            >
+              View order
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.push('/marketplace')}
+              style={{
+                width: '100%',
+                marginTop: 10,
+                border: '1px solid #ddddda',
+                borderRadius: 14,
+                padding: '14px 18px',
+                background: '#fff',
+                fontSize: 15,
+                fontWeight: 750,
+                cursor: 'pointer',
+              }}
+            >
+              Back to Marketplace
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
 
   const isBuyer = Boolean(user && transaction.buyerId === user.id);
 
@@ -384,25 +547,25 @@ export default function MarketplaceTransactionDetailPage() {
 
           {isBuyer ? (
             <div style={notice}>
-              <strong>You are buying this item.</strong>
+              <strong>Purchase in progress.</strong>
               <Link
                 href={`/marketplace/transactions/${params.transactionId}/fulfilment`}
                 style={back}
               >
-                Open fulfilment
+                View purchase
               </Link>
             </div>
           ) : null}
 
           {isSeller ? (
             <div style={notice}>
-              <strong>You are selling this item.</strong>
+              <strong>You've sold this item.</strong>
 
               <Link
                 href={`/marketplace/transactions/${params.transactionId}/fulfilment`}
                 style={back}
               >
-                Open fulfilment
+                Fulfil sale
               </Link>
 
               <div style={{ marginTop: 6 }}>
@@ -631,4 +794,18 @@ const empty: React.CSSProperties = {
   padding: 25,
   borderRadius: 18,
   background: '#fff',
+};
+
+
+function humanisePurchaseValue(value: string) {
+  return value
+    .replaceAll('_', ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+const purchaseSummaryRow: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  gap: 20,
 };

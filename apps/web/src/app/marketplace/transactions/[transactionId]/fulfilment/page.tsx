@@ -12,14 +12,12 @@ import {
   verifyMarketplaceFulfilmentPin,
   verifyMarketplaceFulfilmentQr,
   type MarketplaceFulfilment,
-  type MarketplaceFulfilmentMethod,
   type MarketplaceTransaction,
 } from '@neighbour/api-client';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { type CSSProperties, type FormEvent, useCallback, useEffect, useState } from 'react';
 
-const METHODS: MarketplaceFulfilmentMethod[] = ['COLLECTION', 'DELIVERY', 'POSTAGE'];
 
 function humanise(value: string) {
   return value
@@ -151,16 +149,6 @@ export default function MarketplaceFulfilmentPage() {
     setFulfilment(refreshed);
   };
 
-  const chooseMethod = async (method: MarketplaceFulfilmentMethod) => {
-    await run(async () => {
-      const created = await createMarketplaceFulfilment(transactionId, {
-        method,
-      });
-
-      setFulfilment(created);
-      setNotice(`${humanise(method)} selected.`);
-    }, 'We could not start fulfilment.');
-  };
 
   const saveCollection = async (event: FormEvent) => {
     event.preventDefault();
@@ -411,32 +399,9 @@ export default function MarketplaceFulfilmentPage() {
 
             <p style={muted}>
               {isSeller
-                ? 'Choose the fulfilment method for this transaction.'
-                : 'The seller has not selected a fulfilment method yet.'}
+                ? 'The buyer’s checkout is preparing the fulfilment details for this sale.'
+                : 'Your checkout is preparing the fulfilment details for this purchase.'}
             </p>
-
-            {isSeller ? (
-              <div style={methodGrid}>
-                {METHODS.map((method) => (
-                  <button
-                    key={method}
-                    type="button"
-                    disabled={acting}
-                    onClick={() => void chooseMethod(method)}
-                    style={methodButton}
-                  >
-                    <strong>{humanise(method)}</strong>
-                    <span style={methodDescription}>
-                      {method === 'COLLECTION'
-                        ? 'Arrange an in-person collection.'
-                        : method === 'DELIVERY'
-                          ? 'Arrange local or direct delivery.'
-                          : 'Send the item using a postal or courier service.'}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
           </section>
         ) : (
           <>
