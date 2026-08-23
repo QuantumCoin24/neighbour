@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  getCurrentUser,
   getMarketplaceListing,
   toggleMarketplaceListingSaved,
   type MarketplaceListing,
@@ -9,19 +10,16 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import {
-  label,
-  priceLabel,
-} from '../../../components/marketplace/marketplace-ui';
+import { label, priceLabel } from '../../../components/marketplace/marketplace-ui';
 
 export default function MarketplaceListingDetailPage() {
   const params = useParams<{ id: string }>();
-  const [listing, setListing] =
-    useState<MarketplaceListing | null>(null);
+  const [listing, setListing] = useState<MarketplaceListing | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [selectedImage, setSelectedImage] =
-    useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [identityLoaded, setIdentityLoaded] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   async function load() {
     try {
@@ -29,15 +27,36 @@ export default function MarketplaceListingDetailPage() {
       setListing(await getMarketplaceListing(params.id));
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Marketplace listing could not be loaded.',
+        caught instanceof Error ? caught.message : 'Marketplace listing could not be loaded.',
       );
     }
   }
 
   useEffect(() => {
     void load();
+
+    let active = true;
+
+    void getCurrentUser()
+      .then((currentUser) => {
+        if (active) {
+          setUserId(currentUser.id);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setUserId(null);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setIdentityLoaded(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, [params.id]);
 
   async function toggleSaved() {
@@ -46,9 +65,7 @@ export default function MarketplaceListingDetailPage() {
     setSaving(true);
 
     try {
-      const result = await toggleMarketplaceListingSaved(
-        listing.id,
-      );
+      const result = await toggleMarketplaceListingSaved(listing.id);
 
       setListing({
         ...listing,
@@ -56,11 +73,7 @@ export default function MarketplaceListingDetailPage() {
         savedCount: result.savedCount,
       });
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Saved state could not be changed.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Saved state could not be changed.');
     } finally {
       setSaving(false);
     }
@@ -73,6 +86,8 @@ export default function MarketplaceListingDetailPage() {
   if (!listing) {
     return <main style={shell}>Opening listing…</main>;
   }
+
+  const isSeller = identityLoaded && userId !== null && listing.seller.id === userId;
 
   return (
     <main style={shell}>
@@ -87,11 +102,7 @@ export default function MarketplaceListingDetailPage() {
               <img
                 alt={listing.title}
                 src={listing.media[0].asset.url}
-                onClick={() =>
-                  setSelectedImage(
-                    listing.media[0].asset.url,
-                  )
-                }
+                onClick={() => setSelectedImage(listing.media[0].asset.url)}
                 style={image}
               />
             ) : (
@@ -106,9 +117,7 @@ export default function MarketplaceListingDetailPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() =>
-                      setSelectedImage(item.asset.url)
-                    }
+                    onClick={() => setSelectedImage(item.asset.url)}
                     style={thumbButton}
                   >
                     <img
@@ -124,18 +133,11 @@ export default function MarketplaceListingDetailPage() {
         </section>
 
         <aside>
-          <div style={eyebrow}>
-            Neighbour Marketplace™
-          </div>
+          <div style={eyebrow}>Neighbour Marketplace™</div>
 
           <h1 style={heading}>{listing.title}</h1>
 
-          <div style={price}>
-            {priceLabel(
-              listing.pricePence,
-              listing.isFree,
-            )}
-          </div>
+          <div style={price}>{priceLabel(listing.pricePence, listing.isFree)}</div>
 
           <div style={tags}>
             <span style={pill}>{label(listing.category)}</span>
@@ -148,44 +150,29 @@ export default function MarketplaceListingDetailPage() {
           <section style={info}>
             <strong>Seller</strong>
             <div>{listing.seller.displayName}</div>
-            <small>
-              {listing.localArea ||
-                listing.seller.localArea ||
-                'Local neighbour'}
-            </small>
+            <small>{listing.localArea || listing.seller.localArea || 'Local neighbour'}</small>
           </section>
 
           <section style={info}>
             <strong>Getting it to you</strong>
             <div style={{ marginTop: 7 }}>
-              {listing.collectionAvailable
-                ? '✓ Collection  '
-                : ''}
-              {listing.deliveryAvailable
-                ? '✓ Delivery  '
-                : ''}
-              {listing.postageAvailable
-                ? '✓ Postage'
-                : ''}
+              {listing.collectionAvailable ? '✓ Collection  ' : ''}
+              {listing.deliveryAvailable ? '✓ Delivery  ' : ''}
+              {listing.postageAvailable ? '✓ Postage' : ''}
             </div>
           </section>
 
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => void toggleSaved()}
-            style={saveButton}
-          >
-            {listing.saved ? '♥ Saved' : '♡ Save listing'}
-          </button>
-
-          {listing.acceptsOffers ? (
+          {identityLoaded && isSeller ? (
             <div style={notice}>
-              <strong>This seller accepts offers.</strong>
+              <strong>This is your listing.</strong>
+
+              <div style={{ marginTop: 7 }}>
+                Buyer actions are hidden while you are viewing your own listing.
+              </div>
 
               <div style={{ marginTop: 10 }}>
                 <Link
-                  href={`/marketplace/${listing.id}/offer`}
+                  href="/marketplace/mine"
                   style={{
                     display: 'inline-block',
                     padding: '10px 14px',
@@ -196,15 +183,48 @@ export default function MarketplaceListingDetailPage() {
                     fontWeight: 850,
                   }}
                 >
-                  Make an offer
+                  Manage my listings
                 </Link>
               </div>
             </div>
+          ) : identityLoaded ? (
+            <>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void toggleSaved()}
+                style={saveButton}
+              >
+                {listing.saved ? '♥ Saved' : '♡ Save listing'}
+              </button>
+
+              {listing.acceptsOffers ? (
+                <div style={notice}>
+                  <strong>This seller accepts offers.</strong>
+
+                  <div style={{ marginTop: 10 }}>
+                    <Link
+                      href={`/marketplace/${listing.id}/offer`}
+                      style={{
+                        display: 'inline-block',
+                        padding: '10px 14px',
+                        borderRadius: 999,
+                        background: '#08714a',
+                        color: '#fff',
+                        textDecoration: 'none',
+                        fontWeight: 850,
+                      }}
+                    >
+                      Make an offer
+                    </Link>
+                  </div>
+                </div>
+              ) : null}
+            </>
           ) : null}
 
           <div style={meta}>
-            {listing.viewCount} views · {listing.savedCount}{' '}
-            saves
+            {listing.viewCount} views · {listing.savedCount} saves
           </div>
 
           {error ? <p style={errorStyle}>{error}</p> : null}
@@ -212,12 +232,7 @@ export default function MarketplaceListingDetailPage() {
       </div>
 
       {selectedImage ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setSelectedImage(null)}
-          style={viewer}
-        >
+        <div role="dialog" aria-modal="true" onClick={() => setSelectedImage(null)} style={viewer}>
           <button
             type="button"
             aria-label="Close image"
@@ -227,11 +242,7 @@ export default function MarketplaceListingDetailPage() {
             ×
           </button>
 
-          <img
-            alt={listing.title}
-            src={selectedImage}
-            style={viewerImage}
-          />
+          <img alt={listing.title} src={selectedImage} style={viewerImage} />
         </div>
       ) : null}
     </main>
