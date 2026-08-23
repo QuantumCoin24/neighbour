@@ -18,30 +18,20 @@ import { useEffect, useState } from 'react';
 
 import { priceLabel } from '../../../../components/marketplace/marketplace-ui';
 
+type WebMarketplacePayment = Awaited<ReturnType<typeof getMyMarketplacePayments>>[number];
 
-type WebMarketplacePayment = Awaited<
-  ReturnType<typeof getMyMarketplacePayments>
->[number];
-
-type WebMarketplacePaymentMethods = Awaited<
-  ReturnType<typeof getMarketplacePaymentMethods>
->;
+type WebMarketplacePaymentMethods = Awaited<ReturnType<typeof getMarketplacePaymentMethods>>;
 
 export default function MarketplaceTransactionDetailPage() {
-  const params =
-    useParams<{ transactionId: string }>();
+  const params = useParams<{ transactionId: string }>();
 
-  const [transaction, setTransaction] =
-    useState<MarketplaceTransaction | null>(null);
+  const [transaction, setTransaction] = useState<MarketplaceTransaction | null>(null);
 
-  const [payments, setPayments] =
-    useState<WebMarketplacePayment[]>([]);
+  const [payments, setPayments] = useState<WebMarketplacePayment[]>([]);
 
-  const [paymentMethods, setPaymentMethods] =
-    useState<WebMarketplacePaymentMethods | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<WebMarketplacePaymentMethods | null>(null);
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<string>('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -50,14 +40,9 @@ export default function MarketplaceTransactionDetailPage() {
     try {
       setError('');
 
-      const [loadedTransaction, currentUser,
-          loadedPayments,
-          loadedPaymentMethods,
-        ] =
+      const [loadedTransaction, currentUser, loadedPayments, loadedPaymentMethods] =
         await Promise.all([
-          getMarketplaceTransaction(
-            params.transactionId,
-          ),
+          getMarketplaceTransaction(params.transactionId),
           getCurrentUser(),
           getMyMarketplacePayments(),
           getMarketplacePaymentMethods(),
@@ -66,23 +51,14 @@ export default function MarketplaceTransactionDetailPage() {
       setTransaction(loadedTransaction);
       setUser(currentUser);
 
-        setPayments(loadedPayments);
-        setPaymentMethods(loadedPaymentMethods);
+      setPayments(loadedPayments);
+      setPaymentMethods(loadedPaymentMethods);
 
-        const firstEnabledMethod =
-          loadedPaymentMethods.methods?.find(
-            (method) => method.enabled,
-          );
+      const firstEnabledMethod = loadedPaymentMethods.methods?.find((method) => method.enabled);
 
-        setSelectedPaymentMethod((current) =>
-          current || firstEnabledMethod?.id || '',
-        );
+      setSelectedPaymentMethod((current) => current || firstEnabledMethod?.id || '');
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Transaction could not be loaded.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Transaction could not be loaded.');
     }
   }
 
@@ -91,10 +67,7 @@ export default function MarketplaceTransactionDetailPage() {
   }, [params.transactionId]);
 
   async function confirmPaymentReceived() {
-    if (
-      !currentPayment ||
-      !sellerCanConfirmManualPayment
-    ) {
+    if (!currentPayment || !sellerCanConfirmManualPayment) {
       return;
     }
 
@@ -107,9 +80,7 @@ export default function MarketplaceTransactionDetailPage() {
       await load();
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Payment receipt could not be confirmed.',
+        caught instanceof Error ? caught.message : 'Payment receipt could not be confirmed.',
       );
     } finally {
       setBusy(false);
@@ -117,10 +88,7 @@ export default function MarketplaceTransactionDetailPage() {
   }
 
   async function completeSale() {
-    if (
-      !transaction ||
-      !sellerCanCompleteSale
-    ) {
+    if (!transaction || !sellerCanCompleteSale) {
       return;
     }
 
@@ -128,16 +96,12 @@ export default function MarketplaceTransactionDetailPage() {
       setBusy(true);
       setError('');
 
-      await completeMarketplaceTransaction(
-        transaction.id,
-      );
+      await completeMarketplaceTransaction(transaction.id);
 
       await load();
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Marketplace sale could not be completed.',
+        caught instanceof Error ? caught.message : 'Marketplace sale could not be completed.',
       );
     } finally {
       setBusy(false);
@@ -145,12 +109,7 @@ export default function MarketplaceTransactionDetailPage() {
   }
 
   async function createPayment() {
-    if (
-      !transaction ||
-      !isBuyer ||
-      !selectedPaymentMethod ||
-      currentPayment
-    ) {
+    if (!transaction || !isBuyer || !selectedPaymentMethod || currentPayment) {
       return;
     }
 
@@ -166,30 +125,20 @@ export default function MarketplaceTransactionDetailPage() {
 
       await load();
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Unable to create Marketplace payment.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Unable to create Marketplace payment.');
     } finally {
       setBusy(false);
     }
   }
 
-  async function perform(
-    action: () => Promise<MarketplaceTransaction>,
-  ) {
+  async function perform(action: () => Promise<MarketplaceTransaction>) {
     setBusy(true);
     setError('');
 
     try {
       setTransaction(await action());
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Transaction could not be updated.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Transaction could not be updated.');
     } finally {
       setBusy(false);
     }
@@ -198,35 +147,20 @@ export default function MarketplaceTransactionDetailPage() {
   if (!transaction) {
     return (
       <main style={shell}>
-        <Link
-          href="/marketplace/transactions"
-          style={back}
-        >
+        <Link href="/marketplace/transactions" style={back}>
           ← Transactions
         </Link>
 
-        <section style={empty}>
-          {error || 'Loading transaction…'}
-        </section>
+        <section style={empty}>{error || 'Loading transaction…'}</section>
       </main>
     );
   }
 
-  const active =
-    transaction.status !== 'COMPLETED' &&
-    transaction.status !== 'CANCELLED';
+  const active = transaction.status !== 'COMPLETED' && transaction.status !== 'CANCELLED';
 
-  const isBuyer =
-    Boolean(
-      user &&
-        transaction.buyerId === user.id,
-    );
+  const isBuyer = Boolean(user && transaction.buyerId === user.id);
 
-  const isSeller =
-    Boolean(
-      user &&
-        transaction.sellerId === user.id,
-    );
+  const isSeller = Boolean(user && transaction.sellerId === user.id);
 
   const isParticipant = isBuyer || isSeller;
 
@@ -236,80 +170,47 @@ export default function MarketplaceTransactionDetailPage() {
 
   const currentPayment =
     transactionPayments.find(
-      (payment) =>
-        payment.status !== "CANCELLED" &&
-        payment.status !== "REFUNDED",
+      (payment) => payment.status !== 'CANCELLED' && payment.status !== 'REFUNDED',
     ) ??
     transactionPayments[0] ??
     null;
 
-  const paymentCaptured = currentPayment?.status === "CAPTURED";
+  const paymentCaptured = currentPayment?.status === 'CAPTURED';
 
-  const manualPaymentPending =
-    Boolean(
-      currentPayment &&
-        currentPayment.provider === 'MANUAL' &&
-        currentPayment.status === 'PENDING',
-    );
+  const manualPaymentPending = Boolean(
+    currentPayment && currentPayment.provider === 'MANUAL' && currentPayment.status === 'PENDING',
+  );
 
-  const sellerCanConfirmManualPayment =
-    Boolean(isSeller && manualPaymentPending);
+  const sellerCanConfirmManualPayment = Boolean(isSeller && manualPaymentPending);
 
-  const sellerCanCompleteSale =
-    Boolean(
-      isSeller &&
-        active &&
-        currentPayment &&
-        paymentCaptured,
-    );
+  const sellerCanCompleteSale = Boolean(isSeller && active && currentPayment && paymentCaptured);
 
-  const enabledPaymentMethods =
-    paymentMethods?.methods?.filter((method) => method.enabled) ?? [];
+  const enabledPaymentMethods = paymentMethods?.methods?.filter((method) => method.enabled) ?? [];
 
-  const canCreatePayment =
-    Boolean(
-      isBuyer &&
-        transaction &&
-        active &&
-        !currentPayment &&
-        enabledPaymentMethods.length > 0,
-    );
+  const canCreatePayment = Boolean(
+    isBuyer && transaction && active && !currentPayment && enabledPaymentMethods.length > 0,
+  );
 
   const paymentStatusLabel =
     currentPayment?.status
       ?.replaceAll('_', ' ')
       .toLowerCase()
-      .replace(/\b\w/g, (character) =>
-        character.toUpperCase(),
-      ) ?? null;
-
+      .replace(/\b\w/g, (character) => character.toUpperCase()) ?? null;
 
   return (
     <main style={shell}>
-      <Link
-        href="/marketplace/transactions"
-        style={back}
-      >
+      <Link href="/marketplace/transactions" style={back}>
         ← Transactions
       </Link>
 
       <section style={hero}>
         <div style={eyebrow}>Marketplace transaction</div>
 
-        <h1 style={heading}>
-          Marketplace trade
-        </h1>
+        <h1 style={heading}>Marketplace trade</h1>
 
-        <strong style={price}>
-          {priceLabel(
-            transaction.agreedPricePence,
-            false,
-          )}
-        </strong>
+        <strong style={price}>{priceLabel(transaction.agreedPricePence, false)}</strong>
 
-        <div style={status}>
-          {transaction.status.replaceAll('_', ' ')}
-        </div>
+        <div style={status}>{transaction.status.replaceAll('_', ' ')}</div>
       </section>
 
       <div style={columns}>
@@ -317,51 +218,39 @@ export default function MarketplaceTransactionDetailPage() {
           <h2>Trade</h2>
 
           <p>
-            <strong>Listing:</strong>{' '}
-            {transaction.listingId}
+            <strong>Listing:</strong> {transaction.listingId}
           </p>
 
           <p>
-            <strong>Buyer reference:</strong>{' '}
-            {transaction.buyerId}
+            <strong>Buyer reference:</strong> {transaction.buyerId}
           </p>
 
           <p>
-            <strong>Seller reference:</strong>{' '}
-            {transaction.sellerId}
+            <strong>Seller reference:</strong> {transaction.sellerId}
           </p>
 
           <p>
-            <strong>Reserved:</strong>{' '}
-            {new Date(
-              transaction.reservedAt,
-            ).toLocaleString('en-GB')}
+            <strong>Reserved:</strong> {new Date(transaction.reservedAt).toLocaleString('en-GB')}
           </p>
 
           {transaction.expiresAt ? (
             <p>
               <strong>Reservation expires:</strong>{' '}
-              {new Date(
-                transaction.expiresAt,
-              ).toLocaleString('en-GB')}
+              {new Date(transaction.expiresAt).toLocaleString('en-GB')}
             </p>
           ) : null}
 
           {transaction.completedAt ? (
             <p>
               <strong>Completed:</strong>{' '}
-              {new Date(
-                transaction.completedAt,
-              ).toLocaleString('en-GB')}
+              {new Date(transaction.completedAt).toLocaleString('en-GB')}
             </p>
           ) : null}
 
           {transaction.cancelledAt ? (
             <p>
               <strong>Cancelled:</strong>{' '}
-              {new Date(
-                transaction.cancelledAt,
-              ).toLocaleString('en-GB')}
+              {new Date(transaction.cancelledAt).toLocaleString('en-GB')}
             </p>
           ) : null}
         </section>
@@ -372,47 +261,35 @@ export default function MarketplaceTransactionDetailPage() {
           <div style={paymentGrid}>
             <div>
               <span style={label}>Agreed price</span>
-              <strong>
-                {priceLabel(transaction.agreedPricePence, false)}
-              </strong>
+              <strong>{priceLabel(transaction.agreedPricePence, false)}</strong>
             </div>
 
             <div>
               <span style={label}>Currency</span>
-              <strong>
-                {currentPayment?.currency ??
-                  paymentMethods?.currency ??
-                  'GBP'}
-              </strong>
+              <strong>{currentPayment?.currency ?? paymentMethods?.currency ?? 'GBP'}</strong>
             </div>
 
             <div>
               <span style={label}>Payment status</span>
-              <strong>
-                {paymentStatusLabel ?? 'Not started'}
-              </strong>
+              <strong>{paymentStatusLabel ?? 'Not started'}</strong>
             </div>
 
             <div>
               <span style={label}>Payment method</span>
-              <strong>
-                {currentPayment?.method ?? '—'}
-              </strong>
+              <strong>{currentPayment?.method ?? '—'}</strong>
             </div>
 
             <div>
               <span style={label}>Provider</span>
-              <strong>
-                {currentPayment?.provider ?? '—'}
-              </strong>
+              <strong>{currentPayment?.provider ?? '—'}</strong>
             </div>
           </div>
 
           {isBuyer && !currentPayment ? (
             <>
               <div style={paymentNotice}>
-                Choose an available payment method to start
-                payment for the agreed Marketplace price.
+                Choose an available payment method to start payment for the agreed Marketplace
+                price.
               </div>
 
               {enabledPaymentMethods.length > 0 ? (
@@ -430,15 +307,8 @@ export default function MarketplaceTransactionDetailPage() {
                         type="radio"
                         name="marketplace-payment-method"
                         value={method.id}
-                        checked={
-                          selectedPaymentMethod ===
-                          method.id
-                        }
-                        onChange={() =>
-                          setSelectedPaymentMethod(
-                            method.id,
-                          )
-                        }
+                        checked={selectedPaymentMethod === method.id}
+                        onChange={() => setSelectedPaymentMethod(method.id)}
                         disabled={busy}
                       />
 
@@ -447,22 +317,17 @@ export default function MarketplaceTransactionDetailPage() {
                           {method.id
                             .replaceAll('_', ' ')
                             .toLowerCase()
-                            .replace(/\b\w/g, (character) =>
-                              character.toUpperCase(),
-                            )}
+                            .replace(/\b\w/g, (character) => character.toUpperCase())}
                         </strong>
 
-                        <small style={methodDescription}>
-                          Provider: {method.provider}
-                        </small>
+                        <small style={methodDescription}>Provider: {method.provider}</small>
                       </span>
                     </label>
                   ))}
                 </div>
               ) : (
                 <div style={paymentNotice}>
-                  No Marketplace payment methods are currently
-                  enabled.
+                  No Marketplace payment methods are currently enabled.
                 </div>
               )}
 
@@ -481,48 +346,36 @@ export default function MarketplaceTransactionDetailPage() {
 
           {isBuyer && currentPayment ? (
             <div style={paymentNotice}>
-              Your Marketplace payment has been created.
-              Current status: <strong>
-                {paymentStatusLabel}
-              </strong>.
+              Your Marketplace payment has been created. Current status:{' '}
+              <strong>{paymentStatusLabel}</strong>.
             </div>
           ) : null}
 
           {isSeller && !currentPayment ? (
-            <div style={paymentNotice}>
-              Waiting for the buyer to start payment.
-            </div>
+            <div style={paymentNotice}>Waiting for the buyer to start payment.</div>
           ) : null}
 
           {isSeller && currentPayment ? (
             <>
               <div style={paymentNotice}>
-                Buyer payment status: <strong>
-                  {paymentStatusLabel}
-                </strong>.
+                Buyer payment status: <strong>{paymentStatusLabel}</strong>.
               </div>
 
               {sellerCanConfirmManualPayment ? (
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() =>
-                    void confirmPaymentReceived()
-                  }
+                  onClick={() => void confirmPaymentReceived()}
                   style={paymentPrimary}
                 >
-                  {busy
-                    ? 'Confirming payment…'
-                    : 'Confirm payment received'}
+                  {busy ? 'Confirming payment…' : 'Confirm payment received'}
                 </button>
               ) : null}
             </>
           ) : null}
 
           {paymentCaptured ? (
-            <div style={capturedNotice}>
-              Payment captured successfully.
-            </div>
+            <div style={capturedNotice}>Payment captured successfully.</div>
           ) : null}
         </section>
 
@@ -532,11 +385,12 @@ export default function MarketplaceTransactionDetailPage() {
           {isBuyer ? (
             <div style={notice}>
               <strong>You are buying this item.</strong>
-              <div style={{ marginTop: 6 }}>
-                This trade is reserved for you. Payment and
-                fulfilment controls are the next Marketplace
-                parity layer.
-              </div>
+              <Link
+                href={`/marketplace/transactions/${params.transactionId}/fulfilment`}
+                style={back}
+              >
+                Open fulfilment
+              </Link>
             </div>
           ) : null}
 
@@ -544,18 +398,14 @@ export default function MarketplaceTransactionDetailPage() {
             <div style={notice}>
               <strong>You are selling this item.</strong>
               <div style={{ marginTop: 6 }}>
-                The trade is reserved. Complete Sale will
-                become available after Marketplace payment
+                The trade is reserved. Complete Sale will become available after Marketplace payment
                 has reached the required captured state.
               </div>
             </div>
           ) : null}
 
           {!isParticipant ? (
-            <div style={notice}>
-              You are not a participant in this Marketplace
-              transaction.
-            </div>
+            <div style={notice}>You are not a participant in this Marketplace transaction.</div>
           ) : null}
 
           {active && isParticipant ? (
@@ -567,22 +417,14 @@ export default function MarketplaceTransactionDetailPage() {
                   onClick={() => void completeSale()}
                   style={paymentPrimary}
                 >
-                  {busy
-                    ? 'Completing sale…'
-                    : 'Complete sale'}
+                  {busy ? 'Completing sale…' : 'Complete sale'}
                 </button>
               ) : null}
 
               <button
                 type="button"
                 disabled={busy}
-                onClick={() =>
-                  void perform(() =>
-                    cancelMarketplaceTransaction(
-                      transaction.id,
-                    ),
-                  )
-                }
+                onClick={() => void perform(() => cancelMarketplaceTransaction(transaction.id))}
                 style={danger}
               >
                 Cancel transaction
@@ -591,15 +433,11 @@ export default function MarketplaceTransactionDetailPage() {
           ) : null}
 
           {transaction.status === 'COMPLETED' ? (
-            <div style={statusNotice}>
-              This Marketplace trade has been completed.
-            </div>
+            <div style={statusNotice}>This Marketplace trade has been completed.</div>
           ) : null}
 
           {transaction.status === 'CANCELLED' ? (
-            <div style={statusNotice}>
-              This Marketplace trade has been cancelled.
-            </div>
+            <div style={statusNotice}>This Marketplace trade has been cancelled.</div>
           ) : null}
 
           {error ? <p style={errorStyle}>{error}</p> : null}
@@ -682,8 +520,7 @@ const actions: React.CSSProperties = {
 
 const paymentGrid: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns:
-    'repeat(auto-fit, minmax(150px, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
   gap: 14,
   marginBottom: 18,
 };
