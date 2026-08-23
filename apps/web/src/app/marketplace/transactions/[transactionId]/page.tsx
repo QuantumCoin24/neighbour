@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  completeMarketplaceTransaction,
+  confirmMarketplacePayment,
   createMarketplacePayment,
   getMarketplacePaymentMethods,
   getMyMarketplacePayments,
@@ -87,6 +89,60 @@ export default function MarketplaceTransactionDetailPage() {
   useEffect(() => {
     void load();
   }, [params.transactionId]);
+
+  async function confirmPaymentReceived() {
+    if (
+      !currentPayment ||
+      !sellerCanConfirmManualPayment
+    ) {
+      return;
+    }
+
+    try {
+      setBusy(true);
+      setError('');
+
+      await confirmMarketplacePayment(currentPayment.id);
+
+      await load();
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'Payment receipt could not be confirmed.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function completeSale() {
+    if (
+      !transaction ||
+      !sellerCanCompleteSale
+    ) {
+      return;
+    }
+
+    try {
+      setBusy(true);
+      setError('');
+
+      await completeMarketplaceTransaction(
+        transaction.id,
+      );
+
+      await load();
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'Marketplace sale could not be completed.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function createPayment() {
     if (
@@ -188,6 +244,24 @@ export default function MarketplaceTransactionDetailPage() {
     null;
 
   const paymentCaptured = currentPayment?.status === "CAPTURED";
+
+  const manualPaymentPending =
+    Boolean(
+      currentPayment &&
+        currentPayment.provider === 'MANUAL' &&
+        currentPayment.status === 'PENDING',
+    );
+
+  const sellerCanConfirmManualPayment =
+    Boolean(isSeller && manualPaymentPending);
+
+  const sellerCanCompleteSale =
+    Boolean(
+      isSeller &&
+        active &&
+        currentPayment &&
+        paymentCaptured,
+    );
 
   const enabledPaymentMethods =
     paymentMethods?.methods?.filter((method) => method.enabled) ?? [];
@@ -421,11 +495,28 @@ export default function MarketplaceTransactionDetailPage() {
           ) : null}
 
           {isSeller && currentPayment ? (
-            <div style={paymentNotice}>
-              Buyer payment status: <strong>
-                {paymentStatusLabel}
-              </strong>.
-            </div>
+            <>
+              <div style={paymentNotice}>
+                Buyer payment status: <strong>
+                  {paymentStatusLabel}
+                </strong>.
+              </div>
+
+              {sellerCanConfirmManualPayment ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() =>
+                    void confirmPaymentReceived()
+                  }
+                  style={paymentPrimary}
+                >
+                  {busy
+                    ? 'Confirming payment…'
+                    : 'Confirm payment received'}
+                </button>
+              ) : null}
+            </>
           ) : null}
 
           {paymentCaptured ? (
@@ -469,6 +560,19 @@ export default function MarketplaceTransactionDetailPage() {
 
           {active && isParticipant ? (
             <div style={actions}>
+              {sellerCanCompleteSale ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void completeSale()}
+                  style={paymentPrimary}
+                >
+                  {busy
+                    ? 'Completing sale…'
+                    : 'Complete sale'}
+                </button>
+              ) : null}
+
               <button
                 type="button"
                 disabled={busy}
