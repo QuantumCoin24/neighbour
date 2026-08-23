@@ -3,6 +3,7 @@
 import ReactionBar from './ReactionBar';
 import CommentDrawer from './CommentDrawer';
 import ReportButton from '../security/ReportButton';
+import MediaGallery from '../media/MediaGallery';
 
 function timeAgo(date: string) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -101,6 +102,10 @@ export default function PostCard({ post }: { post: any }) {
       >
         {post.content}
       </p>
+
+      {Array.isArray(post.media) && post.media.length > 0 ? (
+        <MediaGallery items={post.media} />
+      ) : null}
 
       <footer
         style={{

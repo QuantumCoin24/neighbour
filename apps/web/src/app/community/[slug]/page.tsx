@@ -4,13 +4,22 @@ import { useEffect, useState } from 'react';
 
 import { useParams } from 'next/navigation';
 
-import { getCommunity, getCommunityFeed, createPost } from '@neighbour/api-client';
+import {
+  attachMediaToPost,
+  createPost,
+  getCommunity,
+  getCommunityFeed,
+} from '@neighbour/api-client';
 
 import CommunityHeader from '../../../components/community/CommunityHeader';
 import CommunityTabs from '../../../components/community/CommunityTabs';
 import PostCard from '../../../components/feed/PostCard';
 import CreatePost from '../../../components/feed/CreatePost';
 import EmptyFeed from '../../../components/feed/EmptyFeed';
+import {
+  uploadWebMedia,
+  type WebPendingMedia,
+} from '../../../lib/media/upload';
 
 export default function CommunityPage() {
   const params = useParams();
@@ -22,6 +31,10 @@ export default function CommunityPage() {
   const [posts, setPosts] = useState<any[]>([]);
 
   const [content, setContent] = useState('');
+  const [media, setMedia] = useState<WebPendingMedia[]>([]);
+  const [publishing, setPublishing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   async function load() {
     const token = localStorage.getItem('accessToken');
@@ -48,18 +61,55 @@ export default function CommunityPage() {
   async function submit() {
     const token = localStorage.getItem('accessToken');
 
-    if (!token) return;
+    if (!token || publishing) return;
 
-    if (!content.trim()) return;
+    if (!content.trim() && media.length === 0) return;
 
-    await createPost(token, {
-      communityId: community.id,
-      content,
-    });
+    setPublishing(true);
+    setPublishError(null);
+    setUploadProgress(0);
 
-    setContent('');
+    const uploadedIds: string[] = [];
 
-    await load();
+    try {
+      for (let index = 0; index < media.length; index += 1) {
+        const item = media[index];
+
+        const asset = await uploadWebMedia(item, (fileProgress) => {
+          const overall =
+            (index + fileProgress) / Math.max(1, media.length);
+
+          setUploadProgress(overall);
+        });
+
+        uploadedIds.push(asset.id);
+      }
+
+      const created = await createPost(token, {
+        communityId: community.id,
+        content: content.trim(),
+      });
+
+      if (uploadedIds.length > 0) {
+        await attachMediaToPost(created.id, uploadedIds);
+      }
+
+      media.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+
+      setContent('');
+      setMedia([]);
+      setUploadProgress(1);
+
+      await load();
+    } catch (error) {
+      setPublishError(
+        error instanceof Error
+          ? error.message
+          : 'The post could not be published.',
+      );
+    } finally {
+      setPublishing(false);
+    }
   }
 
   if (!community) return <p>Loading...</p>;
@@ -76,7 +126,16 @@ export default function CommunityPage() {
 
       <CommunityTabs slug={slug} />
 
-      <CreatePost content={content} setContent={setContent} submit={submit} />
+      <CreatePost
+        busy={publishing}
+        content={content}
+        error={publishError}
+        media={media}
+        setContent={setContent}
+        setMedia={setMedia}
+        submit={submit}
+        uploadProgress={uploadProgress}
+      />
 
       <h2>Community Feed</h2>
 
