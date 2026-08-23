@@ -5,11 +5,14 @@ import { EventService } from '../src/community/event/event.service';
 
 describe('EventService', () => {
   it('creates community events', async () => {
-    const service = new EventService({
-      save(event: unknown) {
-        return Promise.resolve(event);
-      },
-    } as never);
+    const service = new EventService(
+      {
+        save(event: unknown) {
+          return Promise.resolve(event);
+        },
+      } as never,
+      {} as never,
+    );
 
     const result = await service.create({
       id: 'event-1',

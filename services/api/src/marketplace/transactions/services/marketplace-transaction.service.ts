@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -76,6 +77,8 @@ type OfferWithRelations = Prisma.MarketplaceOfferGetPayload<{
 
 @Injectable()
 export class MarketplaceTransactionService {
+  private readonly logger = new Logger(MarketplaceTransactionService.name);
+
   constructor(
     private readonly database: DatabaseService,
     private readonly messages: MessageService,
@@ -389,7 +392,7 @@ export class MarketplaceTransactionService {
       });
     });
 
-    const conversationId = await this.createTransactionConversation(
+    await this.attachTransactionConversationSafely(
       buyerId,
       buyerId,
       listing.sellerId,
@@ -398,12 +401,9 @@ export class MarketplaceTransactionService {
       created.agreedPricePence,
     );
 
-    return this.database.marketplaceTransaction.update({
+    return this.database.marketplaceTransaction.findUniqueOrThrow({
       where: {
         id: created.id,
-      },
-      data: {
-        conversationId,
       },
     });
   }
@@ -537,7 +537,7 @@ export class MarketplaceTransactionService {
     });
 
     if (updated.transaction) {
-      const conversationId = await this.createTransactionConversation(
+      await this.attachTransactionConversationSafely(
         userId,
         updated.buyerId,
         updated.sellerId,
@@ -545,15 +545,6 @@ export class MarketplaceTransactionService {
         updated.transaction.id,
         updated.transaction.agreedPricePence,
       );
-
-      await this.database.marketplaceTransaction.update({
-        where: {
-          id: updated.transaction.id,
-        },
-        data: {
-          conversationId,
-        },
-      });
     }
 
     const acceptedRecipientId = userId === updated.buyerId ? updated.sellerId : updated.buyerId;
@@ -1158,6 +1149,44 @@ export class MarketplaceTransactionService {
         });
       }
     });
+  }
+
+  private async attachTransactionConversationSafely(
+    actorId: string,
+    buyerId: string,
+    sellerId: string,
+    listingId: string,
+    transactionId: string,
+    agreedPricePence: number,
+  ): Promise<void> {
+    try {
+      const conversationId = await this.createTransactionConversation(
+        actorId,
+        buyerId,
+        sellerId,
+        listingId,
+        transactionId,
+        agreedPricePence,
+      );
+
+      await this.database.marketplaceTransaction.update({
+        where: {
+          id: transactionId,
+        },
+        data: {
+          conversationId,
+        },
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown marketplace conversation error.';
+
+      this.logger.warn(
+        `Marketplace transaction ${transactionId} completed without a conversation: ${message}`,
+      );
+    }
   }
 
   private async createTransactionConversation(
