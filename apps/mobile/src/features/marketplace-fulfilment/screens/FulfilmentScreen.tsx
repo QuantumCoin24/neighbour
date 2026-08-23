@@ -20,6 +20,50 @@ import { useNeighbourTheme } from '../../../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MarketplaceFulfilment'>;
 
+function parseCollectionDateTime(value: string): Date | null {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  // Accept ISO/date strings already understood by JavaScript.
+  const nativeDate = new Date(trimmed);
+
+  if (!Number.isNaN(nativeDate.getTime())) {
+    return nativeDate;
+  }
+
+  // Also accept UK-style DD/MM/YYYY HH:mm.
+  const match = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const [, dayText, monthText, yearText, hourText, minuteText] = match;
+
+  const day = Number(dayText);
+  const month = Number(monthText);
+  const year = Number(yearText);
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  const parsed = new Date(year, month - 1, day, hour, minute, 0, 0);
+
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day ||
+    parsed.getHours() !== hour ||
+    parsed.getMinutes() !== minute
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
+
 export default function FulfilmentScreen({ navigation, route }: Props) {
   const { theme } = useNeighbourTheme();
   const { user } = useAuth();
@@ -108,24 +152,49 @@ export default function FulfilmentScreen({ navigation, route }: Props) {
       return;
     }
 
+    const normalisedAddress = addressLine1.trim();
+    const normalisedCity = city.trim();
+    const normalisedPostcode = postcode.trim().toUpperCase();
+
+    if (!normalisedAddress || !normalisedCity || !normalisedPostcode || !scheduledFor.trim()) {
+      setError('Enter the collection address, town or city, postcode, and collection date/time.');
+      return;
+    }
+
+    const parsedScheduledFor = parseCollectionDateTime(scheduledFor);
+
+    if (!parsedScheduledFor) {
+      setError('Enter a valid collection date and time, for example 24/08/2026 15:30.');
+      return;
+    }
+
+    if (parsedScheduledFor.getTime() <= Date.now()) {
+      setError('Collection must be scheduled in the future.');
+      return;
+    }
+
     setActing(true);
     setError(null);
 
     try {
       setFulfilment(
         await createMarketplaceCollection(fulfilment.id, {
-          addressLine1,
-          city,
-          postcode,
-          scheduledFor,
+          addressLine1: normalisedAddress,
+          city: normalisedCity,
+          postcode: normalisedPostcode,
+          scheduledFor: parsedScheduledFor.toISOString(),
         }),
       );
+
+      Alert.alert('Collection saved', 'The collection details have been saved successfully.');
     } catch (caughtError) {
-      setError(
+      const message =
         caughtError instanceof Error
           ? caughtError.message
-          : 'We could not save the collection details. Please try again.',
-      );
+          : 'We could not save the collection details. Please try again.';
+
+      setError(message);
+      Alert.alert('Collection not saved', message);
     } finally {
       setActing(false);
     }
@@ -356,7 +425,7 @@ export default function FulfilmentScreen({ navigation, route }: Props) {
           />
 
           <TextInput
-            placeholder="Collection date and time"
+            placeholder="Collection date/time — DD/MM/YYYY HH:mm"
             value={scheduledFor}
             onChangeText={setScheduledFor}
             style={styles.input}
