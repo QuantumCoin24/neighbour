@@ -397,6 +397,14 @@ export default function MarketplaceTransactionDetailPage() {
           {isSeller ? (
             <div style={notice}>
               <strong>You are selling this item.</strong>
+
+              <Link
+                href={`/marketplace/transactions/${params.transactionId}/fulfilment`}
+                style={back}
+              >
+                Open fulfilment
+              </Link>
+
               <div style={{ marginTop: 6 }}>
                 The trade is reserved. Complete Sale will become available after Marketplace payment
                 has reached the required captured state.
