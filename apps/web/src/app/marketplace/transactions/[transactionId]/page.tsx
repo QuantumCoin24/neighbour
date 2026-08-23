@@ -1,6 +1,9 @@
 'use client';
 
 import {
+  createMarketplacePayment,
+  getMarketplacePaymentMethods,
+  getMyMarketplacePayments,
   cancelMarketplaceTransaction,
   getCurrentUser,
   getMarketplaceTransaction,
@@ -13,12 +16,30 @@ import { useEffect, useState } from 'react';
 
 import { priceLabel } from '../../../../components/marketplace/marketplace-ui';
 
+
+type WebMarketplacePayment = Awaited<
+  ReturnType<typeof getMyMarketplacePayments>
+>[number];
+
+type WebMarketplacePaymentMethods = Awaited<
+  ReturnType<typeof getMarketplacePaymentMethods>
+>;
+
 export default function MarketplaceTransactionDetailPage() {
   const params =
     useParams<{ transactionId: string }>();
 
   const [transaction, setTransaction] =
     useState<MarketplaceTransaction | null>(null);
+
+  const [payments, setPayments] =
+    useState<WebMarketplacePayment[]>([]);
+
+  const [paymentMethods, setPaymentMethods] =
+    useState<WebMarketplacePaymentMethods | null>(null);
+
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<string>('');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -27,16 +48,33 @@ export default function MarketplaceTransactionDetailPage() {
     try {
       setError('');
 
-      const [loadedTransaction, currentUser] =
+      const [loadedTransaction, currentUser,
+          loadedPayments,
+          loadedPaymentMethods,
+        ] =
         await Promise.all([
           getMarketplaceTransaction(
             params.transactionId,
           ),
           getCurrentUser(),
+          getMyMarketplacePayments(),
+          getMarketplacePaymentMethods(),
         ]);
 
       setTransaction(loadedTransaction);
       setUser(currentUser);
+
+        setPayments(loadedPayments);
+        setPaymentMethods(loadedPaymentMethods);
+
+        const firstEnabledMethod =
+          loadedPaymentMethods.methods?.find(
+            (method) => method.enabled,
+          );
+
+        setSelectedPaymentMethod((current) =>
+          current || firstEnabledMethod?.id || '',
+        );
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -49,6 +87,38 @@ export default function MarketplaceTransactionDetailPage() {
   useEffect(() => {
     void load();
   }, [params.transactionId]);
+
+  async function createPayment() {
+    if (
+      !transaction ||
+      !isBuyer ||
+      !selectedPaymentMethod ||
+      currentPayment
+    ) {
+      return;
+    }
+
+    try {
+      setBusy(true);
+      setError('');
+
+      await createMarketplacePayment({
+        transactionId: transaction.id,
+        method: selectedPaymentMethod as never,
+        amountPence: transaction.agreedPricePence,
+      });
+
+      await load();
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'Unable to create Marketplace payment.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function perform(
     action: () => Promise<MarketplaceTransaction>,
@@ -103,6 +173,42 @@ export default function MarketplaceTransactionDetailPage() {
     );
 
   const isParticipant = isBuyer || isSeller;
+
+  const transactionPayments = payments.filter(
+    (payment) => payment.transactionId === transaction?.id,
+  );
+
+  const currentPayment =
+    transactionPayments.find(
+      (payment) =>
+        payment.status !== "CANCELLED" &&
+        payment.status !== "REFUNDED",
+    ) ??
+    transactionPayments[0] ??
+    null;
+
+  const paymentCaptured = currentPayment?.status === "CAPTURED";
+
+  const enabledPaymentMethods =
+    paymentMethods?.methods?.filter((method) => method.enabled) ?? [];
+
+  const canCreatePayment =
+    Boolean(
+      isBuyer &&
+        transaction &&
+        active &&
+        !currentPayment &&
+        enabledPaymentMethods.length > 0,
+    );
+
+  const paymentStatusLabel =
+    currentPayment?.status
+      ?.replaceAll('_', ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (character) =>
+        character.toUpperCase(),
+      ) ?? null;
+
 
   return (
     <main style={shell}>
@@ -183,6 +289,149 @@ export default function MarketplaceTransactionDetailPage() {
                 transaction.cancelledAt,
               ).toLocaleString('en-GB')}
             </p>
+          ) : null}
+        </section>
+
+        <section style={card}>
+          <h2>Payment</h2>
+
+          <div style={paymentGrid}>
+            <div>
+              <span style={label}>Agreed price</span>
+              <strong>
+                {priceLabel(transaction.agreedPricePence, false)}
+              </strong>
+            </div>
+
+            <div>
+              <span style={label}>Currency</span>
+              <strong>
+                {currentPayment?.currency ??
+                  paymentMethods?.currency ??
+                  'GBP'}
+              </strong>
+            </div>
+
+            <div>
+              <span style={label}>Payment status</span>
+              <strong>
+                {paymentStatusLabel ?? 'Not started'}
+              </strong>
+            </div>
+
+            <div>
+              <span style={label}>Payment method</span>
+              <strong>
+                {currentPayment?.method ?? '—'}
+              </strong>
+            </div>
+
+            <div>
+              <span style={label}>Provider</span>
+              <strong>
+                {currentPayment?.provider ?? '—'}
+              </strong>
+            </div>
+          </div>
+
+          {isBuyer && !currentPayment ? (
+            <>
+              <div style={paymentNotice}>
+                Choose an available payment method to start
+                payment for the agreed Marketplace price.
+              </div>
+
+              {enabledPaymentMethods.length > 0 ? (
+                <div style={paymentMethodList}>
+                  {enabledPaymentMethods.map((method) => (
+                    <label
+                      key={method.id}
+                      style={
+                        selectedPaymentMethod === method.id
+                          ? paymentMethodSelected
+                          : paymentMethodOption
+                      }
+                    >
+                      <input
+                        type="radio"
+                        name="marketplace-payment-method"
+                        value={method.id}
+                        checked={
+                          selectedPaymentMethod ===
+                          method.id
+                        }
+                        onChange={() =>
+                          setSelectedPaymentMethod(
+                            method.id,
+                          )
+                        }
+                        disabled={busy}
+                      />
+
+                      <span>
+                        <strong>
+                          {method.id
+                            .replaceAll('_', ' ')
+                            .toLowerCase()
+                            .replace(/\b\w/g, (character) =>
+                              character.toUpperCase(),
+                            )}
+                        </strong>
+
+                        <small style={methodDescription}>
+                          Provider: {method.provider}
+                        </small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div style={paymentNotice}>
+                  No Marketplace payment methods are currently
+                  enabled.
+                </div>
+              )}
+
+              {canCreatePayment ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void createPayment()}
+                  style={paymentPrimary}
+                >
+                  {busy ? 'Starting payment…' : 'Start payment'}
+                </button>
+              ) : null}
+            </>
+          ) : null}
+
+          {isBuyer && currentPayment ? (
+            <div style={paymentNotice}>
+              Your Marketplace payment has been created.
+              Current status: <strong>
+                {paymentStatusLabel}
+              </strong>.
+            </div>
+          ) : null}
+
+          {isSeller && !currentPayment ? (
+            <div style={paymentNotice}>
+              Waiting for the buyer to start payment.
+            </div>
+          ) : null}
+
+          {isSeller && currentPayment ? (
+            <div style={paymentNotice}>
+              Buyer payment status: <strong>
+                {paymentStatusLabel}
+              </strong>.
+            </div>
+          ) : null}
+
+          {paymentCaptured ? (
+            <div style={capturedNotice}>
+              Payment captured successfully.
+            </div>
           ) : null}
         </section>
 
@@ -325,6 +574,84 @@ const actions: React.CSSProperties = {
   display: 'grid',
   gap: 8,
   marginTop: 16,
+};
+
+const paymentGrid: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns:
+    'repeat(auto-fit, minmax(150px, 1fr))',
+  gap: 14,
+  marginBottom: 18,
+};
+
+const label: React.CSSProperties = {
+  display: 'block',
+  marginBottom: 5,
+  color: '#718078',
+  fontSize: 12,
+  fontWeight: 750,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+};
+
+const paymentNotice: React.CSSProperties = {
+  marginTop: 12,
+  padding: 13,
+  borderRadius: 13,
+  background: '#f4f7f5',
+  color: '#53665c',
+  lineHeight: 1.5,
+};
+
+const capturedNotice: React.CSSProperties = {
+  marginTop: 12,
+  padding: 13,
+  borderRadius: 13,
+  background: '#e9f8f0',
+  color: '#17633f',
+  fontWeight: 800,
+};
+
+const paymentMethodList: React.CSSProperties = {
+  display: 'grid',
+  gap: 10,
+  marginTop: 14,
+  marginBottom: 14,
+};
+
+const paymentMethodOption: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 10,
+  padding: 13,
+  border: '1px solid #dfe7e2',
+  borderRadius: 13,
+  background: '#fff',
+  cursor: 'pointer',
+};
+
+const paymentMethodSelected: React.CSSProperties = {
+  ...paymentMethodOption,
+  border: '1px solid #08714a',
+  background: '#eef8f3',
+};
+
+const methodDescription: React.CSSProperties = {
+  display: 'block',
+  marginTop: 4,
+  color: '#718078',
+  lineHeight: 1.4,
+};
+
+const paymentPrimary: React.CSSProperties = {
+  marginTop: 4,
+  padding: '12px 16px',
+  border: 0,
+  borderRadius: 999,
+  background: '#08714a',
+  color: '#fff',
+  cursor: 'pointer',
+  fontWeight: 850,
 };
 
 const danger: React.CSSProperties = {
