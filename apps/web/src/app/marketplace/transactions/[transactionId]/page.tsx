@@ -2,8 +2,9 @@
 
 import {
   cancelMarketplaceTransaction,
-  completeMarketplaceTransaction,
+  getCurrentUser,
   getMarketplaceTransaction,
+  type AuthUser,
   type MarketplaceTransaction,
 } from '@neighbour/api-client';
 import Link from 'next/link';
@@ -18,6 +19,7 @@ export default function MarketplaceTransactionDetailPage() {
 
   const [transaction, setTransaction] =
     useState<MarketplaceTransaction | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,11 +27,16 @@ export default function MarketplaceTransactionDetailPage() {
     try {
       setError('');
 
-      setTransaction(
-        await getMarketplaceTransaction(
-          params.transactionId,
-        ),
-      );
+      const [loadedTransaction, currentUser] =
+        await Promise.all([
+          getMarketplaceTransaction(
+            params.transactionId,
+          ),
+          getCurrentUser(),
+        ]);
+
+      setTransaction(loadedTransaction);
+      setUser(currentUser);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -82,6 +89,20 @@ export default function MarketplaceTransactionDetailPage() {
   const active =
     transaction.status !== 'COMPLETED' &&
     transaction.status !== 'CANCELLED';
+
+  const isBuyer =
+    Boolean(
+      user &&
+        transaction.buyerId === user.id,
+    );
+
+  const isSeller =
+    Boolean(
+      user &&
+        transaction.sellerId === user.id,
+    );
+
+  const isParticipant = isBuyer || isSeller;
 
   return (
     <main style={shell}>
@@ -168,30 +189,37 @@ export default function MarketplaceTransactionDetailPage() {
         <section style={card}>
           <h2>Next steps</h2>
 
-          <div style={notice}>
-            Payment and fulfilment controls will be attached
-            here in the remaining Marketplace parity builds.
-            Transaction state remains enforced by the existing
-            backend.
-          </div>
+          {isBuyer ? (
+            <div style={notice}>
+              <strong>You are buying this item.</strong>
+              <div style={{ marginTop: 6 }}>
+                This trade is reserved for you. Payment and
+                fulfilment controls are the next Marketplace
+                parity layer.
+              </div>
+            </div>
+          ) : null}
 
-          {active ? (
+          {isSeller ? (
+            <div style={notice}>
+              <strong>You are selling this item.</strong>
+              <div style={{ marginTop: 6 }}>
+                The trade is reserved. Complete Sale will
+                become available after Marketplace payment
+                has reached the required captured state.
+              </div>
+            </div>
+          ) : null}
+
+          {!isParticipant ? (
+            <div style={notice}>
+              You are not a participant in this Marketplace
+              transaction.
+            </div>
+          ) : null}
+
+          {active && isParticipant ? (
             <div style={actions}>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() =>
-                  void perform(() =>
-                    completeMarketplaceTransaction(
-                      transaction.id,
-                    ),
-                  )
-                }
-                style={primary}
-              >
-                Complete sale
-              </button>
-
               <button
                 type="button"
                 disabled={busy}
@@ -206,6 +234,18 @@ export default function MarketplaceTransactionDetailPage() {
               >
                 Cancel transaction
               </button>
+            </div>
+          ) : null}
+
+          {transaction.status === 'COMPLETED' ? (
+            <div style={statusNotice}>
+              This Marketplace trade has been completed.
+            </div>
+          ) : null}
+
+          {transaction.status === 'CANCELLED' ? (
+            <div style={statusNotice}>
+              This Marketplace trade has been cancelled.
             </div>
           ) : null}
 
@@ -287,21 +327,23 @@ const actions: React.CSSProperties = {
   marginTop: 16,
 };
 
-const primary: React.CSSProperties = {
+const danger: React.CSSProperties = {
   padding: '12px 16px',
-  border: 0,
+  border: '1px solid #ebcecc',
   borderRadius: 999,
-  background: '#08714a',
-  color: '#fff',
+  background: '#fff',
+  color: '#a43330',
   cursor: 'pointer',
   fontWeight: 850,
 };
 
-const danger: React.CSSProperties = {
-  ...primary,
-  border: '1px solid #ebcecc',
-  background: '#fff',
-  color: '#a43330',
+const statusNotice: React.CSSProperties = {
+  marginTop: 14,
+  padding: 13,
+  borderRadius: 13,
+  background: '#f4f7f5',
+  color: '#53665c',
+  lineHeight: 1.5,
 };
 
 const errorStyle: React.CSSProperties = {
