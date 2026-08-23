@@ -92,6 +92,14 @@ export default function MarketplacePage() {
           <Link href="/marketplace/mine" style={quickLink}>
             My listings
           </Link>
+
+          <Link href="/marketplace/offers" style={quickLink}>
+            Offers
+          </Link>
+
+          <Link href="/marketplace/transactions" style={quickLink}>
+            Transactions
+          </Link>
         </div>
       </section>
 

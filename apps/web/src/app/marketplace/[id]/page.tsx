@@ -181,9 +181,24 @@ export default function MarketplaceListingDetailPage() {
 
           {listing.acceptsOffers ? (
             <div style={notice}>
-              This seller accepts offers. Offer handling will
-              appear here when Marketplace Transactions parity
-              is enabled.
+              <strong>This seller accepts offers.</strong>
+
+              <div style={{ marginTop: 10 }}>
+                <Link
+                  href={`/marketplace/${listing.id}/offer`}
+                  style={{
+                    display: 'inline-block',
+                    padding: '10px 14px',
+                    borderRadius: 999,
+                    background: '#08714a',
+                    color: '#fff',
+                    textDecoration: 'none',
+                    fontWeight: 850,
+                  }}
+                >
+                  Make an offer
+                </Link>
+              </div>
             </div>
           ) : null}
 
