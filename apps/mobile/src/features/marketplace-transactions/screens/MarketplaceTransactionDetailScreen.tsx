@@ -5,9 +5,11 @@ import {
   confirmMarketplacePayment,
   createMarketplacePayment,
   getMyMarketplacePayments,
+  getMarketplaceFulfilmentByTransaction,
   getMarketplacePaymentMethods,
   getMarketplaceTransaction,
   refundMarketplacePayment,
+  type MarketplaceFulfilment,
   type MarketplacePayment,
   type MarketplacePaymentMethod,
   type MarketplaceTransaction,
@@ -58,22 +60,17 @@ async function initialiseStripeRuntime(): Promise<void> {
   }
 
   stripeInitialisationPromise = (async () => {
-    const publishableKey =
-      process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim();
+    const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim();
 
     if (!publishableKey) {
       throw new Error('Stripe publishable key is unavailable.');
     }
 
     if (!publishableKey.startsWith('pk_test_')) {
-      throw new Error(
-        'Build 52 requires a Stripe test publishable key.',
-      );
+      throw new Error('Build 52 requires a Stripe test publishable key.');
     }
 
-    const { initStripe } = await import(
-      '@stripe/stripe-react-native'
-    );
+    const { initStripe } = await import('@stripe/stripe-react-native');
 
     await initStripe({
       publishableKey,
@@ -89,35 +86,22 @@ async function initialiseStripeRuntime(): Promise<void> {
   }
 }
 
-
-async function presentStripePaymentSheet(
-  clientSecret: string,
-): Promise<void> {
+async function presentStripePaymentSheet(clientSecret: string): Promise<void> {
   await initialiseStripeRuntime();
 
-  const {
-    initPaymentSheet,
-    presentPaymentSheet,
-  } = await import('@stripe/stripe-react-native');
+  const { initPaymentSheet, presentPaymentSheet } = await import('@stripe/stripe-react-native');
 
-  const {
-    error: initialisationError,
-  } = await initPaymentSheet({
+  const { error: initialisationError } = await initPaymentSheet({
     merchantDisplayName: 'Neighbour',
     paymentIntentClientSecret: clientSecret,
     returnURL: 'neighbour://stripe-redirect',
   });
 
   if (initialisationError) {
-    throw new Error(
-      initialisationError.message ||
-        'Stripe PaymentSheet could not be initialised.',
-    );
+    throw new Error(initialisationError.message || 'Stripe PaymentSheet could not be initialised.');
   }
 
-  const {
-    error: presentationError,
-  } = await presentPaymentSheet();
+  const { error: presentationError } = await presentPaymentSheet();
 
   if (presentationError) {
     if (presentationError.code === 'Canceled') {
@@ -125,8 +109,7 @@ async function presentStripePaymentSheet(
     }
 
     throw new Error(
-      presentationError.message ||
-        'Stripe PaymentSheet could not complete the payment.',
+      presentationError.message || 'Stripe PaymentSheet could not complete the payment.',
     );
   }
 }
@@ -137,6 +120,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
 
   const [transaction, setTransaction] = useState<MarketplaceTransaction | null>(null);
   const [payment, setPayment] = useState<MarketplacePayment | null>(null);
+  const [fulfilment, setFulfilment] = useState<MarketplaceFulfilment | null>(null);
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<
     MarketplacePaymentMethod[]
   >([]);
@@ -156,9 +140,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
 
       console.warn(
         'Stripe runtime initialisation failed:',
-        stripeError instanceof Error
-          ? stripeError.message
-          : 'Unknown Stripe initialisation error',
+        stripeError instanceof Error ? stripeError.message : 'Unknown Stripe initialisation error',
       );
     });
 
@@ -172,10 +154,11 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
     setError(null);
 
     try {
-      const [loadedTransaction, payments, methodResponse] = await Promise.all([
+      const [loadedTransaction, payments, methodResponse, loadedFulfilment] = await Promise.all([
         getMarketplaceTransaction(route.params.transactionId),
         getMyMarketplacePayments(),
         getMarketplacePaymentMethods(),
+        getMarketplaceFulfilmentByTransaction(route.params.transactionId).catch(() => null),
       ]);
 
       const enabledMethods = methodResponse.methods
@@ -187,8 +170,12 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
       setPayment(
         payments.find((item) => item.transactionId === route.params.transactionId) ?? null,
       );
+      setFulfilment(loadedFulfilment);
       setAvailablePaymentMethods(enabledMethods);
-      setSelectedPaymentMethod((current) => current ?? enabledMethods[0] ?? null);
+      setSelectedPaymentMethod(
+        (current) =>
+          current ?? (enabledMethods.includes('CARD') ? 'CARD' : (enabledMethods[0] ?? null)),
+      );
     } catch (caughtError) {
       setError(
         caughtError instanceof Error ? caughtError.message : 'Transaction could not be loaded.',
@@ -218,7 +205,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
     }
   };
 
-  const createPayment = async () => {
+  const startPayment = async () => {
     if (!transaction) {
       return;
     }
@@ -240,21 +227,40 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
 
       setPayment(created);
 
-      Alert.alert(
-        'PAYMENT CREATED',
-        'The Marketplace payment has been created and is ready for processing.',
-      );
+      if (
+        created.provider === 'STRIPE' &&
+        created.method === 'CARD' &&
+        created.status === 'REQUIRES_ACTION'
+      ) {
+        if (!created.clientSecret) {
+          throw new Error('Stripe client secret is unavailable for this payment.');
+        }
+
+        await presentStripePaymentSheet(created.clientSecret);
+
+        Alert.alert(
+          'PURCHASE CONFIRMED',
+          'Your payment has been submitted securely. Neighbour will refresh the order status.',
+        );
+
+        await load();
+        return;
+      }
+
+      Alert.alert('PAYMENT READY', 'Your Marketplace payment has been created.');
     } catch (caughtError) {
-      setError(
+      const message =
         caughtError instanceof Error
           ? caughtError.message
-          : 'The Marketplace payment could not be created.',
-      );
+          : 'The Marketplace payment could not be completed.';
+
+      if (message !== 'Payment cancelled.') {
+        setError(message);
+      }
     } finally {
       setActing(false);
     }
   };
-
 
   const continueStripePayment = async () => {
     if (!payment) {
@@ -343,8 +349,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
       return;
     }
 
-    const remainingRefundable =
-      payment.amountPence - payment.refundedAmountPence;
+    const remainingRefundable = payment.amountPence - payment.refundedAmountPence;
 
     if (remainingRefundable <= 0) {
       setError('There is no remaining balance available to refund.');
@@ -363,10 +368,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
 
       setPayment(refunded);
 
-      Alert.alert(
-        'PAYMENT REFUNDED',
-        'The remaining captured payment has been refunded.',
-      );
+      Alert.alert('PAYMENT REFUNDED', 'The remaining captured payment has been refunded.');
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -391,10 +393,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
 
       setPayment(confirmed);
 
-      Alert.alert(
-        'PAYMENT CONFIRMED',
-        'Payment has been marked as received.',
-      );
+      Alert.alert('PAYMENT CONFIRMED', 'Payment has been marked as received.');
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -466,9 +465,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
       </Card>
 
       <Card style={styles.card}>
-        <AppText variant="subheading">
-          {isSeller ? 'Sale breakdown' : 'Payment'}
-        </AppText>
+        <AppText variant="subheading">{isSeller ? 'Sale breakdown' : 'Payment'}</AppText>
 
         <View style={styles.paymentRow}>
           <AppText tone="secondary">Sale price</AppText>
@@ -517,9 +514,7 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
           </>
         ) : isBuyer ? (
           <>
-            <AppText tone="secondary">
-              Choose how you want to pay for this transaction.
-            </AppText>
+            <AppText tone="secondary">Choose how you want to pay for this transaction.</AppText>
 
             {availablePaymentMethods.length > 0 ? (
               <View style={styles.paymentMethods}>
@@ -553,17 +548,12 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
                 })}
               </View>
             ) : (
-              <AppText tone="secondary">
-                No payment methods are currently available.
-              </AppText>
+              <AppText tone="secondary">No payment methods are currently available.</AppText>
             )}
           </>
         ) : (
-          <AppText tone="secondary">
-            Payment has not yet been created by the buyer.
-          </AppText>
+          <AppText tone="secondary">Payment has not yet been created by the buyer.</AppText>
         )}
-
 
         {isBuyer &&
         active &&
@@ -597,23 +587,19 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
             accessibilityRole="button"
             disabled={acting}
             onPress={() => {
-              Alert.alert(
-                'CANCEL PAYMENT',
-                'Cancel this Marketplace payment?',
-                [
-                  {
-                    text: 'Keep payment',
-                    style: 'cancel',
+              Alert.alert('CANCEL PAYMENT', 'Cancel this Marketplace payment?', [
+                {
+                  text: 'Keep payment',
+                  style: 'cancel',
+                },
+                {
+                  text: 'Cancel payment',
+                  style: 'destructive',
+                  onPress: () => {
+                    void cancelPayment();
                   },
-                  {
-                    text: 'Cancel payment',
-                    style: 'destructive',
-                    onPress: () => {
-                      void cancelPayment();
-                    },
-                  },
-                ],
-              );
+                },
+              ]);
             }}
             style={styles.actionButton}
           >
@@ -623,14 +609,12 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
 
         {isSeller &&
         payment &&
-        (payment.status === 'CAPTURED' ||
-          payment.status === 'PARTIALLY_REFUNDED') ? (
+        (payment.status === 'CAPTURED' || payment.status === 'PARTIALLY_REFUNDED') ? (
           <Pressable
             accessibilityRole="button"
             disabled={acting}
             onPress={() => {
-              const remainingRefundable =
-                payment.amountPence - payment.refundedAmountPence;
+              const remainingRefundable = payment.amountPence - payment.refundedAmountPence;
 
               Alert.alert(
                 'REFUND PAYMENT',
@@ -663,22 +647,18 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
             accessibilityRole="button"
             disabled={acting}
             onPress={() => {
-              Alert.alert(
-                'CONFIRM PAYMENT',
-                'Confirm that you have received this payment?',
-                [
-                  {
-                    text: 'Cancel',
-                    style: 'cancel',
+              Alert.alert('CONFIRM PAYMENT', 'Confirm that you have received this payment?', [
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                },
+                {
+                  text: 'Confirm received',
+                  onPress: () => {
+                    void confirmPaymentReceived();
                   },
-                  {
-                    text: 'Confirm received',
-                    onPress: () => {
-                      void confirmPaymentReceived();
-                    },
-                  },
-                ],
-              );
+                },
+              ]);
             }}
             style={styles.actionButton}
           >
@@ -689,23 +669,60 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
         {isBuyer && active && !payment && availablePaymentMethods.length > 0 ? (
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={
+              selectedPaymentMethod === 'CARD'
+                ? 'Pay securely by card'
+                : 'Continue with selected payment method'
+            }
             disabled={acting || !selectedPaymentMethod}
             onPress={() => {
-              void createPayment();
+              void startPayment();
             }}
-            style={styles.actionButton}
+            style={[
+              styles.actionButton,
+              selectedPaymentMethod === 'CARD'
+                ? {
+                    backgroundColor: theme.colors.primary,
+                    borderRadius: theme.radius.pill,
+                  }
+                : null,
+            ]}
           >
-            <AppText variant="label">
-              Continue with{' '}
-              {selectedPaymentMethod
-                ? PAYMENT_METHOD_LABELS[selectedPaymentMethod]
-                : 'payment'}
+            <AppText
+              variant="label"
+              tone={selectedPaymentMethod === 'CARD' ? 'inverse' : undefined}
+            >
+              {acting
+                ? 'Starting payment…'
+                : selectedPaymentMethod === 'CARD'
+                  ? `Pay securely — ${formatPrice(transaction.agreedPricePence)}`
+                  : `Continue with ${
+                      selectedPaymentMethod
+                        ? PAYMENT_METHOD_LABELS[selectedPaymentMethod]
+                        : 'payment'
+                    }`}
             </AppText>
           </Pressable>
         ) : null}
       </Card>
 
-      {isSeller && active && payment?.status === 'CAPTURED' ? (
+      {isSeller &&
+      active &&
+      payment?.status === 'CAPTURED' &&
+      fulfilment?.status !== 'COMPLETED' ? (
+        <Card style={styles.card}>
+          <AppText variant="subheading">You've sold this item.</AppText>
+          <AppText tone="secondary">
+            Payment is captured. Fulfil the sale and complete the handover before closing the
+            transaction.
+          </AppText>
+        </Card>
+      ) : null}
+
+      {isSeller &&
+      active &&
+      payment?.status === 'CAPTURED' &&
+      fulfilment?.status === 'COMPLETED' ? (
         <Pressable
           accessibilityRole="button"
           disabled={acting}
@@ -752,7 +769,13 @@ export default function MarketplaceTransactionDetailScreen({ navigation, route }
         }}
         style={styles.actionButton}
       >
-        <AppText variant="label">Open fulfilment</AppText>
+        <AppText variant="label">
+          {transaction.status === 'COMPLETED'
+            ? 'View purchase'
+            : isSeller
+              ? 'Fulfil sale'
+              : 'View purchase'}
+        </AppText>
       </Pressable>
     </Screen>
   );

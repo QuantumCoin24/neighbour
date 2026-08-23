@@ -109,14 +109,13 @@ export default function MarketplaceListingDetailScreen({ navigation, route }: Pr
     try {
       const transaction = await purchaseMarketplaceListing(listing.id);
 
-      navigation.navigate('MarketplaceTransactionDetail', {
+      navigation.navigate('MarketplaceFulfilment', {
         transactionId: transaction.id,
+        sellerId: listing.seller.id,
       });
     } catch (caughtError) {
       setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : 'This listing could not be purchased.',
+        caughtError instanceof Error ? caughtError.message : 'This listing could not be purchased.',
       );
     } finally {
       setPurchasing(false);

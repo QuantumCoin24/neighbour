@@ -20,7 +20,7 @@ import { useNeighbourTheme } from '../../../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MarketplaceFulfilment'>;
 
-export default function FulfilmentScreen({ route }: Props) {
+export default function FulfilmentScreen({ navigation, route }: Props) {
   const { theme } = useNeighbourTheme();
   const { user } = useAuth();
 
@@ -81,11 +81,17 @@ export default function FulfilmentScreen({ route }: Props) {
     setError(null);
 
     try {
-      setFulfilment(
-        await createMarketplaceFulfilment(route.params.transactionId, {
-          method,
-        }),
-      );
+      const created = await createMarketplaceFulfilment(route.params.transactionId, {
+        method,
+      });
+
+      setFulfilment(created);
+
+      if (method === 'COLLECTION') {
+        navigation.replace('MarketplaceTransactionDetail', {
+          transactionId: route.params.transactionId,
+        });
+      }
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -166,12 +172,13 @@ export default function FulfilmentScreen({ route }: Props) {
 
       setFulfilment(refreshed);
 
-      Alert.alert(
-        isCurrentUserSeller ? 'Dispatch details saved' : 'Delivery address saved',
-        isCurrentUserSeller
-          ? 'Courier and tracking details have been saved.'
-          : 'Your delivery address has been securely saved for this transaction.',
-      );
+      if (isCurrentUserSeller) {
+        Alert.alert('Dispatch details saved', 'Courier and tracking details have been saved.');
+      } else {
+        navigation.replace('MarketplaceTransactionDetail', {
+          transactionId: route.params.transactionId,
+        });
+      }
     } catch (caughtError) {
       const message =
         caughtError instanceof Error
