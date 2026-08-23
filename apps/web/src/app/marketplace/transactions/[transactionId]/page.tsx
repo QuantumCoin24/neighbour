@@ -6,10 +6,12 @@ import {
   createMarketplacePayment,
   getMarketplacePaymentMethods,
   getMyMarketplacePayments,
+  getMarketplaceFulfilmentByTransaction,
   cancelMarketplaceTransaction,
   getCurrentUser,
   getMarketplaceTransaction,
   type AuthUser,
+  type MarketplaceFulfilment,
   type MarketplaceTransaction,
 } from '@neighbour/api-client';
 import Link from 'next/link';
@@ -26,12 +28,12 @@ export default function MarketplaceTransactionDetailPage() {
   const params = useParams<{ transactionId: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const purchaseConfirmed =
-    searchParams.get('purchase') === 'confirmed';
+  const purchaseConfirmed = searchParams.get('purchase') === 'confirmed';
 
   const [transaction, setTransaction] = useState<MarketplaceTransaction | null>(null);
 
   const [payments, setPayments] = useState<WebMarketplacePayment[]>([]);
+  const [fulfilment, setFulfilment] = useState<MarketplaceFulfilment | null>(null);
 
   const [paymentMethods, setPaymentMethods] = useState<WebMarketplacePaymentMethods | null>(null);
 
@@ -44,19 +46,26 @@ export default function MarketplaceTransactionDetailPage() {
     try {
       setError('');
 
-      const [loadedTransaction, currentUser, loadedPayments, loadedPaymentMethods] =
-        await Promise.all([
-          getMarketplaceTransaction(params.transactionId),
-          getCurrentUser(),
-          getMyMarketplacePayments(),
-          getMarketplacePaymentMethods(),
-        ]);
+      const [
+        loadedTransaction,
+        currentUser,
+        loadedPayments,
+        loadedPaymentMethods,
+        loadedFulfilment,
+      ] = await Promise.all([
+        getMarketplaceTransaction(params.transactionId),
+        getCurrentUser(),
+        getMyMarketplacePayments(),
+        getMarketplacePaymentMethods(),
+        getMarketplaceFulfilmentByTransaction(params.transactionId).catch(() => null),
+      ]);
 
       setTransaction(loadedTransaction);
       setUser(currentUser);
 
       setPayments(loadedPayments);
       setPaymentMethods(loadedPaymentMethods);
+      setFulfilment(loadedFulfilment);
 
       const firstEnabledMethod = loadedPaymentMethods.methods?.find((method) => method.enabled);
 
@@ -166,13 +175,9 @@ export default function MarketplaceTransactionDetailPage() {
     const fulfilmentValue = searchParams.get('fulfilment');
     const paymentValue = searchParams.get('payment');
 
-    const fulfilmentLabel = fulfilmentValue
-      ? humanisePurchaseValue(fulfilmentValue)
-      : 'Confirmed';
+    const fulfilmentLabel = fulfilmentValue ? humanisePurchaseValue(fulfilmentValue) : 'Confirmed';
 
-    const paymentLabel = paymentValue
-      ? humanisePurchaseValue(paymentValue)
-      : 'Payment started';
+    const paymentLabel = paymentValue ? humanisePurchaseValue(paymentValue) : 'Payment started';
 
     return (
       <main
@@ -243,8 +248,8 @@ export default function MarketplaceTransactionDetailPage() {
                 marginBottom: 26,
               }}
             >
-              That's it. Your purchase is secured. Neighbour™
-              will guide you through anything else that is needed.
+              That's it. Your purchase is secured. Neighbour™ will guide you through anything else
+              that is needed.
             </p>
 
             <div
@@ -259,9 +264,7 @@ export default function MarketplaceTransactionDetailPage() {
             >
               <div style={purchaseSummaryRow}>
                 <span>Price</span>
-                <strong>
-                  £{(transaction.agreedPricePence / 100).toFixed(2)}
-                </strong>
+                <strong>£{(transaction.agreedPricePence / 100).toFixed(2)}</strong>
               </div>
 
               <div style={purchaseSummaryRow}>
@@ -277,11 +280,7 @@ export default function MarketplaceTransactionDetailPage() {
 
             <button
               type="button"
-              onClick={() =>
-                router.replace(
-                  `/marketplace/transactions/${transaction.id}`,
-                )
-              }
+              onClick={() => router.replace(`/marketplace/transactions/${transaction.id}`)}
               style={{
                 width: '100%',
                 border: 0,
@@ -320,7 +319,6 @@ export default function MarketplaceTransactionDetailPage() {
     );
   }
 
-
   const isBuyer = Boolean(user && transaction.buyerId === user.id);
 
   const isSeller = Boolean(user && transaction.sellerId === user.id);
@@ -346,7 +344,11 @@ export default function MarketplaceTransactionDetailPage() {
 
   const sellerCanConfirmManualPayment = Boolean(isSeller && manualPaymentPending);
 
-  const sellerCanCompleteSale = Boolean(isSeller && active && currentPayment && paymentCaptured);
+  const fulfilmentCompleted = fulfilment?.status === 'COMPLETED';
+
+  const sellerCanCompleteSale = Boolean(
+    isSeller && active && currentPayment && paymentCaptured && fulfilmentCompleted,
+  );
 
   const enabledPaymentMethods = paymentMethods?.methods?.filter((method) => method.enabled) ?? [];
 
@@ -446,13 +448,39 @@ export default function MarketplaceTransactionDetailPage() {
               <span style={label}>Provider</span>
               <strong>{currentPayment?.provider ?? '—'}</strong>
             </div>
+
+            {currentPayment ? (
+              <>
+                <div>
+                  <span style={label}>Sale price</span>
+                  <strong>{priceLabel(currentPayment.amountPence, false)}</strong>
+                </div>
+
+                <div>
+                  <span style={label}>
+                    Neighbour commission ({(currentPayment.platformFeeBasisPoints / 100).toFixed(2)}
+                    %)
+                  </span>
+                  <strong>{priceLabel(currentPayment.platformFeePence, false)}</strong>
+                </div>
+
+                <div>
+                  <span style={label}>Payment processing</span>
+                  <strong>{priceLabel(currentPayment.processorFeePence, false)}</strong>
+                </div>
+
+                <div>
+                  <span style={label}>Seller proceeds</span>
+                  <strong>{priceLabel(currentPayment.sellerProceedsPence, false)}</strong>
+                </div>
+              </>
+            ) : null}
           </div>
 
           {isBuyer && !currentPayment ? (
             <>
               <div style={paymentNotice}>
-                Choose an available payment method to start payment for the agreed Marketplace
-                price.
+                Choose how you would like to pay for this Marketplace purchase.
               </div>
 
               {enabledPaymentMethods.length > 0 ? (
@@ -501,7 +529,7 @@ export default function MarketplaceTransactionDetailPage() {
                   onClick={() => void createPayment()}
                   style={paymentPrimary}
                 >
-                  {busy ? 'Starting payment…' : 'Start payment'}
+                  {busy ? 'Preparing payment…' : 'Pay securely'}
                 </button>
               ) : null}
             </>
@@ -509,13 +537,12 @@ export default function MarketplaceTransactionDetailPage() {
 
           {isBuyer && currentPayment ? (
             <div style={paymentNotice}>
-              Your Marketplace payment has been created. Current status:{' '}
-              <strong>{paymentStatusLabel}</strong>.
+              Payment status: <strong>{paymentStatusLabel}</strong>.
             </div>
           ) : null}
 
           {isSeller && !currentPayment ? (
-            <div style={paymentNotice}>Waiting for the buyer to start payment.</div>
+            <div style={paymentNotice}>Waiting for buyer payment.</div>
           ) : null}
 
           {isSeller && currentPayment ? (
@@ -545,33 +572,47 @@ export default function MarketplaceTransactionDetailPage() {
         <section style={card}>
           <h2>Next steps</h2>
 
-          {isBuyer ? (
+          {isBuyer && active ? (
             <div style={notice}>
-              <strong>Purchase in progress.</strong>
+              <strong>
+                {fulfilmentCompleted ? 'Fulfilment complete.' : 'Your purchase is being fulfilled.'}
+              </strong>
+
               <Link
                 href={`/marketplace/transactions/${params.transactionId}/fulfilment`}
                 style={back}
               >
-                View purchase
+                {fulfilmentCompleted ? 'View fulfilment' : 'Continue fulfilment'}
               </Link>
             </div>
           ) : null}
 
-          {isSeller ? (
+          {isSeller && active ? (
             <div style={notice}>
-              <strong>You've sold this item.</strong>
+              <strong>
+                {fulfilmentCompleted ? 'Sale fulfilled.' : 'This item has been sold.'}
+              </strong>
 
               <Link
                 href={`/marketplace/transactions/${params.transactionId}/fulfilment`}
                 style={back}
               >
-                Fulfil sale
+                {fulfilmentCompleted ? 'View fulfilment' : 'Fulfil sale'}
               </Link>
 
-              <div style={{ marginTop: 6 }}>
-                The trade is reserved. Complete Sale will become available after Marketplace payment
-                has reached the required captured state.
-              </div>
+              {!paymentCaptured ? (
+                <div style={{ marginTop: 6 }}>
+                  Complete Sale remains locked until buyer payment has been captured.
+                </div>
+              ) : !fulfilmentCompleted ? (
+                <div style={{ marginTop: 6 }}>
+                  Payment is captured. Complete Sale remains locked until fulfilment is complete.
+                </div>
+              ) : (
+                <div style={{ marginTop: 6 }}>
+                  Payment and fulfilment are complete. You can now complete the sale.
+                </div>
+              )}
             </div>
           ) : null}
 
@@ -795,7 +836,6 @@ const empty: React.CSSProperties = {
   borderRadius: 18,
   background: '#fff',
 };
-
 
 function humanisePurchaseValue(value: string) {
   return value

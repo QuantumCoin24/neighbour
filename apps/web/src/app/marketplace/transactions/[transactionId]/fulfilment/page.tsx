@@ -18,7 +18,6 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { type CSSProperties, type FormEvent, useCallback, useEffect, useState } from 'react';
 
-
 function humanise(value: string) {
   return value
     .replaceAll('_', ' ')
@@ -148,7 +147,6 @@ export default function MarketplaceFulfilmentPage() {
 
     setFulfilment(refreshed);
   };
-
 
   const saveCollection = async (event: FormEvent) => {
     event.preventDefault();
@@ -703,7 +701,11 @@ export default function MarketplaceFulfilmentPage() {
 
             <section style={panel}>
               <p style={sectionLabel}>CONFIRMATION</p>
-              <h2 style={sectionTitle}>Complete the handover</h2>
+              <h2 style={sectionTitle}>
+                {fulfilment.method === 'COLLECTION'
+                  ? 'Complete the handover'
+                  : 'Confirm fulfilment'}
+              </h2>
 
               <div style={confirmationGrid}>
                 <div style={confirmationCard}>
@@ -724,7 +726,13 @@ export default function MarketplaceFulfilmentPage() {
                   onClick={() => void confirm()}
                   style={primaryButton}
                 >
-                  {acting ? 'Confirming…' : 'Confirm handover'}
+                  {acting
+                    ? 'Confirming…'
+                    : fulfilment.method === 'COLLECTION'
+                      ? 'Confirm handover'
+                      : isSeller
+                        ? 'Confirm dispatch / fulfilment'
+                        : 'Confirm item received'}
                 </button>
               ) : null}
 
