@@ -14,8 +14,7 @@ type View = 'RECEIVED' | 'SENT';
 
 export default function MarketplaceOffersPage() {
   const [view, setView] = useState<View>('RECEIVED');
-  const [items, setItems] =
-    useState<MarketplacePeerOffer[]>([]);
+  const [items, setItems] = useState<MarketplacePeerOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -25,17 +24,11 @@ export default function MarketplaceOffersPage() {
 
     try {
       const result =
-        view === 'RECEIVED'
-          ? await getReceivedMarketplaceOffers()
-          : await getMyMarketplaceOffers();
+        view === 'RECEIVED' ? await getReceivedMarketplaceOffers() : await getMyMarketplaceOffers();
 
       setItems(result.items);
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'Offers could not be loaded.',
-      );
+      setError(caught instanceof Error ? caught.message : 'Offers could not be loaded.');
     } finally {
       setLoading(false);
     }
@@ -56,10 +49,7 @@ export default function MarketplaceOffersPage() {
 
         <h1 style={heading}>Marketplace offers</h1>
 
-        <p style={subtitle}>
-          Track prices you've proposed and offers you've
-          received.
-        </p>
+        <p style={subtitle}>Track prices you've proposed and offers you've received.</p>
       </section>
 
       <div style={tabs}>
@@ -95,53 +85,34 @@ export default function MarketplaceOffersPage() {
         <section style={empty}>Loading offers…</section>
       ) : items.length === 0 ? (
         <section style={empty}>
-          <strong>
-            No {view.toLowerCase()} offers
-          </strong>
-          <p>
-            Offers you send and receive will appear here.
-          </p>
+          <strong>No {view.toLowerCase()} offers</strong>
+          <p>Offers you send and receive will appear here.</p>
         </section>
       ) : (
         <section style={list}>
           {items.map((offer) => {
-            const person =
-              view === 'RECEIVED'
-                ? offer.buyer
-                : offer.seller;
+            const senderId = offer.history.at(0)?.actorId ?? null;
+
+            const sender = senderId === offer.sellerId ? offer.seller : offer.buyer;
+
+            const recipient = senderId === offer.sellerId ? offer.buyer : offer.seller;
+
+            const person = view === 'RECEIVED' ? sender : recipient;
 
             return (
-              <Link
-                key={offer.id}
-                href={`/marketplace/offers/${offer.id}`}
-                style={card}
-              >
+              <Link key={offer.id} href={`/marketplace/offers/${offer.id}`} style={card}>
                 <div>
-                  <strong style={title}>
-                    {offer.listing.title}
-                  </strong>
+                  <strong style={title}>{offer.listing.title}</strong>
 
                   <div style={meta}>
-                    {view === 'RECEIVED'
-                      ? 'From'
-                      : 'To'}{' '}
-                    {person.displayName}
+                    {view === 'RECEIVED' ? 'From' : 'To'} {person.displayName}
                   </div>
                 </div>
 
                 <div style={right}>
-                  <strong style={amount}>
-                    {priceLabel(
-                      offer.amountPence,
-                      false,
-                    )}
-                  </strong>
+                  <strong style={amount}>{priceLabel(offer.amountPence, false)}</strong>
 
-                  <span style={status}>
-                    {offer.status
-                      .replaceAll('_', ' ')
-                      .toLowerCase()}
-                  </span>
+                  <span style={status}>{offer.status.replaceAll('_', ' ').toLowerCase()}</span>
                 </div>
               </Link>
             );
@@ -149,10 +120,7 @@ export default function MarketplaceOffersPage() {
         </section>
       )}
 
-      <Link
-        href="/marketplace/transactions"
-        style={transactionLink}
-      >
+      <Link href="/marketplace/transactions" style={transactionLink}>
         View Marketplace transactions →
       </Link>
     </main>

@@ -19,8 +19,7 @@ import { priceLabel } from '../../../../components/marketplace/marketplace-ui';
 export default function MarketplaceOfferDetailPage() {
   const params = useParams<{ offerId: string }>();
 
-  const [offer, setOffer] =
-    useState<MarketplacePeerOffer | null>(null);
+  const [offer, setOffer] = useState<MarketplacePeerOffer | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [counter, setCounter] = useState('');
   const [counterMessage, setCounterMessage] = useState('');
@@ -31,20 +30,15 @@ export default function MarketplaceOfferDetailPage() {
     try {
       setError('');
 
-      const [loadedOffer, currentUser] =
-        await Promise.all([
-          getMarketplacePeerOffer(params.offerId),
-          getCurrentUser(),
-        ]);
+      const [loadedOffer, currentUser] = await Promise.all([
+        getMarketplacePeerOffer(params.offerId),
+        getCurrentUser(),
+      ]);
 
       setOffer(loadedOffer);
       setUser(currentUser);
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'The offer could not be loaded.',
-      );
+      setError(caught instanceof Error ? caught.message : 'The offer could not be loaded.');
     }
   }
 
@@ -52,59 +46,40 @@ export default function MarketplaceOfferDetailPage() {
     void load();
   }, [params.offerId]);
 
-  const active =
-    offer?.status === 'PENDING' ||
-    offer?.status === 'COUNTERED';
+  const active = offer?.status === 'PENDING' || offer?.status === 'COUNTERED';
 
-  const isBuyer =
-    Boolean(offer && user && offer.buyerId === user.id);
+  const isBuyer = Boolean(offer && user && offer.buyerId === user.id);
 
-  const isSeller =
-    Boolean(offer && user && offer.sellerId === user.id);
+  const isSeller = Boolean(offer && user && offer.sellerId === user.id);
 
-  const sellerCanRespond =
-    Boolean(
-      offer &&
-        isSeller &&
-        offer.status === 'PENDING',
-    );
+  const offerSenderId = offer?.history.at(0)?.actorId ?? null;
 
-  const buyerCanRespondToCounter =
-    Boolean(
-      offer &&
-        isBuyer &&
-        offer.status === 'COUNTERED',
-    );
+  const sellerCanRespond = Boolean(
+    offer && user && isSeller && offer.status === 'PENDING' && offerSenderId !== user.id,
+  );
 
-  const buyerCanWithdraw =
-    Boolean(
-      offer &&
-        isBuyer &&
-        active,
-    );
+  const buyerCanRespondToCounter = Boolean(
+    offer && user && isBuyer && offer.status === 'PENDING' && offerSenderId !== user.id,
+  );
+
+  const buyerCanWithdraw = Boolean(
+    offer && user && isBuyer && offer.status === 'PENDING' && offerSenderId === user.id,
+  );
 
   const counterPence = useMemo(() => {
     const parsed = Number.parseFloat(counter);
 
-    return Number.isFinite(parsed) && parsed > 0
-      ? Math.round(parsed * 100)
-      : null;
+    return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 100) : null;
   }, [counter]);
 
-  async function perform(
-    action: () => Promise<MarketplacePeerOffer>,
-  ) {
+  async function perform(action: () => Promise<MarketplacePeerOffer>) {
     setBusy(true);
     setError('');
 
     try {
       setOffer(await action());
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : 'The offer could not be updated.',
-      );
+      setError(caught instanceof Error ? caught.message : 'The offer could not be updated.');
     } finally {
       setBusy(false);
     }
@@ -119,9 +94,7 @@ export default function MarketplaceOfferDetailPage() {
     await perform(() =>
       counterMarketplacePeerOffer(offer.id, {
         amountPence: counterPence,
-        ...(counterMessage.trim()
-          ? { message: counterMessage.trim() }
-          : {}),
+        ...(counterMessage.trim() ? { message: counterMessage.trim() } : {}),
       }),
     );
 
@@ -136,9 +109,7 @@ export default function MarketplaceOfferDetailPage() {
           ← Offers
         </Link>
 
-        <section style={empty}>
-          {error || 'Loading offer…'}
-        </section>
+        <section style={empty}>{error || 'Loading offer…'}</section>
       </main>
     );
   }
@@ -154,13 +125,9 @@ export default function MarketplaceOfferDetailPage() {
 
         <h1 style={heading}>{offer.listing.title}</h1>
 
-        <strong style={amount}>
-          {priceLabel(offer.amountPence, false)}
-        </strong>
+        <strong style={amount}>{priceLabel(offer.amountPence, false)}</strong>
 
-        <div style={status}>
-          {offer.status.replaceAll('_', ' ')}
-        </div>
+        <div style={status}>{offer.status.replaceAll('_', ' ')}</div>
       </section>
 
       <div style={columns}>
@@ -168,13 +135,11 @@ export default function MarketplaceOfferDetailPage() {
           <h2>Offer details</h2>
 
           <p>
-            <strong>Buyer:</strong>{' '}
-            {offer.buyer.displayName}
+            <strong>Buyer:</strong> {offer.buyer.displayName}
           </p>
 
           <p>
-            <strong>Seller:</strong>{' '}
-            {offer.seller.displayName}
+            <strong>Seller:</strong> {offer.seller.displayName}
           </p>
 
           {offer.message ? (
@@ -189,17 +154,14 @@ export default function MarketplaceOfferDetailPage() {
               <h3>Respond to offer</h3>
 
               <div style={roleNotice}>
-                You are the seller. You can accept,
-                decline or counter this buyer offer.
+                You are the seller. You can accept, decline or counter this buyer offer.
               </div>
 
               <h3>Counter offer</h3>
 
               <input
                 value={counter}
-                onChange={(event) =>
-                  setCounter(event.target.value)
-                }
+                onChange={(event) => setCounter(event.target.value)}
                 placeholder="Amount in pounds"
                 inputMode="decimal"
                 style={input}
@@ -207,9 +169,7 @@ export default function MarketplaceOfferDetailPage() {
 
               <textarea
                 value={counterMessage}
-                onChange={(event) =>
-                  setCounterMessage(event.target.value)
-                }
+                onChange={(event) => setCounterMessage(event.target.value)}
                 placeholder="Optional message"
                 style={{ ...input, minHeight: 90 }}
               />
@@ -227,13 +187,7 @@ export default function MarketplaceOfferDetailPage() {
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() =>
-                    void perform(() =>
-                      acceptMarketplacePeerOffer(
-                        offer.id,
-                      ),
-                    )
-                  }
+                  onClick={() => void perform(() => acceptMarketplacePeerOffer(offer.id))}
                   style={primary}
                 >
                   Accept offer
@@ -242,13 +196,7 @@ export default function MarketplaceOfferDetailPage() {
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() =>
-                    void perform(() =>
-                      declineMarketplacePeerOffer(
-                        offer.id,
-                      ),
-                    )
-                  }
+                  onClick={() => void perform(() => declineMarketplacePeerOffer(offer.id))}
                   style={secondary}
                 >
                   Decline
@@ -260,21 +208,14 @@ export default function MarketplaceOfferDetailPage() {
           {buyerCanRespondToCounter ? (
             <>
               <div style={roleNotice}>
-                The seller has countered your offer.
-                You can accept or decline the counter.
+                The seller has countered your offer. You can accept or decline the counter.
               </div>
 
               <div style={actions}>
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() =>
-                    void perform(() =>
-                      acceptMarketplacePeerOffer(
-                        offer.id,
-                      ),
-                    )
-                  }
+                  onClick={() => void perform(() => acceptMarketplacePeerOffer(offer.id))}
                   style={primary}
                 >
                   Accept counter offer
@@ -283,13 +224,7 @@ export default function MarketplaceOfferDetailPage() {
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() =>
-                    void perform(() =>
-                      declineMarketplacePeerOffer(
-                        offer.id,
-                      ),
-                    )
-                  }
+                  onClick={() => void perform(() => declineMarketplacePeerOffer(offer.id))}
                   style={secondary}
                 >
                   Decline counter
@@ -303,13 +238,7 @@ export default function MarketplaceOfferDetailPage() {
               <button
                 type="button"
                 disabled={busy}
-                onClick={() =>
-                  void perform(() =>
-                    withdrawMarketplacePeerOffer(
-                      offer.id,
-                    ),
-                  )
-                }
+                onClick={() => void perform(() => withdrawMarketplacePeerOffer(offer.id))}
                 style={danger}
               >
                 Withdraw offer
@@ -318,16 +247,11 @@ export default function MarketplaceOfferDetailPage() {
           ) : null}
 
           {active && !isBuyer && !isSeller ? (
-            <div style={roleNotice}>
-              You are not a participant in this offer.
-            </div>
+            <div style={roleNotice}>You are not a participant in this offer.</div>
           ) : null}
 
           {offer.transaction ? (
-            <Link
-              href={`/marketplace/transactions/${offer.transaction.id}`}
-              style={transaction}
-            >
+            <Link href={`/marketplace/transactions/${offer.transaction.id}`} style={transaction}>
               Open transaction →
             </Link>
           ) : null}
@@ -340,30 +264,16 @@ export default function MarketplaceOfferDetailPage() {
 
           <div style={timeline}>
             {offer.history.map((event, index) => (
-              <article
-                key={`${event.createdAt}-${index}`}
-                style={timelineItem}
-              >
-                <strong>
-                  {event.toStatus.replaceAll('_', ' ')}
-                </strong>
+              <article key={`${event.createdAt}-${index}`} style={timelineItem}>
+                <strong>{event.toStatus.replaceAll('_', ' ')}</strong>
 
                 {event.amountPence !== null ? (
-                  <div>
-                    {priceLabel(
-                      event.amountPence,
-                      false,
-                    )}
-                  </div>
+                  <div>{priceLabel(event.amountPence, false)}</div>
                 ) : null}
 
                 {event.note ? <p>{event.note}</p> : null}
 
-                <small>
-                  {new Date(
-                    event.createdAt,
-                  ).toLocaleString('en-GB')}
-                </small>
+                <small>{new Date(event.createdAt).toLocaleString('en-GB')}</small>
               </article>
             ))}
           </div>
