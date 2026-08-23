@@ -7,6 +7,7 @@ const primaryLinks = [
   { href: '/home', label: 'Home', icon: '⌂' },
   { href: '/community', label: 'Communities', icon: '◉' },
   { href: '/nearby', label: 'Nearby', icon: '⌖' },
+  { href: '/marketplace', label: 'Marketplace', icon: '◆' },
   { href: '/messages', label: 'Messages', icon: '□' },
 ];
 
