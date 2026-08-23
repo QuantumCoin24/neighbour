@@ -176,11 +176,37 @@ export default function MarketplaceCheckoutPage() {
         });
       }
 
-      await createMarketplacePayment({
+      const payment = await createMarketplacePayment({
         transactionId: transaction.id,
         method: paymentMethod as never,
         amountPence: transaction.agreedPricePence,
       });
+
+      if (
+        payment.provider === 'STRIPE' &&
+        payment.method === 'CARD'
+      ) {
+        if (
+          payment.status !== 'REQUIRES_ACTION' ||
+          !payment.clientSecret
+        ) {
+          throw new Error(
+            'Stripe card payment could not be started.',
+          );
+        }
+
+        const paymentParams = new URLSearchParams({
+          clientSecret: payment.clientSecret,
+          fulfilment: fulfilmentMethod,
+          payment: paymentMethod,
+        });
+
+        router.push(
+          `/marketplace/transactions/${transaction.id}/pay?${paymentParams.toString()}`,
+        );
+
+        return;
+      }
 
       const confirmationParams = new URLSearchParams({
         purchase: 'confirmed',
