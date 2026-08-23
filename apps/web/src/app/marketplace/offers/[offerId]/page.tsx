@@ -4,8 +4,10 @@ import {
   acceptMarketplacePeerOffer,
   counterMarketplacePeerOffer,
   declineMarketplacePeerOffer,
+  getCurrentUser,
   getMarketplacePeerOffer,
   withdrawMarketplacePeerOffer,
+  type AuthUser,
   type MarketplacePeerOffer,
 } from '@neighbour/api-client';
 import Link from 'next/link';
@@ -19,6 +21,7 @@ export default function MarketplaceOfferDetailPage() {
 
   const [offer, setOffer] =
     useState<MarketplacePeerOffer | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [counter, setCounter] = useState('');
   const [counterMessage, setCounterMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -28,9 +31,14 @@ export default function MarketplaceOfferDetailPage() {
     try {
       setError('');
 
-      setOffer(
-        await getMarketplacePeerOffer(params.offerId),
-      );
+      const [loadedOffer, currentUser] =
+        await Promise.all([
+          getMarketplacePeerOffer(params.offerId),
+          getCurrentUser(),
+        ]);
+
+      setOffer(loadedOffer);
+      setUser(currentUser);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -47,6 +55,33 @@ export default function MarketplaceOfferDetailPage() {
   const active =
     offer?.status === 'PENDING' ||
     offer?.status === 'COUNTERED';
+
+  const isBuyer =
+    Boolean(offer && user && offer.buyerId === user.id);
+
+  const isSeller =
+    Boolean(offer && user && offer.sellerId === user.id);
+
+  const sellerCanRespond =
+    Boolean(
+      offer &&
+        isSeller &&
+        offer.status === 'PENDING',
+    );
+
+  const buyerCanRespondToCounter =
+    Boolean(
+      offer &&
+        isBuyer &&
+        offer.status === 'COUNTERED',
+    );
+
+  const buyerCanWithdraw =
+    Boolean(
+      offer &&
+        isBuyer &&
+        active,
+    );
 
   const counterPence = useMemo(() => {
     const parsed = Number.parseFloat(counter);
@@ -149,8 +184,15 @@ export default function MarketplaceOfferDetailPage() {
             </>
           ) : null}
 
-          {active ? (
+          {sellerCanRespond ? (
             <>
+              <h3>Respond to offer</h3>
+
+              <div style={roleNotice}>
+                You are the seller. You can accept,
+                decline or counter this buyer offer.
+              </div>
+
               <h3>Counter offer</h3>
 
               <input
@@ -211,23 +253,74 @@ export default function MarketplaceOfferDetailPage() {
                 >
                   Decline
                 </button>
+              </div>
+            </>
+          ) : null}
+
+          {buyerCanRespondToCounter ? (
+            <>
+              <div style={roleNotice}>
+                The seller has countered your offer.
+                You can accept or decline the counter.
+              </div>
+
+              <div style={actions}>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() =>
+                    void perform(() =>
+                      acceptMarketplacePeerOffer(
+                        offer.id,
+                      ),
+                    )
+                  }
+                  style={primary}
+                >
+                  Accept counter offer
+                </button>
 
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() =>
                     void perform(() =>
-                      withdrawMarketplacePeerOffer(
+                      declineMarketplacePeerOffer(
                         offer.id,
                       ),
                     )
                   }
-                  style={danger}
+                  style={secondary}
                 >
-                  Withdraw
+                  Decline counter
                 </button>
               </div>
             </>
+          ) : null}
+
+          {buyerCanWithdraw ? (
+            <div style={actions}>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                  void perform(() =>
+                    withdrawMarketplacePeerOffer(
+                      offer.id,
+                    ),
+                  )
+                }
+                style={danger}
+              >
+                Withdraw offer
+              </button>
+            </div>
+          ) : null}
+
+          {active && !isBuyer && !isSeller ? (
+            <div style={roleNotice}>
+              You are not a participant in this offer.
+            </div>
           ) : null}
 
           {offer.transaction ? (
@@ -335,6 +428,15 @@ const card: React.CSSProperties = {
   border: '1px solid #e0e8e3',
   borderRadius: 20,
   background: '#fff',
+};
+
+const roleNotice: React.CSSProperties = {
+  marginBottom: 16,
+  padding: 12,
+  borderRadius: 12,
+  background: '#eef6f1',
+  color: '#456457',
+  lineHeight: 1.5,
 };
 
 const input: React.CSSProperties = {
