@@ -3,20 +3,23 @@
 import {
   getCurrentUser,
   getMarketplaceListing,
+  purchaseMarketplaceListing,
   toggleMarketplaceListingSaved,
   type MarketplaceListing,
 } from '@neighbour/api-client';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { label, priceLabel } from '../../../components/marketplace/marketplace-ui';
 
 export default function MarketplaceListingDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [listing, setListing] = useState<MarketplaceListing | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [identityLoaded, setIdentityLoaded] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -76,6 +79,37 @@ export default function MarketplaceListingDetailPage() {
       setError(caught instanceof Error ? caught.message : 'Saved state could not be changed.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function purchaseNow() {
+    if (
+      !listing ||
+      purchasing ||
+      !identityLoaded ||
+      userId === null ||
+      listing.seller.id === userId ||
+      listing.status !== 'PUBLISHED' ||
+      listing.isFree ||
+      listing.pricePence === null
+    ) {
+      return;
+    }
+
+    setPurchasing(true);
+    setError('');
+
+    try {
+      const transaction = await purchaseMarketplaceListing(listing.id);
+      router.push(`/marketplace/transactions/${transaction.id}`);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'This listing could not be purchased.',
+      );
+    } finally {
+      setPurchasing(false);
     }
   }
 
@@ -198,25 +232,36 @@ export default function MarketplaceListingDetailPage() {
                 {listing.saved ? '♥ Saved' : '♡ Save listing'}
               </button>
 
-              {listing.acceptsOffers ? (
+              {listing.status === 'PUBLISHED' &&
+              !listing.isFree &&
+              listing.pricePence !== null ? (
                 <div style={notice}>
-                  <strong>This seller accepts offers.</strong>
+                  <strong>Buy now</strong>
+
+                  <div style={{ marginTop: 6 }}>
+                    Reserve this item at the seller&apos;s asking price and continue to payment.
+                  </div>
 
                   <div style={{ marginTop: 10 }}>
-                    <Link
-                      href={`/marketplace/${listing.id}/offer`}
+                    <button
+                      type="button"
+                      disabled={purchasing}
+                      onClick={() => void purchaseNow()}
                       style={{
                         display: 'inline-block',
                         padding: '10px 14px',
+                        border: 0,
                         borderRadius: 999,
                         background: '#08714a',
                         color: '#fff',
-                        textDecoration: 'none',
+                        cursor: purchasing ? 'wait' : 'pointer',
                         fontWeight: 850,
                       }}
                     >
-                      Make an offer
-                    </Link>
+                      {purchasing
+                        ? 'Reserving…'
+                        : `Buy now — ${priceLabel(listing.pricePence, false)}`}
+                    </button>
                   </div>
                 </div>
               ) : null}

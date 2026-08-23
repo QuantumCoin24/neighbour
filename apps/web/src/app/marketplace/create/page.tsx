@@ -31,7 +31,7 @@ export default function CreateMarketplaceListingPage() {
     useState<MarketplaceListingCondition>('GOOD');
   const [price, setPrice] = useState('');
   const [isFree, setIsFree] = useState(false);
-  const [acceptsOffers, setAcceptsOffers] = useState(false);
+
   const [collectionAvailable, setCollectionAvailable] = useState(true);
   const [deliveryAvailable, setDeliveryAvailable] = useState(false);
   const [postageAvailable, setPostageAvailable] = useState(false);
@@ -106,7 +106,7 @@ export default function CreateMarketplaceListingPage() {
         condition,
         status,
         isFree,
-        acceptsOffers,
+        acceptsOffers: false,
         collectionAvailable,
         deliveryAvailable,
         postageAvailable,
@@ -256,15 +256,7 @@ export default function CreateMarketplaceListingPage() {
           </Field>
         ) : null}
 
-        <label style={check}>
-          <input
-            type="checkbox"
-            checked={acceptsOffers}
-            disabled={busy}
-            onChange={(e) => setAcceptsOffers(e.target.checked)}
-          />
-          Accept offers
-        </label>
+        
 
         <h3 style={{ marginTop: 28 }}>How can buyers receive it?</h3>
 
