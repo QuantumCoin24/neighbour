@@ -74,3 +74,4 @@ export * from './marketplace/disputes';
 export * from './marketplace/moderation';
 export * from './nearby';
 export * from './apple-commerce';
+export * from './vibes';
