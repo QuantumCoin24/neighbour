@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppText } from '../../../components/AppText';
+import { registerNeighbourLiveKit } from '../livekit-bootstrap';
 
 interface GoLiveSheetProps {
   visible: boolean;
@@ -28,6 +29,8 @@ export function GoLiveSheet({ visible, onClose, onReady }: GoLiveSheetProps) {
     try {
       setBusy(true);
       setError(null);
+
+      await registerNeighbourLiveKit();
 
       const session = await createLiveSession({
         title: title.trim() || undefined,

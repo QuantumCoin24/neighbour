@@ -7,7 +7,6 @@ import { NotificationProvider } from './src/features/notifications';
 import AppNavigator from './src/navigation/AppNavigator';
 import { RealtimeProvider } from './src/realtime';
 import { NeighbourThemeProvider, useNeighbourTheme } from './src/theme';
-import { registerNeighbourLiveKit } from './src/features/live/livekit-bootstrap';
 
 initialiseMobileApiClient();
 
@@ -22,8 +21,6 @@ function NeighbourApplication() {
     </>
   );
 }
-
-registerNeighbourLiveKit();
 
 export default function App() {
   return (

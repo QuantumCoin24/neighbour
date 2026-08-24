@@ -1,17 +1,13 @@
-import { registerGlobals } from '@livekit/react-native';
-
 let registered = false;
 
-/**
- * Installs the WebRTC globals required by LiveKit.
- *
- * This must execute before any LiveKit room is created.
- */
-export function registerNeighbourLiveKit(): void {
+export async function registerNeighbourLiveKit(): Promise<void> {
   if (registered) {
     return;
   }
 
-  registerGlobals();
+  const livekit = await import('@livekit/react-native');
+
+  livekit.registerGlobals();
+
   registered = true;
 }
