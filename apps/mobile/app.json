@@ -17,7 +17,8 @@
         "NSCameraUsageDescription": "Allow Neighbour to use your camera when you create photos, videos or go live in Vibes.",
         "NSPhotoLibraryAddUsageDescription": "Allow Neighbour to save media to your photo library when you choose to do so.",
         "NSMicrophoneUsageDescription": "Allow Neighbour to use your microphone when you record video or go live in Vibes."
-      }
+      },
+      "buildNumber": "75"
     },
     "android": {
       "adaptiveIcon": {
@@ -51,7 +52,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow Neighbour to choose photos you want to share with your communities.",
-          "cameraPermission": "Allow Neighbour to take photos you want to share with your communities."
+          "cameraPermission": "Allow Neighbour to use your camera when you create photos, videos or go live in Vibes."
         }
       ],
       "expo-iap",
