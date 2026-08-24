@@ -75,3 +75,4 @@ export * from './marketplace/moderation';
 export * from './nearby';
 export * from './apple-commerce';
 export * from './vibes';
+export * from './live';

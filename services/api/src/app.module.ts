@@ -43,9 +43,11 @@ import { FulfilmentModule } from './marketplace/fulfilment/fulfilment.module';
 import { MarketplaceTransactionModule } from './marketplace/transactions/marketplace-transaction.module';
 import { NearbyModule } from './nearby/nearby.module';
 import { VibesModule } from './vibes/vibes.module';
+import { LiveModule } from './live/live.module';
 @Module({
   imports: [
     VibesModule,
+    LiveModule,
     NearbyModule,
     ReadinessModule,
     SubscriptionModule,

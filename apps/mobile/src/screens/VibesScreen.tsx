@@ -1,4 +1,10 @@
-import { recordVibeView, type Vibe, type VibeFeedMode } from '@neighbour/api-client';
+import {
+  type LiveAccess,
+  type LiveSession,
+  recordVibeView,
+  type Vibe,
+  type VibeFeedMode,
+} from '@neighbour/api-client';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useRef, useState } from 'react';
@@ -17,6 +23,7 @@ import { AppText } from '../components';
 import { CreateVibeSheet, VibeCard, VibeCommentsSheet, useVibesFeed } from '../features/vibes';
 import type { AppTabParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
+import { GoLiveSheet, LiveBroadcastRoom } from '../features/live';
 
 type VibesScreenProps = BottomTabScreenProps<AppTabParamList, 'Vibes'>;
 
@@ -40,6 +47,9 @@ export default function VibesScreen(_props: VibesScreenProps) {
   const [commentsVibeId, setCommentsVibeId] = useState<string | null>(null);
 
   const [creating, setCreating] = useState(false);
+  const [goLiveOpen, setGoLiveOpen] = useState(false);
+  const [liveAccess, setLiveAccess] = useState<LiveAccess | null>(null);
+  const [liveSession, setLiveSession] = useState<LiveSession | null>(null);
 
   const watchRef = useRef<WatchSession | null>(null);
 
@@ -246,6 +256,39 @@ export default function VibesScreen(_props: VibesScreenProps) {
             </AppText>
           ) : null}
         </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go Live in Vibes"
+          onPress={() => setGoLiveOpen(true)}
+          style={({ pressed }) => [styles.goLiveButton, pressed && styles.goLiveButtonPressed]}
+        >
+          <View style={styles.goLiveDot} />
+          <AppText style={styles.goLiveText}>Go Live</AppText>
+        </Pressable>
+
+        <GoLiveSheet
+          visible={goLiveOpen}
+          onClose={() => setGoLiveOpen(false)}
+          onReady={(access, session) => {
+            setGoLiveOpen(false);
+            setLiveAccess(access);
+            setLiveSession(session);
+          }}
+        />
+
+        {liveAccess && liveSession ? (
+          <LiveBroadcastRoom
+            visible
+            access={liveAccess}
+            session={liveSession}
+            onClosed={() => {
+              setLiveAccess(null);
+              setLiveSession(null);
+              void feed.refresh();
+            }}
+          />
+        ) : null}
 
         <CreateVibeSheet
           onClose={() => {
@@ -585,5 +628,39 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
     right: 0,
+  },
+
+  goLiveButton: {
+    position: 'absolute',
+    right: 18,
+    bottom: 118,
+    zIndex: 20,
+    height: 48,
+    paddingHorizontal: 17,
+    borderRadius: 24,
+    backgroundColor: '#ef233c',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.24,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 7,
+  },
+  goLiveButtonPressed: {
+    transform: [{ scale: 0.97 }],
+    opacity: 0.9,
+  },
+  goLiveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#fff',
+  },
+  goLiveText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '900',
   },
 });

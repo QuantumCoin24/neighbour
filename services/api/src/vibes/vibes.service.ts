@@ -729,6 +729,29 @@ export class VibesService {
     }
   }
 
+  async canViewAudience(
+    currentUserId: string,
+    audience: {
+      creatorId: string;
+      communityId: string | null;
+      neighbourhoodId: string | null;
+    },
+  ): Promise<boolean> {
+    const visibility = audience.communityId
+      ? VibeVisibility.COMMUNITY
+      : audience.neighbourhoodId
+        ? VibeVisibility.NEIGHBOURHOOD
+        : VibeVisibility.PUBLIC;
+
+    return this.canViewVibe(currentUserId, {
+      creatorId: audience.creatorId,
+      status: VibeStatus.PUBLISHED,
+      visibility,
+      communityId: audience.communityId,
+      neighbourhoodId: audience.neighbourhoodId,
+    });
+  }
+
   private async canViewVibe(
     currentUserId: string,
     vibe: {
