@@ -21,7 +21,8 @@
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "production:check": "node scripts/production-check.mjs && pnpm --filter @neighbour/api exec prisma validate",
     "release:check": "node scripts/release-check.mjs",
-    "release:gate": "pnpm release:check && pnpm production:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "release:gate": "pnpm safety:users && pnpm release:check && pnpm production:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "safety:users": "node scripts/check-user-mass-mutations.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
