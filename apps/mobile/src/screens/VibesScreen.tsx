@@ -1,4 +1,4 @@
-import { recordVibeView, type Vibe } from '@neighbour/api-client';
+import { recordVibeView, type Vibe, type VibeFeedMode } from '@neighbour/api-client';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useRef, useState } from 'react';
@@ -26,7 +26,10 @@ interface WatchSession {
 
 export default function VibesScreen(_props: VibesScreenProps) {
   const { theme } = useNeighbourTheme();
-  const feed = useVibesFeed();
+
+  const [feedMode, setFeedMode] = useState<VibeFeedMode>('FOR_YOU');
+
+  const feed = useVibesFeed(feedMode);
 
   const [viewportHeight, setViewportHeight] = useState(0);
 
@@ -216,6 +219,42 @@ export default function VibesScreen(_props: VibesScreenProps) {
       }}
       style={styles.screen}
     >
+      <View style={styles.feedModes}>
+        {(
+          [
+            ['FOR_YOU', 'For You'],
+            ['FOLLOWING', 'Following'],
+            ['NEARBY', 'Nearby'],
+          ] as const
+        ).map(([value, label]) => {
+          const selected = feedMode === value;
+
+          return (
+            <Pressable
+              accessibilityRole="button"
+              key={value}
+              onPress={() => {
+                if (selected) {
+                  return;
+                }
+
+                finishWatch();
+                setActiveId(null);
+                setFeedMode(value);
+              }}
+              style={[styles.feedModeButton, selected ? styles.feedModeButtonActive : null]}
+            >
+              <AppText
+                style={[styles.feedModeText, selected ? styles.feedModeTextActive : null]}
+                tone="inverse"
+              >
+                {label}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </View>
+
       {viewportHeight > 0 ? (
         <FlatList
           data={feed.items}
@@ -413,6 +452,41 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '400',
     lineHeight: 34,
+  },
+
+  feedModes: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(7,10,9,0.62)',
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    gap: 3,
+    padding: 4,
+    position: 'absolute',
+    top: 22,
+    zIndex: 25,
+  },
+
+  feedModeButton: {
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+
+  feedModeButtonActive: {
+    backgroundColor: 'rgba(255,255,255,0.16)',
+  },
+
+  feedModeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    opacity: 0.52,
+  },
+
+  feedModeTextActive: {
+    opacity: 1,
   },
 
   screen: {

@@ -7,12 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { DatabaseService } from '../database/database.service';
-import {
-  MembershipStatus,
-  Prisma,
-  VibeStatus,
-  VibeVisibility,
-} from '../generated/prisma/client';
+import { MembershipStatus, Prisma, VibeStatus, VibeVisibility } from '../generated/prisma/client';
 
 import type { CreateVibeCommentDto } from './dto/create-vibe-comment.dto';
 import type { CreateVibeDto } from './dto/create-vibe.dto';
@@ -68,10 +63,7 @@ export class VibesService {
     private readonly database: DatabaseService,
   ) {}
 
-  async create(
-    currentUserId: string,
-    dto: CreateVibeDto,
-  ): Promise<VibeResponse> {
+  async create(currentUserId: string, dto: CreateVibeDto): Promise<VibeResponse> {
     const status = dto.status ?? VibeStatus.PUBLISHED;
     const visibility = dto.visibility ?? VibeVisibility.PUBLIC;
 
@@ -95,18 +87,13 @@ export class VibesService {
           caption: this.normaliseOptionalText(dto.caption),
           status,
           visibility,
-          ...(dto.latitude !== undefined
-            ? { latitude: dto.latitude }
-            : {}),
-          ...(dto.longitude !== undefined
-            ? { longitude: dto.longitude }
-            : {}),
+          ...(dto.latitude !== undefined ? { latitude: dto.latitude } : {}),
+          ...(dto.longitude !== undefined ? { longitude: dto.longitude } : {}),
           ...(dto.locationAccuracyM !== undefined
             ? { locationAccuracyM: dto.locationAccuracyM }
             : {}),
           postcode: this.normaliseOptionalText(dto.postcode),
-          publishedAt:
-            status === VibeStatus.PUBLISHED ? new Date() : null,
+          publishedAt: status === VibeStatus.PUBLISHED ? new Date() : null,
         },
         select: {
           id: true,
@@ -129,25 +116,15 @@ export class VibesService {
     return this.findOne(currentUserId, created.id);
   }
 
-  async update(
-    currentUserId: string,
-    vibeId: string,
-    dto: UpdateVibeDto,
-  ): Promise<VibeResponse> {
+  async update(currentUserId: string, vibeId: string, dto: UpdateVibeDto): Promise<VibeResponse> {
     const existing = await this.requireOwnedVibe(currentUserId, vibeId);
 
-    const nextCommunityId =
-      dto.communityId === undefined
-        ? existing.communityId
-        : dto.communityId;
+    const nextCommunityId = dto.communityId === undefined ? existing.communityId : dto.communityId;
 
     const nextNeighbourhoodId =
-      dto.neighbourhoodId === undefined
-        ? existing.neighbourhoodId
-        : dto.neighbourhoodId;
+      dto.neighbourhoodId === undefined ? existing.neighbourhoodId : dto.neighbourhoodId;
 
-    const nextVisibility =
-      dto.visibility ?? existing.visibility;
+    const nextVisibility = dto.visibility ?? existing.visibility;
 
     await this.validateAudience(
       currentUserId,
@@ -163,8 +140,7 @@ export class VibesService {
     const nextStatus = dto.status ?? existing.status;
 
     const publishing =
-      existing.status !== VibeStatus.PUBLISHED &&
-      nextStatus === VibeStatus.PUBLISHED;
+      existing.status !== VibeStatus.PUBLISHED && nextStatus === VibeStatus.PUBLISHED;
 
     await this.database.$transaction(async (tx) => {
       await tx.vibe.update({
@@ -172,12 +148,8 @@ export class VibesService {
           id: vibeId,
         },
         data: {
-          ...(dto.communityId !== undefined
-            ? { communityId: dto.communityId }
-            : {}),
-          ...(dto.neighbourhoodId !== undefined
-            ? { neighbourhoodId: dto.neighbourhoodId }
-            : {}),
+          ...(dto.communityId !== undefined ? { communityId: dto.communityId } : {}),
+          ...(dto.neighbourhoodId !== undefined ? { neighbourhoodId: dto.neighbourhoodId } : {}),
           ...(dto.caption !== undefined
             ? {
                 caption: this.normaliseOptionalText(dto.caption),
@@ -194,15 +166,9 @@ export class VibesService {
                     : null,
               }
             : {}),
-          ...(dto.visibility !== undefined
-            ? { visibility: dto.visibility }
-            : {}),
-          ...(dto.latitude !== undefined
-            ? { latitude: dto.latitude }
-            : {}),
-          ...(dto.longitude !== undefined
-            ? { longitude: dto.longitude }
-            : {}),
+          ...(dto.visibility !== undefined ? { visibility: dto.visibility } : {}),
+          ...(dto.latitude !== undefined ? { latitude: dto.latitude } : {}),
+          ...(dto.longitude !== undefined ? { longitude: dto.longitude } : {}),
           ...(dto.locationAccuracyM !== undefined
             ? { locationAccuracyM: dto.locationAccuracyM }
             : {}),
@@ -234,10 +200,7 @@ export class VibesService {
     return this.findOne(currentUserId, vibeId);
   }
 
-  async softDelete(
-    currentUserId: string,
-    vibeId: string,
-  ): Promise<void> {
+  async softDelete(currentUserId: string, vibeId: string): Promise<void> {
     await this.requireOwnedVibe(currentUserId, vibeId);
 
     await this.database.vibe.update({
@@ -251,10 +214,7 @@ export class VibesService {
     });
   }
 
-  async findOne(
-    currentUserId: string,
-    vibeId: string,
-  ): Promise<VibeResponse> {
+  async findOne(currentUserId: string, vibeId: string): Promise<VibeResponse> {
     const vibe = await this.database.vibe.findFirst({
       where: {
         id: vibeId,
@@ -271,66 +231,82 @@ export class VibesService {
       throw new NotFoundException('Vibe not found.');
     }
 
-    return this.toVibeResponse(
-      vibe,
-      await this.getEngagement(vibe.id, currentUserId),
-    );
+    return this.toVibeResponse(vibe, await this.getEngagement(vibe.id, currentUserId));
   }
 
-  async getFeed(
-    currentUserId: string,
-    query: VibeFeedQueryDto,
-  ): Promise<VibeFeedResponse> {
+  async getFeed(currentUserId: string, query: VibeFeedQueryDto): Promise<VibeFeedResponse> {
     const limit = Math.min(Math.max(query.limit ?? 20, 1), 50);
 
-    const [
-      communityMemberships,
-      neighbourhoodMemberships,
-      blocks,
-    ] = await Promise.all([
-      this.database.membership.findMany({
-        where: {
-          userId: currentUserId,
-          status: MembershipStatus.ACTIVE,
-        },
-        select: {
-          communityId: true,
-        },
-      }),
-      this.database.neighbourhoodMembership.findMany({
-        where: {
-          userId: currentUserId,
-        },
-        select: {
-          neighbourhoodId: true,
-        },
-      }),
-      this.database.userBlock.findMany({
-        where: {
-          OR: [
-            { blockerId: currentUserId },
-            { blockedId: currentUserId },
-          ],
-        },
-        select: {
-          blockerId: true,
-          blockedId: true,
-        },
-      }),
-    ]);
+    const [communityMemberships, neighbourhoodMemberships, blocks, connections] = await Promise.all(
+      [
+        this.database.membership.findMany({
+          where: {
+            userId: currentUserId,
+            status: MembershipStatus.ACTIVE,
+          },
+          select: {
+            communityId: true,
+          },
+        }),
 
-    const communityIds = communityMemberships.map(
-      (membership) => membership.communityId,
+        this.database.neighbourhoodMembership.findMany({
+          where: {
+            userId: currentUserId,
+          },
+          select: {
+            neighbourhoodId: true,
+          },
+        }),
+
+        this.database.userBlock.findMany({
+          where: {
+            OR: [
+              {
+                blockerId: currentUserId,
+              },
+              {
+                blockedId: currentUserId,
+              },
+            ],
+          },
+          select: {
+            blockerId: true,
+            blockedId: true,
+          },
+        }),
+
+        this.database.connection.findMany({
+          where: {
+            status: 'CONNECTED',
+            OR: [
+              {
+                userAId: currentUserId,
+              },
+              {
+                userBId: currentUserId,
+              },
+            ],
+          },
+          select: {
+            userAId: true,
+            userBId: true,
+          },
+        }),
+      ],
     );
+
+    const communityIds = communityMemberships.map((membership) => membership.communityId);
 
     const neighbourhoodIds = neighbourhoodMemberships.map(
       (membership) => membership.neighbourhoodId,
     );
 
     const blockedUserIds = blocks.map((block) =>
-      block.blockerId === currentUserId
-        ? block.blockedId
-        : block.blockerId,
+      block.blockerId === currentUserId ? block.blockedId : block.blockerId,
+    );
+
+    const connectedUserIds = connections.map((connection) =>
+      connection.userAId === currentUserId ? connection.userBId : connection.userAId,
     );
 
     const audienceFilters: Prisma.VibeWhereInput[] = [
@@ -360,33 +336,57 @@ export class VibesService {
       });
     }
 
+    const creatorFilter: Prisma.StringFilter | undefined =
+      blockedUserIds.length > 0 || query.mode === 'FOLLOWING'
+        ? {
+            ...(blockedUserIds.length > 0
+              ? {
+                  notIn: blockedUserIds,
+                }
+              : {}),
+            ...(query.mode === 'FOLLOWING'
+              ? {
+                  in: connectedUserIds,
+                }
+              : {}),
+          }
+        : undefined;
+
     const feedWhere: Prisma.VibeWhereInput = {
       deletedAt: null,
       status: VibeStatus.PUBLISHED,
-      ...(blockedUserIds.length > 0
+
+      ...(creatorFilter
         ? {
-            creatorId: {
-              notIn: blockedUserIds,
-            },
+            creatorId: creatorFilter,
           }
         : {}),
+
       ...(query.communityId
         ? {
             communityId: query.communityId,
           }
         : {}),
-        ...(query.neighbourhoodId
+
+      ...(query.neighbourhoodId
+        ? {
+            neighbourhoodId: query.neighbourhoodId,
+          }
+        : query.mode === 'NEARBY'
           ? {
-              neighbourhoodId: query.neighbourhoodId,
+              neighbourhoodId: {
+                in: neighbourhoodIds,
+              },
             }
           : {}),
+
       OR: audienceFilters,
     };
 
-    const vibes: VibeWithRelations[] =
-      await this.database.vibe.findMany({
-        where: feedWhere,
-        include: vibeInclude,
+    const vibes: VibeWithRelations[] = await this.database.vibe.findMany({
+      where: feedWhere,
+      include: vibeInclude,
+
       orderBy: [
         {
           publishedAt: 'desc',
@@ -398,7 +398,9 @@ export class VibesService {
           id: 'desc',
         },
       ],
+
       take: limit + 1,
+
       ...(query.cursor
         ? {
             cursor: {
@@ -410,7 +412,9 @@ export class VibesService {
     });
 
     const hasMore = vibes.length > limit;
+
     const page = hasMore ? vibes.slice(0, limit) : vibes;
+
     const lastItem = page.at(-1);
 
     const engagementMap = await this.getEngagementMap(
@@ -420,24 +424,14 @@ export class VibesService {
 
     return {
       items: page.map((vibe) =>
-        this.toVibeResponse(
-          vibe,
-          engagementMap.get(vibe.id) ??
-            this.emptyEngagement(),
-        ),
+        this.toVibeResponse(vibe, engagementMap.get(vibe.id) ?? this.emptyEngagement()),
       ),
-      nextCursor:
-        hasMore && lastItem
-          ? lastItem.id
-          : null,
+
+      nextCursor: hasMore && lastItem ? lastItem.id : null,
     };
   }
 
-  async react(
-    currentUserId: string,
-    vibeId: string,
-    dto: VibeReactionDto,
-  ): Promise<VibeResponse> {
+  async react(currentUserId: string, vibeId: string, dto: VibeReactionDto): Promise<VibeResponse> {
     await this.findOne(currentUserId, vibeId);
 
     await this.database.vibeReaction.upsert({
@@ -460,10 +454,7 @@ export class VibesService {
     return this.findOne(currentUserId, vibeId);
   }
 
-  async removeReaction(
-    currentUserId: string,
-    vibeId: string,
-  ): Promise<void> {
+  async removeReaction(currentUserId: string, vibeId: string): Promise<void> {
     await this.findOne(currentUserId, vibeId);
 
     await this.database.vibeReaction.deleteMany({
@@ -494,9 +485,7 @@ export class VibesService {
       });
 
       if (!parent) {
-        throw new BadRequestException(
-          'Parent comment does not belong to this vibe.',
-        );
+        throw new BadRequestException('Parent comment does not belong to this vibe.');
       }
     }
 
@@ -513,10 +502,7 @@ export class VibesService {
     return this.toCommentResponse(comment);
   }
 
-  async listComments(
-    currentUserId: string,
-    vibeId: string,
-  ): Promise<VibeCommentResponse[]> {
+  async listComments(currentUserId: string, vibeId: string): Promise<VibeCommentResponse[]> {
     await this.findOne(currentUserId, vibeId);
 
     const comments = await this.database.vibeComment.findMany({
@@ -530,15 +516,10 @@ export class VibesService {
       },
     });
 
-    return comments.map((comment) =>
-      this.toCommentResponse(comment),
-    );
+    return comments.map((comment) => this.toCommentResponse(comment));
   }
 
-  async deleteComment(
-    currentUserId: string,
-    commentId: string,
-  ): Promise<void> {
+  async deleteComment(currentUserId: string, commentId: string): Promise<void> {
     const comment = await this.database.vibeComment.findFirst({
       where: {
         id: commentId,
@@ -564,10 +545,7 @@ export class VibesService {
     });
   }
 
-  async save(
-    currentUserId: string,
-    vibeId: string,
-  ): Promise<VibeSaveResponse> {
+  async save(currentUserId: string, vibeId: string): Promise<VibeSaveResponse> {
     await this.findOne(currentUserId, vibeId);
 
     await this.database.vibeSave.upsert({
@@ -589,10 +567,7 @@ export class VibesService {
     };
   }
 
-  async unsave(
-    currentUserId: string,
-    vibeId: string,
-  ): Promise<VibeSaveResponse> {
+  async unsave(currentUserId: string, vibeId: string): Promise<VibeSaveResponse> {
     await this.database.vibeSave.deleteMany({
       where: {
         vibeId,
@@ -616,12 +591,9 @@ export class VibesService {
       data: {
         vibeId,
         userId: currentUserId,
-        sessionKey:
-          this.normaliseOptionalText(dto.sessionKey) ?? null,
+        sessionKey: this.normaliseOptionalText(dto.sessionKey) ?? null,
         watchTimeMs: dto.watchTimeMs,
-        ...(dto.completionRatio !== undefined
-          ? { completionRatio: dto.completionRatio }
-          : {}),
+        ...(dto.completionRatio !== undefined ? { completionRatio: dto.completionRatio } : {}),
         completed: dto.completed ?? false,
         replay: dto.replay ?? false,
       },
@@ -636,10 +608,7 @@ export class VibesService {
     };
   }
 
-  private async requireOwnedVibe(
-    currentUserId: string,
-    vibeId: string,
-  ) {
+  private async requireOwnedVibe(currentUserId: string, vibeId: string) {
     const vibe = await this.database.vibe.findFirst({
       where: {
         id: vibeId,
@@ -655,10 +624,7 @@ export class VibesService {
     return vibe;
   }
 
-  private async requireOwnedReadyMedia(
-    currentUserId: string,
-    mediaIds: string[],
-  ): Promise<void> {
+  private async requireOwnedReadyMedia(currentUserId: string, mediaIds: string[]): Promise<void> {
     if (mediaIds.length === 0) {
       return;
     }
@@ -690,36 +656,20 @@ export class VibesService {
     neighbourhoodId: string | null,
     visibility: VibeVisibility,
   ): Promise<void> {
-    if (
-      visibility === VibeVisibility.COMMUNITY &&
-      !communityId
-    ) {
-      throw new BadRequestException(
-        'COMMUNITY visibility requires communityId.',
-      );
+    if (visibility === VibeVisibility.COMMUNITY && !communityId) {
+      throw new BadRequestException('COMMUNITY visibility requires communityId.');
     }
 
-    if (
-      visibility === VibeVisibility.NEIGHBOURHOOD &&
-      !neighbourhoodId
-    ) {
-      throw new BadRequestException(
-        'NEIGHBOURHOOD visibility requires neighbourhoodId.',
-      );
+    if (visibility === VibeVisibility.NEIGHBOURHOOD && !neighbourhoodId) {
+      throw new BadRequestException('NEIGHBOURHOOD visibility requires neighbourhoodId.');
     }
 
     if (communityId) {
-      await this.requireCommunityMembership(
-        currentUserId,
-        communityId,
-      );
+      await this.requireCommunityMembership(currentUserId, communityId);
     }
 
     if (neighbourhoodId) {
-      await this.requireNeighbourhoodMembership(
-        currentUserId,
-        neighbourhoodId,
-      );
+      await this.requireNeighbourhoodMembership(currentUserId, neighbourhoodId);
     }
   }
 
@@ -739,9 +689,7 @@ export class VibesService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'Active community membership is required.',
-      );
+      throw new ForbiddenException('Active community membership is required.');
     }
   }
 
@@ -749,21 +697,18 @@ export class VibesService {
     currentUserId: string,
     neighbourhoodId: string,
   ): Promise<void> {
-    const membership =
-      await this.database.neighbourhoodMembership.findFirst({
-        where: {
-          userId: currentUserId,
-          neighbourhoodId,
-        },
-        select: {
-          id: true,
-        },
-      });
+    const membership = await this.database.neighbourhoodMembership.findFirst({
+      where: {
+        userId: currentUserId,
+        neighbourhoodId,
+      },
+      select: {
+        id: true,
+      },
+    });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'Neighbourhood membership is required.',
-      );
+      throw new ForbiddenException('Neighbourhood membership is required.');
     }
   }
 
@@ -811,39 +756,31 @@ export class VibesService {
       return true;
     }
 
-    if (
-      vibe.visibility === VibeVisibility.COMMUNITY &&
-      vibe.communityId
-    ) {
-      const membership =
-        await this.database.membership.findFirst({
-          where: {
-            userId: currentUserId,
-            communityId: vibe.communityId,
-            status: MembershipStatus.ACTIVE,
-          },
-          select: {
-            id: true,
-          },
-        });
+    if (vibe.visibility === VibeVisibility.COMMUNITY && vibe.communityId) {
+      const membership = await this.database.membership.findFirst({
+        where: {
+          userId: currentUserId,
+          communityId: vibe.communityId,
+          status: MembershipStatus.ACTIVE,
+        },
+        select: {
+          id: true,
+        },
+      });
 
       return Boolean(membership);
     }
 
-    if (
-      vibe.visibility === VibeVisibility.NEIGHBOURHOOD &&
-      vibe.neighbourhoodId
-    ) {
-      const membership =
-        await this.database.neighbourhoodMembership.findFirst({
-          where: {
-            userId: currentUserId,
-            neighbourhoodId: vibe.neighbourhoodId,
-          },
-          select: {
-            id: true,
-          },
-        });
+    if (vibe.visibility === VibeVisibility.NEIGHBOURHOOD && vibe.neighbourhoodId) {
+      const membership = await this.database.neighbourhoodMembership.findFirst({
+        where: {
+          userId: currentUserId,
+          neighbourhoodId: vibe.neighbourhoodId,
+        },
+        select: {
+          id: true,
+        },
+      });
 
       return Boolean(membership);
     }
@@ -855,10 +792,7 @@ export class VibesService {
     vibeId: string,
     currentUserId: string,
   ): Promise<VibeEngagementResponse> {
-    const map = await this.getEngagementMap(
-      [vibeId],
-      currentUserId,
-    );
+    const map = await this.getEngagementMap([vibeId], currentUserId);
 
     return map.get(vibeId) ?? this.emptyEngagement();
   }
@@ -877,15 +811,7 @@ export class VibesService {
       map.set(vibeId, this.emptyEngagement());
     }
 
-    const [
-      reactions,
-      comments,
-      saves,
-      shares,
-      views,
-      myReactions,
-      mySaves,
-    ] = await Promise.all([
+    const [reactions, comments, saves, shares, views, myReactions, mySaves] = await Promise.all([
       this.database.vibeReaction.groupBy({
         by: ['vibeId'],
         where: {
@@ -1055,14 +981,8 @@ export class VibesService {
       caption: vibe.caption,
       status: vibe.status,
       visibility: vibe.visibility,
-      latitude:
-        vibe.latitude === null
-          ? null
-          : Number(vibe.latitude),
-      longitude:
-        vibe.longitude === null
-          ? null
-          : Number(vibe.longitude),
+      latitude: vibe.latitude === null ? null : Number(vibe.latitude),
+      longitude: vibe.longitude === null ? null : Number(vibe.longitude),
       locationAccuracyM: vibe.locationAccuracyM,
       postcode: vibe.postcode,
       publishedAt: vibe.publishedAt?.toISOString() ?? null,
@@ -1088,9 +1008,7 @@ export class VibesService {
     };
   }
 
-  private toCommentResponse(
-    comment: CommentWithAuthor,
-  ): VibeCommentResponse {
+  private toCommentResponse(comment: CommentWithAuthor): VibeCommentResponse {
     return {
       id: comment.id,
       vibeId: comment.vibeId,
@@ -1107,9 +1025,7 @@ export class VibesService {
     };
   }
 
-  private normaliseOptionalText(
-    value: string | undefined,
-  ): string | null {
+  private normaliseOptionalText(value: string | undefined): string | null {
     if (value === undefined) {
       return null;
     }

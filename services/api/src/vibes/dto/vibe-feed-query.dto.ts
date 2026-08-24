@@ -1,7 +1,15 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+
+export const vibeFeedModes = ['FOR_YOU', 'FOLLOWING', 'NEARBY'] as const;
+
+export type VibeFeedMode = (typeof vibeFeedModes)[number];
 
 export class VibeFeedQueryDto {
+  @IsOptional()
+  @IsIn(vibeFeedModes)
+  mode: VibeFeedMode = 'FOR_YOU';
+
   @IsOptional()
   @IsUUID()
   cursor?: string;

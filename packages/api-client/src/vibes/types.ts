@@ -1,22 +1,10 @@
-export type VibeStatus =
-  | 'DRAFT'
-  | 'PROCESSING'
-  | 'PUBLISHED'
-  | 'HIDDEN'
-  | 'REMOVED'
-  | 'FAILED';
+export type VibeStatus = 'DRAFT' | 'PROCESSING' | 'PUBLISHED' | 'HIDDEN' | 'REMOVED' | 'FAILED';
 
-export type VibeVisibility =
-  | 'PUBLIC'
-  | 'COMMUNITY'
-  | 'NEIGHBOURHOOD';
+export type VibeFeedMode = 'FOR_YOU' | 'FOLLOWING' | 'NEARBY';
 
-export type VibeReactionType =
-  | 'LIKE'
-  | 'LOVE'
-  | 'FIRE'
-  | 'LAUGH'
-  | 'WOW';
+export type VibeVisibility = 'PUBLIC' | 'COMMUNITY' | 'NEIGHBOURHOOD';
+
+export type VibeReactionType = 'LIKE' | 'LOVE' | 'FIRE' | 'LAUGH' | 'WOW';
 
 export interface VibeCreator {
   id: string;
@@ -96,12 +84,12 @@ export interface CreateVibeInput {
   mediaIds?: string[];
 }
 
-export interface UpdateVibeInput
-  extends Partial<CreateVibeInput> {}
+export interface UpdateVibeInput extends Partial<CreateVibeInput> {}
 
 export interface VibeFeedQuery {
   cursor?: string;
   limit?: number;
+  mode?: VibeFeedMode;
   communityId?: string;
   neighbourhoodId?: string;
 }

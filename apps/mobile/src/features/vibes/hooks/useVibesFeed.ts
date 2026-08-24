@@ -1,20 +1,11 @@
-import {
-  getVibesFeed,
-  type Vibe,
-} from '@neighbour/api-client';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { getVibesFeed, type Vibe, type VibeFeedMode } from '@neighbour/api-client';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const PAGE_SIZE = 10;
 
-export function useVibesFeed() {
+export function useVibesFeed(mode: VibeFeedMode = 'FOR_YOU') {
   const [items, setItems] = useState<Vibe[]>([]);
-  const [nextCursor, setNextCursor] =
-    useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -28,16 +19,19 @@ export function useVibesFeed() {
     try {
       const response = await getVibesFeed({
         limit: PAGE_SIZE,
+        mode,
       });
 
       setItems(response.items);
       setNextCursor(response.nextCursor);
     } catch {
+      setItems([]);
+      setNextCursor(null);
       setError('Vibes could not be loaded.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mode]);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -46,6 +40,7 @@ export function useVibesFeed() {
     try {
       const response = await getVibesFeed({
         limit: PAGE_SIZE,
+        mode,
       });
 
       setItems(response.items);
@@ -55,7 +50,7 @@ export function useVibesFeed() {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [mode]);
 
   const loadMore = useCallback(async () => {
     if (!nextCursor || loadingMore) {
@@ -68,38 +63,31 @@ export function useVibesFeed() {
       const response = await getVibesFeed({
         cursor: nextCursor,
         limit: PAGE_SIZE,
+        mode,
       });
 
       setItems((current) => {
-        const known = new Set(
-          current.map((item) => item.id),
-        );
+        const known = new Set(current.map((item) => item.id));
 
-        return [
-          ...current,
-          ...response.items.filter(
-            (item) => !known.has(item.id),
-          ),
-        ];
+        return [...current, ...response.items.filter((item) => !known.has(item.id))];
       });
 
       setNextCursor(response.nextCursor);
     } catch {
-      // Keep the current Vibes feed intact if pagination fails.
+      // Pagination failure must not destroy feed.
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, nextCursor]);
+  }, [loadingMore, mode, nextCursor]);
 
   const replaceItem = useCallback((next: Vibe) => {
-    setItems((current) =>
-      current.map((item) =>
-        item.id === next.id ? next : item,
-      ),
-    );
+    setItems((current) => current.map((item) => (item.id === next.id ? next : item)));
   }, []);
 
   useEffect(() => {
+    setItems([]);
+    setNextCursor(null);
+
     void loadInitial();
   }, [loadInitial]);
 
@@ -111,6 +99,7 @@ export function useVibesFeed() {
       loadingMore,
       error,
       hasMore: Boolean(nextCursor),
+      mode,
       refresh,
       loadMore,
       replaceItem,
@@ -121,6 +110,7 @@ export function useVibesFeed() {
       loadMore,
       loading,
       loadingMore,
+      mode,
       nextCursor,
       refresh,
       refreshing,
