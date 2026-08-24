@@ -577,6 +577,17 @@ model User {
   blocksCreated            UserBlock[]               @relation("Blocker")
   blocksReceived           UserBlock[]               @relation("Blocked")
   posts                    Post[]
+  vibes                    Vibe[]
+  vibeReactions            VibeReaction[]
+  vibeComments             VibeComment[]
+  vibeViews                VibeView[]
+  vibeSaves                VibeSave[]
+  vibeShares               VibeShare[]
+  liveSessions             LiveSession[]
+  liveParticipants         LiveParticipant[]
+  liveReactions            LiveReaction[]
+  liveComments             LiveComment[]
+  liveModerationEvents     LiveModerationEvent[]
   comments                 Comment[]
   postReactions            PostReaction[]
   reportsSubmitted         Report[]                  @relation("ReportReporter")
@@ -717,9 +728,11 @@ model Neighbourhood {
   postcode           String?
   locationVisibility LocationVisibility @default(PUBLIC)
 
-  memberships NeighbourhoodMembership[]
-  posts       Post[]
-  communities Community[]
+  memberships  NeighbourhoodMembership[]
+  vibes        Vibe[]
+  liveSessions LiveSession[]
+  posts        Post[]
+  communities  Community[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -798,6 +811,8 @@ model Community {
   notifications      Notification[]
   conversations      Conversation[]
   posts              Post[]
+  vibes              Vibe[]
+  liveSessions       LiveSession[]
   events             Event[]
   businesses         Business[]
 
@@ -1184,6 +1199,7 @@ model MediaAsset {
   createdAt        DateTime                     @default(now())
   updatedAt        DateTime                     @updatedAt
   postLinks        PostMedia[]
+  vibeLinks        VibeMedia[]
 
   marketplaceListingLinks MarketplaceListingMedia[]
 
@@ -2295,4 +2311,311 @@ model MarketplaceSettlement {
   @@index([status, createdAt])
   @@index([provider, providerReference])
   @@map("marketplace_settlements")
+}
+
+// ============================================================
+// NEIGHBOUR™ VIBES + LIVE
+// Short-form local discovery and realtime live experiences.
+// ============================================================
+
+enum VibeStatus {
+  DRAFT
+  PROCESSING
+  PUBLISHED
+  HIDDEN
+  REMOVED
+  FAILED
+}
+
+enum VibeVisibility {
+  PUBLIC
+  COMMUNITY
+  NEIGHBOURHOOD
+}
+
+enum VibeReactionType {
+  LIKE
+  LOVE
+  FIRE
+  LAUGH
+  WOW
+}
+
+enum LiveSessionStatus {
+  SCHEDULED
+  STARTING
+  LIVE
+  ENDED
+  CANCELLED
+  FAILED
+}
+
+enum LiveParticipantRole {
+  HOST
+  MODERATOR
+  VIEWER
+}
+
+enum LiveModerationEventType {
+  COMMENT_REMOVED
+  PARTICIPANT_MUTED
+  PARTICIPANT_REMOVED
+  PARTICIPANT_BLOCKED
+  STREAM_ENDED
+}
+
+model Vibe {
+  id                String         @id @default(uuid()) @db.Uuid
+  creatorId         String         @db.Uuid
+  communityId       String?        @db.Uuid
+  neighbourhoodId   String?        @db.Uuid
+  caption           String?
+  status            VibeStatus     @default(DRAFT)
+  visibility        VibeVisibility @default(PUBLIC)
+  latitude          Decimal?       @db.Decimal(9, 6)
+  longitude         Decimal?       @db.Decimal(9, 6)
+  locationAccuracyM Int?
+  postcode          String?
+  publishedAt       DateTime?
+  editedAt          DateTime?
+  deletedAt         DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  creator       User           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  community     Community?     @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  neighbourhood Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: SetNull)
+
+  media     VibeMedia[]
+  reactions VibeReaction[]
+  comments  VibeComment[]
+  views     VibeView[]
+  saves     VibeSave[]
+  shares    VibeShare[]
+
+  @@index([creatorId, status, publishedAt])
+  @@index([communityId, status, publishedAt])
+  @@index([neighbourhoodId, status, publishedAt])
+  @@index([status, visibility, publishedAt])
+  @@index([latitude, longitude])
+  @@index([postcode])
+  @@index([deletedAt])
+  @@map("vibes")
+}
+
+model VibeMedia {
+  id        String   @id @default(uuid()) @db.Uuid
+  vibeId    String   @db.Uuid
+  mediaId   String   @db.Uuid
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  vibe  Vibe       @relation(fields: [vibeId], references: [id], onDelete: Cascade)
+  media MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([vibeId, mediaId])
+  @@unique([vibeId, position])
+  @@index([vibeId, position])
+  @@index([mediaId])
+  @@map("vibe_media")
+}
+
+model VibeReaction {
+  id        String           @id @default(uuid()) @db.Uuid
+  vibeId    String           @db.Uuid
+  userId    String           @db.Uuid
+  type      VibeReactionType @default(LIKE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  vibe Vibe @relation(fields: [vibeId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([vibeId, userId])
+  @@index([vibeId, type])
+  @@index([userId, createdAt])
+  @@map("vibe_reactions")
+}
+
+model VibeComment {
+  id        String    @id @default(uuid()) @db.Uuid
+  vibeId    String    @db.Uuid
+  authorId  String    @db.Uuid
+  parentId  String?   @db.Uuid
+  content   String
+  editedAt  DateTime?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  vibe    Vibe          @relation(fields: [vibeId], references: [id], onDelete: Cascade)
+  author  User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent  VibeComment?  @relation("VibeCommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies VibeComment[] @relation("VibeCommentReplies")
+
+  @@index([vibeId, createdAt])
+  @@index([authorId, createdAt])
+  @@index([parentId, createdAt])
+  @@index([deletedAt])
+  @@map("vibe_comments")
+}
+
+model VibeView {
+  id              String   @id @default(uuid()) @db.Uuid
+  vibeId          String   @db.Uuid
+  userId          String?  @db.Uuid
+  sessionKey      String?
+  watchTimeMs     Int      @default(0)
+  completionRatio Float?
+  completed       Boolean  @default(false)
+  replay          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  vibe Vibe  @relation(fields: [vibeId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([vibeId, createdAt])
+  @@index([userId, createdAt])
+  @@index([sessionKey])
+  @@index([completed, createdAt])
+  @@map("vibe_views")
+}
+
+model VibeSave {
+  id        String   @id @default(uuid()) @db.Uuid
+  vibeId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  vibe Vibe @relation(fields: [vibeId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([vibeId, userId])
+  @@index([userId, createdAt])
+  @@index([vibeId])
+  @@map("vibe_saves")
+}
+
+model VibeShare {
+  id        String   @id @default(uuid()) @db.Uuid
+  vibeId    String   @db.Uuid
+  userId    String?  @db.Uuid
+  channel   String?
+  createdAt DateTime @default(now())
+
+  vibe Vibe  @relation(fields: [vibeId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([vibeId, createdAt])
+  @@index([userId, createdAt])
+  @@map("vibe_shares")
+}
+
+model LiveSession {
+  id                String            @id @default(uuid()) @db.Uuid
+  creatorId         String            @db.Uuid
+  communityId       String?           @db.Uuid
+  neighbourhoodId   String?           @db.Uuid
+  title             String?
+  description       String?
+  status            LiveSessionStatus @default(SCHEDULED)
+  provider          String?
+  providerRoomName  String?           @unique
+  latitude          Decimal?          @db.Decimal(9, 6)
+  longitude         Decimal?          @db.Decimal(9, 6)
+  locationAccuracyM Int?
+  postcode          String?
+  scheduledAt       DateTime?
+  startedAt         DateTime?
+  endedAt           DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  creator       User           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  community     Community?     @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  neighbourhood Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: SetNull)
+
+  participants     LiveParticipant[]
+  reactions        LiveReaction[]
+  comments         LiveComment[]
+  moderationEvents LiveModerationEvent[]
+
+  @@index([creatorId, status, createdAt])
+  @@index([communityId, status, createdAt])
+  @@index([neighbourhoodId, status, createdAt])
+  @@index([status, startedAt])
+  @@index([latitude, longitude])
+  @@index([postcode])
+  @@map("live_sessions")
+}
+
+model LiveParticipant {
+  id            String              @id @default(uuid()) @db.Uuid
+  liveSessionId String              @db.Uuid
+  userId        String              @db.Uuid
+  role          LiveParticipantRole @default(VIEWER)
+  joinedAt      DateTime            @default(now())
+  leftAt        DateTime?
+  mutedAt       DateTime?
+  removedAt     DateTime?
+
+  liveSession LiveSession @relation(fields: [liveSessionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([liveSessionId, joinedAt])
+  @@index([userId, joinedAt])
+  @@index([liveSessionId, role])
+  @@map("live_participants")
+}
+
+model LiveReaction {
+  id            String   @id @default(uuid()) @db.Uuid
+  liveSessionId String   @db.Uuid
+  userId        String?  @db.Uuid
+  type          String
+  createdAt     DateTime @default(now())
+
+  liveSession LiveSession @relation(fields: [liveSessionId], references: [id], onDelete: Cascade)
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([liveSessionId, createdAt])
+  @@index([userId, createdAt])
+  @@map("live_reactions")
+}
+
+model LiveComment {
+  id            String    @id @default(uuid()) @db.Uuid
+  liveSessionId String    @db.Uuid
+  authorId      String    @db.Uuid
+  content       String
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  liveSession LiveSession @relation(fields: [liveSessionId], references: [id], onDelete: Cascade)
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([liveSessionId, createdAt])
+  @@index([authorId, createdAt])
+  @@index([deletedAt])
+  @@map("live_comments")
+}
+
+model LiveModerationEvent {
+  id            String                  @id @default(uuid()) @db.Uuid
+  liveSessionId String                  @db.Uuid
+  actorId       String                  @db.Uuid
+  targetUserId  String?                 @db.Uuid
+  type          LiveModerationEventType
+  reason        String?
+  metadata      Json?
+  createdAt     DateTime                @default(now())
+
+  liveSession LiveSession @relation(fields: [liveSessionId], references: [id], onDelete: Cascade)
+  actor       User        @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([liveSessionId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([targetUserId, createdAt])
+  @@index([type, createdAt])
+  @@map("live_moderation_events")
 }
