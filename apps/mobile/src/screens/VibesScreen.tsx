@@ -23,13 +23,28 @@ import { AppText } from '../components';
 import { CreateVibeSheet, VibeCard, VibeCommentsSheet, useVibesFeed } from '../features/vibes';
 import type { AppTabParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
-import { GoLiveSheet, LiveBroadcastRoom } from '../features/live';
+import { GoLiveSheet } from '../features/live/components/GoLiveSheet';
 
 type VibesScreenProps = BottomTabScreenProps<AppTabParamList, 'Vibes'>;
 
 interface WatchSession {
   vibeId: string;
   startedAt: number;
+}
+
+function LazyLiveBroadcastRoom({
+  access,
+  session,
+  onClosed,
+}: {
+  access: LiveAccess;
+  session: LiveSession;
+  onClosed: () => void;
+}) {
+  const { LiveBroadcastRoom } =
+    require('../features/live/components/LiveBroadcastRoom') as typeof import('../features/live/components/LiveBroadcastRoom');
+
+  return <LiveBroadcastRoom visible access={access} session={session} onClosed={onClosed} />;
 }
 
 export default function VibesScreen(_props: VibesScreenProps) {
@@ -278,8 +293,7 @@ export default function VibesScreen(_props: VibesScreenProps) {
         />
 
         {liveAccess && liveSession ? (
-          <LiveBroadcastRoom
-            visible
+          <LazyLiveBroadcastRoom
             access={liveAccess}
             session={liveSession}
             onClosed={() => {
