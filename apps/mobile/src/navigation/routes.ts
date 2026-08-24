@@ -5,6 +5,7 @@ export const ROUTES = {
   APP: 'App',
   HOME: 'Home',
   COMMUNITIES: 'Communities',
+  VIBES: 'Vibes',
   SEARCH: 'Search',
   MAPS: 'Maps',
   LOCAL_AREA: 'LocalArea',
@@ -95,6 +96,7 @@ export type RootStackParamList = {
 export type AppTabParamList = {
   Home: undefined;
   Communities: undefined;
+  Vibes: undefined;
   Search: undefined;
   Maps: undefined;
   Marketplace: undefined;

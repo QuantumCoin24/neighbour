@@ -7,13 +7,14 @@ import HomeScreen from '../screens/HomeScreen';
 import MapsScreen from '../screens/MapsScreen';
 import MessagesScreen from '../screens/MessagesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import VibesScreen from '../screens/VibesScreen';
 import { useNeighbourTheme } from '../theme';
 
 import { type AppTabParamList, ROUTES } from './routes';
 
 const Tabs = createBottomTabNavigator<AppTabParamList>();
 
-type IconName = 'home' | 'communities' | 'nearby' | 'messages' | 'profile';
+type IconName = 'home' | 'communities' | 'vibes' | 'nearby' | 'messages' | 'profile';
 
 interface NavIconProps {
   name: IconName;
@@ -82,6 +83,21 @@ function NavIcon({ name, color }: NavIconProps) {
             styles.peopleBody,
             {
               borderColor: color,
+            },
+          ]}
+        />
+      </View>
+    );
+  }
+
+  if (name === 'vibes') {
+    return (
+      <View style={styles.iconCanvas}>
+        <View
+          style={[
+            styles.vibesPlay,
+            {
+              borderLeftColor: color,
             },
           ]}
         />
@@ -278,6 +294,14 @@ export default function AppTabs() {
       />
 
       <Tabs.Screen
+        name={ROUTES.VIBES}
+        component={VibesScreen}
+        options={{
+          title: 'Vibes',
+          tabBarIcon: renderIcon('vibes'),
+        }}
+      />
+      <Tabs.Screen
         name={ROUTES.MAPS}
         component={MapsScreen}
         options={{
@@ -353,6 +377,16 @@ const styles = StyleSheet.create({
     width: 50,
   },
 
+  vibesPlay: {
+    borderBottomWidth: 9,
+    borderLeftWidth: 15,
+    borderTopWidth: 9,
+    borderBottomColor: 'transparent',
+    borderTopColor: 'transparent',
+    height: 0,
+    marginLeft: 4,
+    width: 0,
+  },
   iconCanvas: {
     alignItems: 'center',
     height: 26,
