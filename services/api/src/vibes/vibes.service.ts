@@ -309,6 +309,24 @@ export class VibesService {
       connection.userAId === currentUserId ? connection.userBId : connection.userAId,
     );
 
+    const nearbyMemberships =
+      query.mode === 'NEARBY' && neighbourhoodIds.length > 0
+        ? await this.database.neighbourhoodMembership.findMany({
+            where: {
+              neighbourhoodId: {
+                in: neighbourhoodIds,
+              },
+            },
+            select: {
+              userId: true,
+            },
+          })
+        : [];
+
+    const nearbyCreatorIds = [
+      ...new Set([currentUserId, ...nearbyMemberships.map((membership) => membership.userId)]),
+    ];
+
     const audienceFilters: Prisma.VibeWhereInput[] = [
       {
         visibility: VibeVisibility.PUBLIC,
@@ -337,7 +355,7 @@ export class VibesService {
     }
 
     const creatorFilter: Prisma.StringFilter | undefined =
-      blockedUserIds.length > 0 || query.mode === 'FOLLOWING'
+      blockedUserIds.length > 0 || query.mode === 'FOLLOWING' || query.mode === 'NEARBY'
         ? {
             ...(blockedUserIds.length > 0
               ? {
@@ -347,6 +365,11 @@ export class VibesService {
             ...(query.mode === 'FOLLOWING'
               ? {
                   in: connectedUserIds,
+                }
+              : {}),
+            ...(query.mode === 'NEARBY'
+              ? {
+                  in: nearbyCreatorIds,
                 }
               : {}),
           }
@@ -372,13 +395,7 @@ export class VibesService {
         ? {
             neighbourhoodId: query.neighbourhoodId,
           }
-        : query.mode === 'NEARBY'
-          ? {
-              neighbourhoodId: {
-                in: neighbourhoodIds,
-              },
-            }
-          : {}),
+        : {}),
 
       OR: audienceFilters,
     };

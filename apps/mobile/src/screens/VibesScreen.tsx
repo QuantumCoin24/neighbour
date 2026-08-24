@@ -151,6 +151,42 @@ export default function VibesScreen(_props: VibesScreenProps) {
         <View style={styles.emptyOrbLarge} />
         <View style={styles.emptyOrbSmall} />
 
+        <View style={styles.feedModes}>
+          {(
+            [
+              ['FOR_YOU', 'For You'],
+              ['FOLLOWING', 'Following'],
+              ['NEARBY', 'Nearby'],
+            ] as const
+          ).map(([value, label]) => {
+            const selected = feedMode === value;
+
+            return (
+              <Pressable
+                accessibilityRole="button"
+                key={value}
+                onPress={() => {
+                  if (selected) {
+                    return;
+                  }
+
+                  finishWatch();
+                  setActiveId(null);
+                  setFeedMode(value);
+                }}
+                style={[styles.feedModeButton, selected ? styles.feedModeButtonActive : null]}
+              >
+                <AppText
+                  style={[styles.feedModeText, selected ? styles.feedModeTextActive : null]}
+                  tone="inverse"
+                >
+                  {label}
+                </AppText>
+              </Pressable>
+            );
+          })}
+        </View>
+
         <View style={styles.emptyContent}>
           <AppText style={styles.emptyEyebrow} tone="inverse">
             YOUR LOCAL WORLD
@@ -161,11 +197,19 @@ export default function VibesScreen(_props: VibesScreenProps) {
           </AppText>
 
           <AppText style={styles.emptyCopy} tone="inverse">
-            Your neighbourhood has not started moving yet.
+            {feedMode === 'FOLLOWING'
+              ? 'People you follow have not shared a Vibe yet.'
+              : feedMode === 'NEARBY'
+                ? 'Nothing has been shared nearby yet.'
+                : 'Your neighbourhood has not started moving yet.'}
           </AppText>
 
           <AppText style={styles.emptyInvitation} tone="inverse">
-            Be the first person to show what is happening.
+            {feedMode === 'FOLLOWING'
+              ? 'Connect with more neighbours or switch back to For You.'
+              : feedMode === 'NEARBY'
+                ? 'Share what is happening around you.'
+                : 'Be the first person to show what is happening.'}
           </AppText>
 
           <Pressable
