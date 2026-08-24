@@ -1,7 +1,6 @@
 import { recordVibeView, type Vibe, type VibeFeedMode } from '@neighbour/api-client';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
 import { useCallback, useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -162,7 +161,6 @@ export default function VibesScreen(_props: VibesScreenProps) {
             },
           ]}
         >
-          <BlurView intensity={44} pointerEvents="none" style={styles.feedModesBlur} tint="dark" />
           {(
             [
               ['FOR_YOU', 'For You'],
@@ -282,7 +280,6 @@ export default function VibesScreen(_props: VibesScreenProps) {
           },
         ]}
       >
-        <BlurView intensity={44} pointerEvents="none" style={styles.feedModesBlur} tint="dark" />
         {(
           [
             ['FOR_YOU', 'For You'],
@@ -536,12 +533,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.28,
     shadowRadius: 18,
     zIndex: 25,
-  },
-
-  feedModesBlur: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: 26,
-    overflow: 'hidden',
   },
 
   feedModeButton: {
