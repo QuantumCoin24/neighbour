@@ -8,19 +8,27 @@ import { fetch } from 'expo/fetch';
 import { File } from 'expo-file-system';
 
 import { compressImage } from './ImageCompression';
-import type { MediaUploadProgress, PendingMedia, UploadedMedia } from '../types';
+import type {
+  MediaUploadProgress,
+  PendingMedia,
+  SupportedMediaMimeType,
+  UploadedMedia,
+} from '../types';
 
-const MAX_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024;
+const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024;
+const MAX_VIDEO_SIZE_BYTES = 200 * 1024 * 1024;
 
-const SUPPORTED_MIME_TYPES = new Set([
+const SUPPORTED_MIME_TYPES = new Set<SupportedMediaMimeType>([
   'image/jpeg',
   'image/png',
   'image/webp',
   'image/heic',
   'image/heif',
+  'video/mp4',
+  'video/quicktime',
 ]);
 
-function resolveMimeType(media: PendingMedia): PendingMedia['mimeType'] {
+function resolveMimeType(media: PendingMedia): SupportedMediaMimeType {
   if (SUPPORTED_MIME_TYPES.has(media.mimeType)) {
     return media.mimeType;
   }
@@ -28,20 +36,37 @@ function resolveMimeType(media: PendingMedia): PendingMedia['mimeType'] {
   return 'image/jpeg';
 }
 
-function resolveFileName(media: PendingMedia, mimeType: PendingMedia['mimeType']): string {
+function extensionForMime(mimeType: SupportedMediaMimeType): string {
+  switch (mimeType) {
+    case 'video/mp4':
+      return 'mp4';
+
+    case 'video/quicktime':
+      return 'mov';
+
+    case 'image/png':
+      return 'png';
+
+    case 'image/webp':
+      return 'webp';
+
+    case 'image/heic':
+      return 'heic';
+
+    case 'image/heif':
+      return 'heif';
+
+    default:
+      return 'jpg';
+  }
+}
+
+function resolveFileName(media: PendingMedia, mimeType: SupportedMediaMimeType): string {
   if (media.fileName.trim()) {
     return media.fileName.trim();
   }
 
-  const extension: Record<PendingMedia['mimeType'], string> = {
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/webp': 'webp',
-    'image/heic': 'heic',
-    'image/heif': 'heif',
-  };
-
-  return `neighbour-${media.localId}.${extension[mimeType]}`;
+  return `neighbour-${media.localId}.${extensionForMime(mimeType)}`;
 }
 
 export async function uploadPendingMedia(
@@ -54,26 +79,37 @@ export async function uploadPendingMedia(
     status: 'PREPARING',
   });
 
-  const compressedUri = await compressImage(media.uri);
+  const video = media.mimeType.startsWith('video/');
 
-  const file = new File(compressedUri);
+  const preparedUri = video ? media.uri : await compressImage(media.uri);
+
+  const file = new File(preparedUri);
 
   if (!file.exists) {
-    throw new Error('The selected image could not be prepared.');
+    throw new Error(
+      video
+        ? 'The selected video could not be prepared.'
+        : 'The selected image could not be prepared.',
+    );
   }
 
   const sizeBytes = file.size ?? 0;
 
   if (sizeBytes <= 0) {
-    throw new Error('The selected image is empty.');
+    throw new Error('The selected media file is empty.');
   }
 
-  if (sizeBytes > MAX_UPLOAD_SIZE_BYTES) {
-    throw new Error('Images must be smaller than 20 MB.');
+  const maxSize = video ? MAX_VIDEO_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
+
+  if (sizeBytes > maxSize) {
+    throw new Error(
+      video ? 'Videos must be smaller than 200 MB.' : 'Images must be smaller than 20 MB.',
+    );
   }
 
-  const mimeType: PendingMedia['mimeType'] = 'image/jpeg';
-  const fileName = `neighbour-${media.localId}.jpg`;
+  const mimeType: SupportedMediaMimeType = video ? resolveMimeType(media) : 'image/jpeg';
+
+  const fileName = video ? resolveFileName(media, mimeType) : `neighbour-${media.localId}.jpg`;
 
   onProgress?.({
     localId: media.localId,
@@ -93,6 +129,11 @@ export async function uploadPendingMedia(
     ...(media.height
       ? {
           height: media.height,
+        }
+      : {}),
+    ...(media.durationMs !== undefined
+      ? {
+          durationMs: media.durationMs,
         }
       : {}),
   });
@@ -133,6 +174,11 @@ export async function uploadPendingMedia(
             height: media.height,
           }
         : {}),
+      ...(media.durationMs !== undefined
+        ? {
+            durationMs: media.durationMs,
+          }
+        : {}),
     });
 
     onProgress?.({
@@ -154,7 +200,7 @@ export async function uploadPendingMedia(
       mediaId: session.asset.id,
       progress: 0,
       status: 'FAILED',
-      error: error instanceof Error ? error.message : 'The image upload failed.',
+      error: error instanceof Error ? error.message : 'The media upload failed.',
     });
 
     throw error;

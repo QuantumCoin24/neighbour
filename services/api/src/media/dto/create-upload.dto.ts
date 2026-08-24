@@ -1,13 +1,22 @@
 import { Transform } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
-export const supportedImageMimeTypes = [
+export const supportedMediaMimeTypes = [
   'image/jpeg',
   'image/png',
   'image/webp',
   'image/heic',
   'image/heif',
+  'video/mp4',
+  'video/quicktime',
 ] as const;
+
+/**
+ * Backwards-compatible export retained for existing tests and
+ * image-only callers. The authoritative upload MIME contract is
+ * supportedMediaMimeTypes.
+ */
+export const supportedImageMimeTypes = supportedMediaMimeTypes;
 
 export class CreateUploadDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
@@ -15,12 +24,12 @@ export class CreateUploadDto {
   @MaxLength(255)
   fileName!: string;
 
-  @IsIn(supportedImageMimeTypes)
-  mimeType!: (typeof supportedImageMimeTypes)[number];
+  @IsIn(supportedMediaMimeTypes)
+  mimeType!: (typeof supportedMediaMimeTypes)[number];
 
   @IsInt()
   @Min(1)
-  @Max(20 * 1024 * 1024)
+  @Max(200 * 1024 * 1024)
   sizeBytes!: number;
 
   @IsOptional()
@@ -34,4 +43,10 @@ export class CreateUploadDto {
   @Min(1)
   @Max(20000)
   height?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10 * 60 * 1000)
+  durationMs?: number;
 }

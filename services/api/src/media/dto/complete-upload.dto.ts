@@ -17,4 +17,10 @@ export class CompleteUploadDto {
   @Min(1)
   @Max(20000)
   height?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(10 * 60 * 1000)
+  durationMs?: number;
 }

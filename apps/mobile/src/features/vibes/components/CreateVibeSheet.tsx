@@ -58,7 +58,7 @@ export function CreateVibeSheet({ visible, onClose, onPublished }: CreateVibeShe
     }
 
     if (media.length === 0) {
-      setError('Choose at least one photo for your Vibe.');
+      setError('Choose at least one photo or video for your Vibe.');
       return;
     }
 
@@ -140,7 +140,7 @@ export function CreateVibeSheet({ visible, onClose, onPublished }: CreateVibeShe
             </AppText>
           </View>
 
-          <MediaPicker disabled={busy} items={media} maximum={9} onChange={setMedia} />
+          <MediaPicker allowVideos disabled={busy} items={media} maximum={9} onChange={setMedia} />
 
           <View style={styles.captionBox}>
             <TextInput

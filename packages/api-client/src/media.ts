@@ -22,10 +22,18 @@ export interface MediaAsset {
 
 export interface MediaUploadRequest {
   fileName: string;
-  mimeType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/heic' | 'image/heif';
+  mimeType:
+    | 'image/jpeg'
+    | 'image/png'
+    | 'image/webp'
+    | 'image/heic'
+    | 'image/heif'
+    | 'video/mp4'
+    | 'video/quicktime';
   sizeBytes: number;
   width?: number;
   height?: number;
+  durationMs?: number;
 }
 
 export interface MediaUploadSession {
@@ -60,6 +68,7 @@ export function completeMediaUpload(
     checksum?: string;
     width?: number;
     height?: number;
+    durationMs?: number;
   } = {},
 ): Promise<MediaAsset> {
   return apiRequest<MediaAsset>(`/media/${encodeURIComponent(mediaId)}/complete`, {

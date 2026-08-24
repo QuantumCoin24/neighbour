@@ -3,6 +3,10 @@ import type { MediaAsset } from '@neighbour/api-client';
 export type SupportedImageMimeType =
   'image/jpeg' | 'image/png' | 'image/webp' | 'image/heic' | 'image/heif';
 
+export type SupportedVideoMimeType = 'video/mp4' | 'video/quicktime';
+
+export type SupportedMediaMimeType = SupportedImageMimeType | SupportedVideoMimeType;
+
 export type MediaUploadStatus =
   'SELECTED' | 'PREPARING' | 'REQUESTING_UPLOAD' | 'UPLOADING' | 'VERIFYING' | 'READY' | 'FAILED';
 
@@ -10,10 +14,11 @@ export interface PendingMedia {
   localId: string;
   uri: string;
   fileName: string;
-  mimeType: SupportedImageMimeType;
+  mimeType: SupportedMediaMimeType;
   sizeBytes: number;
   width?: number;
   height?: number;
+  durationMs?: number;
 }
 
 export interface UploadedMedia {

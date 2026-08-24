@@ -9,13 +9,20 @@ interface MediaPickerProps {
   items: PendingMedia[];
   disabled?: boolean;
   maximum?: number;
+  allowVideos?: boolean;
   onChange: (items: PendingMedia[]) => void;
 }
 
-export function MediaPicker({ items, disabled = false, maximum = 9, onChange }: MediaPickerProps) {
+export function MediaPicker({
+  items,
+  disabled = false,
+  maximum = 9,
+  allowVideos = false,
+  onChange,
+}: MediaPickerProps) {
   const { theme } = useNeighbourTheme();
 
-  const { error, opening, pickFromLibrary, takePhoto } = useMediaPicker();
+  const { error, opening, pickFromLibrary, takePhoto, takeVideo } = useMediaPicker();
 
   const addItems = (selected: PendingMedia[]) => {
     const remaining = Math.max(0, maximum - items.length);
@@ -24,13 +31,19 @@ export function MediaPicker({ items, disabled = false, maximum = 9, onChange }: 
   };
 
   const choosePhotos = async () => {
-    const result = await pickFromLibrary();
+    const result = await pickFromLibrary(allowVideos);
 
     addItems(result.items);
   };
 
   const capturePhoto = async () => {
     const result = await takePhoto();
+
+    addItems(result.items);
+  };
+
+  const captureVideo = async () => {
+    const result = await takeVideo();
 
     addItems(result.items);
   };
@@ -61,7 +74,7 @@ export function MediaPicker({ items, disabled = false, maximum = 9, onChange }: 
             <ActivityIndicator color={theme.colors.primary} size="small" />
           ) : (
             <AppText variant="label" tone="brand">
-              Choose Photos
+              {allowVideos ? 'Choose Media' : 'Choose Photos'}
             </AppText>
           )}
         </Pressable>
@@ -87,8 +100,30 @@ export function MediaPicker({ items, disabled = false, maximum = 9, onChange }: 
         </Pressable>
       </View>
 
+      {allowVideos ? (
+        <Pressable
+          accessibilityRole="button"
+          disabled={disabled || opening || items.length >= maximum}
+          onPress={() => {
+            void captureVideo();
+          }}
+          style={[
+            styles.action,
+            {
+              backgroundColor: theme.colors.surfaceMuted,
+              borderColor: theme.colors.borderStrong,
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText variant="label" tone="brand">
+            Record Video
+          </AppText>
+        </Pressable>
+      ) : null}
+
       <AppText variant="caption" tone="secondary">
-        {items.length}/{maximum} photos
+        {items.length}/{maximum} {allowVideos ? 'items' : 'photos'}
       </AppText>
 
       {items.length > 0 ? (
@@ -99,17 +134,39 @@ export function MediaPicker({ items, disabled = false, maximum = 9, onChange }: 
         >
           {items.map((item, index) => (
             <View key={item.localId} style={styles.preview}>
-              <Image
-                source={{
-                  uri: item.uri,
-                }}
-                style={[
-                  styles.image,
-                  {
-                    borderRadius: theme.radius.lg,
-                  },
-                ]}
-              />
+              {item.mimeType.startsWith('video/') ? (
+                <View
+                  style={[
+                    styles.image,
+                    styles.videoPreview,
+                    {
+                      borderRadius: theme.radius.lg,
+                    },
+                  ]}
+                >
+                  <AppText variant="label" tone="inverse">
+                    VIDEO
+                  </AppText>
+
+                  {item.durationMs ? (
+                    <AppText variant="caption" tone="inverse">
+                      {Math.ceil(item.durationMs / 1000)}s
+                    </AppText>
+                  ) : null}
+                </View>
+              ) : (
+                <Image
+                  source={{
+                    uri: item.uri,
+                  }}
+                  style={[
+                    styles.image,
+                    {
+                      borderRadius: theme.radius.lg,
+                    },
+                  ]}
+                />
+              )}
 
               <View
                 style={[
@@ -193,6 +250,13 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: 118,
   },
+  videoPreview: {
+    alignItems: 'center',
+    backgroundColor: '#101216',
+    gap: 4,
+    justifyContent: 'center',
+  },
+
   image: {
     height: '100%',
     width: '100%',

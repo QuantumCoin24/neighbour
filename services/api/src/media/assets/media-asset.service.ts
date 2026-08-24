@@ -68,6 +68,7 @@ export class MediaAssetService {
         sizeBytes: dto.sizeBytes,
         width: dto.width ?? null,
         height: dto.height ?? null,
+        durationMs: dto.durationMs ?? null,
         status: 'PENDING',
       },
     });
@@ -135,6 +136,7 @@ export class MediaAssetService {
 
         width: dto.width ?? asset.width,
         height: dto.height ?? asset.height,
+        durationMs: dto.durationMs ?? asset.durationMs,
         publicUrl: this.storage.resolvePublicUrl(asset.storageKey),
         status: 'READY',
         uploadedAt: new Date(),
@@ -285,6 +287,8 @@ export class MediaAssetService {
       'image/webp': 'webp',
       'image/heic': 'heic',
       'image/heif': 'heif',
+      'video/mp4': 'mp4',
+      'video/quicktime': 'mov',
     };
 
     const extension = values[mimeType];
