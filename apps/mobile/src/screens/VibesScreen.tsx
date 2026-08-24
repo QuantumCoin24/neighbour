@@ -1,7 +1,9 @@
 import { recordVibeView, type Vibe, type VibeFeedMode } from '@neighbour/api-client';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
 import { useCallback, useRef, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ActivityIndicator,
   FlatList,
@@ -26,6 +28,7 @@ interface WatchSession {
 
 export default function VibesScreen(_props: VibesScreenProps) {
   const { theme } = useNeighbourTheme();
+  const insets = useSafeAreaInsets();
 
   const [feedMode, setFeedMode] = useState<VibeFeedMode>('FOR_YOU');
 
@@ -151,7 +154,15 @@ export default function VibesScreen(_props: VibesScreenProps) {
         <View style={styles.emptyOrbLarge} />
         <View style={styles.emptyOrbSmall} />
 
-        <View style={styles.feedModes}>
+        <View
+          style={[
+            styles.feedModes,
+            {
+              top: insets.top + 10,
+            },
+          ]}
+        >
+          <BlurView intensity={44} pointerEvents="none" style={styles.feedModesBlur} tint="dark" />
           {(
             [
               ['FOR_YOU', 'For You'],
@@ -263,7 +274,15 @@ export default function VibesScreen(_props: VibesScreenProps) {
       }}
       style={styles.screen}
     >
-      <View style={styles.feedModes}>
+      <View
+        style={[
+          styles.feedModes,
+          {
+            top: insets.top + 10,
+          },
+        ]}
+      >
+        <BlurView intensity={44} pointerEvents="none" style={styles.feedModesBlur} tint="dark" />
         {(
           [
             ['FOR_YOU', 'For You'],
@@ -501,16 +520,28 @@ const styles = StyleSheet.create({
   feedModes: {
     alignItems: 'center',
     alignSelf: 'center',
-    backgroundColor: 'rgba(7,10,9,0.62)',
-    borderColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 24,
+    backgroundColor: 'rgba(12,18,16,0.26)',
+    borderColor: 'rgba(255,255,255,0.24)',
+    borderRadius: 26,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     gap: 3,
     padding: 4,
     position: 'absolute',
-    top: 22,
+    shadowColor: '#000000',
+    shadowOffset: {
+      height: 8,
+      width: 0,
+    },
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
     zIndex: 25,
+  },
+
+  feedModesBlur: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: 26,
+    overflow: 'hidden',
   },
 
   feedModeButton: {
@@ -520,13 +551,15 @@ const styles = StyleSheet.create({
   },
 
   feedModeButtonActive: {
-    backgroundColor: 'rgba(255,255,255,0.16)',
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderWidth: StyleSheet.hairlineWidth,
   },
 
   feedModeText: {
     fontSize: 12,
     fontWeight: '800',
-    opacity: 0.52,
+    opacity: 0.7,
   },
 
   feedModeTextActive: {
