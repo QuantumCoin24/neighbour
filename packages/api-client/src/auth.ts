@@ -73,3 +73,27 @@ export function deleteCurrentAccount(): Promise<{ success: true }> {
     method: 'DELETE',
   });
 }
+
+export interface ChangeEmailRequest {
+  email: string;
+  currentPassword: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export function changeCurrentEmail(data: ChangeEmailRequest): Promise<{ success: true }> {
+  return apiRequest<{ success: true }>('/auth/email', {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function changeCurrentPassword(data: ChangePasswordRequest): Promise<{ success: true }> {
+  return apiRequest<{ success: true }>('/auth/password', {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}

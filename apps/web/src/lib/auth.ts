@@ -1,4 +1,6 @@
 import {
+  changeCurrentEmail,
+  changeCurrentPassword,
   configureApiClient,
   deleteCurrentAccount,
   logoutUser,
@@ -97,6 +99,32 @@ export async function logout(): Promise<void> {
     if (browserAvailable()) {
       window.location.assign('/auth');
     }
+  }
+}
+
+export async function changeEmail(email: string, currentPassword: string): Promise<void> {
+  await changeCurrentEmail({
+    email,
+    currentPassword,
+  });
+
+  clearTokens();
+
+  if (browserAvailable()) {
+    window.location.assign('/auth');
+  }
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  await changeCurrentPassword({
+    currentPassword,
+    newPassword,
+  });
+
+  clearTokens();
+
+  if (browserAvailable()) {
+    window.location.assign('/auth');
   }
 }
 

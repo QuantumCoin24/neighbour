@@ -10,6 +10,8 @@ import type { Environment } from '../config/environment';
 import { DatabaseService } from '../database/database.service';
 import { UserStatus } from '../generated/prisma/client.js';
 import type { User } from '../generated/prisma/client.js';
+import type { ChangeEmailDto } from './dto/change-email.dto';
+import type { ChangePasswordDto } from './dto/change-password.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
 import type { AccessTokenPayload, RefreshTokenPayload } from './interfaces/token-payload.interface';
@@ -163,6 +165,84 @@ export class AuthService {
       data: {
         revokedAt: new Date(),
       },
+    });
+
+    return { success: true };
+  }
+
+  async changeEmail(userId: string, dto: ChangeEmailDto): Promise<{ success: true }> {
+    const user = await this.database.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Authentication is no longer valid.');
+    }
+
+    if (!(await argon2.verify(user.passwordHash, dto.currentPassword))) {
+      throw new UnauthorizedException('Current password is incorrect.');
+    }
+
+    if (user.email === dto.email) {
+      return { success: true };
+    }
+
+    const existingUser = await this.database.user.findUnique({
+      where: { email: dto.email },
+      select: { id: true },
+    });
+
+    if (existingUser && existingUser.id !== userId) {
+      throw new ConflictException('An account with this email already exists.');
+    }
+
+    await this.database.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          email: dto.email,
+          emailVerifiedAt: null,
+        },
+      });
+
+      await tx.refreshToken.deleteMany({
+        where: { userId },
+      });
+    });
+
+    return { success: true };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<{ success: true }> {
+    const user = await this.database.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Authentication is no longer valid.');
+    }
+
+    if (!(await argon2.verify(user.passwordHash, dto.currentPassword))) {
+      throw new UnauthorizedException('Current password is incorrect.');
+    }
+
+    if (await argon2.verify(user.passwordHash, dto.newPassword)) {
+      throw new ConflictException('New password must be different from the current password.');
+    }
+
+    const passwordHash = await argon2.hash(dto.newPassword, {
+      type: argon2.argon2id,
+    });
+
+    await this.database.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { passwordHash },
+      });
+
+      await tx.refreshToken.deleteMany({
+        where: { userId },
+      });
     });
 
     return { success: true };

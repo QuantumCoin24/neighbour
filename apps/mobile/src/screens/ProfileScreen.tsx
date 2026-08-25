@@ -56,7 +56,7 @@ function formatCustomerStatus(value: string): string {
 }
 
 export default function ProfileScreen() {
-  const { user, logout, deleteAccount } = useAuth();
+  const { user, logout, changeEmail, changePassword, deleteAccount } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { theme } = useNeighbourTheme();
   const profile = useProfileHub();
@@ -78,6 +78,12 @@ export default function ProfileScreen() {
   const [showLocalArea, setShowLocalArea] = useState(false);
   const [profilePhotoError, setProfilePhotoError] = useState<string | null>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [accountAction, setAccountAction] = useState<'email' | 'password' | null>(null);
+  const [newAccountEmail, setNewAccountEmail] = useState('');
+  const [emailCurrentPassword, setEmailCurrentPassword] = useState('');
+  const [passwordCurrentPassword, setPasswordCurrentPassword] = useState('');
+  const [newAccountPassword, setNewAccountPassword] = useState('');
+  const [confirmAccountPassword, setConfirmAccountPassword] = useState('');
 
   useEffect(() => {
     setUsername(profile.profile?.username ?? '');
@@ -700,6 +706,131 @@ export default function ProfileScreen() {
                   showLocalArea,
                 });
               }}
+            />
+          </Card>
+
+          <Card>
+            <View style={styles.header}>
+              <AppText variant="bodyStrong">Account security</AppText>
+              <AppText variant="caption" tone="secondary">
+                Change the credentials used to sign in to Neighbour.
+              </AppText>
+            </View>
+
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              placeholder="New email address"
+              value={newAccountEmail}
+              onChangeText={setNewAccountEmail}
+            />
+
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="Current password"
+              secureTextEntry
+              value={emailCurrentPassword}
+              onChangeText={setEmailCurrentPassword}
+            />
+
+            <Button
+              disabled={accountAction !== null || deletingAccount}
+              label={accountAction === 'email' ? 'Changing email…' : 'Change email'}
+              loading={accountAction === 'email'}
+              onPress={() => {
+                const email = newAccountEmail.trim().toLowerCase();
+
+                if (!email || !emailCurrentPassword) {
+                  Alert.alert('Change email', 'Enter your new email address and current password.');
+                  return;
+                }
+
+                setAccountAction('email');
+
+                void changeEmail(email, emailCurrentPassword)
+                  .catch(() => {
+                    Alert.alert(
+                      'Unable to change email',
+                      'Check your current password and that the email address is not already in use.',
+                    );
+                  })
+                  .finally(() => {
+                    setAccountAction(null);
+                  });
+              }}
+              variant="secondary"
+            />
+
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="Current password"
+              secureTextEntry
+              value={passwordCurrentPassword}
+              onChangeText={setPasswordCurrentPassword}
+            />
+
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="New password"
+              secureTextEntry
+              value={newAccountPassword}
+              onChangeText={setNewAccountPassword}
+            />
+
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="Confirm new password"
+              secureTextEntry
+              value={confirmAccountPassword}
+              onChangeText={setConfirmAccountPassword}
+            />
+
+            <AppText variant="caption" tone="secondary">
+              Use at least 12 characters with uppercase, lowercase and a number.
+            </AppText>
+
+            <Button
+              disabled={accountAction !== null || deletingAccount}
+              label={accountAction === 'password' ? 'Changing password…' : 'Change password'}
+              loading={accountAction === 'password'}
+              onPress={() => {
+                if (!passwordCurrentPassword || !newAccountPassword || !confirmAccountPassword) {
+                  Alert.alert('Change password', 'Complete all password fields.');
+                  return;
+                }
+
+                if (newAccountPassword !== confirmAccountPassword) {
+                  Alert.alert('Change password', 'Your new passwords do not match.');
+                  return;
+                }
+
+                if (newAccountPassword.length < 12) {
+                  Alert.alert(
+                    'Change password',
+                    'Your new password must contain at least 12 characters.',
+                  );
+                  return;
+                }
+
+                setAccountAction('password');
+
+                void changePassword(passwordCurrentPassword, newAccountPassword)
+                  .catch(() => {
+                    Alert.alert(
+                      'Unable to change password',
+                      'Check your current password and password requirements.',
+                    );
+                  })
+                  .finally(() => {
+                    setAccountAction(null);
+                  });
+              }}
+              variant="secondary"
             />
           </Card>
 

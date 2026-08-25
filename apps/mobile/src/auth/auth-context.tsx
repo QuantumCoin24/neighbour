@@ -1,5 +1,7 @@
 import {
   ApiClientError,
+  changeCurrentEmail,
+  changeCurrentPassword,
   deleteCurrentAccount,
   getCurrentUser,
   loginUser,
@@ -37,6 +39,8 @@ interface AuthContextValue {
   login: (credentials: LoginRequest) => Promise<void>;
   register: (details: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
+  changeEmail: (email: string, currentPassword: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
   clearError: () => void;
 }
@@ -199,6 +203,42 @@ export function AuthProviderContext({ children }: PropsWithChildren) {
     }
   }, []);
 
+  const changeEmail = useCallback(async (email: string, currentPassword: string) => {
+    setError(null);
+
+    try {
+      await changeCurrentEmail({
+        email: email.trim().toLowerCase(),
+        currentPassword,
+      });
+
+      await clearSession();
+      setUser(null);
+      setStatus('anonymous');
+    } catch (caughtError) {
+      setError(getAuthenticationError(caughtError));
+      throw caughtError;
+    }
+  }, []);
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    setError(null);
+
+    try {
+      await changeCurrentPassword({
+        currentPassword,
+        newPassword,
+      });
+
+      await clearSession();
+      setUser(null);
+      setStatus('anonymous');
+    } catch (caughtError) {
+      setError(getAuthenticationError(caughtError));
+      throw caughtError;
+    }
+  }, []);
+
   const deleteAccount = useCallback(async () => {
     setError(null);
 
@@ -223,10 +263,23 @@ export function AuthProviderContext({ children }: PropsWithChildren) {
       login,
       register,
       logout,
+      changeEmail,
+      changePassword,
       deleteAccount,
       clearError,
     }),
-    [user, status, error, login, register, logout, deleteAccount, clearError],
+    [
+      user,
+      status,
+      error,
+      login,
+      register,
+      logout,
+      changeEmail,
+      changePassword,
+      deleteAccount,
+      clearError,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -6,18 +6,23 @@ import { useEffect, useState } from 'react';
 
 import { getCurrentUser, type AuthUser } from '@neighbour/api-client';
 
-import { deleteAccount, getAccessToken, logout } from '../../lib/auth';
+import { changeEmail, changePassword, deleteAccount, getAccessToken, logout } from '../../lib/auth';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   const [loading, setLoading] = useState(true);
 
-  const [action, setAction] = useState<'logout' | 'delete' | null>(null);
+  const [action, setAction] = useState<'logout' | 'delete' | 'email' | 'password' | null>(null);
 
   const [message, setMessage] = useState('');
 
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailPassword, setEmailPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -62,6 +67,56 @@ export default function SettingsPage() {
       setAction(null);
 
       setMessage('Unable to sign out. Please try again.');
+    }
+  }
+
+  async function handleChangeEmail() {
+    const email = newEmail.trim().toLowerCase();
+
+    if (!email || !emailPassword) {
+      setMessage('Enter your new email address and current password.');
+      return;
+    }
+
+    setAction('email');
+    setMessage('');
+
+    try {
+      await changeEmail(email, emailPassword);
+    } catch {
+      setAction(null);
+      setMessage(
+        'Unable to change your email. Check your password and that the email is not already in use.',
+      );
+    }
+  }
+
+  async function handleChangePassword() {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setMessage('Complete all password fields.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setMessage('Your new passwords do not match.');
+      return;
+    }
+
+    if (newPassword.length < 12) {
+      setMessage('Your new password must contain at least 12 characters.');
+      return;
+    }
+
+    setAction('password');
+    setMessage('');
+
+    try {
+      await changePassword(currentPassword, newPassword);
+    } catch {
+      setAction(null);
+      setMessage(
+        'Unable to change your password. Check your current password and password requirements.',
+      );
     }
   }
 
@@ -180,6 +235,82 @@ export default function SettingsPage() {
             ) : (
               <p className="settings-muted">Account information is unavailable.</p>
             )}
+          </section>
+
+          <section className="settings-card">
+            <div className="settings-card-heading">
+              <span>SECURITY</span>
+              <h2>Login & credentials</h2>
+              <p>Change the email address or password used to access your Neighbour™ account.</p>
+            </div>
+
+            <div className="settings-credential-form">
+              <h3>Change email</h3>
+
+              <input
+                type="email"
+                autoComplete="email"
+                placeholder={user?.email ?? 'New email address'}
+                value={newEmail}
+                onChange={(event) => setNewEmail(event.target.value)}
+              />
+
+              <input
+                type="password"
+                autoComplete="current-password"
+                placeholder="Current password"
+                value={emailPassword}
+                onChange={(event) => setEmailPassword(event.target.value)}
+              />
+
+              <button
+                type="button"
+                disabled={action !== null}
+                onClick={() => void handleChangeEmail()}
+              >
+                {action === 'email' ? 'Changing email…' : 'Change email'}
+              </button>
+            </div>
+
+            <div className="settings-credential-form">
+              <h3>Change password</h3>
+
+              <input
+                type="password"
+                autoComplete="current-password"
+                placeholder="Current password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+              />
+
+              <input
+                type="password"
+                autoComplete="new-password"
+                placeholder="New password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+              />
+
+              <input
+                type="password"
+                autoComplete="new-password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+              />
+
+              <p className="settings-muted">
+                Use at least 12 characters with uppercase, lowercase and a number.
+              </p>
+
+              <button
+                type="button"
+                disabled={action !== null}
+                onClick={() => void handleChangePassword()}
+              >
+                {action === 'password' ? 'Changing password…' : 'Change password'}
+              </button>
+            </div>
           </section>
 
           <section className="settings-card">
@@ -312,6 +443,57 @@ export default function SettingsPage() {
       ) : null}
 
       <style>{`
+        .settings-credential-form {
+          display: grid;
+          gap: 10px;
+          margin-top: 18px;
+          padding-top: 18px;
+          border-top: 1px solid #e7ece9;
+        }
+
+        .settings-credential-form:first-of-type {
+          margin-top: 4px;
+        }
+
+        .settings-credential-form h3 {
+          margin: 0 0 3px;
+          color: #102019;
+          font-size: 15px;
+        }
+
+        .settings-credential-form input {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 12px 13px;
+          border: 1px solid #d9e2dd;
+          border-radius: 11px;
+          background: #fff;
+          color: #102019;
+          font: inherit;
+          outline: none;
+        }
+
+        .settings-credential-form input:focus {
+          border-color: #0a6945;
+          box-shadow: 0 0 0 3px rgba(10,105,69,.08);
+        }
+
+        .settings-credential-form button {
+          justify-self: start;
+          padding: 11px 16px;
+          border: 0;
+          border-radius: 10px;
+          background: #102019;
+          color: #fff;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .settings-credential-form button:disabled {
+          cursor: default;
+          opacity: .55;
+        }
+
         .settings-page {
           width: min(100% - 48px,1200px);
           margin: 0 auto;

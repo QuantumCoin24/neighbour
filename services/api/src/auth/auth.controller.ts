@@ -1,8 +1,10 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post } from '@nestjs/common';
 
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthService } from './auth.service';
+import { ChangeEmailDto } from './dto/change-email.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -43,6 +45,22 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser() user: AuthUser): AuthUser {
     return user;
+  }
+
+  @Patch('email')
+  changeEmail(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ChangeEmailDto,
+  ): Promise<{ success: true }> {
+    return this.authService.changeEmail(user.id, dto);
+  }
+
+  @Patch('password')
+  changePassword(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<{ success: true }> {
+    return this.authService.changePassword(user.id, dto);
   }
 
   @Delete('account')
