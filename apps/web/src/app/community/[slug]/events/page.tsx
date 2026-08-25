@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 
 import {
+  createEvent,
   getCommunity,
   getCommunityEvents,
   type Community,
@@ -35,6 +36,13 @@ export default function EventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [startsAt, setStartsAt] = useState('');
+  const [endsAt, setEndsAt] = useState('');
 
   async function load() {
     const token = localStorage.getItem('accessToken');
@@ -61,6 +69,77 @@ export default function EventsPage() {
   useEffect(() => {
     load();
   }, [slug]);
+
+  async function submitEvent(): Promise<void> {
+    if (!community || creating) {
+      return;
+    }
+
+    const token = localStorage.getItem('accessToken');
+    const cleanTitle = title.trim();
+    const cleanDescription = description.trim();
+    const start = new Date(startsAt);
+    const end = new Date(endsAt);
+
+    if (!token) {
+      setCreateError('Your session has expired. Please sign in again.');
+      return;
+    }
+
+    if (cleanTitle.length < 3) {
+      setCreateError('Give the event a title of at least 3 characters.');
+      return;
+    }
+
+    if (!cleanDescription) {
+      setCreateError('Add a short description so neighbours know what the event is about.');
+      return;
+    }
+
+    if (!startsAt || Number.isNaN(start.getTime())) {
+      setCreateError('Enter a valid start date and time.');
+      return;
+    }
+
+    if (!endsAt || Number.isNaN(end.getTime())) {
+      setCreateError('Enter a valid end date and time.');
+      return;
+    }
+
+    if (end.getTime() <= start.getTime()) {
+      setCreateError('The event must finish after it starts.');
+      return;
+    }
+
+    setCreating(true);
+    setCreateError('');
+
+    try {
+      await createEvent(token, {
+        communityId: community.id,
+        title: cleanTitle,
+        description: cleanDescription,
+        startsAt: start.toISOString(),
+        endsAt: end.toISOString(),
+      });
+
+      setTitle('');
+      setDescription('');
+      setStartsAt('');
+      setEndsAt('');
+      setCreateOpen(false);
+
+      await load();
+    } catch (caughtError) {
+      setCreateError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'The event could not be created. Please try again.',
+      );
+    } finally {
+      setCreating(false);
+    }
+  }
 
   const sortedEvents = useMemo(
     () =>
@@ -147,6 +226,178 @@ export default function EventsPage() {
       </section>
 
       <CommunityTabs slug={slug} />
+
+      <section
+        style={{
+          ...card,
+          margin: '18px 0 22px',
+          padding: 22,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 18,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                color: '#08754b',
+                fontSize: 12,
+                fontWeight: 850,
+                letterSpacing: '.14em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Community calendar
+            </div>
+
+            <h2 style={{ margin: '5px 0 0' }}>Create an event</h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setCreateError('');
+              setCreateOpen((current) => !current);
+            }}
+            style={{
+              border: 0,
+              borderRadius: 999,
+              background: '#08754b',
+              color: '#fff',
+              cursor: 'pointer',
+              padding: '12px 18px',
+              fontWeight: 850,
+            }}
+          >
+            {createOpen ? 'Close' : '+ Create event'}
+          </button>
+        </div>
+
+        {createOpen ? (
+          <div
+            style={{
+              display: 'grid',
+              gap: 14,
+              marginTop: 20,
+            }}
+          >
+            <label style={{ display: 'grid', gap: 6 }}>
+              <strong>Event title</strong>
+              <input
+                value={title}
+                maxLength={120}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Neighbourhood clean-up"
+                style={{
+                  minHeight: 46,
+                  border: '1px solid #dce5e0',
+                  borderRadius: 13,
+                  padding: '0 13px',
+                  font: 'inherit',
+                }}
+              />
+            </label>
+
+            <label style={{ display: 'grid', gap: 6 }}>
+              <strong>Description</strong>
+              <textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Tell neighbours what the event is about."
+                style={{
+                  minHeight: 110,
+                  border: '1px solid #dce5e0',
+                  borderRadius: 13,
+                  padding: 13,
+                  resize: 'vertical',
+                  font: 'inherit',
+                }}
+              />
+            </label>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+                gap: 14,
+              }}
+            >
+              <label style={{ display: 'grid', gap: 6 }}>
+                <strong>Starts</strong>
+                <input
+                  type="datetime-local"
+                  value={startsAt}
+                  onChange={(event) => setStartsAt(event.target.value)}
+                  style={{
+                    minHeight: 46,
+                    border: '1px solid #dce5e0',
+                    borderRadius: 13,
+                    padding: '0 13px',
+                    font: 'inherit',
+                  }}
+                />
+              </label>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <strong>Ends</strong>
+                <input
+                  type="datetime-local"
+                  value={endsAt}
+                  onChange={(event) => setEndsAt(event.target.value)}
+                  style={{
+                    minHeight: 46,
+                    border: '1px solid #dce5e0',
+                    borderRadius: 13,
+                    padding: '0 13px',
+                    font: 'inherit',
+                  }}
+                />
+              </label>
+            </div>
+
+            {createError ? (
+              <div
+                role="alert"
+                style={{
+                  borderRadius: 12,
+                  background: '#fff4f2',
+                  color: '#b42318',
+                  padding: '10px 12px',
+                  fontWeight: 750,
+                }}
+              >
+                {createError}
+              </div>
+            ) : null}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                disabled={creating}
+                onClick={() => void submitEvent()}
+                style={{
+                  border: 0,
+                  borderRadius: 999,
+                  background: '#102d4a',
+                  color: '#fff',
+                  cursor: creating ? 'default' : 'pointer',
+                  opacity: creating ? 0.6 : 1,
+                  padding: '12px 20px',
+                  fontWeight: 850,
+                }}
+              >
+                {creating ? 'Publishing…' : 'Publish event'}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </section>
 
       {error ? (
         <div style={{ ...card, padding: 28 }}>{error}</div>
@@ -255,6 +506,23 @@ export default function EventsPage() {
                   ) : null}
 
                   <strong>{new Date(event.startsAt).toLocaleString()}</strong>
+
+                  <div style={{ marginTop: 16 }}>
+                    <Link
+                      href={`/events/${event.id}`}
+                      style={{
+                        display: 'inline-block',
+                        borderRadius: 999,
+                        background: '#102d4a',
+                        color: '#fff',
+                        padding: '10px 15px',
+                        textDecoration: 'none',
+                        fontWeight: 850,
+                      }}
+                    >
+                      View event
+                    </Link>
+                  </div>
                 </div>
 
                 <ReportButton targetType="EVENT" targetId={event.id} />
