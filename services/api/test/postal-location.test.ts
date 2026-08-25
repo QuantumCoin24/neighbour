@@ -39,3 +39,18 @@ test('normalizes combined postal input', () => {
     postalCode: 'M9 8AB',
   });
 });
+
+test('GB and UK country codes use canonical GB identity', () => {
+  assert.equal(normalizeCountryCode('gb'), 'GB');
+  assert.equal(normalizeCountryCode('uk'), 'UK');
+
+  assert.deepEqual(normalizePostalInput('GB', 'sw1a1aa'), {
+    countryCode: 'GB',
+    postalCode: 'SW1A 1AA',
+  });
+
+  assert.deepEqual(normalizePostalInput('UK', 'sw1a1aa'), {
+    countryCode: 'UK',
+    postalCode: 'SW1A 1AA',
+  });
+});
