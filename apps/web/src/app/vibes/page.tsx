@@ -16,6 +16,8 @@ import {
 } from '@neighbour/api-client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import WebLiveStudio from '../../components/vibes/WebLiveStudio';
+
 const reactionOptions: VibeReactionType[] = ['LIKE', 'LOVE', 'FIRE', 'LAUGH', 'WOW'];
 
 function formatNumber(value: number): string {
@@ -162,6 +164,7 @@ export default function VibesPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [message, setMessage] = useState('');
   const [commentsVibeId, setCommentsVibeId] = useState<string | null>(null);
+  const [liveStudioOpen, setLiveStudioOpen] = useState(false);
 
   const viewedRef = useRef(new Set<string>());
 
@@ -263,23 +266,30 @@ export default function VibesPage() {
           <p>Watch real moments, updates and stories from people around you.</p>
         </div>
 
-        <div className="vibes-mode-tabs">
-          {(
-            [
-              ['FOR_YOU', 'For You'],
-              ['FOLLOWING', 'Following'],
-              ['NEARBY', 'Nearby'],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              className={mode === value ? 'active' : ''}
-              onClick={() => setMode(value)}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="vibes-header-actions">
+          <button className="vibes-go-live" type="button" onClick={() => setLiveStudioOpen(true)}>
+            <span />
+            Go Live
+          </button>
+
+          <div className="vibes-mode-tabs">
+            {(
+              [
+                ['FOR_YOU', 'For You'],
+                ['FOLLOWING', 'Following'],
+                ['NEARBY', 'Nearby'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={mode === value ? 'active' : ''}
+                onClick={() => setMode(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -387,6 +397,14 @@ export default function VibesPage() {
         </>
       )}
 
+      <WebLiveStudio
+        open={liveStudioOpen}
+        onClose={() => setLiveStudioOpen(false)}
+        onLiveEnded={() => {
+          void load();
+        }}
+      />
+
       {commentsVibe ? (
         <Comments
           vibe={commentsVibe}
@@ -445,6 +463,34 @@ export default function VibesPage() {
           margin: 12px 0 0;
           color: #61726a;
           font-size: 15px;
+        }
+
+        .vibes-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .vibes-go-live {
+          min-height: 46px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border: 0;
+          border-radius: 999px;
+          background: #ef233c;
+          padding: 0 18px;
+          color: #fff;
+          cursor: pointer;
+          font-weight: 900;
+          box-shadow: 0 10px 28px rgba(239,35,60,.19);
+        }
+
+        .vibes-go-live span {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: #fff;
         }
 
         .vibes-mode-tabs {
@@ -807,6 +853,16 @@ export default function VibesPage() {
           .vibes-header {
             align-items: flex-start;
             flex-direction: column;
+          }
+
+          .vibes-header-actions {
+            width: 100%;
+            align-items: stretch;
+            flex-direction: column;
+          }
+
+          .vibes-go-live {
+            justify-content: center;
           }
 
           .vibes-mode-tabs {
