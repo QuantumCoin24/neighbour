@@ -1,11 +1,16 @@
 'use client';
 
 import {
+  confirmPremiumStripeCheckout,
+  createPremiumStripeCheckout,
+  createPremiumStripePortal,
   getMyPremiumOverview,
   getPremiumPlans,
   submitPrioritySupportRequest,
+  type PremiumBillingInterval,
   type PremiumOverview,
   type PremiumPlan,
+  type PremiumPlanId,
 } from '@neighbour/api-client';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -43,6 +48,10 @@ export default function PremiumPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [billingInterval, setBillingInterval] = useState<PremiumBillingInterval>('MONTHLY');
+  const [checkoutPlan, setCheckoutPlan] = useState<PremiumPlanId | null>(null);
+  const [portalBusy, setPortalBusy] = useState(false);
+  const [checkoutResult, setCheckoutResult] = useState('');
 
   const [supportSubject, setSupportSubject] = useState('');
   const [supportMessage, setSupportMessage] = useState('');
@@ -76,6 +85,93 @@ export default function PremiumPage() {
   useEffect(() => {
     void loadPremium();
   }, [loadPremium]);
+
+  useEffect(() => {
+    const parameters = new URLSearchParams(window.location.search);
+
+    const checkout = parameters.get('checkout');
+    const sessionId = parameters.get('session_id');
+
+    if (checkout === 'cancelled') {
+      setCheckoutResult('Checkout cancelled. No subscription change was made.');
+      window.history.replaceState({}, '', '/premium');
+      return;
+    }
+
+    if (checkout !== 'success' || !sessionId) {
+      return;
+    }
+
+    let active = true;
+
+    async function confirmCheckout() {
+      setCheckoutResult('Confirming your Premium membership…');
+
+      try {
+        const result = await confirmPremiumStripeCheckout(sessionId);
+
+        if (!active) {
+          return;
+        }
+
+        setOverview(result);
+        setCheckoutResult('Premium membership activated successfully.');
+      } catch {
+        if (active) {
+          setCheckoutResult(
+            'Payment completed, but membership confirmation needs another refresh.',
+          );
+        }
+      } finally {
+        window.history.replaceState({}, '', '/premium');
+      }
+    }
+
+    void confirmCheckout();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function startCheckout(plan: PremiumPlanId): Promise<void> {
+    if (plan === 'FREE' || checkoutPlan || overview?.subscription.provider === 'APPLE') {
+      return;
+    }
+
+    setCheckoutPlan(plan);
+    setCheckoutResult('');
+
+    try {
+      const checkout = await createPremiumStripeCheckout({
+        plan,
+        interval: billingInterval,
+      });
+
+      window.location.assign(checkout.url);
+    } catch {
+      setCheckoutPlan(null);
+      setCheckoutResult('Checkout could not be started. Please try again.');
+    }
+  }
+
+  async function openBillingPortal(): Promise<void> {
+    if (portalBusy) {
+      return;
+    }
+
+    setPortalBusy(true);
+    setCheckoutResult('');
+
+    try {
+      const portal = await createPremiumStripePortal();
+
+      window.location.assign(portal.url);
+    } catch {
+      setPortalBusy(false);
+      setCheckoutResult('Billing management could not be opened.');
+    }
+  }
 
   async function submitPrioritySupport(): Promise<void> {
     const subject = supportSubject.trim();
@@ -171,6 +267,26 @@ export default function PremiumPage() {
             </div>
           </div>
 
+          <div className="premium-billing-toggle">
+            <button
+              type="button"
+              className={billingInterval === 'MONTHLY' ? 'premium-toggle-active' : ''}
+              onClick={() => setBillingInterval('MONTHLY')}
+            >
+              Monthly
+            </button>
+
+            <button
+              type="button"
+              className={billingInterval === 'ANNUAL' ? 'premium-toggle-active' : ''}
+              onClick={() => setBillingInterval('ANNUAL')}
+            >
+              Annual
+            </button>
+          </div>
+
+          {checkoutResult ? <div className="premium-notice">{checkoutResult}</div> : null}
+
           <div className="premium-plans">
             {plans
               .filter((plan) => plan.id !== 'FREE')
@@ -189,9 +305,13 @@ export default function PremiumPage() {
                         <h3>{plan.name}</h3>
 
                         <div className="premium-price">
-                          {formatMoney(plan.monthlyPricePence)}
+                          {formatMoney(
+                            billingInterval === 'ANNUAL'
+                              ? plan.annualPricePence
+                              : plan.monthlyPricePence,
+                          )}
 
-                          <small>/month</small>
+                          <small>{billingInterval === 'ANNUAL' ? '/year' : '/month'}</small>
                         </div>
                       </div>
 
@@ -217,14 +337,20 @@ export default function PremiumPage() {
                     <button
                       type="button"
                       className="premium-primary"
-                      disabled={current}
+                      disabled={
+                        current ||
+                        Boolean(checkoutPlan) ||
+                        overview?.subscription.provider === 'APPLE'
+                      }
                       onClick={() => {
-                        document.getElementById('premium-web-billing')?.scrollIntoView({
-                          behavior: 'smooth',
-                        });
+                        void startCheckout(plan.id);
                       }}
                     >
-                      {current ? 'Your plan' : 'Choose this plan'}
+                      {current
+                        ? 'Your plan'
+                        : checkoutPlan === plan.id
+                          ? 'Opening secure checkout…'
+                          : 'Choose this plan'}
                     </button>
                   </article>
                 );
@@ -320,16 +446,34 @@ export default function PremiumPage() {
                 Manage Apple subscription
               </a>
             </>
+          ) : overview?.subscription.provider === 'STRIPE' ? (
+            <>
+              <p>
+                Your subscription is securely billed by Stripe. Use the billing portal to update
+                your payment method, view invoices, change or cancel your subscription.
+              </p>
+
+              <button
+                type="button"
+                className="premium-secondary"
+                disabled={portalBusy}
+                onClick={() => {
+                  void openBillingPortal();
+                }}
+              >
+                {portalBusy ? 'Opening billing…' : 'Manage web subscription'}
+              </button>
+            </>
           ) : (
             <>
               <p>
-                Browser subscription purchasing and billing management will use Neighbour&apos;s web
-                billing provider when enabled.
+                Choose Neighbour Plus or Neighbour Business above to subscribe securely in your
+                browser with Stripe.
               </p>
 
-              <button type="button" className="premium-secondary" disabled>
-                Web billing management coming soon
-              </button>
+              <span className="premium-secure-copy">
+                Secure hosted checkout • GBP billing • Monthly or annual plans
+              </span>
             </>
           )}
         </section>
@@ -416,6 +560,41 @@ export default function PremiumPage() {
           margin: 6px 0 14px;
           font-size: 25px;
           letter-spacing: -.025em;
+        }
+
+        .premium-billing-toggle {
+          display: inline-flex;
+          gap: 4px;
+          margin-bottom: 16px;
+          padding: 4px;
+          border-radius: 14px;
+          background: #ebe8e1;
+        }
+
+        .premium-billing-toggle button {
+          padding: 9px 15px;
+          border: 0;
+          border-radius: 10px;
+          background: transparent;
+          color: #56655e;
+          font: inherit;
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .premium-billing-toggle .premium-toggle-active {
+          background: #ffffff;
+          color: #086240;
+          box-shadow: 0 3px 10px rgba(16, 32, 25, .08);
+        }
+
+        .premium-secure-copy {
+          display: block;
+          margin-top: 10px;
+          color: #68766f;
+          font-size: 12px;
+          font-weight: 700;
         }
 
         .premium-plans {

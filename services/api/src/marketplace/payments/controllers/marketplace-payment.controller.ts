@@ -14,6 +14,7 @@ import type { Request } from 'express';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 import { Public } from '../../../auth/decorators/public.decorator';
 import type { AuthUser } from '../../../auth/interfaces/auth-user.interface';
+import { SubscriptionService } from '../../../payments/subscription/subscription.service';
 
 import { CancelMarketplacePaymentDto } from '../dto/cancel-marketplace-payment.dto';
 import { ConfirmMarketplacePaymentDto } from '../dto/confirm-marketplace-payment.dto';
@@ -27,6 +28,7 @@ export class MarketplacePaymentController {
   constructor(
     private readonly payments: MarketplacePaymentService,
     private readonly stripe: StripePaymentProvider,
+    private readonly subscriptions: SubscriptionService,
   ) {}
 
   @Public()
@@ -52,6 +54,7 @@ export class MarketplacePaymentController {
     }
 
     await this.payments.handleStripeWebhook(event);
+    await this.subscriptions.handleStripeWebhook(event);
 
     return {
       received: true,

@@ -1,4 +1,11 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import Stripe from 'stripe';
 
 import { DatabaseService } from '../../database/database.service';
 import type { SubscriptionEntity, SubscriptionPlan } from './subscription.entity';
@@ -34,9 +41,14 @@ export interface ActivateAppleSubscriptionInput {
   revokedAt?: Date | null;
 }
 
+export type PremiumBillingInterval = 'MONTHLY' | 'ANNUAL';
+
 @Injectable()
 export class SubscriptionService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly config: ConfigService,
+  ) {}
 
   private readonly plans: PremiumPlan[] = [
     {
@@ -137,6 +149,196 @@ export class SubscriptionService {
       plan: this.plans.find((item) => item.id === subscription.plan) ?? this.plans[0],
       entitlements: this.getEntitlements(subscription.plan),
     };
+  }
+
+  async createStripeCheckout(
+    ownerId: string,
+    input: {
+      plan: Exclude<SubscriptionPlan, 'FREE'>;
+      interval: PremiumBillingInterval;
+    },
+  ) {
+    if (input.plan !== 'PLUS' && input.plan !== 'BUSINESS') {
+      throw new BadRequestException('A paid Premium plan is required.');
+    }
+
+    if (input.interval !== 'MONTHLY' && input.interval !== 'ANNUAL') {
+      throw new BadRequestException('A valid billing interval is required.');
+    }
+
+    const current = await this.findCurrent(ownerId);
+
+    if (current.provider === 'APPLE' && current.plan !== 'FREE' && current.status === 'ACTIVE') {
+      throw new ConflictException('Your active Apple subscription must be managed through Apple.');
+    }
+
+    const plan = this.plans.find((candidate) => candidate.id === input.plan);
+
+    if (!plan) {
+      throw new BadRequestException('Premium plan not found.');
+    }
+
+    const unitAmount = input.interval === 'ANNUAL' ? plan.annualPricePence : plan.monthlyPricePence;
+
+    const stripe = this.getStripe();
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      client_reference_id: ownerId,
+      success_url:
+        `${this.getWebBaseUrl()}/premium` + '?checkout=success&session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: `${this.getWebBaseUrl()}/premium?checkout=cancelled`,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'gbp',
+            unit_amount: unitAmount,
+            recurring: {
+              interval: input.interval === 'ANNUAL' ? 'year' : 'month',
+            },
+            product_data: {
+              name: plan.name,
+              description: plan.description,
+            },
+          },
+        },
+      ],
+      metadata: {
+        neighbourOwnerId: ownerId,
+        neighbourPlan: input.plan,
+        neighbourBillingInterval: input.interval,
+      },
+      subscription_data: {
+        metadata: {
+          neighbourOwnerId: ownerId,
+          neighbourPlan: input.plan,
+          neighbourBillingInterval: input.interval,
+        },
+      },
+      allow_promotion_codes: true,
+    });
+
+    if (!session.url) {
+      throw new BadRequestException('Stripe Checkout did not return a checkout URL.');
+    }
+
+    return {
+      url: session.url,
+      sessionId: session.id,
+    };
+  }
+
+  async confirmStripeCheckout(ownerId: string, sessionId: string) {
+    const normalizedSessionId = sessionId.trim();
+
+    if (!normalizedSessionId) {
+      throw new BadRequestException('Stripe Checkout session is required.');
+    }
+
+    const stripe = this.getStripe();
+
+    const session = await stripe.checkout.sessions.retrieve(normalizedSessionId, {
+      expand: ['subscription'],
+    });
+
+    if (session.client_reference_id !== ownerId) {
+      throw new ForbiddenException('This Stripe Checkout session does not belong to this account.');
+    }
+
+    if (session.status !== 'complete') {
+      throw new BadRequestException('Stripe Checkout has not completed.');
+    }
+
+    const plan = this.readStripePlan(session.metadata?.neighbourPlan);
+
+    const subscription =
+      typeof session.subscription === 'string'
+        ? await stripe.subscriptions.retrieve(session.subscription)
+        : session.subscription;
+
+    if (!subscription) {
+      throw new BadRequestException('Stripe subscription was not created.');
+    }
+
+    return this.activateStripeSubscription(ownerId, plan, subscription);
+  }
+
+  async createStripePortal(ownerId: string) {
+    const current = await this.findCurrent(ownerId);
+
+    if (current.provider !== 'STRIPE' || !current.externalReference) {
+      throw new BadRequestException('There is no Stripe subscription to manage.');
+    }
+
+    const stripe = this.getStripe();
+
+    const subscription = await stripe.subscriptions.retrieve(current.externalReference);
+
+    const customerId =
+      typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${this.getWebBaseUrl()}/premium`,
+    });
+
+    return {
+      url: session.url,
+    };
+  }
+
+  async handleStripeWebhook(event: Stripe.Event): Promise<void> {
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+
+      const ownerId = session.metadata?.neighbourOwnerId ?? session.client_reference_id;
+
+      if (!ownerId || !session.subscription) {
+        return;
+      }
+
+      const plan = this.readStripePlan(session.metadata?.neighbourPlan);
+
+      const stripe = this.getStripe();
+
+      const subscription =
+        typeof session.subscription === 'string'
+          ? await stripe.subscriptions.retrieve(session.subscription)
+          : session.subscription;
+
+      await this.activateStripeSubscription(ownerId, plan, subscription);
+
+      return;
+    }
+
+    if (
+      event.type === 'customer.subscription.updated' ||
+      event.type === 'customer.subscription.deleted'
+    ) {
+      const subscription = event.data.object as Stripe.Subscription;
+
+      const existing = await this.database.subscription.findFirst({
+        where: {
+          provider: 'STRIPE',
+          externalReference: subscription.id,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      if (!existing) {
+        return;
+      }
+
+      const plan = this.readStripePlan(
+        subscription.metadata.neighbourPlan,
+        existing.plan === 'FREE' ? undefined : existing.plan,
+      );
+
+      await this.activateStripeSubscription(existing.ownerId, plan, subscription);
+    }
   }
 
   async activateInternalPlan(ownerId: string, plan: SubscriptionPlan) {
@@ -395,6 +597,148 @@ export class SubscriptionService {
         createdAt: true,
       },
     });
+  }
+
+  private getStripe(): Stripe {
+    const secretKey = this.config.get<string>('app.stripeSecretKey')?.trim() ?? '';
+
+    if (!secretKey) {
+      throw new BadRequestException('Stripe payments are not configured.');
+    }
+
+    return new Stripe(secretKey);
+  }
+
+  private getWebBaseUrl(): string {
+    const configured =
+      process.env.WEB_APP_URL?.trim() ||
+      process.env.CORS_ORIGINS?.split(',')
+        .map((origin) => origin.trim())
+        .find((origin) => /^https?:\/\//i.test(origin)) ||
+      'http://localhost:3000';
+
+    return configured.replace(/\/+$/, '');
+  }
+
+  private readStripePlan(
+    value: string | undefined,
+    fallback?: Exclude<SubscriptionPlan, 'FREE'>,
+  ): Exclude<SubscriptionPlan, 'FREE'> {
+    if (value === 'PLUS' || value === 'BUSINESS') {
+      return value;
+    }
+
+    if (fallback) {
+      return fallback;
+    }
+
+    throw new BadRequestException('Stripe subscription does not contain a valid Premium plan.');
+  }
+
+  private getStripePeriodEnd(subscription: Stripe.Subscription): Date | null {
+    const periodEnds = subscription.items.data
+      .map((item) => item.current_period_end)
+      .filter((value): value is number => typeof value === 'number' && value > 0);
+
+    if (periodEnds.length === 0) {
+      return null;
+    }
+
+    return new Date(Math.max(...periodEnds) * 1_000);
+  }
+
+  private getStripeSubscriptionStatus(
+    subscription: Stripe.Subscription,
+  ): 'ACTIVE' | 'CANCELLED' | 'EXPIRED' {
+    if (subscription.status === 'canceled') {
+      return 'CANCELLED';
+    }
+
+    if (
+      subscription.status === 'active' ||
+      subscription.status === 'trialing' ||
+      subscription.status === 'past_due'
+    ) {
+      return 'ACTIVE';
+    }
+
+    return 'EXPIRED';
+  }
+
+  private async activateStripeSubscription(
+    ownerId: string,
+    plan: Exclude<SubscriptionPlan, 'FREE'>,
+    subscription: Stripe.Subscription,
+  ) {
+    const status = this.getStripeSubscriptionStatus(subscription);
+
+    const periodEnd = this.getStripePeriodEnd(subscription);
+
+    const existing = await this.database.subscription.findFirst({
+      where: {
+        ownerId,
+        provider: 'STRIPE',
+        externalReference: subscription.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    await this.database.subscription.updateMany({
+      where: {
+        ownerId,
+        status: 'ACTIVE',
+        ...(existing
+          ? {
+              id: {
+                not: existing.id,
+              },
+            }
+          : {}),
+      },
+      data: {
+        status: 'CANCELLED',
+        cancelledAt: new Date(),
+      },
+    });
+
+    const startedAt =
+      subscription.start_date > 0 ? new Date(subscription.start_date * 1_000) : new Date();
+
+    const cancelledAt =
+      status === 'CANCELLED'
+        ? new Date((subscription.canceled_at ?? Math.floor(Date.now() / 1_000)) * 1_000)
+        : null;
+
+    const record = existing
+      ? await this.database.subscription.update({
+          where: {
+            id: existing.id,
+          },
+          data: {
+            plan,
+            status,
+            provider: 'STRIPE',
+            currentPeriodEnd: periodEnd,
+            startedAt,
+            cancelledAt,
+          },
+        })
+      : await this.database.subscription.create({
+          data: {
+            ownerId,
+            plan,
+            status,
+            provider: 'STRIPE',
+            externalReference: subscription.id,
+            currentPeriodEnd: periodEnd,
+            startedAt,
+            cancelledAt,
+          },
+        });
+
+    return this.overview(record);
   }
 
   private async cancelActiveSubscriptions(ownerId: string): Promise<void> {

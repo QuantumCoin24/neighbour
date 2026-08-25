@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -5,7 +6,7 @@ import type { DatabaseService } from '../../../src/database/database.service';
 import { SubscriptionService } from '../../../src/payments/subscription/subscription.service';
 
 test('Neighbour Plus grants consumer premium entitlements', () => {
-  const service = new SubscriptionService({} as DatabaseService);
+  const service = new SubscriptionService({} as DatabaseService, {} as ConfigService);
 
   const entitlements = service.getEntitlements('PLUS');
 
@@ -17,7 +18,7 @@ test('Neighbour Plus grants consumer premium entitlements', () => {
 });
 
 test('Neighbour Business grants every current entitlement', () => {
-  const service = new SubscriptionService({} as DatabaseService);
+  const service = new SubscriptionService({} as DatabaseService, {} as ConfigService);
 
   const entitlements = service.getEntitlements('BUSINESS');
 

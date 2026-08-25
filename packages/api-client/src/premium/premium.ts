@@ -36,3 +36,39 @@ export function submitPrioritySupportRequest(input: {
     body: JSON.stringify(input),
   });
 }
+
+export type PremiumBillingInterval = 'MONTHLY' | 'ANNUAL';
+
+export interface PremiumStripeCheckoutResponse {
+  url: string;
+  sessionId: string;
+}
+
+export interface PremiumStripePortalResponse {
+  url: string;
+}
+
+export function createPremiumStripeCheckout(input: {
+  plan: Exclude<PremiumPlanId, 'FREE'>;
+  interval: PremiumBillingInterval;
+}): Promise<PremiumStripeCheckoutResponse> {
+  return apiRequest<PremiumStripeCheckoutResponse>('/premium/stripe/checkout', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function confirmPremiumStripeCheckout(sessionId: string): Promise<PremiumOverview> {
+  return apiRequest<PremiumOverview>('/premium/stripe/confirm', {
+    method: 'POST',
+    body: JSON.stringify({
+      sessionId,
+    }),
+  });
+}
+
+export function createPremiumStripePortal(): Promise<PremiumStripePortalResponse> {
+  return apiRequest<PremiumStripePortalResponse>('/premium/stripe/portal', {
+    method: 'POST',
+  });
+}
