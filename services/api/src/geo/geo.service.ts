@@ -9,6 +9,8 @@ import type {
   NearbyGeoResponse,
 } from './interfaces/geo.interface';
 import { calculateDistanceKm, createGeoBounds } from './utils/geo-distance';
+import type { PostalLocationResult } from './postal-geocoder.provider';
+import { ZippopotamPostalGeocoderProvider } from './postal-geocoder.provider';
 
 const DEFAULT_TYPES: GeoEntityType[] = ['NEIGHBOURHOOD', 'COMMUNITY', 'EVENT', 'BUSINESS'];
 
@@ -43,7 +45,13 @@ function decimalToNumber(value: unknown): number {
 
 @Injectable()
 export class GeoService {
+  private readonly postalGeocoder = new ZippopotamPostalGeocoderProvider();
+
   constructor(private readonly database: DatabaseService) {}
+
+  resolvePostalLocation(countryCode: string, postalCode: string): Promise<PostalLocationResult> {
+    return this.postalGeocoder.resolve(countryCode, postalCode);
+  }
 
   async findNearby(query: NearbyQueryDto): Promise<NearbyGeoResponse> {
     const origin: GeoPoint = {

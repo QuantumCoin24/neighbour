@@ -1,3 +1,4 @@
+import { resolvePostalLocation } from '@neighbour/api-client';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
@@ -75,6 +76,14 @@ export default function ProfileScreen() {
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [localArea, setLocalArea] = useState('');
+  const [countryCode, setCountryCode] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [resolvedCity, setResolvedCity] = useState<string | null>(null);
+  const [resolvedRegion, setResolvedRegion] = useState<string | null>(null);
+  const [resolvedLatitude, setResolvedLatitude] = useState<number | null>(null);
+  const [resolvedLongitude, setResolvedLongitude] = useState<number | null>(null);
+  const [resolvingLocation, setResolvingLocation] = useState(false);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [showLocalArea, setShowLocalArea] = useState(false);
   const [profilePhotoError, setProfilePhotoError] = useState<string | null>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -90,8 +99,91 @@ export default function ProfileScreen() {
     setBio(profile.profile?.bio ?? '');
     setAvatarUrl(profile.profile?.avatarUrl ?? '');
     setLocalArea(profile.profile?.localArea ?? '');
+    setCountryCode(profile.profile?.countryCode ?? '');
+    setPostalCode(profile.profile?.postalCode ?? '');
+    setResolvedCity(profile.profile?.city ?? null);
+    setResolvedRegion(profile.profile?.region ?? null);
+    setResolvedLatitude(profile.profile?.latitude ?? null);
+    setResolvedLongitude(profile.profile?.longitude ?? null);
     setShowLocalArea(profile.profile?.showLocalArea ?? false);
   }, [profile.profile]);
+
+  const clearResolvedLocation = () => {
+    setResolvedCity(null);
+    setResolvedRegion(null);
+    setResolvedLatitude(null);
+    setResolvedLongitude(null);
+    setLocationMessage(null);
+  };
+
+  const resolveProfileLocation = async () => {
+    const nextCountryCode = countryCode.trim().toUpperCase();
+    const nextPostalCode = postalCode.trim();
+
+    if (nextCountryCode.length !== 2) {
+      setLocationMessage('Enter a two-letter country code, for example GB, US or CA.');
+      return;
+    }
+
+    if (!nextPostalCode) {
+      setLocationMessage('Enter your postcode, ZIP or postal code.');
+      return;
+    }
+
+    setResolvingLocation(true);
+    setLocationMessage(null);
+
+    try {
+      const result = await resolvePostalLocation({
+        countryCode: nextCountryCode,
+        postalCode: nextPostalCode,
+      });
+
+      if (!result.resolved || result.latitude === null || result.longitude === null) {
+        clearResolvedLocation();
+        setLocationMessage(
+          'Neighbour could not find that postal location. Check the country and postal code.',
+        );
+        return;
+      }
+
+      const publicArea = [result.city, result.region].filter(Boolean).join(', ');
+
+      setCountryCode(result.countryCode);
+      setPostalCode(result.postalCode);
+      setResolvedCity(result.city);
+      setResolvedRegion(result.region);
+      setResolvedLatitude(result.latitude);
+      setResolvedLongitude(result.longitude);
+
+      if (publicArea) {
+        setLocalArea(publicArea);
+      }
+
+      setLocationMessage(publicArea ? `Location found: ${publicArea}` : 'Location found.');
+    } catch (error) {
+      clearResolvedLocation();
+      setLocationMessage('Neighbour could not resolve that postal location. Please try again.');
+
+      if (__DEV__) {
+        console.warn('[Neighbour/Profile] postal location resolution failed:', error);
+      }
+    } finally {
+      setResolvingLocation(false);
+    }
+  };
+
+  const structuredLocationInput =
+    resolvedLatitude !== null && resolvedLongitude !== null
+      ? {
+          countryCode: countryCode.trim().toUpperCase(),
+          postalCode: postalCode.trim(),
+          ...(resolvedCity ? { city: resolvedCity } : {}),
+          ...(resolvedRegion ? { region: resolvedRegion } : {}),
+          latitude: resolvedLatitude,
+          longitude: resolvedLongitude,
+        }
+      : {};
 
   const requestAccountDeletion = () => {
     Alert.alert(
@@ -488,12 +580,6 @@ export default function ProfileScreen() {
                 setter: setBio,
                 placeholder: 'A little about you and your connection to the area',
               },
-              {
-                label: 'Local area',
-                value: localArea,
-                setter: setLocalArea,
-                placeholder: 'Blackley, Manchester',
-              },
             ].map((field) => (
               <View key={field.label} style={styles.field}>
                 <AppText variant="caption" tone="secondary">
@@ -518,6 +604,106 @@ export default function ProfileScreen() {
                 />
               </View>
             ))}
+
+            <View style={styles.field}>
+              <AppText variant="subheading">Location</AppText>
+
+              <AppText variant="caption" tone="secondary">
+                Set your local area using your country and postcode, ZIP or postal code. Your exact
+                postal code and coordinates stay private.
+              </AppText>
+
+              <AppText variant="caption" tone="secondary">
+                Country code
+              </AppText>
+
+              <TextInput
+                accessibilityLabel="Country code"
+                autoCapitalize="characters"
+                autoCorrect={false}
+                editable={!resolvingLocation}
+                maxLength={2}
+                onChangeText={(value) => {
+                  setCountryCode(value.toUpperCase());
+                  clearResolvedLocation();
+                }}
+                placeholder="GB"
+                placeholderTextColor={theme.colors.textMuted}
+                selectionColor={theme.colors.primary}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.colors.surfaceMuted,
+                    borderColor: theme.colors.border,
+                    borderRadius: theme.radius.lg,
+                    color: theme.colors.text,
+                  },
+                ]}
+                value={countryCode}
+              />
+
+              <AppText variant="caption" tone="secondary">
+                Postcode / ZIP / postal code
+              </AppText>
+
+              <TextInput
+                accessibilityLabel="Postcode ZIP or postal code"
+                autoCapitalize="characters"
+                autoCorrect={false}
+                editable={!resolvingLocation}
+                onChangeText={(value) => {
+                  setPostalCode(value);
+                  clearResolvedLocation();
+                }}
+                placeholder="M9 7AB"
+                placeholderTextColor={theme.colors.textMuted}
+                selectionColor={theme.colors.primary}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.colors.surfaceMuted,
+                    borderColor: theme.colors.border,
+                    borderRadius: theme.radius.lg,
+                    color: theme.colors.text,
+                  },
+                ]}
+                value={postalCode}
+              />
+
+              <Button
+                disabled={
+                  resolvingLocation || countryCode.trim().length !== 2 || !postalCode.trim()
+                }
+                label={resolvingLocation ? 'Finding location…' : 'Find location'}
+                loading={resolvingLocation}
+                onPress={() => {
+                  void resolveProfileLocation();
+                }}
+                variant="secondary"
+              />
+
+              {locationMessage ? (
+                <AppText variant="caption" tone="secondary">
+                  {locationMessage}
+                </AppText>
+              ) : null}
+
+              {resolvedCity || resolvedRegion ? (
+                <View>
+                  <AppText variant="bodyStrong">
+                    {[resolvedCity, resolvedRegion].filter(Boolean).join(', ')}
+                  </AppText>
+
+                  <AppText variant="caption" tone="secondary">
+                    Local area: {localArea || 'Resolved location'}
+                  </AppText>
+                </View>
+              ) : localArea ? (
+                <AppText variant="caption" tone="secondary">
+                  Current local area: {localArea}
+                </AppText>
+              ) : null}
+            </View>
 
             <View style={styles.profilePhotoSection}>
               <AppText variant="caption" tone="secondary">
@@ -589,6 +775,7 @@ export default function ProfileScreen() {
                             ...(bio.trim() ? { bio: bio.trim() } : {}),
                             avatarUrl: url,
                             ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
+                            ...structuredLocationInput,
                             showLocalArea,
                           });
 
@@ -653,6 +840,7 @@ export default function ProfileScreen() {
                             ...(bio.trim() ? { bio: bio.trim() } : {}),
                             avatarUrl: url,
                             ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
+                            ...structuredLocationInput,
                             showLocalArea,
                           });
 
@@ -692,6 +880,7 @@ export default function ProfileScreen() {
                             ...(bio.trim() ? { bio: bio.trim() } : {}),
                             avatarUrl: null,
                             ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
+                            ...structuredLocationInput,
                             showLocalArea,
                           });
 
@@ -760,6 +949,7 @@ export default function ProfileScreen() {
                   ...(bio.trim() ? { bio: bio.trim() } : {}),
                   avatarUrl: avatarUrl.trim() || null,
                   ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
+                  ...structuredLocationInput,
                   showLocalArea,
                 });
               }}

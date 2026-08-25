@@ -11,6 +11,12 @@ export interface UpdateProfileInput {
   bio?: string;
   avatarUrl?: string | null;
   localArea?: string;
+  postalCode?: string;
+  countryCode?: string;
+  city?: string;
+  region?: string;
+  latitude?: number;
+  longitude?: number;
   showLocalArea?: boolean;
 }
 
@@ -28,6 +34,12 @@ export interface PublicProfile {
 
 export interface PrivateProfile extends PublicProfile {
   showLocalArea: boolean;
+  postalCode: string | null;
+  countryCode: string | null;
+  city: string | null;
+  region: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export type Profile = PrivateProfile;

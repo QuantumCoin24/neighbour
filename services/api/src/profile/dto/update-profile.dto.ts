@@ -1,4 +1,5 @@
-import { Transform } from 'class-transformer';
+import {
+  Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsOptional,
@@ -7,6 +8,9 @@ import {
   Length,
   Matches,
   MaxLength,
+  IsNumber,
+  Min,
+  Max,
 } from 'class-validator';
 
 export class UpdateProfileDto {
@@ -44,6 +48,38 @@ export class UpdateProfileDto {
   @IsString()
   @MaxLength(100)
   localArea?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
+  postalCode?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2)
+  countryCode?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  region?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
 
   @IsOptional()
   @IsBoolean()

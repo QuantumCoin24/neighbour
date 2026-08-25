@@ -63,3 +63,28 @@ export function getNearbyGeoItems(query: NearbyGeoQuery): Promise<NearbyGeoRespo
 
   return apiRequest<NearbyGeoResponse>(`/geo/nearby?${parameters.toString()}`);
 }
+
+export interface PostalLocation {
+  resolved: boolean;
+  countryCode: string;
+  postalCode: string;
+  country: string | null;
+  city: string | null;
+  region: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface ResolvePostalLocationInput {
+  countryCode: string;
+  postalCode: string;
+}
+
+export function resolvePostalLocation(input: ResolvePostalLocationInput): Promise<PostalLocation> {
+  const parameters = new URLSearchParams({
+    countryCode: input.countryCode.trim().toUpperCase(),
+    postalCode: input.postalCode.trim(),
+  });
+
+  return apiRequest<PostalLocation>(`/geo/postal/resolve?${parameters.toString()}`);
+}

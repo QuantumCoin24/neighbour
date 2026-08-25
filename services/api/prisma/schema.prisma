@@ -661,6 +661,12 @@ model UserProfile {
   bio           String?
   avatarUrl     String?
   localArea     String?
+  postalCode    String?
+  countryCode   String?
+  city          String?
+  region        String?
+  latitude      Decimal? @db.Decimal(9, 6)
+  longitude     Decimal? @db.Decimal(9, 6)
   showLocalArea Boolean  @default(false)
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
@@ -668,6 +674,9 @@ model UserProfile {
 
   @@index([username])
   @@index([showLocalArea])
+  @@index([postalCode])
+  @@index([countryCode])
+  @@index([latitude, longitude])
   @@map("user_profiles")
 }
 

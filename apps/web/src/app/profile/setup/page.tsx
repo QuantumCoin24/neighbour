@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react';
 
-import { getMyProfile, updateMyProfile, type PrivateProfile } from '@neighbour/api-client';
+import {
+  getMyProfile,
+  resolvePostalLocation,
+  updateMyProfile,
+  type PrivateProfile,
+} from '@neighbour/api-client';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<PrivateProfile | null>(null);
@@ -10,6 +15,22 @@ export default function ProfilePage() {
   const [username, setUsername] = useState('');
 
   const [localArea, setLocalArea] = useState('');
+
+  const [countryCode, setCountryCode] = useState('');
+
+  const [postalCode, setPostalCode] = useState('');
+
+  const [resolvedCity, setResolvedCity] = useState<string | null>(null);
+
+  const [resolvedRegion, setResolvedRegion] = useState<string | null>(null);
+
+  const [resolvedLatitude, setResolvedLatitude] = useState<number | null>(null);
+
+  const [resolvedLongitude, setResolvedLongitude] = useState<number | null>(null);
+
+  const [resolvingLocation, setResolvingLocation] = useState(false);
+
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
 
   const [bio, setBio] = useState('');
 
@@ -34,6 +55,12 @@ export default function ProfilePage() {
         setProfile(current);
         setUsername(current.username ?? '');
         setLocalArea(current.localArea ?? '');
+        setCountryCode(current.countryCode ?? '');
+        setPostalCode(current.postalCode ?? '');
+        setResolvedCity(current.city ?? null);
+        setResolvedRegion(current.region ?? null);
+        setResolvedLatitude(current.latitude ?? null);
+        setResolvedLongitude(current.longitude ?? null);
         setBio(current.bio ?? '');
         setShowLocalArea(current.showLocalArea);
         setMessage('');
@@ -44,6 +71,84 @@ export default function ProfilePage() {
 
     void load();
   }, []);
+
+  function clearResolvedLocation() {
+    setResolvedCity(null);
+    setResolvedRegion(null);
+    setResolvedLatitude(null);
+    setResolvedLongitude(null);
+    setLocationMessage(null);
+  }
+
+  async function findLocation() {
+    const nextCountryCode = countryCode.trim().toUpperCase();
+    const nextPostalCode = postalCode.trim();
+
+    if (nextCountryCode.length !== 2) {
+      setLocationMessage('Enter a two-letter country code, for example GB, US or CA.');
+      return;
+    }
+
+    if (!nextPostalCode) {
+      setLocationMessage('Enter your postcode, ZIP or postal code.');
+      return;
+    }
+
+    setResolvingLocation(true);
+    setLocationMessage(null);
+
+    try {
+      const result = await resolvePostalLocation({
+        countryCode: nextCountryCode,
+        postalCode: nextPostalCode,
+      });
+
+      if (!result.resolved || result.latitude === null || result.longitude === null) {
+        clearResolvedLocation();
+        setLocationMessage(
+          'Neighbour could not find that postal location. Check the country and postal code.',
+        );
+        return;
+      }
+
+      const publicArea = [result.city, result.region].filter(Boolean).join(', ');
+
+      setCountryCode(result.countryCode);
+      setPostalCode(result.postalCode);
+      setResolvedCity(result.city);
+      setResolvedRegion(result.region);
+      setResolvedLatitude(result.latitude);
+      setResolvedLongitude(result.longitude);
+
+      if (publicArea) {
+        setLocalArea(publicArea);
+      }
+
+      setLocationMessage(publicArea ? `Location found: ${publicArea}` : 'Location found.');
+    } catch (error) {
+      clearResolvedLocation();
+
+      setLocationMessage('Neighbour could not resolve that postal location. Please try again.');
+
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[Neighbour/WebProfile] postal location resolution failed:', error);
+      }
+    } finally {
+      setResolvingLocation(false);
+    }
+  }
+
+  const structuredLocationInput =
+    resolvedLatitude !== null && resolvedLongitude !== null
+      ? {
+          countryCode: countryCode.trim().toUpperCase(),
+          postalCode: postalCode.trim(),
+          ...(resolvedCity ? { city: resolvedCity } : {}),
+          ...(resolvedRegion ? { region: resolvedRegion } : {}),
+          latitude: resolvedLatitude,
+          longitude: resolvedLongitude,
+        }
+      : {};
 
   async function saveProfile() {
     const token = localStorage.getItem('accessToken');
@@ -59,7 +164,8 @@ export default function ProfilePage() {
       const updated = await updateMyProfile(
         {
           username: username.trim(),
-          localArea: localArea.trim(),
+          ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
+          ...structuredLocationInput,
           bio: bio.trim(),
           showLocalArea,
         },
@@ -162,15 +268,88 @@ export default function ProfilePage() {
             </label>
 
             <label>
-              <span>Local area</span>
+              <span>Country code</span>
 
               <input
-                value={localArea}
-                onChange={(event) => setLocalArea(event.target.value)}
-                placeholder="Your local area"
+                value={countryCode}
+                maxLength={2}
+                autoCapitalize="characters"
+                autoComplete="country"
+                onChange={(event) => {
+                  setCountryCode(event.target.value.toUpperCase());
+                  clearResolvedLocation();
+                }}
+                placeholder="GB"
               />
             </label>
           </div>
+
+          <section className="profile-location-editor">
+            <div className="profile-location-heading">
+              <div>
+                <span>LOCATION</span>
+                <h3>Find your local area</h3>
+              </div>
+
+              <p>
+                Enter your postcode, ZIP or postal code. Your exact postal information and
+                coordinates remain private.
+              </p>
+            </div>
+
+            <div className="profile-location-input-row">
+              <label>
+                <span>Postcode / ZIP / postal code</span>
+
+                <input
+                  value={postalCode}
+                  autoCapitalize="characters"
+                  autoComplete="postal-code"
+                  onChange={(event) => {
+                    setPostalCode(event.target.value);
+                    clearResolvedLocation();
+                  }}
+                  placeholder="M9 7AB"
+                />
+              </label>
+
+              <button
+                type="button"
+                className="profile-location-find"
+                disabled={
+                  resolvingLocation || countryCode.trim().length !== 2 || !postalCode.trim()
+                }
+                onClick={() => void findLocation()}
+              >
+                {resolvingLocation ? 'Finding…' : 'Find location'}
+              </button>
+            </div>
+
+            {locationMessage ? (
+              <div className="profile-location-message">{locationMessage}</div>
+            ) : null}
+
+            {resolvedCity || resolvedRegion ? (
+              <div className="profile-location-result">
+                <div className="profile-location-result-icon">⌖</div>
+
+                <div>
+                  <strong>{[resolvedCity, resolvedRegion].filter(Boolean).join(', ')}</strong>
+
+                  <span>This becomes your Neighbour™ local area.</span>
+                </div>
+              </div>
+            ) : localArea ? (
+              <div className="profile-location-result">
+                <div className="profile-location-result-icon">⌖</div>
+
+                <div>
+                  <strong>{localArea}</strong>
+                  <span>Current local area</span>
+                </div>
+              </div>
+            ) : null}
+          </section>
 
           <label className="profile-bio-field">
             <span>About you</span>
@@ -458,6 +637,115 @@ export default function ProfilePage() {
           padding: 0 12px;
         }
 
+        .profile-location-editor {
+          display: grid;
+          gap: 15px;
+          margin-top: 16px;
+          padding: 18px;
+          border: 1px solid #dce7e1;
+          border-radius: 16px;
+          background: #f7faf8;
+        }
+
+        .profile-location-heading {
+          display: flex;
+          justify-content: space-between;
+          gap: 24px;
+          align-items: flex-start;
+        }
+
+        .profile-location-heading > div > span {
+          color: #0a6945;
+          font-size: 8px;
+          font-weight: 850;
+          letter-spacing: .13em;
+        }
+
+        .profile-location-heading h3 {
+          margin: 5px 0 0;
+          color: #173229;
+          font-size: 15px;
+        }
+
+        .profile-location-heading p {
+          max-width: 360px;
+          margin: 0;
+          color: #74827b;
+          font-size: 9px;
+          line-height: 1.55;
+        }
+
+        .profile-location-input-row {
+          display: grid;
+          grid-template-columns: minmax(0,1fr) auto;
+          gap: 10px;
+          align-items: end;
+        }
+
+        .profile-location-find {
+          min-width: 120px;
+          min-height: 44px;
+          padding: 0 16px;
+          border: 0;
+          border-radius: 12px;
+          background: #086240;
+          color: #fff;
+          font: inherit;
+          font-size: 10px;
+          font-weight: 850;
+          cursor: pointer;
+        }
+
+        .profile-location-find:disabled {
+          opacity: .45;
+          cursor: default;
+        }
+
+        .profile-location-message {
+          padding: 10px 12px;
+          border-radius: 10px;
+          background: #eef5f1;
+          color: #53675e;
+          font-size: 9px;
+        }
+
+        .profile-location-result {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          padding: 12px;
+          border-radius: 12px;
+          background: #edf6f1;
+        }
+
+        .profile-location-result-icon {
+          width: 34px;
+          height: 34px;
+          display: grid;
+          place-items: center;
+          flex: 0 0 34px;
+          border-radius: 10px;
+          background: #dceee4;
+          color: #086240;
+          font-size: 15px;
+        }
+
+        .profile-location-result strong,
+        .profile-location-result span {
+          display: block;
+        }
+
+        .profile-location-result strong {
+          color: #214438;
+          font-size: 11px;
+        }
+
+        .profile-location-result span {
+          margin-top: 3px;
+          color: #76877e;
+          font-size: 8px;
+        }
+
         .profile-bio-field {
           margin-top: 16px;
         }
@@ -577,6 +865,19 @@ export default function ProfilePage() {
 
           .profile-form-grid {
             grid-template-columns: 1fr;
+          }
+
+          .profile-location-heading {
+            flex-direction: column;
+            gap: 8px;
+          }
+
+          .profile-location-input-row {
+            grid-template-columns: 1fr;
+          }
+
+          .profile-location-find {
+            width: 100%;
           }
         }
       `}</style>
