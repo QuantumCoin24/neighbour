@@ -1,3 +1,6 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 import {
   ActivityIndicator,
   Pressable,
@@ -14,6 +17,7 @@ import {
   SearchResultSection,
   useSearchController,
 } from '../features/search';
+import type { RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
 function formatEventDate(value: string): string {
@@ -40,6 +44,7 @@ function createPostDescription(content: string): string {
 
 export default function SearchScreen() {
   const { theme } = useNeighbourTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const search = useSearchController();
 
   const showPeople = search.category === 'all' || search.category === 'people';
@@ -344,12 +349,20 @@ export default function SearchScreen() {
                 <SearchResultCard
                   key={person.id}
                   accent="primary"
-                  description="Neighbour member"
-                  metadata="View identity"
+                  description={person.username ? `@${person.username}` : 'Neighbour member'}
+                  metadata={person.username ? 'View profile' : 'Profile unavailable'}
                   symbol="◉"
                   title={person.displayName}
                   onPress={() => {
                     search.selectHistoryItem(search.searchedQuery);
+
+                    if (person.username) {
+                      navigation.navigate('PublicProfile', {
+                        username: person.username,
+                        userId: person.id,
+                        displayName: person.displayName,
+                      });
+                    }
                   }}
                 />
               ))}

@@ -24,6 +24,7 @@ export const ROUTES = {
   MESSAGES: 'Messages',
   NOTIFICATIONS: 'Notifications',
   PROFILE: 'Profile',
+  PUBLIC_PROFILE: 'PublicProfile',
   CONVERSATION: 'Conversation',
   COMMUNITY_DETAIL: 'CommunityDetail',
   CREATE_COMMUNITY: 'CreateCommunity',
@@ -40,6 +41,11 @@ export type RootStackParamList = {
   App: NavigatorScreenParams<AppTabParamList>;
   Conversation: {
     conversationId: string;
+  };
+  PublicProfile: {
+    username: string;
+    userId: string;
+    displayName: string;
   };
   CommunityDetail: {
     slug: string;

@@ -2,6 +2,7 @@
 
 import {
   blockSocialGraphUser,
+  createConversation,
   getPostsByProfile,
   getPublicProfile,
   getRelationshipStatus,
@@ -9,6 +10,7 @@ import {
   type PublicProfile,
   unblockSocialGraphUser,
 } from '@neighbour/api-client';
+import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 
 import ReportButton from '../../../components/security/ReportButton';
@@ -21,12 +23,14 @@ export default function PublicProfilePage({
   }>;
 }) {
   const { username } = use(params);
+  const router = useRouter();
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [relationship, setRelationship] = useState<any>(null);
   const [message, setMessage] = useState('Loading profile...');
   const [connecting, setConnecting] = useState(false);
+  const [messaging, setMessaging] = useState(false);
   const [blocking, setBlocking] = useState(false);
 
   useEffect(() => {
@@ -69,6 +73,27 @@ export default function PublicProfilePage({
       setRelationship(updated);
     } finally {
       setConnecting(false);
+    }
+  }
+
+  async function startConversation(): Promise<void> {
+    const token = localStorage.getItem('accessToken');
+
+    if (!token || !profile || messaging) {
+      return;
+    }
+
+    try {
+      setMessaging(true);
+
+      const conversation = await createConversation(token, {
+        type: 'DIRECT',
+        memberIds: [profile.userId],
+      });
+
+      router.push(`/messages/${conversation.id}`);
+    } finally {
+      setMessaging(false);
     }
   }
 
@@ -149,6 +174,19 @@ export default function PublicProfilePage({
               }
             >
               {relationshipLabel}
+            </button>
+
+            <button
+              className="profile-connect"
+              type="button"
+              disabled={
+                messaging ||
+                relationship?.status === 'BLOCKED_BY_ME' ||
+                relationship?.status === 'BLOCKED_ME'
+              }
+              onClick={() => void startConversation()}
+            >
+              {messaging ? 'Opening…' : 'Message'}
             </button>
 
             <button

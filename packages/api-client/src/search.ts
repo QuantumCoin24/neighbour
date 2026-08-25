@@ -3,6 +3,7 @@ import { apiRequest } from './client';
 export interface SearchUserResult {
   id: string;
   displayName: string;
+  username: string | null;
 }
 
 export interface SearchCommunityResult {

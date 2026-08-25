@@ -6,6 +6,8 @@ import {
   generateMarketplaceFulfilmentPin,
   generateMarketplaceFulfilmentQr,
   getMarketplaceFulfilmentByTransaction,
+  verifyMarketplaceFulfilmentPin,
+  verifyMarketplaceFulfilmentQr,
   type MarketplaceFulfilment,
   type MarketplaceFulfilmentMethod,
 } from '@neighbour/api-client';
@@ -79,6 +81,7 @@ export default function FulfilmentScreen({ navigation, route }: Props) {
   const [scheduledFor, setScheduledFor] = useState('');
   const [courier, setCourier] = useState('');
   const [trackingNumber, setTrackingNumber] = useState('');
+  const [verificationValue, setVerificationValue] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -297,6 +300,62 @@ export default function FulfilmentScreen({ navigation, route }: Props) {
     }
   };
 
+  const verifyPin = async () => {
+    if (!fulfilment || acting || !verificationValue.trim()) {
+      return;
+    }
+
+    setActing(true);
+    setError(null);
+
+    try {
+      const updated = await verifyMarketplaceFulfilmentPin(fulfilment.id, verificationValue.trim());
+
+      setFulfilment(updated);
+      setVerificationValue('');
+
+      Alert.alert('PIN verified', 'The handover PIN was verified successfully.');
+    } catch (caughtError) {
+      const message =
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'The handover PIN could not be verified.';
+
+      setError(message);
+      Alert.alert('PIN not verified', message);
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const verifyQr = async () => {
+    if (!fulfilment || acting || !verificationValue.trim()) {
+      return;
+    }
+
+    setActing(true);
+    setError(null);
+
+    try {
+      const updated = await verifyMarketplaceFulfilmentQr(fulfilment.id, verificationValue.trim());
+
+      setFulfilment(updated);
+      setVerificationValue('');
+
+      Alert.alert('QR verified', 'The QR handover token was verified successfully.');
+    } catch (caughtError) {
+      const message =
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'The QR handover token could not be verified.';
+
+      setError(message);
+      Alert.alert('QR not verified', message);
+    } finally {
+      setActing(false);
+    }
+  };
+
   const confirm = async () => {
     if (!fulfilment) {
       return;
@@ -398,6 +457,58 @@ export default function FulfilmentScreen({ navigation, route }: Props) {
             .replace(/^./, (value) => value.toUpperCase())}
         </AppText>
       </View>
+
+      <Card style={styles.card}>
+        <AppText variant="subheading">Verify secure handover</AppText>
+
+        <AppText variant="caption" tone="secondary">
+          Enter the one-time PIN or QR token shown by the other party.
+        </AppText>
+
+        <TextInput
+          accessibilityLabel="Handover PIN or QR token"
+          autoCapitalize="characters"
+          autoCorrect={false}
+          placeholder="PIN or QR token"
+          value={verificationValue}
+          onChangeText={setVerificationValue}
+          style={styles.input}
+        />
+
+        <View style={styles.verificationActions}>
+          <Pressable
+            accessibilityRole="button"
+            disabled={acting || !verificationValue.trim()}
+            onPress={() => {
+              void verifyPin();
+            }}
+            style={[
+              styles.actionButton,
+              {
+                opacity: acting || !verificationValue.trim() ? 0.5 : 1,
+              },
+            ]}
+          >
+            <AppText variant="label">Verify PIN</AppText>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={acting || !verificationValue.trim()}
+            onPress={() => {
+              void verifyQr();
+            }}
+            style={[
+              styles.actionButton,
+              {
+                opacity: acting || !verificationValue.trim() ? 0.5 : 1,
+              },
+            ]}
+          >
+            <AppText variant="label">Verify QR token</AppText>
+          </Pressable>
+        </View>
+      </Card>
 
       {isSeller && fulfilment.method === 'COLLECTION' ? (
         <Card style={styles.card}>
@@ -672,6 +783,9 @@ const styles = StyleSheet.create({
   },
   input: {
     minHeight: 48,
+  },
+  verificationActions: {
+    gap: 10,
   },
   actionButton: {
     alignItems: 'center',

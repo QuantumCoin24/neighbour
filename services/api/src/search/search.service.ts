@@ -50,6 +50,11 @@ export class SearchService {
         select: {
           id: true,
           displayName: true,
+          profile: {
+            select: {
+              username: true,
+            },
+          },
         },
         take: limit,
       }),
@@ -170,8 +175,13 @@ export class SearchService {
     }
 
     return {
-      users: this.intelligence.rank(users, (item) =>
-        this.intelligence.scoreText(item.displayName, term),
+      users: this.intelligence.rank(
+        users.map((item) => ({
+          id: item.id,
+          displayName: item.displayName,
+          username: item.profile?.username ?? null,
+        })),
+        (item) => this.intelligence.scoreText(item.displayName, term),
       ),
 
       communities: rankedCommunities,
