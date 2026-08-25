@@ -7,13 +7,15 @@ import { validate } from 'class-validator';
 import { CreateUploadDto, supportedImageMimeTypes } from '../src/media/dto/create-upload.dto';
 
 describe('MediaOS upload contract', () => {
-  it('supports production image formats', () => {
+  it('supports production media formats', () => {
     assert.deepEqual(supportedImageMimeTypes, [
       'image/jpeg',
       'image/png',
       'image/webp',
       'image/heic',
       'image/heif',
+      'video/mp4',
+      'video/quicktime',
     ]);
   });
 
@@ -44,11 +46,11 @@ describe('MediaOS upload contract', () => {
     assert.ok(errors.length > 0);
   });
 
-  it('rejects files above twenty megabytes', async () => {
+  it('rejects files above two hundred megabytes', async () => {
     const dto = plainToInstance(CreateUploadDto, {
-      fileName: 'oversized.jpg',
-      mimeType: 'image/jpeg',
-      sizeBytes: 21 * 1024 * 1024,
+      fileName: 'oversized.mp4',
+      mimeType: 'video/mp4',
+      sizeBytes: 201 * 1024 * 1024,
     });
 
     const errors = await validate(dto);

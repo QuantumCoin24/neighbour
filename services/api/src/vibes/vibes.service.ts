@@ -7,7 +7,13 @@ import {
 } from '@nestjs/common';
 
 import { DatabaseService } from '../database/database.service';
-import { MembershipStatus, Prisma, VibeStatus, VibeVisibility } from '../generated/prisma/client';
+import {
+  MembershipStatus,
+  Prisma,
+  UserStatus,
+  VibeStatus,
+  VibeVisibility,
+} from '../generated/prisma/client';
 
 import type { CreateVibeCommentDto } from './dto/create-vibe-comment.dto';
 import type { CreateVibeDto } from './dto/create-vibe.dto';
@@ -378,6 +384,9 @@ export class VibesService {
     const feedWhere: Prisma.VibeWhereInput = {
       deletedAt: null,
       status: VibeStatus.PUBLISHED,
+      creator: {
+        status: UserStatus.ACTIVE,
+      },
 
       ...(creatorFilter
         ? {
