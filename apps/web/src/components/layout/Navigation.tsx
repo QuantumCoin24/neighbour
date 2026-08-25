@@ -21,6 +21,11 @@ const discoveryLinks = [
 const accountLinks = [
   { href: '/profile/setup', label: 'Profile', icon: '◎' },
   {
+    href: '/premium',
+    label: 'Neighbour Premium',
+    icon: '✦',
+  },
+  {
     href: '/business',
     label: 'Business Centre',
     icon: '▣',
