@@ -60,7 +60,10 @@ function mapAssets(assets: ImagePicker.ImagePickerAsset[]): MediaSelectionResult
       continue;
     }
 
-    const durationMs = video && typeof asset.duration === 'number' ? asset.duration : undefined;
+    const durationMs =
+      video && typeof asset.duration === 'number' && Number.isFinite(asset.duration)
+        ? Math.min(MAX_VIDEO_DURATION_SECONDS * 1000, Math.max(0, Math.round(asset.duration)))
+        : undefined;
 
     items.push({
       localId: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,

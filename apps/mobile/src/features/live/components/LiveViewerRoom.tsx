@@ -10,7 +10,7 @@ import { leaveLiveSession, type LiveAccess, type LiveSession } from '@neighbour/
 import { ConnectionState, Track } from 'livekit-client';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '../../../components/AppText';
 
@@ -22,6 +22,7 @@ interface LiveViewerRoomProps {
 }
 
 function ViewerContent({ session, onClosed }: { session: LiveSession; onClosed: () => void }) {
+  const insets = useSafeAreaInsets();
   const connectionState = useConnectionState();
   const participants = useParticipants();
   const cameraTracks = useTracks([Track.Source.Camera]);
@@ -72,8 +73,8 @@ function ViewerContent({ session, onClosed }: { session: LiveSession; onClosed: 
         </View>
       )}
 
-      <SafeAreaView pointerEvents="box-none" style={StyleSheet.absoluteFill}>
-        <View style={styles.topBar}>
+      <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
+        <View style={[styles.topBar, { paddingTop: insets.top + 12 }]}>
           <View style={styles.liveBadge}>
             <View style={styles.liveDot} />
             <AppText style={styles.liveBadgeText}>LIVE</AppText>
@@ -84,7 +85,7 @@ function ViewerContent({ session, onClosed }: { session: LiveSession; onClosed: 
           </View>
         </View>
 
-        <View style={styles.bottom}>
+        <View style={[styles.bottom, { paddingBottom: insets.bottom + 20 }]}>
           <View style={styles.identity}>
             <AppText style={styles.creator}>{session.creator.displayName}</AppText>
 
@@ -111,7 +112,7 @@ function ViewerContent({ session, onClosed }: { session: LiveSession; onClosed: 
             <AppText style={styles.leaveText}>{leaving ? 'Leaving…' : 'Leave Live'}</AppText>
           </Pressable>
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -184,7 +185,6 @@ const styles = StyleSheet.create({
 
   topBar: {
     paddingHorizontal: 18,
-    paddingTop: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },

@@ -88,8 +88,22 @@ export function useCommunityDetail(slug: string) {
 
         const memberships = await getMyCommunities().catch(() => []);
 
-        const currentMembership =
+        const rawMembership =
           memberships.find((item) => item.community.id === communityResult.id) ?? null;
+
+        /*
+         * OWNER is an authoritative active membership.
+         * Community creation already writes OWNER + ACTIVE on the server.
+         * Never allow stale/legacy INVITED state to present the creator
+         * as a pending applicant.
+         */
+        const currentMembership =
+          rawMembership?.role === 'OWNER'
+            ? {
+                ...rawMembership,
+                status: 'ACTIVE' as const,
+              }
+            : rawMembership;
 
         setMembership(currentMembership);
 

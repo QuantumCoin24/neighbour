@@ -11,7 +11,7 @@ import type { LiveAccess, LiveSession } from '@neighbour/api-client';
 import { ConnectionState, Track } from 'livekit-client';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '../../../components/AppText';
 import { endLiveSession, leaveLiveSession } from '@neighbour/api-client';
@@ -24,6 +24,7 @@ interface LiveBroadcastRoomProps {
 }
 
 function BroadcastControls({ session, onClosed }: { session: LiveSession; onClosed: () => void }) {
+  const insets = useSafeAreaInsets();
   const { localParticipant } = useLocalParticipant();
   const connectionState = useConnectionState();
   const participants = useParticipants();
@@ -135,8 +136,8 @@ function BroadcastControls({ session, onClosed }: { session: LiveSession; onClos
         </View>
       )}
 
-      <SafeAreaView pointerEvents="box-none" style={StyleSheet.absoluteFill}>
-        <View style={styles.topBar}>
+      <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
+        <View style={[styles.topBar, { paddingTop: insets.top + 12 }]}>
           <View style={styles.liveBadge}>
             <View style={styles.liveDot} />
             <AppText style={styles.liveBadgeText}>LIVE</AppText>
@@ -149,7 +150,7 @@ function BroadcastControls({ session, onClosed }: { session: LiveSession; onClos
           </View>
         </View>
 
-        <View style={styles.bottom}>
+        <View style={[styles.bottom, { paddingBottom: insets.bottom + 20 }]}>
           <View style={styles.titleWrap}>
             <AppText style={styles.broadcastTitle}>{session.title || 'Live Vibe'}</AppText>
 
@@ -176,7 +177,7 @@ function BroadcastControls({ session, onClosed }: { session: LiveSession; onClos
             </Pressable>
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -242,7 +243,6 @@ const styles = StyleSheet.create({
   },
   topBar: {
     paddingHorizontal: 18,
-    paddingTop: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },

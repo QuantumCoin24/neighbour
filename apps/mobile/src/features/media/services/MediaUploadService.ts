@@ -109,7 +109,24 @@ export async function uploadPendingMedia(
 
   const mimeType: SupportedMediaMimeType = video ? resolveMimeType(media) : 'image/jpeg';
 
-  const fileName = video ? resolveFileName(media, mimeType) : `neighbour-${media.localId}.jpg`;
+  const fileName = (
+    video ? resolveFileName(media, mimeType) : `neighbour-${media.localId}.jpg`
+  ).slice(0, 255);
+
+  const durationMs =
+    video && media.durationMs !== undefined && Number.isFinite(media.durationMs)
+      ? Math.min(10 * 60 * 1000, Math.max(0, Math.round(media.durationMs)))
+      : undefined;
+
+  const width =
+    typeof media.width === 'number' && Number.isFinite(media.width) && media.width > 0
+      ? Math.min(20000, Math.round(media.width))
+      : undefined;
+
+  const height =
+    typeof media.height === 'number' && Number.isFinite(media.height) && media.height > 0
+      ? Math.min(20000, Math.round(media.height))
+      : undefined;
 
   onProgress?.({
     localId: media.localId,
@@ -121,19 +138,19 @@ export async function uploadPendingMedia(
     fileName,
     mimeType,
     sizeBytes,
-    ...(media.width
+    ...(width !== undefined
       ? {
-          width: media.width,
+          width,
         }
       : {}),
-    ...(media.height
+    ...(height !== undefined
       ? {
-          height: media.height,
+          height,
         }
       : {}),
-    ...(media.durationMs !== undefined
+    ...(durationMs !== undefined
       ? {
-          durationMs: media.durationMs,
+          durationMs,
         }
       : {}),
   });
@@ -164,19 +181,19 @@ export async function uploadPendingMedia(
     });
 
     const asset = await completeMediaUpload(session.asset.id, {
-      ...(media.width
+      ...(width !== undefined
         ? {
-            width: media.width,
+            width,
           }
         : {}),
-      ...(media.height
+      ...(height !== undefined
         ? {
-            height: media.height,
+            height,
           }
         : {}),
-      ...(media.durationMs !== undefined
+      ...(durationMs !== undefined
         ? {
-            durationMs: media.durationMs,
+            durationMs,
           }
         : {}),
     });
