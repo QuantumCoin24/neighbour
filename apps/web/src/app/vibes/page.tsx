@@ -1,6 +1,9 @@
 'use client';
 
 import {
+  type LiveSession,
+  getActiveLiveSessions,
+  createVibe,
   createVibeComment,
   getVibeComments,
   getVibesFeed,
@@ -17,6 +20,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import WebLiveStudio from '../../components/vibes/WebLiveStudio';
+import WebLiveViewer from '../../components/vibes/WebLiveViewer';
 
 const reactionOptions: VibeReactionType[] = ['LIKE', 'LOVE', 'FIRE', 'LAUGH', 'WOW'];
 
@@ -165,6 +169,12 @@ export default function VibesPage() {
   const [message, setMessage] = useState('');
   const [commentsVibeId, setCommentsVibeId] = useState<string | null>(null);
   const [liveStudioOpen, setLiveStudioOpen] = useState(false);
+  const [createVibeOpen, setCreateVibeOpen] = useState(false);
+  const [createCaption, setCreateCaption] = useState('');
+  const [creatingVibe, setCreatingVibe] = useState(false);
+  const [activeLiveSessions, setActiveLiveSessions] = useState<LiveSession[]>([]);
+  const [activeLiveLoading, setActiveLiveLoading] = useState(false);
+  const [selectedLiveSession, setSelectedLiveSession] = useState<LiveSession | null>(null);
 
   const viewedRef = useRef(new Set<string>());
 
@@ -255,6 +265,50 @@ export default function VibesPage() {
     );
   }
 
+  const loadActiveLiveSessions = useCallback(async (): Promise<void> => {
+    try {
+      setActiveLiveLoading(true);
+
+      const sessions = await getActiveLiveSessions();
+
+      setActiveLiveSessions(sessions);
+    } catch (cause) {
+      console.error('Unable to load active Live Vibes', cause);
+    } finally {
+      setActiveLiveLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadActiveLiveSessions();
+  }, [loadActiveLiveSessions]);
+
+  async function publishVibe(): Promise<void> {
+    const caption = createCaption.trim();
+
+    if (!caption || creatingVibe) {
+      return;
+    }
+
+    try {
+      setCreatingVibe(true);
+
+      const created = await createVibe({
+        caption,
+        visibility: 'PUBLIC',
+        status: 'PUBLISHED',
+      });
+
+      setItems((current) => [created, ...current]);
+      setCreateCaption('');
+      setCreateVibeOpen(false);
+    } catch (cause) {
+      console.error('Unable to create Vibe', cause);
+    } finally {
+      setCreatingVibe(false);
+    }
+  }
+
   const commentsVibe = items.find((item) => item.id === commentsVibeId) ?? null;
 
   return (
@@ -267,6 +321,16 @@ export default function VibesPage() {
         </div>
 
         <div className="vibes-header-actions">
+          <button
+            className="vibes-create-button"
+
+            type="button"
+
+            onClick={() => setCreateVibeOpen(true)}
+          >
+            + Create Vibe
+          </button>
+
           <button className="vibes-go-live" type="button" onClick={() => setLiveStudioOpen(true)}>
             <span />
             Go Live
@@ -292,6 +356,52 @@ export default function VibesPage() {
           </div>
         </div>
       </header>
+
+      <section className="vibes-live-discovery">
+        <header className="vibes-live-discovery-header">
+          <div>
+            <span>LIVE NOW</span>
+            <strong>Neighbourhood Live</strong>
+          </div>
+
+          <button
+            type="button"
+            disabled={activeLiveLoading}
+            onClick={() => void loadActiveLiveSessions()}
+          >
+            {activeLiveLoading ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </header>
+
+        {activeLiveSessions.length > 0 ? (
+          <div className="vibes-live-grid">
+            {activeLiveSessions.map((session) => (
+              <article className="vibes-live-card" key={session.id}>
+                <div className="vibes-live-card-copy">
+                  <span className="vibes-live-card-badge">
+                    <i />
+                    LIVE
+                  </span>
+
+                  <strong>{session.title || `${session.creator.displayName} is live`}</strong>
+
+                  <p>{session.creator.displayName}</p>
+
+                  <small>{formatNumber(session.viewerCount)} watching</small>
+                </div>
+
+                <button type="button" onClick={() => setSelectedLiveSession(session)}>
+                  Watch Live
+                </button>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="vibes-live-empty">
+            {activeLiveLoading ? 'Checking for Live Vibes…' : 'No one is live right now.'}
+          </p>
+        )}
+      </section>
 
       {loading ? (
         <section className="vibes-state">Opening Vibes…</section>
@@ -396,12 +506,66 @@ export default function VibesPage() {
           ) : null}
         </>
       )}
+      {createVibeOpen ? (
+        <div className="vibes-create-overlay">
+          <section
+            aria-label="Create Vibe"
+            aria-modal="true"
+            className="vibes-create-modal"
+            role="dialog"
+          >
+            <header>
+              <div>
+                <span>NEW VIBE</span>
+                <strong>Share with Neighbour™</strong>
+              </div>
+
+              <button
+                type="button"
+                disabled={creatingVibe}
+                onClick={() => setCreateVibeOpen(false)}
+              >
+                ×
+              </button>
+            </header>
+
+            <textarea
+              autoFocus
+              maxLength={500}
+              placeholder="What’s happening in your world?"
+              value={createCaption}
+              onChange={(event) => setCreateCaption(event.target.value)}
+            />
+
+            <footer>
+              <span>{createCaption.length}/500</span>
+
+              <button
+                type="button"
+                disabled={!createCaption.trim() || creatingVibe}
+                onClick={() => void publishVibe()}
+              >
+                {creatingVibe ? 'Posting…' : 'Post Vibe'}
+              </button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
 
       <WebLiveStudio
         open={liveStudioOpen}
         onClose={() => setLiveStudioOpen(false)}
         onLiveEnded={() => {
           void load();
+        }}
+      />
+
+      <WebLiveViewer
+        open={selectedLiveSession !== null}
+        session={selectedLiveSession}
+        onClose={() => {
+          setSelectedLiveSession(null);
+          void loadActiveLiveSessions();
         }}
       />
 
@@ -469,6 +633,195 @@ export default function VibesPage() {
           display: flex;
           align-items: center;
           gap: 10px;
+        }
+
+        .vibes-create-button {
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.07);
+          color: #fff;
+          cursor: pointer;
+          padding: 11px 18px;
+          font: inherit;
+          font-weight: 850;
+        }
+
+        .vibes-live-discovery {
+          margin-bottom: 22px;
+          border: 1px solid rgba(255, 255, 255, 0.09);
+          border-radius: 22px;
+          background: rgba(255, 255, 255, 0.035);
+          padding: 18px;
+        }
+
+        .vibes-live-discovery-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 14px;
+        }
+
+        .vibes-live-discovery-header > div {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .vibes-live-discovery-header span {
+          color: #ff536b;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+        }
+
+        .vibes-live-discovery-header button,
+        .vibes-live-card > button {
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.08);
+          color: #fff;
+          cursor: pointer;
+          padding: 9px 14px;
+          font: inherit;
+          font-weight: 850;
+        }
+
+        .vibes-live-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 10px;
+        }
+
+        .vibes-live-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          border-radius: 17px;
+          background: rgba(0, 0, 0, 0.22);
+          padding: 14px;
+        }
+
+        .vibes-live-card-copy {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .vibes-live-card-copy p {
+          margin: 0;
+          color: rgba(255, 255, 255, 0.68);
+          font-size: 13px;
+        }
+
+        .vibes-live-card-copy small,
+        .vibes-live-empty {
+          color: rgba(255, 255, 255, 0.48);
+        }
+
+        .vibes-live-card-badge {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          color: #ff536b;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+        }
+
+        .vibes-live-card-badge i {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: currentColor;
+        }
+
+        .vibes-create-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 2000;
+          display: grid;
+          place-items: center;
+          padding: 20px;
+          background: rgba(0, 0, 0, 0.78);
+          backdrop-filter: blur(14px);
+        }
+
+        .vibes-create-modal {
+          width: min(560px, 100%);
+          border: 1px solid rgba(255, 255, 255, 0.13);
+          border-radius: 24px;
+          background: #101210;
+          padding: 20px;
+          box-shadow: 0 35px 100px rgba(0, 0, 0, 0.6);
+        }
+
+        .vibes-create-modal header,
+        .vibes-create-modal footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .vibes-create-modal header > div {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+
+        .vibes-create-modal header span {
+          color: rgba(255, 255, 255, 0.48);
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+        }
+
+        .vibes-create-modal header button {
+          border: 0;
+          background: transparent;
+          color: #fff;
+          cursor: pointer;
+          font-size: 28px;
+        }
+
+        .vibes-create-modal textarea {
+          box-sizing: border-box;
+          width: 100%;
+          min-height: 180px;
+          margin: 20px 0 14px;
+          resize: vertical;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 17px;
+          outline: none;
+          background: rgba(255, 255, 255, 0.045);
+          color: #fff;
+          padding: 16px;
+          font: inherit;
+        }
+
+        .vibes-create-modal footer > span {
+          color: rgba(255, 255, 255, 0.46);
+          font-size: 12px;
+        }
+
+        .vibes-create-modal footer button {
+          border: 0;
+          border-radius: 999px;
+          background: #fff;
+          color: #111;
+          cursor: pointer;
+          padding: 11px 18px;
+          font: inherit;
+          font-weight: 900;
+        }
+
+        .vibes-create-modal footer button:disabled,
+        .vibes-live-discovery-header button:disabled {
+          cursor: default;
+          opacity: 0.5;
         }
 
         .vibes-go-live {
