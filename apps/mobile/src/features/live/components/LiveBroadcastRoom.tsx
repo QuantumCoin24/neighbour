@@ -36,6 +36,12 @@ function BroadcastControls({ session, onClosed }: { session: LiveSession; onClos
     [tracks, localParticipant.identity],
   );
 
+  useEffect(() => {
+    void localParticipant.setCameraEnabled(true).catch((cause) => {
+      console.error('Unable to start live camera', cause);
+    });
+  }, [localParticipant]);
+
   async function toggleMic(): Promise<void> {
     const next = !micEnabled;
     await localParticipant.setMicrophoneEnabled(next);
