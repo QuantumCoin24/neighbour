@@ -2,12 +2,13 @@ import {
   AudioSession,
   LiveKitRoom,
   VideoTrack,
+  useConnectionState,
   useLocalParticipant,
   useParticipants,
   useTracks,
 } from '@livekit/react-native';
 import type { LiveAccess, LiveSession } from '@neighbour/api-client';
-import { Track } from 'livekit-client';
+import { ConnectionState, Track } from 'livekit-client';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,12 +25,14 @@ interface LiveBroadcastRoomProps {
 
 function BroadcastControls({ session, onClosed }: { session: LiveSession; onClosed: () => void }) {
   const { localParticipant } = useLocalParticipant();
+  const connectionState = useConnectionState();
   const participants = useParticipants();
   const tracks = useTracks([Track.Source.Camera]);
 
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>('front');
   const [ending, setEnding] = useState(false);
+  const [cameraDiagnostic, setCameraDiagnostic] = useState('Waiting for LiveKit connection…');
 
   const localCamera = useMemo(
     () => tracks.find((track) => track.participant.identity === localParticipant.identity),
@@ -37,10 +40,48 @@ function BroadcastControls({ session, onClosed }: { session: LiveSession; onClos
   );
 
   useEffect(() => {
-    void localParticipant.setCameraEnabled(true).catch((cause) => {
-      console.error('Unable to start live camera', cause);
-    });
-  }, [localParticipant]);
+    if (connectionState !== ConnectionState.Connected) {
+      setCameraDiagnostic(`LiveKit: ${connectionState}`);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function startCamera(): Promise<void> {
+      try {
+        setCameraDiagnostic('LiveKit connected — enabling camera…');
+
+        const publication = await localParticipant.setCameraEnabled(true);
+
+        if (cancelled) return;
+
+        const currentPublication =
+          publication ?? localParticipant.getTrackPublication(Track.Source.Camera);
+
+        setCameraDiagnostic(
+          [
+            'LiveKit: connected',
+            `Camera enabled: ${localParticipant.isCameraEnabled ? 'YES' : 'NO'}`,
+            `Publication: ${currentPublication ? 'YES' : 'NO'}`,
+            `Track: ${currentPublication?.track ? 'YES' : 'NO'}`,
+          ].join(' | '),
+        );
+      } catch (cause) {
+        if (cancelled) return;
+
+        const message = cause instanceof Error ? cause.message : String(cause);
+
+        console.error('Unable to start live camera', cause);
+        setCameraDiagnostic(`CAMERA ERROR: ${message}`);
+      }
+    }
+
+    void startCamera();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [connectionState, localParticipant]);
 
   async function toggleMic(): Promise<void> {
     const next = !micEnabled;
@@ -90,6 +131,7 @@ function BroadcastControls({ session, onClosed }: { session: LiveSession; onClos
       ) : (
         <View style={styles.cameraLoading}>
           <AppText style={styles.cameraLoadingText}>Starting camera…</AppText>
+          <AppText style={styles.cameraDiagnosticText}>{cameraDiagnostic}</AppText>
         </View>
       )}
 
@@ -188,6 +230,15 @@ const styles = StyleSheet.create({
   },
   cameraLoadingText: {
     color: '#fff',
+  },
+  cameraDiagnosticText: {
+    color: '#fff',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 12,
+    maxWidth: '88%',
+    textAlign: 'center',
+    opacity: 0.8,
   },
   topBar: {
     paddingHorizontal: 18,
