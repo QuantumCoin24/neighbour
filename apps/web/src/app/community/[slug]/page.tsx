@@ -7,8 +7,12 @@ import { useParams } from 'next/navigation';
 import {
   attachMediaToPost,
   createPost,
+  deleteCommunity,
   getCommunity,
   getCommunityFeed,
+  getMyCommunities,
+  leaveCommunity,
+  type CommunityMembership,
 } from '@neighbour/api-client';
 
 import CommunityHeader from '../../../components/community/CommunityHeader';
@@ -24,6 +28,11 @@ export default function CommunityPage() {
   const slug = params.slug as string;
 
   const [community, setCommunity] = useState<any>(null);
+  const [membership, setMembership] = useState<CommunityMembership | null>(null);
+  const [membershipLoading, setMembershipLoading] = useState(true);
+  const [leavingCommunity, setLeavingCommunity] = useState(false);
+  const [deletingCommunity, setDeletingCommunity] = useState(false);
+  const [communityActionError, setCommunityActionError] = useState<string | null>(null);
 
   const [posts, setPosts] = useState<any[]>([]);
 
@@ -41,6 +50,29 @@ export default function CommunityPage() {
     const c = await getCommunity(token, slug);
 
     setCommunity(c);
+
+    setMembershipLoading(true);
+
+    try {
+      const memberships = await getMyCommunities(token);
+
+      const ownMembership =
+        memberships.find((item) => item.community.id === c.id || item.community.slug === c.slug) ??
+        null;
+
+      setMembership(
+        ownMembership?.role === 'OWNER'
+          ? {
+              ...ownMembership,
+              status: 'ACTIVE',
+            }
+          : ownMembership,
+      );
+    } catch {
+      setMembership(null);
+    } finally {
+      setMembershipLoading(false);
+    }
 
     const feed = await getCommunityFeed(token, slug);
 
@@ -104,6 +136,81 @@ export default function CommunityPage() {
     }
   }
 
+  async function handleLeaveCommunity() {
+    if (
+      !community ||
+      !membership ||
+      membership.status !== 'ACTIVE' ||
+      membership.role === 'OWNER' ||
+      leavingCommunity
+    ) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Leave "${community.name}"? You can rejoin later if the community allows it.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setLeavingCommunity(true);
+    setCommunityActionError(null);
+
+    try {
+      await leaveCommunity(community.slug);
+
+      setMembership(null);
+
+      setCommunity((current: any) =>
+        current
+          ? {
+              ...current,
+              memberCount: Math.max(0, current.memberCount - 1),
+            }
+          : current,
+      );
+    } catch (error) {
+      setCommunityActionError(
+        error instanceof Error
+          ? error.message
+          : 'The community could not be left. Please try again.',
+      );
+    } finally {
+      setLeavingCommunity(false);
+    }
+  }
+
+  async function handleDeleteCommunity() {
+    if (!community || membership?.role !== 'OWNER' || deletingCommunity) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete "${community.name}" permanently? Community content linked by deletion rules may also be removed. This cannot be undone.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingCommunity(true);
+    setCommunityActionError(null);
+
+    try {
+      await deleteCommunity(community.slug);
+      window.location.assign('/my-community');
+    } catch (error) {
+      setCommunityActionError(
+        error instanceof Error
+          ? error.message
+          : 'The community could not be deleted. Please try again.',
+      );
+      setDeletingCommunity(false);
+    }
+  }
+
   if (!community) return <p>Loading...</p>;
 
   return (
@@ -117,6 +224,108 @@ export default function CommunityPage() {
       <CommunityHeader community={community} />
 
       <CommunityTabs slug={slug} />
+
+      {!membershipLoading && membership?.status === 'ACTIVE' ? (
+        <section
+          aria-label="Community membership controls"
+          style={{
+            margin: '16px 0 20px',
+            padding: 16,
+            border: '1px solid #dfe7e2',
+            borderRadius: 18,
+            background: '#ffffff',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 14,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div>
+              <div style={{ fontWeight: 850 }}>
+                {membership.role === 'OWNER'
+                  ? 'Community owner controls'
+                  : 'Your community membership'}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  color: '#68766f',
+                  fontSize: 14,
+                }}
+              >
+                {membership.role === 'OWNER'
+                  ? 'Deleting this community is permanent and cannot be undone.'
+                  : `Connected as ${
+                      membership.role.charAt(0) + membership.role.slice(1).toLowerCase()
+                    }.`}
+              </div>
+            </div>
+
+            {membership.role === 'OWNER' ? (
+              <button
+                type="button"
+                disabled={deletingCommunity}
+                onClick={() => void handleDeleteCommunity()}
+                style={{
+                  minHeight: 42,
+                  padding: '0 16px',
+                  borderRadius: 999,
+                  border: '1px solid #b42318',
+                  background: '#fff',
+                  color: '#b42318',
+                  fontWeight: 800,
+                  cursor: deletingCommunity ? 'default' : 'pointer',
+                  opacity: deletingCommunity ? 0.6 : 1,
+                }}
+              >
+                {deletingCommunity ? 'Deleting…' : 'Delete community'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={leavingCommunity}
+                onClick={() => void handleLeaveCommunity()}
+                style={{
+                  minHeight: 42,
+                  padding: '0 16px',
+                  borderRadius: 999,
+                  border: '1px solid #ccd7d0',
+                  background: '#fff',
+                  color: '#334139',
+                  fontWeight: 800,
+                  cursor: leavingCommunity ? 'default' : 'pointer',
+                  opacity: leavingCommunity ? 0.6 : 1,
+                }}
+              >
+                {leavingCommunity ? 'Leaving…' : 'Leave community'}
+              </button>
+            )}
+          </div>
+
+          {communityActionError ? (
+            <div
+              role="alert"
+              style={{
+                marginTop: 12,
+                padding: '10px 12px',
+                borderRadius: 12,
+                background: '#fff4f2',
+                color: '#b42318',
+                fontSize: 14,
+                fontWeight: 700,
+              }}
+            >
+              {communityActionError}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       <CreatePost
         busy={publishing}
