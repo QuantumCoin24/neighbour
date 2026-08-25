@@ -1,11 +1,13 @@
 'use client';
 
 import {
+  blockSocialGraphUser,
   getPostsByProfile,
   getPublicProfile,
   getRelationshipStatus,
   sendConnectionRequest,
   type PublicProfile,
+  unblockSocialGraphUser,
 } from '@neighbour/api-client';
 import { use, useEffect, useState } from 'react';
 
@@ -25,6 +27,7 @@ export default function PublicProfilePage({
   const [relationship, setRelationship] = useState<any>(null);
   const [message, setMessage] = useState('Loading profile...');
   const [connecting, setConnecting] = useState(false);
+  const [blocking, setBlocking] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -66,6 +69,28 @@ export default function PublicProfilePage({
       setRelationship(updated);
     } finally {
       setConnecting(false);
+    }
+  }
+
+  async function toggleBlock(): Promise<void> {
+    const token = localStorage.getItem('accessToken');
+
+    if (!token || !profile || blocking) return;
+
+    try {
+      setBlocking(true);
+
+      if (relationship?.status === 'BLOCKED_BY_ME') {
+        await unblockSocialGraphUser(profile.userId);
+      } else {
+        await blockSocialGraphUser(profile.userId);
+      }
+
+      const updated = await getRelationshipStatus(token, profile.userId);
+
+      setRelationship(updated);
+    } finally {
+      setBlocking(false);
     }
   }
 
@@ -116,11 +141,27 @@ export default function PublicProfilePage({
               onClick={() => void connect()}
               disabled={
                 connecting ||
+                blocking ||
                 relationship?.status === 'CONNECTED' ||
-                relationship?.status === 'OUTGOING_REQUEST'
+                relationship?.status === 'OUTGOING_REQUEST' ||
+                relationship?.status === 'BLOCKED_BY_ME' ||
+                relationship?.status === 'BLOCKED_ME'
               }
             >
               {relationshipLabel}
+            </button>
+
+            <button
+              type="button"
+              className="profile-block"
+              disabled={blocking}
+              onClick={() => void toggleBlock()}
+            >
+              {blocking
+                ? 'Updating…'
+                : relationship?.status === 'BLOCKED_BY_ME'
+                  ? 'Unblock'
+                  : 'Block'}
             </button>
 
             <ReportButton targetType="USER" targetId={profile.userId} />
@@ -310,6 +351,26 @@ export default function PublicProfilePage({
           display: flex;
           align-items: center;
           gap: 10px;
+        }
+
+        .profile-block {
+          border: 1px solid rgba(160, 38, 38, 0.22);
+          border-radius: 999px;
+          padding: 10px 18px;
+          background: rgba(160, 38, 38, 0.06);
+          color: #8e2424;
+          font: inherit;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .profile-block:hover {
+          background: rgba(160, 38, 38, 0.11);
+        }
+
+        .profile-block:disabled {
+          cursor: default;
+          opacity: 0.55;
         }
 
         .profile-connect {
