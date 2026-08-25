@@ -123,7 +123,7 @@ export class ProfileService {
       displayName: profile.displayName,
       avatarUrl: profile.avatarUrl ?? null,
       bio: profile.bio ?? null,
-      localArea: profile.localArea,
+      localArea: profile.showLocalArea ? profile.localArea : null,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
     };

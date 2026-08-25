@@ -3,11 +3,34 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import {
+  dismissNotification,
   getNotifications,
   markAllNotificationsRead,
   markNotificationRead,
   type Notification,
 } from '@neighbour/api-client';
+import {
+  createWebRealtimeSocket,
+  WebRealtimeEvents,
+  type RealtimeEnvelope,
+} from '../../lib/realtime';
+
+const PAGE_SIZE = 30;
+
+interface NotificationReadRealtimePayload {
+  notificationId: string | null;
+  recipientId: string;
+  readAt: string;
+  updatedCount: number;
+  all: boolean;
+  notification?: Notification;
+}
+
+function mergeNotification(current: Notification[], incoming: Notification): Notification[] {
+  const remaining = current.filter((notification) => notification.id !== incoming.id);
+
+  return [incoming, ...remaining];
+}
 
 function notificationLabel(type: string) {
   return type
@@ -60,6 +83,9 @@ export default function NotificationsPage() {
   const [message, setMessage] = useState('Loading notifications…');
 
   const [busy, setBusy] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [liveConnected, setLiveConnected] = useState(false);
 
   async function load() {
     const token = localStorage.getItem('accessToken');
@@ -71,11 +97,12 @@ export default function NotificationsPage() {
 
     try {
       const result = await getNotifications(token, {
-        limit: 100,
+        limit: PAGE_SIZE,
       });
 
       setItems(result.items);
       setUnread(result.unreadCount);
+      setNextCursor(result.nextCursor);
       setMessage('');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Unable to load notifications.');
@@ -85,6 +112,115 @@ export default function NotificationsPage() {
   useEffect(() => {
     void load();
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+      setLiveConnected(false);
+      return;
+    }
+
+    const socket = createWebRealtimeSocket(token);
+
+    const handleCreated = (payload: RealtimeEnvelope<Notification>) => {
+      setItems((current) => {
+        const alreadyPresent = current.some((notification) => notification.id === payload.data.id);
+
+        if (!alreadyPresent && !payload.data.readAt) {
+          setUnread((count) => count + 1);
+        }
+
+        return mergeNotification(current, payload.data);
+      });
+    };
+
+    const handleRead = (payload: RealtimeEnvelope<NotificationReadRealtimePayload>) => {
+      const data = payload.data;
+
+      if (data.all) {
+        setItems((current) =>
+          current.map((notification) => ({
+            ...notification,
+            readAt: notification.readAt ?? data.readAt,
+          })),
+        );
+      } else if (data.notificationId) {
+        setItems((current) =>
+          current.map((notification) =>
+            notification.id === data.notificationId
+              ? {
+                  ...notification,
+                  ...(data.notification ?? {}),
+                  readAt: data.readAt,
+                }
+              : notification,
+          ),
+        );
+      }
+
+      setUnread(data.updatedCount);
+    };
+
+    socket.on('connect', () => {
+      setLiveConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      setLiveConnected(false);
+    });
+
+    socket.on('connect_error', () => {
+      setLiveConnected(false);
+    });
+
+    socket.on(WebRealtimeEvents.NOTIFICATION_CREATED, handleCreated);
+
+    socket.on(WebRealtimeEvents.NOTIFICATION_READ, handleRead);
+
+    socket.connect();
+
+    return () => {
+      socket.off(WebRealtimeEvents.NOTIFICATION_CREATED, handleCreated);
+
+      socket.off(WebRealtimeEvents.NOTIFICATION_READ, handleRead);
+
+      socket.disconnect();
+    };
+  }, []);
+
+  async function loadMore() {
+    const token = localStorage.getItem('accessToken');
+
+    if (!token || !nextCursor || loadingMore) {
+      return;
+    }
+
+    setLoadingMore(true);
+
+    try {
+      const result = await getNotifications(token, {
+        cursor: nextCursor,
+        limit: PAGE_SIZE,
+      });
+
+      setItems((current) => {
+        const existingIds = new Set(current.map((notification) => notification.id));
+
+        return [
+          ...current,
+          ...result.items.filter((notification) => !existingIds.has(notification.id)),
+        ];
+      });
+
+      setUnread(result.unreadCount);
+      setNextCursor(result.nextCursor);
+    } catch {
+      // Keep the currently loaded pages if pagination fails.
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   const visible = useMemo(
     () => (filter === 'unread' ? items.filter((item) => !item.readAt) : items),
@@ -110,6 +246,32 @@ export default function NotificationsPage() {
       await load();
     } catch {
       // Keep current UI if the network request fails.
+    }
+  }
+
+  async function dismiss(id: string) {
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+      return;
+    }
+
+    try {
+      await dismissNotification(token, id);
+
+      setItems((current) => current.filter((item) => item.id !== id));
+
+      setUnread((current) => {
+        const target = items.find((item) => item.id === id);
+
+        if (!target || target.readAt) {
+          return current;
+        }
+
+        return Math.max(0, current - 1);
+      });
+    } catch {
+      // Keep the notification visible if dismissal fails.
     }
   }
 
@@ -162,9 +324,13 @@ export default function NotificationsPage() {
           <p>Messages, reactions, community activity and account updates all appear here.</p>
         </section>
 
-        <div className="notifications-live">
+        <div
+          className={
+            liveConnected ? 'notifications-live' : 'notifications-live notifications-live-offline'
+          }
+        >
           <span />
-          Live activity
+          {liveConnected ? 'Live activity' : 'Connecting…'}
         </div>
       </section>
 
@@ -208,40 +374,138 @@ export default function NotificationsPage() {
             const isUnread = !item.readAt;
 
             return (
-              <button
+              <div
                 key={item.id}
-                type="button"
                 className={
                   isUnread ? 'notification-item notification-item-unread' : 'notification-item'
                 }
-                onClick={() => void read(item.id)}
               >
-                <div className="notification-icon">{notificationIcon(item.type)}</div>
+                <button
+                  type="button"
+                  className="notification-open"
+                  onClick={() => void read(item.id)}
+                >
+                  <div className="notification-icon">{notificationIcon(item.type)}</div>
 
-                <div className="notification-copy">
-                  <div className="notification-title">
-                    <strong>{notificationLabel(item.type)}</strong>
+                  <div className="notification-copy">
+                    <div className="notification-title">
+                      <strong>{notificationLabel(item.type)}</strong>
 
-                    {isUnread ? <span>New</span> : null}
+                      {isUnread ? <span>New</span> : null}
+                    </div>
+
+                    <p>
+                      {item.actor
+                        ? `${item.actor.displayName} interacted with your neighbourhood.`
+                        : 'Neighbour™ activity update.'}
+                    </p>
+
+                    <small>{formatDate(item.createdAt)}</small>
                   </div>
 
-                  <p>
-                    {item.actor
-                      ? `${item.actor.displayName} interacted with your neighbourhood.`
-                      : 'Neighbour™ activity update.'}
-                  </p>
+                  <div className="notification-arrow">→</div>
+                </button>
 
-                  <small>{formatDate(item.createdAt)}</small>
-                </div>
-
-                <div className="notification-arrow">→</div>
-              </button>
+                <button
+                  type="button"
+                  className="notification-dismiss"
+                  aria-label="Dismiss notification"
+                  title="Dismiss notification"
+                  onClick={() => void dismiss(item.id)}
+                >
+                  ×
+                </button>
+              </div>
             );
           })}
+
+          {loadingMore ? (
+            <div className="notifications-loading-more">Loading more notifications…</div>
+          ) : null}
+
+          {!loadingMore && nextCursor ? (
+            <button
+              type="button"
+              className="notifications-load-more"
+              onClick={() => void loadMore()}
+            >
+              Load more notifications
+            </button>
+          ) : null}
         </section>
       )}
 
       <style>{`
+        .notifications-loading-more {
+          padding: 18px;
+          text-align: center;
+          color: #66736d;
+          font-size: 14px;
+        }
+
+        .notifications-load-more {
+          width: 100%;
+          min-height: 52px;
+          padding: 12px 18px;
+          border: 1px solid rgba(16, 32, 25, .14);
+          border-radius: 14px;
+          background: #fff;
+          color: #102019;
+          font: inherit;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .notifications-load-more:hover {
+          background: rgba(16, 32, 25, .04);
+        }
+
+        .notifications-live-offline {
+          opacity: .58;
+        }
+
+        .notification-item {
+          position: relative;
+        }
+
+        .notification-open {
+          width: 100%;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 16px;
+          border: 0;
+          background: transparent;
+          color: inherit;
+          font: inherit;
+          text-align: left;
+          cursor: pointer;
+        }
+
+        .notification-dismiss {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          width: 30px;
+          height: 30px;
+          display: grid;
+          place-items: center;
+          border: 1px solid rgba(16, 32, 25, .12);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, .92);
+          color: #66736d;
+          font: inherit;
+          font-size: 18px;
+          line-height: 1;
+          cursor: pointer;
+          z-index: 2;
+        }
+
+        .notification-dismiss:hover {
+          background: #fff;
+          color: #102019;
+        }
+
         .notifications-page {
           width: min(100% - 48px,1200px);
           margin: 0 auto;
