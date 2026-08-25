@@ -582,6 +582,24 @@ export default function ProfileScreen() {
                         }
 
                         setAvatarUrl(url);
+
+                        if (profile.profile) {
+                          const saved = await profile.save({
+                            username: username.trim(),
+                            ...(bio.trim() ? { bio: bio.trim() } : {}),
+                            avatarUrl: url,
+                            ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
+                            showLocalArea,
+                          });
+
+                          if (!saved) {
+                            throw new Error(
+                              'The photo uploaded, but Neighbour could not save it to your profile.',
+                            );
+                          }
+
+                          setProfilePhotoError('Profile photo saved.');
+                        }
                       } catch (error) {
                         const message =
                           error instanceof Error
@@ -628,6 +646,24 @@ export default function ProfileScreen() {
                         }
 
                         setAvatarUrl(url);
+
+                        if (profile.profile) {
+                          const saved = await profile.save({
+                            username: username.trim(),
+                            ...(bio.trim() ? { bio: bio.trim() } : {}),
+                            avatarUrl: url,
+                            ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
+                            showLocalArea,
+                          });
+
+                          if (!saved) {
+                            throw new Error(
+                              'The photo uploaded, but Neighbour could not save it to your profile.',
+                            );
+                          }
+
+                          setProfilePhotoError('Profile photo saved.');
+                        }
                       } catch (error) {
                         const message =
                           error instanceof Error
@@ -647,7 +683,28 @@ export default function ProfileScreen() {
                     disabled={mediaUpload.uploading}
                     label="Remove photo"
                     onPress={() => {
-                      setAvatarUrl('');
+                      void (async () => {
+                        setAvatarUrl('');
+
+                        if (profile.profile) {
+                          const saved = await profile.save({
+                            username: username.trim(),
+                            ...(bio.trim() ? { bio: bio.trim() } : {}),
+                            avatarUrl: null,
+                            ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
+                            showLocalArea,
+                          });
+
+                          if (!saved) {
+                            setProfilePhotoError(
+                              'Neighbour could not remove the profile photo. Please try again.',
+                            );
+                            return;
+                          }
+
+                          setProfilePhotoError('Profile photo removed.');
+                        }
+                      })();
                     }}
                     variant="ghost"
                   />
@@ -724,6 +781,17 @@ export default function ProfileScreen() {
               placeholder="New email address"
               value={newAccountEmail}
               onChangeText={setNewAccountEmail}
+              placeholderTextColor={theme.colors.textMuted}
+              selectionColor={theme.colors.primary}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  borderColor: theme.colors.border,
+                  borderRadius: theme.radius.lg,
+                  color: theme.colors.text,
+                },
+              ]}
             />
 
             <TextInput
@@ -733,6 +801,17 @@ export default function ProfileScreen() {
               secureTextEntry
               value={emailCurrentPassword}
               onChangeText={setEmailCurrentPassword}
+              placeholderTextColor={theme.colors.textMuted}
+              selectionColor={theme.colors.primary}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  borderColor: theme.colors.border,
+                  borderRadius: theme.radius.lg,
+                  color: theme.colors.text,
+                },
+              ]}
             />
 
             <Button
@@ -770,6 +849,17 @@ export default function ProfileScreen() {
               secureTextEntry
               value={passwordCurrentPassword}
               onChangeText={setPasswordCurrentPassword}
+              placeholderTextColor={theme.colors.textMuted}
+              selectionColor={theme.colors.primary}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  borderColor: theme.colors.border,
+                  borderRadius: theme.radius.lg,
+                  color: theme.colors.text,
+                },
+              ]}
             />
 
             <TextInput
@@ -779,6 +869,17 @@ export default function ProfileScreen() {
               secureTextEntry
               value={newAccountPassword}
               onChangeText={setNewAccountPassword}
+              placeholderTextColor={theme.colors.textMuted}
+              selectionColor={theme.colors.primary}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  borderColor: theme.colors.border,
+                  borderRadius: theme.radius.lg,
+                  color: theme.colors.text,
+                },
+              ]}
             />
 
             <TextInput
@@ -788,6 +889,17 @@ export default function ProfileScreen() {
               secureTextEntry
               value={confirmAccountPassword}
               onChangeText={setConfirmAccountPassword}
+              placeholderTextColor={theme.colors.textMuted}
+              selectionColor={theme.colors.primary}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  borderColor: theme.colors.border,
+                  borderRadius: theme.radius.lg,
+                  color: theme.colors.text,
+                },
+              ]}
             />
 
             <AppText variant="caption" tone="secondary">

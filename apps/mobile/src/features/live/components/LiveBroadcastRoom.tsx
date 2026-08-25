@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     paddingHorizontal: 18,
-    paddingTop: 10,
+    paddingTop: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
