@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const primaryLinks = [
   { href: '/home', label: 'Home', icon: '⌂' },
+  { href: '/vibes', label: 'Vibes', icon: '◈' },
   { href: '/community', label: 'Communities', icon: '◉' },
   { href: '/nearby', label: 'Nearby', icon: '⌖' },
   { href: '/marketplace', label: 'Marketplace', icon: '◆' },
