@@ -18,7 +18,7 @@
         "NSPhotoLibraryAddUsageDescription": "Allow Neighbour to save media to your photo library when you choose to do so.",
         "NSMicrophoneUsageDescription": "Allow Neighbour to use your microphone when you record video or go live in Vibes."
       },
-      "buildNumber": "77"
+      "buildNumber": "78"
     },
     "android": {
       "adaptiveIcon": {

@@ -1,4 +1,6 @@
 import {
+  getActiveLiveSessions,
+  getLiveAccess,
   type LiveAccess,
   type LiveSession,
   recordVibeView,
@@ -7,7 +9,7 @@ import {
 } from '@neighbour/api-client';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ActivityIndicator,
@@ -47,6 +49,21 @@ function LazyLiveBroadcastRoom({
   return <LiveBroadcastRoom visible access={access} session={session} onClosed={onClosed} />;
 }
 
+function LazyLiveViewerRoom({
+  access,
+  session,
+  onClosed,
+}: {
+  access: LiveAccess;
+  session: LiveSession;
+  onClosed: () => void;
+}) {
+  const { LiveViewerRoom } =
+    require('../features/live/components/LiveViewerRoom') as typeof import('../features/live/components/LiveViewerRoom');
+
+  return <LiveViewerRoom visible access={access} session={session} onClosed={onClosed} />;
+}
+
 export default function VibesScreen(_props: VibesScreenProps) {
   const { theme } = useNeighbourTheme();
   const insets = useSafeAreaInsets();
@@ -65,6 +82,11 @@ export default function VibesScreen(_props: VibesScreenProps) {
   const [goLiveOpen, setGoLiveOpen] = useState(false);
   const [liveAccess, setLiveAccess] = useState<LiveAccess | null>(null);
   const [liveSession, setLiveSession] = useState<LiveSession | null>(null);
+
+  const [activeLiveSessions, setActiveLiveSessions] = useState<LiveSession[]>([]);
+  const [joiningLiveId, setJoiningLiveId] = useState<string | null>(null);
+  const [viewerAccess, setViewerAccess] = useState<LiveAccess | null>(null);
+  const [viewerSession, setViewerSession] = useState<LiveSession | null>(null);
 
   const watchRef = useRef<WatchSession | null>(null);
 
@@ -148,6 +170,64 @@ export default function VibesScreen(_props: VibesScreenProps) {
       }
     },
   ).current;
+
+  const refreshActiveLive = useCallback(async (): Promise<void> => {
+    try {
+      const sessions = await getActiveLiveSessions();
+      setActiveLiveSessions(sessions);
+    } catch (cause) {
+      console.error('Unable to load active live Vibes', cause);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshActiveLive();
+
+      const timer = setInterval(() => {
+        void refreshActiveLive();
+      }, 10000);
+
+      return () => {
+        clearInterval(timer);
+      };
+    }, [refreshActiveLive]),
+  );
+
+  useEffect(() => {
+    if (!liveSession) {
+      return;
+    }
+
+    setActiveLiveSessions((current) => {
+      const withoutCurrent = current.filter((session) => session.id !== liveSession.id);
+
+      return [liveSession, ...withoutCurrent];
+    });
+  }, [liveSession]);
+
+  const joinLive = useCallback(
+    async (session: LiveSession): Promise<void> => {
+      if (joiningLiveId) {
+        return;
+      }
+
+      try {
+        setJoiningLiveId(session.id);
+
+        const access = await getLiveAccess(session.id);
+
+        setViewerSession(access.session);
+        setViewerAccess(access);
+      } catch (cause) {
+        console.error('Unable to join live Vibe', cause);
+        void refreshActiveLive();
+      } finally {
+        setJoiningLiveId(null);
+      }
+    },
+    [joiningLiveId, refreshActiveLive],
+  );
 
   if (feed.loading) {
     return (
@@ -272,6 +352,54 @@ export default function VibesScreen(_props: VibesScreenProps) {
           ) : null}
         </View>
 
+        {activeLiveSessions.length > 0 ? (
+          <View
+            style={[
+              styles.liveNowRail,
+              {
+                top: insets.top + 58,
+              },
+            ]}
+          >
+            <FlatList
+              horizontal
+              data={activeLiveSessions}
+              keyExtractor={(session) => session.id}
+              contentContainerStyle={styles.liveNowRailContent}
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Watch ${item.creator.displayName} live`}
+                  disabled={joiningLiveId === item.id}
+                  onPress={() => {
+                    void joinLive(item);
+                  }}
+                  style={({ pressed }) => [
+                    styles.liveNowCard,
+                    pressed ? styles.liveNowCardPressed : null,
+                  ]}
+                >
+                  <View style={styles.liveNowBadge}>
+                    <View style={styles.liveNowDot} />
+                    <AppText style={styles.liveNowBadgeText}>LIVE</AppText>
+                  </View>
+
+                  <View style={styles.liveNowCopy}>
+                    <AppText numberOfLines={1} style={styles.liveNowCreator}>
+                      {item.creator.displayName}
+                    </AppText>
+
+                    <AppText numberOfLines={1} style={styles.liveNowTitle}>
+                      {joiningLiveId === item.id ? 'Joining…' : item.title || 'Live Vibe'}
+                    </AppText>
+                  </View>
+                </Pressable>
+              )}
+            />
+          </View>
+        ) : null}
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Go Live in Vibes"
@@ -300,6 +428,18 @@ export default function VibesScreen(_props: VibesScreenProps) {
               setLiveAccess(null);
               setLiveSession(null);
               void feed.refresh();
+            }}
+          />
+        ) : null}
+
+        {viewerAccess && viewerSession ? (
+          <LazyLiveViewerRoom
+            access={viewerAccess}
+            session={viewerSession}
+            onClosed={() => {
+              setViewerAccess(null);
+              setViewerSession(null);
+              void refreshActiveLive();
             }}
           />
         ) : null}
@@ -371,6 +511,58 @@ export default function VibesScreen(_props: VibesScreenProps) {
           );
         })}
       </View>
+
+      {activeLiveSessions.length > 0 ? (
+        <View
+          style={[
+            styles.liveNowRail,
+            {
+              top: insets.top + 58,
+            },
+          ]}
+        >
+          <FlatList
+            horizontal
+            data={activeLiveSessions}
+            keyExtractor={(session) => session.id}
+            contentContainerStyle={styles.liveNowRailContent}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Watch ${item.creator.displayName} live`}
+                disabled={joiningLiveId === item.id}
+                onPress={() => {
+                  void joinLive(item);
+                }}
+                style={({ pressed }) => [
+                  styles.liveNowCard,
+                  pressed ? styles.liveNowCardPressed : null,
+                ]}
+              >
+                <View style={styles.liveNowBadge}>
+                  <View style={styles.liveNowDot} />
+                  <AppText style={styles.liveNowBadgeText}>LIVE</AppText>
+                </View>
+
+                <View style={styles.liveNowCopy}>
+                  <AppText numberOfLines={1} style={styles.liveNowCreator}>
+                    {item.creator.displayName}
+                  </AppText>
+
+                  <AppText numberOfLines={1} style={styles.liveNowTitle}>
+                    {joiningLiveId === item.id ? 'Joining…' : item.title || 'Live Vibe'}
+                  </AppText>
+                </View>
+
+                <View style={styles.liveNowCount}>
+                  <AppText style={styles.liveNowCountText}>{item.viewerCount}</AppText>
+                </View>
+              </Pressable>
+            )}
+          />
+        </View>
+      ) : null}
 
       {viewportHeight > 0 ? (
         <FlatList
@@ -478,11 +670,108 @@ export default function VibesScreen(_props: VibesScreenProps) {
         vibeId={commentsVibeId}
         visible={Boolean(commentsVibeId)}
       />
+
+      {viewerAccess && viewerSession ? (
+        <LazyLiveViewerRoom
+          access={viewerAccess}
+          session={viewerSession}
+          onClosed={() => {
+            setViewerAccess(null);
+            setViewerSession(null);
+            void refreshActiveLive();
+          }}
+        />
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  liveNowRail: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 20,
+  },
+
+  liveNowRailContent: {
+    paddingHorizontal: 14,
+    gap: 10,
+  },
+
+  liveNowCard: {
+    minWidth: 210,
+    maxWidth: 270,
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: 'rgba(8,10,13,0.88)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.13)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    gap: 10,
+  },
+
+  liveNowCardPressed: {
+    opacity: 0.78,
+  },
+
+  liveNowBadge: {
+    height: 30,
+    paddingHorizontal: 9,
+    borderRadius: 999,
+    backgroundColor: '#ef233c',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+
+  liveNowDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#FFFFFF',
+  },
+
+  liveNowBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+
+  liveNowCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  liveNowCreator: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+
+  liveNowTitle: {
+    color: 'rgba(255,255,255,0.68)',
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  liveNowCount: {
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  liveNowCountText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
   emptyContent: {
     alignItems: 'center',
     maxWidth: 360,
