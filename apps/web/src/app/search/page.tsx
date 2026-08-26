@@ -197,8 +197,9 @@ export default function SearchPage() {
               key={person.id}
               icon="◎"
               title={person.displayName}
-              description="Neighbour member"
-              metadata="Person"
+              description={person.username ? `@${person.username}` : 'Neighbour member'}
+              metadata={person.username ? 'View profile' : 'Profile unavailable'}
+              href={person.username ? `/profile/${person.username}` : undefined}
             />
           ))}
         </ResultSection>

@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import {
   getNearbyGeoItems,
   type GeoEntityType,
@@ -265,6 +267,17 @@ export default function NearbyPage() {
         </div>
       </section>
 
+      <Link href="/search" className="nearby-search">
+        <span className="nearby-search-icon">⌕</span>
+
+        <span className="nearby-search-copy">
+          <strong>Search Neighbour</strong>
+          <small>Find people, communities, events and local activity.</small>
+        </span>
+
+        <span className="nearby-search-arrow">›</span>
+      </Link>
+
       <section className="controls">
         <div className="filter-row">
           {FILTERS.map((filter) => {
@@ -502,6 +515,65 @@ export default function NearbyPage() {
       ) : null}
 
       <style jsx>{`
+        .nearby-search {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 13px;
+          margin: 18px 0 0;
+          padding: 15px 17px;
+          border: 1px solid #dce5e0;
+          border-radius: 18px;
+          background: #fff;
+          color: inherit;
+          text-decoration: none;
+          box-shadow: 0 10px 30px rgba(18, 49, 36, 0.05);
+          transition:
+            transform 160ms ease,
+            border-color 160ms ease,
+            box-shadow 160ms ease;
+        }
+
+        .nearby-search:hover {
+          transform: translateY(-1px);
+          border-color: #a9cabb;
+          box-shadow: 0 14px 34px rgba(18, 49, 36, 0.08);
+        }
+
+        .nearby-search-icon {
+          width: 44px;
+          height: 44px;
+          display: grid;
+          place-items: center;
+          border-radius: 999px;
+          background: #eaf5ef;
+          color: #08704a;
+          font-size: 22px;
+          font-weight: 800;
+        }
+
+        .nearby-search-copy {
+          display: grid;
+          gap: 3px;
+        }
+
+        .nearby-search-copy strong {
+          color: #1c3329;
+          font-size: 13px;
+        }
+
+        .nearby-search-copy small {
+          color: #76847d;
+          font-size: 10px;
+          line-height: 1.4;
+        }
+
+        .nearby-search-arrow {
+          color: #08704a;
+          font-size: 26px;
+          line-height: 1;
+        }
+
         .nearby-page {
           max-width: 1180px;
           margin: 0 auto;
