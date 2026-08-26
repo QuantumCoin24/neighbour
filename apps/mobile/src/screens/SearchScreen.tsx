@@ -1,15 +1,19 @@
+import { sendConnectionRequest } from '@neighbour/api-client';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
+import { useState } from 'react';
 
+import { getSessionAccessToken } from '../auth/session';
 import { AppText, Card, Screen } from '../components';
 import {
   SearchCategoryBar,
@@ -46,6 +50,7 @@ export default function SearchScreen() {
   const { theme } = useNeighbourTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const search = useSearchController();
+  const [connectionStates, setConnectionStates] = useState<Record<string, 'sending' | 'sent'>>({});
 
   const showPeople = search.category === 'all' || search.category === 'people';
   const showCommunities = search.category === 'all' || search.category === 'communities';
@@ -350,7 +355,15 @@ export default function SearchScreen() {
                   key={person.id}
                   accent="primary"
                   description={person.username ? `@${person.username}` : 'Neighbour member'}
-                  metadata={person.username ? 'View profile' : 'Profile unavailable'}
+                  metadata={
+                    person.username
+                      ? 'View profile'
+                      : connectionStates[person.id] === 'sending'
+                        ? 'Sending…'
+                        : connectionStates[person.id] === 'sent'
+                          ? 'Request sent'
+                          : 'Add Neighbour'
+                  }
                   symbol="◉"
                   title={person.displayName}
                   onPress={() => {
@@ -362,7 +375,51 @@ export default function SearchScreen() {
                         userId: person.id,
                         displayName: person.displayName,
                       });
+
+                      return;
                     }
+
+                    const token = getSessionAccessToken();
+
+                    if (!token) {
+                      Alert.alert(
+                        'Add Neighbour',
+                        'Please sign in again before sending a connection request.',
+                      );
+                      return;
+                    }
+
+                    if (
+                      connectionStates[person.id] === 'sending' ||
+                      connectionStates[person.id] === 'sent'
+                    ) {
+                      return;
+                    }
+
+                    setConnectionStates((current) => ({
+                      ...current,
+                      [person.id]: 'sending',
+                    }));
+
+                    void sendConnectionRequest(token, person.id)
+                      .then(() => {
+                        setConnectionStates((current) => ({
+                          ...current,
+                          [person.id]: 'sent',
+                        }));
+                      })
+                      .catch(() => {
+                        setConnectionStates((current) => {
+                          const next = { ...current };
+                          delete next[person.id];
+                          return next;
+                        });
+
+                        Alert.alert(
+                          'Add Neighbour',
+                          'Neighbour could not send that request. It may already be pending.',
+                        );
+                      });
                   }}
                 />
               ))}
