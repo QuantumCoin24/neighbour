@@ -1093,7 +1093,7 @@ export default function ProfileScreen() {
             />
 
             <AppText variant="caption" tone="secondary">
-              Use at least 12 characters with uppercase, lowercase and a number.
+              Use at least 8 characters with a letter and a number.
             </AppText>
 
             <Button
@@ -1111,10 +1111,14 @@ export default function ProfileScreen() {
                   return;
                 }
 
-                if (newAccountPassword.length < 12) {
+                if (
+                  newAccountPassword.length < 8 ||
+                  !/[A-Za-z]/.test(newAccountPassword) ||
+                  !/[0-9]/.test(newAccountPassword)
+                ) {
                   Alert.alert(
                     'Change password',
-                    'Your new password must contain at least 12 characters.',
+                    'Use at least 8 characters with a letter and a number.',
                   );
                   return;
                 }

@@ -61,7 +61,11 @@ function getAuthenticationError(error: unknown): string {
       return 'Neighbour is temporarily unavailable. Please try again shortly.';
     }
 
-    return `Neighbour could not complete the request (HTTP ${error.status}).`;
+    if (error.status === 400) {
+      return 'Check the information you entered and try again.';
+    }
+
+    return 'Neighbour could not complete that request. Please try again.';
   }
 
   if (error instanceof TypeError) {

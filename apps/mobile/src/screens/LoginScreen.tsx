@@ -13,7 +13,7 @@ function isValidEmail(value: string): boolean {
 }
 
 function isValidRegistrationPassword(value: string): boolean {
-  return value.length >= 12 && /[a-z]/.test(value) && /[A-Z]/.test(value) && /[0-9]/.test(value);
+  return value.length >= 8 && /[A-Za-z]/.test(value) && /[0-9]/.test(value);
 }
 
 export default function LoginScreen() {
@@ -78,7 +78,7 @@ export default function LoginScreen() {
 
   const passwordError =
     mode === 'register' && password.length > 0 && !isValidRegistrationPassword(password)
-      ? 'Use at least 12 characters with upper case, lower case and a number.'
+      ? 'Use at least 8 characters with a letter and a number.'
       : null;
 
   return (
@@ -193,7 +193,7 @@ export default function LoginScreen() {
             onSubmitEditing={() => {
               void submit();
             }}
-            placeholder={mode === 'login' ? 'Enter your password' : 'Create a strong password'}
+            placeholder={mode === 'login' ? 'Enter your password' : 'At least 8 characters'}
             returnKeyType="go"
             secureTextEntry
             textContentType={mode === 'login' ? 'password' : 'newPassword'}

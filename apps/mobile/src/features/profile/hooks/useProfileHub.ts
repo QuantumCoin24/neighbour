@@ -112,6 +112,10 @@ export function useProfileHub() {
       } catch (caughtError) {
         if (caughtError instanceof ApiClientError && caughtError.status === 409) {
           setError('That username is already in use.');
+        } else if (caughtError instanceof ApiClientError && caughtError.status === 400) {
+          setError(
+            'Check your profile details. Usernames use 3–30 letters, numbers, dots or underscores.',
+          );
         } else {
           setError('Your profile changes could not be saved.');
         }

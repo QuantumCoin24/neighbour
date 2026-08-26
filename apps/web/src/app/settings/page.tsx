@@ -102,8 +102,8 @@ export default function SettingsPage() {
       return;
     }
 
-    if (newPassword.length < 12) {
-      setMessage('Your new password must contain at least 12 characters.');
+    if (newPassword.length < 8 || !/[A-Za-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      setMessage('Use at least 8 characters with a letter and a number.');
       return;
     }
 
@@ -300,7 +300,7 @@ export default function SettingsPage() {
               />
 
               <p className="settings-muted">
-                Use at least 12 characters with uppercase, lowercase and a number.
+                Use at least 8 characters with a letter and a number.
               </p>
 
               <button

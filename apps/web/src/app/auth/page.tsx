@@ -2,9 +2,39 @@
 
 import { useState, type CSSProperties, type FormEvent } from 'react';
 
-import { loginUser, registerUser } from '@neighbour/api-client';
+import { ApiClientError, loginUser, registerUser } from '@neighbour/api-client';
 
 import { saveTokens } from '../../lib/auth';
+
+function validRegistrationPassword(value: string): boolean {
+  return value.length >= 8 && /[A-Za-z]/.test(value) && /[0-9]/.test(value);
+}
+
+function authenticationMessage(error: unknown, mode: 'register' | 'login'): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return 'The email address or password was not recognised.';
+    }
+
+    if (error.status === 409) {
+      return 'An account already exists for this email address.';
+    }
+
+    if (error.status === 400) {
+      return mode === 'register'
+        ? 'Check your details. Your password must use at least 8 characters and include a letter and a number.'
+        : 'Check the information you entered and try again.';
+    }
+
+    if (error.status >= 500) {
+      return 'Neighbour is temporarily unavailable. Please try again shortly.';
+    }
+  }
+
+  return error instanceof TypeError
+    ? 'Neighbour could not be reached. Check your internet connection and try again.'
+    : 'Something went wrong. Please try again.';
+}
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'register' | 'login'>('login');
@@ -21,6 +51,18 @@ export default function AuthPage() {
 
     if (busy) {
       return;
+    }
+
+    if (mode === 'register') {
+      if (displayName.trim().length < 2) {
+        setMessage('Enter the name neighbours will know you by.');
+        return;
+      }
+
+      if (!validRegistrationPassword(password)) {
+        setMessage('Use at least 8 characters and include a letter and a number.');
+        return;
+      }
     }
 
     setBusy(true);
@@ -43,8 +85,7 @@ export default function AuthPage() {
 
       window.location.href = mode === 'register' ? '/profile/setup' : '/home';
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Authentication failed.');
-
+      setMessage(authenticationMessage(error, mode));
       setBusy(false);
     }
   }

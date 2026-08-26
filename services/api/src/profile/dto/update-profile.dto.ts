@@ -1,5 +1,4 @@
-import {
-  Transform } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsOptional,
@@ -13,8 +12,10 @@ import {
   Max,
 } from 'class-validator';
 
+import { normaliseUsername } from '../utils/profile-username.util';
+
 export class UpdateProfileDto {
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @Transform(({ value }) => (typeof value === 'string' ? normaliseUsername(value) : value))
   @IsOptional()
   @IsString()
   @Length(3, 30)

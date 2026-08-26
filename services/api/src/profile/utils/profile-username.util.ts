@@ -1,5 +1,14 @@
 export function normaliseUsername(value: string): string {
-  return value.trim().toLowerCase();
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9._]+/g, '.')
+    .replace(/^[._]+|[._]+$/g, '')
+    .replace(/[._]{2,}/g, '.')
+    .slice(0, 30)
+    .replace(/[._]+$/g, '');
 }
 
 export function createUsernameCandidate(displayName: string, userId: string): string {

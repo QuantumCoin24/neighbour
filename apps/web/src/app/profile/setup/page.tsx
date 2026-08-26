@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import {
+  ApiClientError,
   getMyProfile,
   resolvePostalLocation,
   updateMyProfile,
@@ -173,9 +174,18 @@ export default function ProfilePage() {
       );
 
       setProfile(updated);
+      setUsername(updated.username);
       setMessage('Profile saved successfully.');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Profile save failed.');
+      if (error instanceof ApiClientError && error.status === 409) {
+        setMessage('That username is already in use. Try another one.');
+      } else if (error instanceof ApiClientError && error.status === 400) {
+        setMessage(
+          'Check your profile details. Usernames use 3–30 letters, numbers, dots or underscores.',
+        );
+      } else {
+        setMessage('Neighbour could not save your profile. Please try again.');
+      }
     } finally {
       setBusy(false);
     }

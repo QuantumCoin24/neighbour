@@ -1,4 +1,4 @@
-import { IsString, Matches, MinLength } from 'class-validator';
+import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class ChangePasswordDto {
   @IsString()
@@ -6,12 +6,10 @@ export class ChangePasswordDto {
   currentPassword!: string;
 
   @IsString()
-  @MinLength(12)
-  @Matches(/[a-z]/, {
-    message: 'password must contain a lowercase letter',
-  })
-  @Matches(/[A-Z]/, {
-    message: 'password must contain an uppercase letter',
+  @MinLength(8, { message: 'password must contain at least 8 characters' })
+  @MaxLength(128)
+  @Matches(/[A-Za-z]/, {
+    message: 'password must contain a letter',
   })
   @Matches(/[0-9]/, {
     message: 'password must contain a number',
