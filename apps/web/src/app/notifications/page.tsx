@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import {
@@ -74,6 +75,8 @@ function formatDate(value: string) {
 }
 
 export default function NotificationsPage() {
+  const router = useRouter();
+
   const [items, setItems] = useState<Notification[]>([]);
 
   const [unread, setUnread] = useState(0);
@@ -249,6 +252,31 @@ export default function NotificationsPage() {
     }
   }
 
+  function notificationDestination(notification: Notification): string {
+    if (notification.type === 'MESSAGE') {
+      return '/messages';
+    }
+
+    if (notification.type === 'CONNECTION' && notification.actor?.username) {
+      return `/profile/${notification.actor.username}`;
+    }
+
+    if (notification.type.includes('COMMUNITY')) {
+      return '/community';
+    }
+
+    if (notification.type.includes('MARKETPLACE')) {
+      return '/marketplace';
+    }
+
+    return '/home';
+  }
+
+  async function openNotification(notification: Notification) {
+    await read(notification.id);
+    router.push(notificationDestination(notification));
+  }
+
   async function dismiss(id: string) {
     const token = localStorage.getItem('accessToken');
 
@@ -383,7 +411,7 @@ export default function NotificationsPage() {
                 <button
                   type="button"
                   className="notification-open"
-                  onClick={() => void read(item.id)}
+                  onClick={() => void openNotification(item)}
                 >
                   <div className="notification-icon">{notificationIcon(item.type)}</div>
 

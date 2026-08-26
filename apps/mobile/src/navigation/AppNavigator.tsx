@@ -21,6 +21,7 @@ import LocalAreaScreen from '../screens/LocalAreaScreen';
 import ConversationScreen from '../screens/ConversationScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MarketplaceScreen from '../screens/MarketplaceScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 import PremiumScreen from '../screens/PremiumScreen';
 import PublicProfileScreen from '../screens/PublicProfileScreen';
 import SearchScreen from '../screens/SearchScreen';
@@ -119,6 +120,8 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.PUBLIC_PROFILE} component={PublicProfileScreen} />
 
             <Stack.Screen name={ROUTES.SEARCH} component={SearchScreen} />
+
+            <Stack.Screen name={ROUTES.NOTIFICATIONS} component={NotificationsScreen} />
 
             <Stack.Screen name={ROUTES.COMMUNITY_DETAIL} component={CommunityDetailScreen} />
 

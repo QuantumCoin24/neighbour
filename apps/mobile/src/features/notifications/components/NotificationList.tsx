@@ -1,6 +1,10 @@
+import type { Notification } from '@neighbour/api-client';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText, Card } from '../../../components';
+import type { RootStackParamList } from '../../../navigation/routes';
 import { useNeighbourTheme } from '../../../theme';
 import { useNotifications } from '../context/notification-context';
 
@@ -9,7 +13,49 @@ import { NotificationEmptyState } from './NotificationEmptyState';
 
 export function NotificationList() {
   const { theme } = useNeighbourTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const notifications = useNotifications();
+
+  async function openNotification(notification: Notification) {
+    await notifications.markRead(notification.id);
+
+    if (notification.type === 'MESSAGE') {
+      navigation.navigate('App', {
+        screen: 'Messages',
+      });
+      return;
+    }
+
+    if (notification.type === 'CONNECTION') {
+      if (notification.actor?.username) {
+        navigation.navigate('PublicProfile', {
+          username: notification.actor.username,
+          userId: notification.actor.id,
+          displayName: notification.actor.displayName,
+        });
+      } else {
+        navigation.navigate('Search');
+      }
+
+      return;
+    }
+
+    if (notification.type.includes('COMMUNITY')) {
+      navigation.navigate('App', {
+        screen: 'Communities',
+      });
+      return;
+    }
+
+    if (notification.type.includes('MARKETPLACE')) {
+      navigation.navigate('Marketplace');
+      return;
+    }
+
+    navigation.navigate('App', {
+      screen: 'Home',
+    });
+  }
 
   if (notifications.loading) {
     return (
@@ -63,7 +109,7 @@ export function NotificationList() {
             void notifications.dismiss(notification.id);
           }}
           onOpen={() => {
-            void notifications.markRead(notification.id);
+            void openNotification(notification);
           }}
         />
       ))}

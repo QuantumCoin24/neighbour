@@ -97,6 +97,7 @@ export type RootStackParamList = {
   };
   LocalArea: undefined;
   Search: undefined;
+  Notifications: undefined;
   Premium: undefined;
 };
 

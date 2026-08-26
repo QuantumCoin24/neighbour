@@ -177,18 +177,65 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           </View>
         </View>
 
-        <View
-          style={[
-            styles.avatar,
-            {
-              backgroundColor: theme.colors.primarySoft,
-              borderRadius: theme.radius.pill,
-            },
-          ]}
-        >
-          <AppText variant="label" tone="brand">
-            {firstName.slice(0, 1).toUpperCase()}
-          </AppText>
+        <View style={styles.topActions}>
+          <Pressable
+            accessibilityLabel={
+              unreadNotifications > 0
+                ? `${unreadNotifications} unread notifications`
+                : 'Notifications'
+            }
+            accessibilityRole="button"
+            onPress={() => {
+              const rootNavigation =
+                navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+
+              rootNavigation?.navigate('Notifications');
+            }}
+            style={({ pressed }) => [
+              styles.notificationButton,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.border,
+                borderRadius: theme.radius.pill,
+                opacity: pressed ? 0.72 : 1,
+              },
+            ]}
+          >
+            <AppText tone="brand" style={styles.notificationBell}>
+              ◇
+            </AppText>
+
+            {unreadNotifications > 0 ? (
+              <View
+                style={[
+                  styles.notificationBadge,
+                  {
+                    backgroundColor: theme.colors.danger,
+                    borderColor: theme.colors.background,
+                    borderRadius: theme.radius.pill,
+                  },
+                ]}
+              >
+                <AppText style={styles.notificationBadgeText}>
+                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                </AppText>
+              </View>
+            ) : null}
+          </Pressable>
+
+          <View
+            style={[
+              styles.avatar,
+              {
+                backgroundColor: theme.colors.primarySoft,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <AppText variant="label" tone="brand">
+              {firstName.slice(0, 1).toUpperCase()}
+            </AppText>
+          </View>
         </View>
       </View>
 
@@ -494,11 +541,50 @@ const styles = StyleSheet.create({
     gap: 2,
   },
 
+  topActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    marginLeft: 12,
+  },
+
+  notificationButton: {
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 48,
+    justifyContent: 'center',
+    position: 'relative',
+    width: 48,
+  },
+
+  notificationBell: {
+    fontSize: 23,
+    lineHeight: 27,
+  },
+
+  notificationBadge: {
+    alignItems: 'center',
+    borderWidth: 2,
+    justifyContent: 'center',
+    minHeight: 20,
+    minWidth: 20,
+    paddingHorizontal: 4,
+    position: 'absolute',
+    right: -3,
+    top: -4,
+  },
+
+  notificationBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
+    lineHeight: 11,
+  },
+
   avatar: {
     alignItems: 'center',
     height: 48,
     justifyContent: 'center',
-    marginLeft: 12,
     width: 48,
   },
 
