@@ -295,8 +295,7 @@ export default function MapsScreen() {
               items={map.filteredItems}
               onSelectItem={map.selectItem}
               origin={map.origin}
-              selectedItemId={map.selectedItem?.id ?? null}
-              showUserLocation={map.locationStatus === 'granted'}
+              radiusKm={map.radiusKm}
             />
           )}
 
