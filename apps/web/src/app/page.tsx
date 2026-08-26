@@ -90,7 +90,7 @@ export default function LandingPage() {
             }}
           >
             <Link
-              href="/home"
+              href="/auth"
               style={{
                 textDecoration: 'none',
                 background: '#0E5B3A',
