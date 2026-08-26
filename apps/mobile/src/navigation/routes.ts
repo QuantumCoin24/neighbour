@@ -96,6 +96,7 @@ export type RootStackParamList = {
     sellerId: string;
   };
   LocalArea: undefined;
+  Search: undefined;
   Premium: undefined;
 };
 

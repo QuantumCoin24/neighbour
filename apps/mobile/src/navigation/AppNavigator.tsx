@@ -23,6 +23,7 @@ import LoginScreen from '../screens/LoginScreen';
 import MarketplaceScreen from '../screens/MarketplaceScreen';
 import PremiumScreen from '../screens/PremiumScreen';
 import PublicProfileScreen from '../screens/PublicProfileScreen';
+import SearchScreen from '../screens/SearchScreen';
 import CreateMarketplaceListingScreen from '../features/marketplace-listings/screens/CreateMarketplaceListingScreen';
 import MarketplaceListingDetailScreen from '../features/marketplace-listings/screens/MarketplaceListingDetailScreen';
 import MarketplaceListingsScreen from '../features/marketplace-listings/screens/MarketplaceListingsScreen';
@@ -116,6 +117,8 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.CONVERSATION} component={ConversationScreen} />
 
             <Stack.Screen name={ROUTES.PUBLIC_PROFILE} component={PublicProfileScreen} />
+
+            <Stack.Screen name={ROUTES.SEARCH} component={SearchScreen} />
 
             <Stack.Screen name={ROUTES.COMMUNITY_DETAIL} component={CommunityDetailScreen} />
 

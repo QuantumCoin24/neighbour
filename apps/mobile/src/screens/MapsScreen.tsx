@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
 import {
   ActivityIndicator,
@@ -19,12 +21,15 @@ import {
   NearbyPlaceCard,
   useNeighbourMapController,
 } from '../features/maps';
+import type { RootStackParamList } from '../navigation/routes';
+import { ROUTES } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
 const RADIUS_OPTIONS = [2, 5, 10, 25, 50];
 
 export default function MapsScreen() {
   const { theme } = useNeighbourTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const map = useNeighbourMapController();
 
   useEffect(() => {
@@ -93,6 +98,48 @@ export default function MapsScreen() {
           })}
         </View>
       </ScreenHero>
+
+      <Pressable
+        accessibilityLabel="Search Neighbour"
+        accessibilityRole="button"
+        onPress={() => {
+          navigation.navigate(ROUTES.SEARCH);
+        }}
+        style={[
+          styles.searchButton,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+            borderRadius: theme.radius.xl,
+          },
+          theme.shadows.card,
+        ]}
+      >
+        <View
+          style={[
+            styles.searchIcon,
+            {
+              backgroundColor: theme.colors.primarySoft,
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText tone="brand" style={styles.searchIconText}>
+            ⌕
+          </AppText>
+        </View>
+
+        <View style={styles.searchCopy}>
+          <AppText variant="bodyStrong">Search Neighbour</AppText>
+          <AppText variant="caption" tone="secondary">
+            Find people, communities, events and local activity.
+          </AppText>
+        </View>
+
+        <AppText tone="brand" style={styles.searchArrow}>
+          ›
+        </AppText>
+      </Pressable>
 
       <View style={styles.filters}>
         <View style={styles.filterInset}>
@@ -357,6 +404,38 @@ const styles = StyleSheet.create({
     minWidth: 62,
     paddingHorizontal: 14,
     paddingVertical: 8,
+  },
+
+  searchButton: {
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    gap: 12,
+    marginHorizontal: 18,
+    marginTop: 14,
+    padding: 14,
+  },
+
+  searchIcon: {
+    alignItems: 'center',
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+
+  searchIconText: {
+    fontSize: 24,
+    lineHeight: 28,
+  },
+
+  searchCopy: {
+    flex: 1,
+    gap: 3,
+  },
+
+  searchArrow: {
+    fontSize: 26,
+    lineHeight: 30,
   },
 
   filters: {
