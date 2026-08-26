@@ -1,5 +1,7 @@
 import {
+  getMyProfile,
   getNearbyGeoItems,
+  resolvePostalLocation,
   type GeoEntityType,
   type GeoPoint,
   type NearbyGeoItem,
@@ -8,11 +10,6 @@ import * as Location from 'expo-location';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { MapLocationStatus, MapPresentationMode } from '../types';
-
-const MANCHESTER_LAUNCH_ORIGIN: GeoPoint = {
-  latitude: 53.4808,
-  longitude: -2.2426,
-};
 
 const DEFAULT_RADIUS_KM = 10;
 
@@ -28,14 +25,14 @@ function locationObjectToPoint(location: Location.LocationObject): GeoPoint {
 export function useNeighbourMapController() {
   const requestSequence = useRef(0);
 
-  const [origin, setOrigin] = useState<GeoPoint>(MANCHESTER_LAUNCH_ORIGIN);
+  const [origin, setOrigin] = useState<GeoPoint | null>(null);
   const [items, setItems] = useState<NearbyGeoItem[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [selectedTypes, setSelectedTypes] = useState<GeoEntityType[]>(ALL_TYPES);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
   const [mode, setMode] = useState<MapPresentationMode>('map');
   const [locationStatus, setLocationStatus] = useState<MapLocationStatus>('checking');
-  const [usingFallbackLocation, setUsingFallbackLocation] = useState(true);
+  const [locationSource, setLocationSource] = useState<'device' | 'profile' | 'none'>('none');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -53,6 +50,13 @@ export function useNeighbourMapController() {
     ) => {
       const point = options.point ?? origin;
       const radius = options.radius ?? radiusKm;
+
+      if (!point) {
+        setItems([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
       const types = options.types ?? selectedTypes;
 
       const requestId = requestSequence.current + 1;
@@ -99,6 +103,67 @@ export function useNeighbourMapController() {
     [origin, radiusKm, selectedTypes],
   );
 
+  const resolveSavedProfileLocation = useCallback(async (): Promise<GeoPoint | null> => {
+    try {
+      const profile = await getMyProfile();
+
+      if (typeof profile.latitude === 'number' && typeof profile.longitude === 'number') {
+        return {
+          latitude: profile.latitude,
+          longitude: profile.longitude,
+        };
+      }
+
+      if (profile.postalCode?.trim()) {
+        const postal = await resolvePostalLocation({
+          countryCode: profile.countryCode?.trim() || 'GB',
+          postalCode: profile.postalCode.trim(),
+        });
+
+        if (
+          postal.resolved &&
+          typeof postal.latitude === 'number' &&
+          typeof postal.longitude === 'number'
+        ) {
+          return {
+            latitude: postal.latitude,
+            longitude: postal.longitude,
+          };
+        }
+      }
+    } catch {
+      // A missing/incomplete profile simply means there is no saved fallback.
+    }
+
+    return null;
+  }, []);
+
+  const applySavedProfileLocation = useCallback(async () => {
+    const point = await resolveSavedProfileLocation();
+
+    if (!point) {
+      setOrigin(null);
+      setLocationSource('none');
+      setItems([]);
+      setLocationStatus('fallback');
+      setLoading(false);
+      return false;
+    }
+
+    setOrigin(point);
+    setLocationSource('profile');
+    setLocationStatus('fallback');
+    setCameraRevision((value) => value + 1);
+
+    await loadNearby({
+      point,
+      radius: radiusKm,
+      types: selectedTypes,
+    });
+
+    return true;
+  }, [loadNearby, radiusKm, resolveSavedProfileLocation, selectedTypes]);
+
   const resolveExistingPermission = useCallback(async () => {
     setLocationStatus('checking');
 
@@ -106,8 +171,11 @@ export function useNeighbourMapController() {
       const permission = await Location.getForegroundPermissionsAsync();
 
       if (permission.status !== 'granted') {
-        setLocationStatus(permission.canAskAgain ? 'fallback' : 'denied');
-        setUsingFallbackLocation(true);
+        const saved = await applySavedProfileLocation();
+
+        if (!saved) {
+          setLocationStatus(permission.canAskAgain ? 'fallback' : 'denied');
+        }
 
         return;
       }
@@ -118,20 +186,22 @@ export function useNeighbourMapController() {
         const point = locationObjectToPoint(lastKnown);
 
         setOrigin(point);
-        setUsingFallbackLocation(false);
+        setLocationSource('device');
         setLocationStatus('granted');
         setCameraRevision((value) => value + 1);
 
         return;
       }
 
-      setLocationStatus('fallback');
-      setUsingFallbackLocation(true);
+      await applySavedProfileLocation();
     } catch {
-      setLocationStatus('unavailable');
-      setUsingFallbackLocation(true);
+      const saved = await applySavedProfileLocation();
+
+      if (!saved) {
+        setLocationStatus('unavailable');
+      }
     }
-  }, []);
+  }, [applySavedProfileLocation]);
 
   const requestLocation = useCallback(async () => {
     setLocating(true);
@@ -142,11 +212,14 @@ export function useNeighbourMapController() {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
 
       if (!servicesEnabled) {
-        setLocationStatus('unavailable');
-        setUsingFallbackLocation(true);
-        setError(
-          'Location Services are switched off. Enable them in device settings to use your current position.',
-        );
+        const saved = await applySavedProfileLocation();
+
+        if (!saved) {
+          setLocationStatus('unavailable');
+          setError(
+            'Location Services are switched off. Enable them or add a postcode to your profile.',
+          );
+        }
 
         return;
       }
@@ -154,8 +227,11 @@ export function useNeighbourMapController() {
       const permission = await Location.requestForegroundPermissionsAsync();
 
       if (permission.status !== 'granted') {
-        setLocationStatus('denied');
-        setUsingFallbackLocation(true);
+        const saved = await applySavedProfileLocation();
+
+        if (!saved) {
+          setLocationStatus('denied');
+        }
 
         return;
       }
@@ -167,7 +243,7 @@ export function useNeighbourMapController() {
       const point = locationObjectToPoint(location);
 
       setOrigin(point);
-      setUsingFallbackLocation(false);
+      setLocationSource('device');
       setLocationStatus('granted');
       setCameraRevision((value) => value + 1);
 
@@ -177,11 +253,14 @@ export function useNeighbourMapController() {
         types: selectedTypes,
       });
     } catch {
-      setLocationStatus('unavailable');
-      setUsingFallbackLocation(true);
-      setError(
-        'Your current location could not be determined. Neighbour Maps will continue using the launch area.',
-      );
+      const saved = await applySavedProfileLocation();
+
+      if (!saved) {
+        setLocationStatus('unavailable');
+        setError(
+          'Your current location could not be determined. Add a postcode to your profile or try again.',
+        );
+      }
     } finally {
       setLocating(false);
     }
@@ -199,7 +278,7 @@ export function useNeighbourMapController() {
         const point = locationObjectToPoint(location);
 
         setOrigin(point);
-        setUsingFallbackLocation(false);
+        setLocationSource('device');
         setCameraRevision((value) => value + 1);
 
         await loadNearby({
@@ -260,24 +339,9 @@ export function useNeighbourMapController() {
     });
   }, [loadNearby]);
 
-  const resetToLaunchArea = useCallback(() => {
-    setOrigin(MANCHESTER_LAUNCH_ORIGIN);
-    setUsingFallbackLocation(true);
-    setLocationStatus('fallback');
-    setCameraRevision((value) => value + 1);
-
-    void loadNearby({
-      point: MANCHESTER_LAUNCH_ORIGIN,
-    });
-  }, [loadNearby]);
-
   useEffect(() => {
     void resolveExistingPermission();
   }, [resolveExistingPermission]);
-
-  useEffect(() => {
-    void loadNearby();
-  }, []);
 
   const filteredItems = useMemo(
     () => items.filter((item) => selectedTypes.includes(item.type)),
@@ -317,7 +381,9 @@ export function useNeighbourMapController() {
     refreshing,
     locating,
     error,
-    usingFallbackLocation,
+    usingFallbackLocation: locationSource === 'profile',
+    locationSource,
+    hasResolvedLocation: origin !== null,
     cameraRevision,
     counts,
 
@@ -332,6 +398,5 @@ export function useNeighbourMapController() {
     recenter,
     refresh,
     retry: loadNearby,
-    resetToLaunchArea,
   };
 }

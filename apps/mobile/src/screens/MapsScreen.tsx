@@ -186,14 +186,14 @@ export default function MapsScreen() {
         </ScrollView>
       </View>
 
-      {map.usingFallbackLocation ? (
+      {map.locationSource === 'profile' ? (
         <Card variant="muted" style={styles.locationCard}>
           <View style={styles.locationCopy}>
-            <AppText variant="bodyStrong">Manchester launch area</AppText>
+            <AppText variant="bodyStrong">Using your saved location</AppText>
 
             <AppText variant="caption" tone="secondary">
-              Nearby results are using the Manchester launch area until you choose to share your
-              location.
+              Nearby is based on the location saved to your profile. Use your current location for
+              live results.
             </AppText>
           </View>
 
@@ -225,6 +225,36 @@ export default function MapsScreen() {
             )}
           </Pressable>
         </Card>
+      ) : map.locationSource === 'none' ? (
+        <Card variant="muted" style={styles.locationCard}>
+          <View style={styles.locationCopy}>
+            <AppText variant="bodyStrong">Location not set</AppText>
+
+            <AppText variant="caption" tone="secondary">
+              Enable location or add a postcode to your profile to discover what is nearby.
+            </AppText>
+          </View>
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={map.locating}
+            onPress={() => {
+              void map.requestLocation();
+            }}
+            style={[
+              styles.locationButton,
+              {
+                backgroundColor: theme.colors.primary,
+                borderRadius: theme.radius.pill,
+                opacity: map.locating ? 0.55 : 1,
+              },
+            ]}
+          >
+            <AppText variant="label" tone="inverse">
+              Use my location
+            </AppText>
+          </Pressable>
+        </Card>
       ) : null}
 
       {map.error ? (
@@ -241,7 +271,7 @@ export default function MapsScreen() {
         </View>
       ) : null}
 
-      {map.mode === 'map' ? (
+      {map.mode === 'map' && map.origin ? (
         <View
           style={[
             styles.mapContainer,
@@ -297,7 +327,7 @@ export default function MapsScreen() {
             )}
           </Pressable>
         </View>
-      ) : (
+      ) : map.mode === 'list' && map.origin ? (
         <ScrollView
           contentContainerStyle={styles.list}
           refreshControl={
@@ -347,6 +377,11 @@ export default function MapsScreen() {
             ))
           )}
         </ScrollView>
+      ) : (
+        <View style={styles.noLocation}>
+          <AppText variant="subheading">Set your location to explore Nearby</AppText>
+          <AppText tone="secondary">Neighbour will never assume a city for you.</AppText>
+        </View>
       )}
 
       {map.selectedItem ? (
@@ -514,6 +549,13 @@ const styles = StyleSheet.create({
   recenterIcon: {
     fontSize: 23,
     lineHeight: 27,
+  },
+
+  noLocation: {
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 64,
   },
 
   list: {

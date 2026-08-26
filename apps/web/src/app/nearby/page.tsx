@@ -3,17 +3,14 @@
 import Link from 'next/link';
 
 import {
+  getMyProfile,
   getNearbyGeoItems,
+  resolvePostalLocation,
   type GeoEntityType,
   type GeoPoint,
   type NearbyGeoItem,
 } from '@neighbour/api-client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-const MANCHESTER: GeoPoint = {
-  latitude: 53.4808,
-  longitude: -2.2426,
-};
 
 const RADII = [2, 5, 10, 25, 50];
 
@@ -100,19 +97,25 @@ function osmTiles(origin: GeoPoint, radiusKm: number) {
 export default function NearbyPage() {
   const sequence = useRef(0);
 
-  const [origin, setOrigin] = useState<GeoPoint>(MANCHESTER);
+  const [origin, setOrigin] = useState<GeoPoint | null>(null);
   const [items, setItems] = useState<NearbyGeoItem[]>([]);
   const [types, setTypes] = useState<GeoEntityType[]>(ALL_TYPES);
   const [radiusKm, setRadiusKm] = useState(10);
   const [mode, setMode] = useState<Mode>('map');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [fallback, setFallback] = useState(true);
+  const [locationSource, setLocationSource] = useState<'device' | 'profile' | 'none'>('none');
   const [loading, setLoading] = useState(true);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(
-    async (point: GeoPoint = origin, radius = radiusKm, selectedTypes = types) => {
+    async (point: GeoPoint | null = origin, radius = radiusKm, selectedTypes = types) => {
+      if (!point) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
       const requestId = ++sequence.current;
 
       setLoading(true);
@@ -149,15 +152,68 @@ export default function NearbyPage() {
   );
 
   useEffect(() => {
-    void load(MANCHESTER, 10, ALL_TYPES);
-    // Initial parity load intentionally uses the Manchester launch area.
+    async function resolveSavedLocation() {
+      const token = localStorage.getItem('accessToken');
+
+      if (!token) {
+        setLocationSource('none');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const profile = await getMyProfile(token);
+
+        let point: GeoPoint | null =
+          typeof profile.latitude === 'number' && typeof profile.longitude === 'number'
+            ? {
+                latitude: profile.latitude,
+                longitude: profile.longitude,
+              }
+            : null;
+
+        if (!point && profile.postalCode?.trim()) {
+          const postal = await resolvePostalLocation({
+            countryCode: profile.countryCode?.trim() || 'GB',
+            postalCode: profile.postalCode.trim(),
+          });
+
+          if (
+            postal.resolved &&
+            typeof postal.latitude === 'number' &&
+            typeof postal.longitude === 'number'
+          ) {
+            point = {
+              latitude: postal.latitude,
+              longitude: postal.longitude,
+            };
+          }
+        }
+
+        if (!point) {
+          setLocationSource('none');
+          setLoading(false);
+          return;
+        }
+
+        setOrigin(point);
+        setLocationSource('profile');
+        await load(point, 10, ALL_TYPES);
+      } catch {
+        setLocationSource('none');
+        setLoading(false);
+      }
+    }
+
+    void resolveSavedLocation();
+    // Initial Nearby resolution is scoped to the signed-in user's saved location.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setError(
-        'Location is not available in this browser. Neighbour Maps will continue using the Manchester launch area.',
+        'Location is not available in this browser. Add a postcode to your profile or use a device with location access.',
       );
       return;
     }
@@ -173,17 +229,18 @@ export default function NearbyPage() {
         };
 
         setOrigin(point);
-        setFallback(false);
+        setLocationSource('device');
         setLocating(false);
         setSelectedId(null);
 
         void load(point, radiusKm, types);
       },
       () => {
-        setFallback(true);
         setLocating(false);
         setError(
-          'Your current location could not be determined. Neighbour Maps will continue using the Manchester launch area.',
+          locationSource === 'profile'
+            ? 'Your current location could not be determined. Your saved profile location is still being used.'
+            : 'Your current location could not be determined. Add a postcode to your profile or try again.',
         );
       },
       {
@@ -192,7 +249,7 @@ export default function NearbyPage() {
         timeout: 10_000,
       },
     );
-  }, [load, radiusKm, types]);
+  }, [load, locationSource, radiusKm, types]);
 
   const counts = useMemo(() => {
     const result: Record<GeoEntityType, number> = {
@@ -230,9 +287,16 @@ export default function NearbyPage() {
     void load(origin, radius, types);
   };
 
-  const mapData = useMemo(() => osmTiles(origin, radiusKm), [origin, radiusKm]);
+  const mapData = useMemo(() => (origin ? osmTiles(origin, radiusKm) : null), [origin, radiusKm]);
 
   const markerPosition = (item: NearbyGeoItem) => {
+    if (!mapData) {
+      return {
+        left: '50%',
+        top: '50%',
+      };
+    }
+
     const point = worldPixel(item.latitude, item.longitude, mapData.zoom);
 
     const deltaX = point.x - mapData.centre.x;
@@ -312,14 +376,24 @@ export default function NearbyPage() {
         </div>
       </section>
 
-      {fallback ? (
+      {locationSource === 'profile' ? (
         <section className="location-card">
           <div>
-            <strong>Manchester launch area</strong>
+            <strong>Using your saved location</strong>
             <p>
-              Nearby results are using the Manchester launch area until you choose to share your
-              location.
+              Nearby is based on your profile location. Use your current location for live results.
             </p>
+          </div>
+
+          <button disabled={locating} onClick={requestLocation} type="button">
+            {locating ? 'Locating…' : 'Use my location'}
+          </button>
+        </section>
+      ) : locationSource === 'none' ? (
+        <section className="location-card">
+          <div>
+            <strong>Location not set</strong>
+            <p>Enable location or add a postcode to your profile to discover what is nearby.</p>
           </div>
 
           <button disabled={locating} onClick={requestLocation} type="button">
@@ -341,7 +415,7 @@ export default function NearbyPage() {
         </section>
       ) : null}
 
-      {mode === 'map' ? (
+      {mode === 'map' && origin && mapData ? (
         <section className="map-shell">
           {loading ? (
             <div className="loading">
@@ -378,7 +452,9 @@ export default function NearbyPage() {
 
               <div
                 className="origin-marker"
-                title={fallback ? 'Manchester launch area' : 'Your location'}
+                title={
+                  locationSource === 'device' ? 'Your current location' : 'Your saved location'
+                }
               >
                 ⌖
               </div>
@@ -422,7 +498,7 @@ export default function NearbyPage() {
             </>
           )}
         </section>
-      ) : (
+      ) : mode === 'list' && origin ? (
         <section className="list-shell">
           <div className="list-summary">
             <strong>{filtered.length} nearby places</strong>
@@ -478,6 +554,11 @@ export default function NearbyPage() {
               })}
             </div>
           )}
+        </section>
+      ) : (
+        <section className="empty">
+          <strong>Set your location to explore Nearby</strong>
+          <p>Neighbour will never assume a city for you.</p>
         </section>
       )}
 
