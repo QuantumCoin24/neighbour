@@ -1,5 +1,7 @@
 import type { GeoPoint, NearbyGeoItem } from '@neighbour/api-client';
 import { AppleMaps, GoogleMaps } from 'expo-maps';
+import type { ComponentRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { AppText, Card } from '../../../components';
@@ -51,10 +53,43 @@ export function NativeNeighbourMap({
 }: NativeNeighbourMapProps) {
   const { theme, isDark } = useNeighbourTheme();
 
+  const appleMapRef = useRef<ComponentRef<typeof AppleMaps.View>>(null);
+
   const cameraPosition = {
-    coordinates: origin,
+    coordinates: {
+      latitude: origin.latitude,
+      longitude: origin.longitude,
+    },
     zoom: 12,
   };
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+
+    /*
+     * expo-maps treats cameraPosition as the INITIAL viewport.
+     *
+     * Nearby resolves location asynchronously, so force MapKit onto the
+     * resolved user position once the native Apple Maps view has mounted.
+     * This prevents the MapKit surface from remaining mounted with an
+     * uninitialised/blank viewport.
+     */
+    const timer = setTimeout(() => {
+      appleMapRef.current?.setCameraPosition({
+        coordinates: {
+          latitude: origin.latitude,
+          longitude: origin.longitude,
+        },
+        zoom: 12,
+      });
+    }, 250);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [cameraRevision, origin.latitude, origin.longitude]);
 
   if (Platform.OS === 'ios') {
     const markers: AppleMaps.Marker[] = items.map((item) => ({
@@ -77,7 +112,8 @@ export function NativeNeighbourMap({
 
     return (
       <AppleMaps.View
-        key={`apple-map-${cameraRevision}`}
+        ref={appleMapRef}
+        key={`apple-map-${cameraRevision}-${origin.latitude}-${origin.longitude}`}
         cameraPosition={cameraPosition}
         colorScheme={isDark ? AppleMaps.MapColorScheme.DARK : AppleMaps.MapColorScheme.LIGHT}
         markers={markers}
@@ -161,7 +197,11 @@ export function NativeNeighbourMap({
 
 const styles = StyleSheet.create({
   map: {
-    flex: 1,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   unsupported: {
     flex: 1,
