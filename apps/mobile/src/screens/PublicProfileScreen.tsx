@@ -1,4 +1,5 @@
 import {
+  acceptConnection,
   getPublicProfile,
   getRelationshipStatus,
   sendConnectionRequest,
@@ -71,7 +72,11 @@ export default function PublicProfileScreen({ route }: Props) {
     setConnecting(true);
 
     try {
-      await sendConnectionRequest(token, profile.userId);
+      if (relationship?.status === 'INCOMING_REQUEST' && relationship.connectionId) {
+        await acceptConnection(token, relationship.connectionId);
+      } else {
+        await sendConnectionRequest(token, profile.userId);
+      }
 
       setRelationship(await getRelationshipStatus(token, profile.userId));
     } catch (caughtError) {
@@ -114,7 +119,9 @@ export default function PublicProfileScreen({ route }: Props) {
       : relationship?.status === 'OUTGOING_REQUEST'
         ? 'Request sent'
         : relationship?.status === 'INCOMING_REQUEST'
-          ? 'Request received'
+          ? connecting
+            ? 'Accepting…'
+            : 'Accept request'
           : relationship?.status === 'BLOCKED_BY_ME'
             ? 'Blocked'
             : relationship?.status === 'BLOCKED_ME'

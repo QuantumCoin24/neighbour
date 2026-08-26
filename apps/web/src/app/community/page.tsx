@@ -136,9 +136,15 @@ export default function CommunityPage() {
           <p>Find the people, places and conversations that make your local area feel connected.</p>
         </div>
 
-        <Link href="/my-community" className="communities-my-button">
-          My communities
-        </Link>
+        <div className="communities-header-actions">
+          <Link href="/community/create" className="communities-create-button">
+            Create community
+          </Link>
+
+          <Link href="/my-community" className="communities-my-button">
+            My communities
+          </Link>
+        </div>
       </header>
 
       <section className="communities-search-panel">
@@ -294,6 +300,23 @@ export default function CommunityPage() {
           color: #75827c;
           font-size: 14px;
           line-height: 1.55;
+        }
+
+        .communities-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .communities-create-button {
+          padding: 12px 17px;
+          border: 1px solid #0a6945;
+          border-radius: 13px;
+          background: #0a6945;
+          color: #fff;
+          text-decoration: none;
+          font-size: 12px;
+          font-weight: 850;
         }
 
         .communities-my-button {

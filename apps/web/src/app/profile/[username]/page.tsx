@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  acceptConnection,
   blockSocialGraphUser,
   createConversation,
   getPostsByProfile,
@@ -66,7 +67,11 @@ export default function PublicProfilePage({
     try {
       setConnecting(true);
 
-      await sendConnectionRequest(token, profile.userId);
+      if (relationship?.status === 'INCOMING_REQUEST' && relationship.connectionId) {
+        await acceptConnection(token, relationship.connectionId);
+      } else {
+        await sendConnectionRequest(token, profile.userId);
+      }
 
       const updated = await getRelationshipStatus(token, profile.userId);
 
@@ -130,9 +135,13 @@ export default function PublicProfilePage({
       ? 'Connected'
       : relationship?.status === 'OUTGOING_REQUEST'
         ? 'Request sent'
-        : connecting
-          ? 'Sending…'
-          : 'Add Neighbour';
+        : relationship?.status === 'INCOMING_REQUEST'
+          ? connecting
+            ? 'Accepting…'
+            : 'Accept request'
+          : connecting
+            ? 'Sending…'
+            : 'Add Neighbour';
 
   return (
     <main className="public-profile">
