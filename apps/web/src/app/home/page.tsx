@@ -11,7 +11,6 @@ import { getNeighbourContext, type NeighbourContext } from '../../lib/neighbour-
 
 import { getCommunityActivity, type CommunityActivityData } from '../../lib/community-activity';
 
-import NeighbourHeader from '../../components/dashboard/NeighbourHeader';
 import ProfileSummary from '../../components/dashboard/ProfileSummary';
 import CommunityPulse from '../../components/dashboard/CommunityPulse';
 import CommunityIdentity from '../../components/dashboard/CommunityIdentity';
@@ -850,8 +849,43 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="home-hero">
-        <NeighbourHeader name={user.displayName} area={profile?.localArea ?? null} />
+      <section className="home-hero home-identity-hero">
+        <div className="home-identity-avatar" aria-hidden="true">
+          {user.displayName
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part.charAt(0).toUpperCase())
+            .join('') || 'N'}
+        </div>
+
+        <div className="home-identity-copy">
+          <div className="home-identity-kicker">YOUR NEIGHBOUR™</div>
+
+          <div className="home-identity-name-row">
+            <h2>{user.displayName}</h2>
+
+            <span className="home-identity-live">
+              <span />
+              Local
+            </span>
+          </div>
+
+          <p>
+            <span>⌖</span>
+            {profile?.localArea ?? context?.neighbourhoodName ?? 'Your local area'}
+          </p>
+        </div>
+
+        <div className="home-identity-community">
+          <small>CONNECTED COMMUNITY</small>
+          <strong>{context?.communityName ?? 'Your community'}</strong>
+          <span>
+            {context?.communityMemberCount
+              ? `${context.communityMemberCount.toLocaleString()} local neighbours`
+              : 'Your local Neighbour™ network'}
+          </span>
+        </div>
       </section>
 
       <section className="home-social-shell">
@@ -916,15 +950,6 @@ export default function HomePage() {
         </aside>
 
         <div className="home-main-column">
-          <div className="home-section-heading">
-            <div>
-              <span>Your neighbourhood</span>
-              <p>Latest conversations, updates and moments from around you.</p>
-            </div>
-
-            <Link href="/community">View all</Link>
-          </div>
-
           <FeedPreview token={token} communitySlug={context?.communitySlug ?? undefined} />
 
           <div className="home-social-pulse">
@@ -2143,6 +2168,428 @@ export default function HomePage() {
           .home-local-nav a,
           .home-action {
             transition: none !important;
+          }
+        }
+      `}</style>
+
+      <style jsx global>{`
+        /*
+         * BUILD 97D — PREMIUM VISUAL POLISH
+         */
+
+        .home-page {
+          width: min(100% - 52px, 1580px) !important;
+        }
+
+        /*
+         * Feed becomes the dominant desktop surface.
+         */
+        .home-social-shell {
+          grid-template-columns:
+            198px
+            minmax(0, 1fr)
+            238px !important;
+          gap: 18px !important;
+        }
+
+        /*
+         * Identity hero — no second time-based greeting.
+         */
+        .home-identity-hero {
+          position: relative !important;
+          overflow: hidden !important;
+          display: grid !important;
+          grid-template-columns: auto minmax(0, 1fr) auto !important;
+          align-items: center !important;
+          gap: 17px !important;
+          min-height: 104px !important;
+          box-sizing: border-box !important;
+          padding: 21px 24px !important;
+          border: 1px solid rgba(255, 255, 255, 0.07) !important;
+          border-radius: 24px !important;
+          background:
+            radial-gradient(circle at 86% -25%, rgba(72, 181, 132, 0.23), transparent 32%),
+            radial-gradient(circle at 4% 120%, rgba(17, 109, 76, 0.31), transparent 34%),
+            linear-gradient(130deg, #082d22 0%, #073e2d 50%, #075339 100%) !important;
+          box-shadow:
+            0 20px 52px rgba(6, 45, 31, 0.14),
+            inset 0 1px rgba(255, 255, 255, 0.04) !important;
+        }
+
+        .home-identity-hero::after {
+          content: '' !important;
+          position: absolute !important;
+          width: 220px !important;
+          height: 220px !important;
+          right: -90px !important;
+          bottom: -150px !important;
+          border: 1px solid rgba(255, 255, 255, 0.07) !important;
+          border-radius: 999px !important;
+          pointer-events: none !important;
+        }
+
+        .home-identity-avatar {
+          width: 60px !important;
+          height: 60px !important;
+          display: grid !important;
+          place-items: center !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          border-radius: 19px !important;
+          background:
+            radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.16), transparent 35%),
+            linear-gradient(145deg, #1d8b62, #0a5f43) !important;
+          color: #ffffff !important;
+          font-size: 18px !important;
+          font-weight: 950 !important;
+          letter-spacing: -0.02em !important;
+          box-shadow:
+            0 12px 26px rgba(0, 0, 0, 0.15),
+            inset 0 1px rgba(255, 255, 255, 0.12) !important;
+        }
+
+        .home-identity-copy {
+          min-width: 0 !important;
+        }
+
+        .home-identity-kicker {
+          margin-bottom: 5px !important;
+          color: rgba(220, 242, 230, 0.64) !important;
+          font-size: 8px !important;
+          font-weight: 900 !important;
+          letter-spacing: 0.16em !important;
+        }
+
+        .home-identity-name-row {
+          display: flex !important;
+          align-items: center !important;
+          flex-wrap: wrap !important;
+          gap: 9px !important;
+        }
+
+        .home-identity-name-row h2 {
+          margin: 0 !important;
+          color: #ffffff !important;
+          font-size: clamp(20px, 2vw, 27px) !important;
+          font-weight: 900 !important;
+          line-height: 1.05 !important;
+          letter-spacing: -0.04em !important;
+        }
+
+        .home-identity-live {
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: 5px !important;
+          padding: 4px 7px !important;
+          border: 1px solid rgba(185, 238, 209, 0.15) !important;
+          border-radius: 999px !important;
+          background: rgba(255, 255, 255, 0.07) !important;
+          color: #c4eed7 !important;
+          font-size: 7px !important;
+          font-weight: 850 !important;
+          letter-spacing: 0.06em !important;
+          text-transform: uppercase !important;
+        }
+
+        .home-identity-live > span {
+          width: 5px !important;
+          height: 5px !important;
+          border-radius: 999px !important;
+          background: #69e29e !important;
+          box-shadow: 0 0 0 3px rgba(105, 226, 158, 0.1) !important;
+        }
+
+        .home-identity-copy > p {
+          display: flex !important;
+          align-items: center !important;
+          gap: 5px !important;
+          margin: 7px 0 0 !important;
+          color: rgba(231, 245, 237, 0.72) !important;
+          font-size: 10px !important;
+          font-weight: 650 !important;
+        }
+
+        .home-identity-copy > p > span {
+          color: #74d59f !important;
+        }
+
+        .home-identity-community {
+          min-width: 175px !important;
+          display: grid !important;
+          gap: 3px !important;
+          padding: 10px 13px !important;
+          border: 1px solid rgba(255, 255, 255, 0.075) !important;
+          border-radius: 15px !important;
+          background: rgba(255, 255, 255, 0.055) !important;
+          backdrop-filter: blur(12px) !important;
+        }
+
+        .home-identity-community small {
+          color: rgba(211, 238, 224, 0.57) !important;
+          font-size: 7px !important;
+          font-weight: 900 !important;
+          letter-spacing: 0.11em !important;
+        }
+
+        .home-identity-community strong {
+          overflow: hidden !important;
+          color: #ffffff !important;
+          font-size: 11px !important;
+          font-weight: 850 !important;
+          text-overflow: ellipsis !important;
+          white-space: nowrap !important;
+        }
+
+        .home-identity-community span {
+          color: rgba(225, 242, 233, 0.66) !important;
+          font-size: 8px !important;
+        }
+
+        /*
+         * Local World rail.
+         */
+        .home-local-rail {
+          gap: 11px !important;
+        }
+
+        .home-local-card {
+          padding: 15px !important;
+          border-radius: 18px !important;
+        }
+
+        .home-local-identity > strong {
+          margin-top: 8px !important;
+          font-size: 14px !important;
+        }
+
+        .home-local-identity > span {
+          font-size: 9px !important;
+        }
+
+        .home-local-status {
+          margin-top: 11px !important;
+          font-size: 8px !important;
+        }
+
+        .home-local-nav {
+          gap: 2px !important;
+          padding: 5px !important;
+          border-radius: 18px !important;
+        }
+
+        .home-local-nav a,
+        .home-local-nav a:visited {
+          gap: 8px !important;
+          min-height: 42px !important;
+          box-sizing: border-box !important;
+          padding: 6px 7px !important;
+          border-radius: 12px !important;
+        }
+
+        .home-local-nav a > span {
+          width: 29px !important;
+          height: 29px !important;
+          flex: 0 0 29px !important;
+          border-radius: 9px !important;
+          font-size: 13px !important;
+        }
+
+        .home-local-nav strong {
+          font-size: 10px !important;
+        }
+
+        .home-local-nav small {
+          font-size: 7px !important;
+        }
+
+        .home-local-events .event-module {
+          padding: 13px !important;
+          border-radius: 17px !important;
+        }
+
+        .home-local-events .event-header h2 {
+          font-size: 13px !important;
+        }
+
+        /*
+         * Community Pulse stays useful but stops competing with feed.
+         */
+        .home-social-pulse {
+          margin-top: 14px !important;
+          opacity: 0.96 !important;
+        }
+
+        .home-social-pulse section,
+        .home-social-pulse article {
+          border-radius: 18px !important;
+          box-shadow: 0 9px 28px rgba(18, 46, 35, 0.035) !important;
+        }
+
+        /*
+         * Right context rail.
+         */
+        .home-right-rail {
+          gap: 11px !important;
+        }
+
+        .home-rail-card {
+          padding: 14px !important;
+          border-radius: 17px !important;
+          box-shadow: 0 9px 28px rgba(19, 45, 34, 0.035) !important;
+        }
+
+        .home-profile-card {
+          padding: 5px !important;
+        }
+
+        .home-rail-label {
+          margin: 12px 12px -2px !important;
+          font-size: 7px !important;
+        }
+
+        .home-profile-link,
+        .home-profile-link:visited {
+          min-height: 36px !important;
+          margin: 2px 7px 7px !important;
+          padding: 0 10px !important;
+          border-radius: 10px !important;
+          font-size: 9px !important;
+        }
+
+        .home-rail-heading {
+          font-size: 14px !important;
+        }
+
+        .home-quick-actions {
+          gap: 3px !important;
+        }
+
+        .home-quick-actions a,
+        .home-quick-actions a:visited {
+          min-height: 44px !important;
+          gap: 8px !important;
+          padding: 5px 6px !important;
+          border-radius: 11px !important;
+        }
+
+        .home-quick-actions > a > span {
+          width: 29px !important;
+          height: 29px !important;
+          flex: 0 0 29px !important;
+          border-radius: 9px !important;
+          font-size: 13px !important;
+        }
+
+        .home-quick-actions strong {
+          font-size: 9px !important;
+        }
+
+        .home-quick-actions small {
+          font-size: 7px !important;
+        }
+
+        .home-rail-note {
+          gap: 9px !important;
+          padding: 12px !important;
+          border-radius: 15px !important;
+        }
+
+        .home-rail-note-mark {
+          width: 30px !important;
+          height: 30px !important;
+          flex: 0 0 30px !important;
+          border-radius: 9px !important;
+        }
+
+        /*
+         * Unified keyboard interaction.
+         */
+        .home-page a:focus-visible,
+        .home-page button:focus-visible {
+          outline: 3px solid rgba(20, 126, 83, 0.24) !important;
+          outline-offset: 3px !important;
+        }
+
+        @media (min-width: 1500px) {
+          .home-social-shell {
+            grid-template-columns:
+              205px
+              minmax(0, 1fr)
+              242px !important;
+            gap: 20px !important;
+          }
+        }
+
+        @media (max-width: 1320px) {
+          .home-social-shell {
+            grid-template-columns:
+              178px
+              minmax(0, 1fr)
+              224px !important;
+            gap: 14px !important;
+          }
+
+          .home-identity-community {
+            min-width: 150px !important;
+          }
+        }
+
+        @media (max-width: 1120px) {
+          .home-social-shell {
+            grid-template-columns:
+              minmax(0, 1fr)
+              250px !important;
+          }
+
+          .home-local-rail {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 1020px) {
+          .home-social-shell {
+            grid-template-columns: 1fr !important;
+          }
+
+          .home-right-rail {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .home-identity-hero {
+            grid-template-columns: auto minmax(0, 1fr) !important;
+          }
+
+          .home-identity-community {
+            grid-column: 1 / -1 !important;
+            min-width: 0 !important;
+          }
+        }
+
+        @media (max-width: 680px) {
+          .home-identity-hero {
+            padding: 17px !important;
+            border-radius: 20px !important;
+          }
+
+          .home-identity-avatar {
+            width: 50px !important;
+            height: 50px !important;
+            border-radius: 16px !important;
+          }
+
+          .home-identity-name-row h2 {
+            font-size: 20px !important;
+          }
+
+          .home-identity-community {
+            grid-column: 1 / -1 !important;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .home-page *,
+          .home-page *::before,
+          .home-page *::after {
+            scroll-behavior: auto !important;
           }
         }
       `}</style>

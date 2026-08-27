@@ -183,7 +183,6 @@ export default function FeedPreview({ token, communitySlug }: Props) {
     <section className="neighbour-feed" aria-label="Neighbourhood feed">
       <header className="neighbour-feed-heading">
         <div>
-          <span className="neighbour-feed-eyebrow">YOUR NEIGHBOURHOOD</span>
           <h2>What&apos;s happening near you</h2>
           <p>Real conversations, recommendations and updates from your local community.</p>
         </div>
@@ -200,8 +199,8 @@ export default function FeedPreview({ token, communitySlug }: Props) {
         </span>
 
         <span className="neighbour-composer-prompt">
-          <strong>Share something with your neighbours</strong>
-          <small>What&apos;s happening near you?</small>
+          <strong>Share something with your neighbours…</strong>
+          <small>Ask, recommend, share or start a local conversation.</small>
         </span>
 
         <span className="neighbour-composer-action">
@@ -887,6 +886,255 @@ export default function FeedPreview({ token, communitySlug }: Props) {
           .neighbour-post-media img,
           .neighbour-composer,
           .neighbour-feed-community-link {
+            transition: none;
+          }
+        }
+      `}</style>
+
+      <style jsx>{`
+        /*
+         * BUILD 97D — PREMIUM FEED POLISH
+         */
+
+        .neighbour-feed-heading {
+          align-items: center;
+          gap: 20px;
+          margin-bottom: 14px;
+          padding: 1px 2px 0;
+        }
+
+        .neighbour-feed-heading h2 {
+          font-size: clamp(25px, 2.5vw, 34px);
+          line-height: 1.03;
+          letter-spacing: -0.047em;
+        }
+
+        .neighbour-feed-heading p {
+          max-width: 650px;
+          margin-top: 6px;
+          font-size: 11px;
+          line-height: 1.5;
+        }
+
+        .neighbour-feed-community-link {
+          padding: 9px 13px;
+          border-color: rgba(16, 87, 62, 0.11);
+          background: #f6faf8;
+          color: #315247;
+          box-shadow: none;
+        }
+
+        /*
+         * Primary social composer.
+         */
+        .neighbour-composer {
+          gap: 14px;
+          min-height: 70px;
+          box-sizing: border-box;
+          padding: 13px 14px;
+          border: 1px solid rgba(13, 92, 64, 0.105);
+          border-radius: 20px;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(21, 139, 91, 0.065), transparent 30%),
+            linear-gradient(135deg, #ffffff, #fbfdfc);
+          box-shadow: 0 14px 38px rgba(18, 48, 36, 0.055);
+        }
+
+        .neighbour-composer:hover {
+          border-color: rgba(7, 112, 72, 0.2);
+          box-shadow: 0 18px 48px rgba(18, 48, 36, 0.085);
+        }
+
+        .neighbour-composer-avatar {
+          width: 44px;
+          height: 44px;
+          flex-basis: 44px;
+          border-radius: 14px;
+        }
+
+        .neighbour-composer-prompt strong {
+          color: #20362c;
+          font-size: 12px;
+        }
+
+        .neighbour-composer-prompt small {
+          margin-top: 4px;
+          color: #88958e;
+          font-size: 8px;
+        }
+
+        .neighbour-composer-action {
+          padding: 10px 14px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #08704a, #07583a);
+          color: #ffffff;
+          font-size: 9px;
+          box-shadow: 0 9px 22px rgba(7, 88, 58, 0.17);
+        }
+
+        /*
+         * Composer shortcuts become pills.
+         */
+        .neighbour-composer-tools {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin: 8px 0 17px;
+          padding: 0;
+          border: 0;
+          border-radius: 0;
+          overflow: visible;
+          background: transparent;
+        }
+
+        .neighbour-composer-tools a {
+          flex: 0 0 auto;
+          gap: 5px;
+          min-height: 31px;
+          box-sizing: border-box;
+          padding: 0 10px;
+          border: 1px solid rgba(15, 82, 58, 0.08);
+          border-radius: 999px;
+          background: #f6faf8;
+          color: #566b60;
+          font-size: 8px;
+          font-weight: 800;
+          box-shadow: 0 4px 12px rgba(22, 53, 41, 0.025);
+        }
+
+        .neighbour-composer-tools a + a {
+          border-left: 1px solid rgba(15, 82, 58, 0.08);
+        }
+
+        .neighbour-composer-tools a:hover {
+          border-color: rgba(8, 112, 74, 0.15);
+          background: #edf7f1;
+          color: #08704a;
+        }
+
+        /*
+         * Strong empty-state CTA.
+         */
+        .neighbour-feed-empty {
+          gap: 18px;
+          padding: 27px;
+          border-color: rgba(19, 76, 54, 0.085);
+          background:
+            radial-gradient(circle at 100% 0%, rgba(19, 134, 89, 0.09), transparent 34%),
+            linear-gradient(145deg, #ffffff, #fbfdfc);
+        }
+
+        .neighbour-feed-empty-mark {
+          width: 52px;
+          height: 52px;
+          border-radius: 17px;
+        }
+
+        .neighbour-feed-empty h3 {
+          font-size: 15px;
+        }
+
+        .neighbour-feed-empty p {
+          max-width: 470px;
+          font-size: 9px;
+        }
+
+        .neighbour-feed-empty > a,
+        .neighbour-feed-empty > a:visited {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 38px;
+          box-sizing: border-box;
+          padding: 0 15px;
+          border: 1px solid #07583a;
+          border-radius: 12px;
+          background: #07583a;
+          color: #ffffff !important;
+          font-size: 9px;
+          font-weight: 900;
+          text-decoration: none;
+          box-shadow: 0 9px 22px rgba(7, 88, 58, 0.16);
+          transition:
+            transform 0.16s ease,
+            background 0.16s ease,
+            box-shadow 0.16s ease;
+        }
+
+        .neighbour-feed-empty > a:hover {
+          transform: translateY(-1px);
+          background: #064b32;
+          box-shadow: 0 12px 27px rgba(7, 88, 58, 0.21);
+        }
+
+        /*
+         * Premium post rhythm.
+         */
+        .neighbour-feed-stream {
+          gap: 16px;
+        }
+
+        .neighbour-post {
+          border-radius: 21px;
+        }
+
+        .neighbour-post-topline {
+          padding: 18px 19px 0;
+        }
+
+        .neighbour-post-content {
+          margin: 15px 19px 16px;
+          font-size: 12px;
+          line-height: 1.67;
+        }
+
+        .neighbour-post-media {
+          margin: 0 13px;
+          border-radius: 17px;
+        }
+
+        /*
+         * Unified accessible interaction.
+         */
+        .neighbour-post-actions a:focus-visible,
+        .neighbour-composer:focus-visible,
+        .neighbour-composer-tools a:focus-visible,
+        .neighbour-feed-empty > a:focus-visible,
+        .neighbour-feed-community-link:focus-visible {
+          outline: 3px solid rgba(20, 126, 83, 0.22);
+          outline-offset: 3px;
+        }
+
+        @media (max-width: 720px) {
+          .neighbour-feed-heading h2 {
+            font-size: 27px;
+          }
+
+          .neighbour-composer {
+            min-height: 64px;
+          }
+
+          .neighbour-composer-action {
+            padding: 9px 10px;
+          }
+
+          .neighbour-composer-tools {
+            gap: 5px;
+          }
+
+          .neighbour-feed-empty {
+            grid-template-columns: auto minmax(0, 1fr);
+          }
+
+          .neighbour-feed-empty > a {
+            grid-column: 1 / -1;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .neighbour-composer,
+          .neighbour-composer-tools a,
+          .neighbour-feed-empty > a {
             transition: none;
           }
         }
