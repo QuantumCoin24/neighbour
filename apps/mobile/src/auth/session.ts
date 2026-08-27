@@ -13,6 +13,24 @@ export interface MobileSession {
 let currentSession: MobileSession | null = null;
 let refreshPromise: Promise<string | null> | null = null;
 
+type SessionInvalidationListener = () => void;
+
+const sessionInvalidationListeners = new Set<SessionInvalidationListener>();
+
+export function subscribeSessionInvalidation(listener: SessionInvalidationListener): () => void {
+  sessionInvalidationListeners.add(listener);
+
+  return () => {
+    sessionInvalidationListeners.delete(listener);
+  };
+}
+
+function notifySessionInvalidated(): void {
+  for (const listener of sessionInvalidationListeners) {
+    listener();
+  }
+}
+
 export function getSession(): MobileSession | null {
   return currentSession;
 }
@@ -48,6 +66,7 @@ export async function refreshSessionAccessToken(): Promise<string | null> {
       return refreshedSession.accessToken;
     } catch {
       await clearSession();
+      notifySessionInvalidated();
 
       return null;
     } finally {

@@ -28,6 +28,7 @@ import {
   loadSession,
   refreshSessionAccessToken,
   saveSession,
+  subscribeSessionInvalidation,
 } from './session';
 
 export type AuthStatus = 'restoring' | 'anonymous' | 'authenticating' | 'authenticated';
@@ -145,6 +146,14 @@ export function AuthProviderContext({ children }: PropsWithChildren) {
   useEffect(() => {
     void restoreSession();
   }, [restoreSession]);
+
+  useEffect(() => {
+    return subscribeSessionInvalidation(() => {
+      setUser(null);
+      setStatus('anonymous');
+      setError('Your session expired. Please sign in again.');
+    });
+  }, []);
 
   const login = useCallback(async (credentials: LoginRequest) => {
     setStatus('authenticating');
