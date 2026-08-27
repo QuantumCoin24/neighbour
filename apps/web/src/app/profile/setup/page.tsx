@@ -10,8 +10,16 @@ import {
   type PrivateProfile,
 } from '@neighbour/api-client';
 
+import { uploadWebMedia, type WebPendingMedia } from '../../../lib/media/upload';
+
 export default function ProfilePage() {
   const [profile, setProfile] = useState<PrivateProfile | null>(null);
+
+  const [avatarUrl, setAvatarUrl] = useState('');
+
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const [avatarMessage, setAvatarMessage] = useState('');
 
   const [username, setUsername] = useState('');
 
@@ -54,6 +62,7 @@ export default function ProfilePage() {
         const current = await getMyProfile(token);
 
         setProfile(current);
+        setAvatarUrl(current.avatarUrl ?? '');
         setUsername(current.username ?? '');
         setLocalArea(current.localArea ?? '');
         setCountryCode(current.countryCode ?? '');
@@ -165,6 +174,7 @@ export default function ProfilePage() {
       const updated = await updateMyProfile(
         {
           username: username.trim(),
+          avatarUrl: avatarUrl.trim() || null,
           ...(localArea.trim() ? { localArea: localArea.trim() } : {}),
           ...structuredLocationInput,
           bio: bio.trim(),
@@ -188,6 +198,87 @@ export default function ProfilePage() {
       }
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function changeProfilePhoto(file: File | null) {
+    const token = localStorage.getItem('accessToken');
+
+    if (!file || !token || uploadingAvatar) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setAvatarMessage('Choose an image file.');
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      setAvatarMessage('Choose an image smaller than 20 MB.');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setAvatarMessage('Uploading profile photo…');
+
+    try {
+      const pending: WebPendingMedia = {
+        localId: `profile-${Date.now()}-${file.name}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      };
+
+      const uploaded = await uploadWebMedia(pending);
+      const url = uploaded.url;
+
+      if (!url) {
+        throw new Error('Uploaded profile photo does not have an asset URL.');
+      }
+
+      const updated = await updateMyProfile(
+        {
+          avatarUrl: url,
+        },
+        token,
+      );
+
+      setProfile(updated);
+      setAvatarUrl(updated.avatarUrl ?? url);
+      setAvatarMessage('Profile photo saved.');
+    } catch (error) {
+      console.error('[Neighbour/WebProfile] profile photo upload failed:', error);
+      setAvatarMessage('Neighbour could not upload your profile photo. Please try again.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
+  async function removeProfilePhoto() {
+    const token = localStorage.getItem('accessToken');
+
+    if (!token || uploadingAvatar) {
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setAvatarMessage('Removing profile photo…');
+
+    try {
+      const updated = await updateMyProfile(
+        {
+          avatarUrl: null,
+        },
+        token,
+      );
+
+      setProfile(updated);
+      setAvatarUrl('');
+      setAvatarMessage('Profile photo removed.');
+    } catch (error) {
+      console.error('[Neighbour/WebProfile] profile photo removal failed:', error);
+      setAvatarMessage('Neighbour could not remove your profile photo. Please try again.');
+    } finally {
+      setUploadingAvatar(false);
     }
   }
 
@@ -219,7 +310,9 @@ export default function ProfilePage() {
       <section className="profile-layout">
         <aside className="profile-preview">
           <div className="profile-preview-top">
-            <div className="profile-avatar">{initials}</div>
+            <div className="profile-avatar">
+              {avatarUrl ? <img src={avatarUrl} alt="Your profile" /> : initials}
+            </div>
 
             <div>
               <div className="profile-preview-label">YOUR PROFILE</div>
@@ -361,6 +454,54 @@ export default function ProfilePage() {
             ) : null}
           </section>
 
+          <section className="profile-photo-editor">
+            <div className="profile-photo-editor-copy">
+              <span>PROFILE PHOTO</span>
+              <h3>Your Neighbour™ photo</h3>
+              <p>
+                This photo is shared across your Neighbour™ account, including the app and website.
+              </p>
+            </div>
+
+            <div className="profile-photo-editor-row">
+              <div className="profile-photo-editor-preview">
+                {avatarUrl ? <img src={avatarUrl} alt="Your profile" /> : initials}
+              </div>
+
+              <div className="profile-photo-editor-actions">
+                <label className="profile-photo-upload">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                    disabled={uploadingAvatar}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      void changeProfilePhoto(file);
+                      event.currentTarget.value = '';
+                    }}
+                  />
+
+                  {uploadingAvatar ? 'Working…' : avatarUrl ? 'Change photo' : 'Choose photo'}
+                </label>
+
+                {avatarUrl ? (
+                  <button
+                    type="button"
+                    className="profile-photo-remove"
+                    disabled={uploadingAvatar}
+                    onClick={() => void removeProfilePhoto()}
+                  >
+                    Remove photo
+                  </button>
+                ) : null}
+
+                {avatarMessage ? (
+                  <div className="profile-photo-message">{avatarMessage}</div>
+                ) : null}
+              </div>
+            </div>
+          </section>
+
           <label className="profile-bio-field">
             <span>About you</span>
 
@@ -407,6 +548,120 @@ export default function ProfilePage() {
       </section>
 
       <style>{`
+        .profile-avatar {
+          overflow: hidden;
+        }
+
+        .profile-avatar img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
+        }
+
+        .profile-photo-editor {
+          padding: 22px;
+          border: 1px solid rgba(15, 23, 42, 0.10);
+          border-radius: 22px;
+          background: rgba(248, 250, 252, 0.78);
+        }
+
+        .profile-photo-editor-copy > span {
+          display: block;
+          margin-bottom: 5px;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          opacity: 0.58;
+        }
+
+        .profile-photo-editor-copy h3 {
+          margin: 0;
+        }
+
+        .profile-photo-editor-copy p {
+          margin: 6px 0 0;
+          opacity: 0.68;
+        }
+
+        .profile-photo-editor-row {
+          display: flex;
+          align-items: center;
+          gap: 18px;
+          margin-top: 18px;
+        }
+
+        .profile-photo-editor-preview {
+          width: 88px;
+          height: 88px;
+          flex: 0 0 88px;
+          display: grid;
+          place-items: center;
+          overflow: hidden;
+          border-radius: 999px;
+          background: #eef2f7;
+          font-size: 24px;
+          font-weight: 800;
+        }
+
+        .profile-photo-editor-preview img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
+        }
+
+        .profile-photo-editor-actions {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .profile-photo-upload {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 42px;
+          padding: 0 16px;
+          border-radius: 12px;
+          background: #111827;
+          color: white;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .profile-photo-upload input {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .profile-photo-remove {
+          min-height: 42px;
+          padding: 0 16px;
+          border: 1px solid rgba(15, 23, 42, 0.14);
+          border-radius: 12px;
+          background: white;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .profile-photo-upload:has(input:disabled),
+        .profile-photo-remove:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+
+        .profile-photo-message {
+          width: 100%;
+          font-size: 13px;
+          opacity: 0.72;
+        }
+
         .profile-page {
           width: min(100% - 48px,1200px);
           margin: 0 auto;
