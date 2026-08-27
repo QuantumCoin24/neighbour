@@ -313,11 +313,28 @@ export default function VibesPage() {
 
   return (
     <main className="vibes-page">
-      <header className="vibes-header">
-        <div>
-          <span className="vibes-eyebrow">NEIGHBOUR™ VIBES</span>
-          <h1>What’s happening now.</h1>
-          <p>Watch real moments, updates and stories from people around you.</p>
+      <section className="vibes-hero">
+        <div className="vibes-hero-glow vibes-hero-glow-one" />
+        <div className="vibes-hero-glow vibes-hero-glow-two" />
+
+        <div className="vibes-hero-copy">
+          <span className="vibes-eyebrow">NEIGHBOUR™ VYBES</span>
+
+          <h1>
+            Your world.
+            <span>Moving.</span>
+          </h1>
+
+          <p>Real moments, local stories and live experiences from people across Neighbour™.</p>
+
+          <div className="vibes-hero-meta">
+            <span>
+              <i className="vibes-meta-dot" />
+              REAL PEOPLE
+            </span>
+            <span>REAL MOMENTS</span>
+            <span>RIGHT NOW</span>
+          </div>
         </div>
 
         <div className="vibes-header-actions">
@@ -355,7 +372,20 @@ export default function VibesPage() {
             ))}
           </div>
         </div>
-      </header>
+      </section>
+
+      <section className="vibes-discovery-heading">
+        <div>
+          <span className="vibes-section-kicker">DISCOVER</span>
+          <h2>What&apos;s happening now.</h2>
+          <p>Your personalised stream of moments from across Neighbour™.</p>
+        </div>
+
+        <div className="vibes-discovery-status">
+          <span className="vibes-discovery-pulse" />
+          VYBES
+        </div>
+      </section>
 
       <section className="vibes-live-discovery">
         <header className="vibes-live-discovery-header">
@@ -397,9 +427,29 @@ export default function VibesPage() {
             ))}
           </div>
         ) : (
-          <p className="vibes-live-empty">
-            {activeLiveLoading ? 'Checking for Live Vibes…' : 'No one is live right now.'}
-          </p>
+          <div className="vibes-live-empty">
+            <div className="vibes-live-empty-icon">
+              <span />
+            </div>
+
+            <div>
+              <strong>
+                {activeLiveLoading ? 'Checking Live Vybes…' : 'The neighbourhood is quiet.'}
+              </strong>
+
+              <p>
+                {activeLiveLoading
+                  ? 'Looking for people broadcasting across Neighbour™.'
+                  : 'When someone goes live, their broadcast will appear here instantly.'}
+              </p>
+            </div>
+
+            {!activeLiveLoading ? (
+              <button type="button" onClick={() => setLiveStudioOpen(true)}>
+                Start a Live Vybe
+              </button>
+            ) : null}
+          </div>
         )}
       </section>
 
@@ -408,9 +458,26 @@ export default function VibesPage() {
       ) : message ? (
         <section className="vibes-state">{message}</section>
       ) : items.length === 0 ? (
-        <section className="vibes-state">
-          <strong>No Vibes yet.</strong>
-          <span>New moments will appear here as your community shares them.</span>
+        <section className="vibes-state vibes-empty-state">
+          <div className="vibes-empty-mark">N</div>
+
+          <span className="vibes-empty-kicker">YOUR VYBES START HERE</span>
+
+          <strong>Nothing here yet. Be the first.</strong>
+
+          <span>
+            Share a moment with Neighbour™ or switch discovery feeds to see what people are posting.
+          </span>
+
+          <div className="vibes-empty-actions">
+            <button type="button" onClick={() => setCreateVibeOpen(true)}>
+              + Create Vibe
+            </button>
+
+            <button className="secondary" type="button" onClick={() => setLiveStudioOpen(true)}>
+              Go Live
+            </button>
+          </div>
         </section>
       ) : (
         <>
@@ -592,6 +659,643 @@ export default function VibesPage() {
       ) : null}
 
       <style>{`
+        .vibes-page {
+          --vybes-ink: #10231b;
+          --vybes-muted: #718078;
+          --vybes-green: #0e754d;
+          --vybes-green-deep: #075637;
+          --vybes-dark: #071a13;
+          --vybes-border: #dce8e2;
+          --vybes-soft: #f5faf7;
+        }
+
+        .vibes-hero {
+          position: relative;
+          min-height: 360px;
+          overflow: hidden;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: end;
+          gap: 44px;
+          margin-bottom: 28px;
+          padding: clamp(34px, 5vw, 64px);
+          border-radius: 34px;
+          background:
+            radial-gradient(circle at 84% 10%, rgba(44, 181, 119, .28), transparent 29%),
+            radial-gradient(circle at 8% 100%, rgba(34, 131, 88, .18), transparent 34%),
+            linear-gradient(135deg, #06120d 0%, #0a2117 55%, #0b2c1e 100%);
+          color: #fff;
+          box-shadow: 0 26px 70px rgba(7, 35, 24, .18);
+        }
+
+        .vibes-hero::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          opacity: .14;
+          background-image:
+            linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+          background-size: 48px 48px;
+          mask-image: linear-gradient(to right, transparent, #000);
+        }
+
+        .vibes-hero-glow {
+          position: absolute;
+          border-radius: 999px;
+          filter: blur(1px);
+          pointer-events: none;
+        }
+
+        .vibes-hero-glow-one {
+          width: 290px;
+          height: 290px;
+          top: -145px;
+          right: 12%;
+          background: rgba(49, 207, 135, .16);
+        }
+
+        .vibes-hero-glow-two {
+          width: 220px;
+          height: 220px;
+          right: -100px;
+          bottom: -110px;
+          background: rgba(255,255,255,.055);
+        }
+
+        .vibes-hero-copy {
+          position: relative;
+          z-index: 2;
+          max-width: 720px;
+        }
+
+        .vibes-hero .vibes-eyebrow {
+          margin-bottom: 14px;
+          color: #69e4a8;
+          font-size: 10px;
+          letter-spacing: .23em;
+        }
+
+        .vibes-hero h1 {
+          max-width: 680px;
+          margin: 0;
+          color: #fff;
+          font-size: clamp(48px, 6.5vw, 86px);
+          font-weight: 950;
+          line-height: .9;
+          letter-spacing: -.065em;
+        }
+
+        .vibes-hero h1 span {
+          display: block;
+          color: #66e0a4;
+        }
+
+        .vibes-hero-copy > p {
+          max-width: 610px;
+          margin: 24px 0 0;
+          color: rgba(255,255,255,.7);
+          font-size: 16px;
+          line-height: 1.7;
+        }
+
+        .vibes-hero-meta {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 9px 18px;
+          margin-top: 28px;
+          color: rgba(255,255,255,.55);
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: .14em;
+        }
+
+        .vibes-hero-meta span {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+        }
+
+        .vibes-meta-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #5be39b;
+          box-shadow: 0 0 0 5px rgba(91,227,155,.1);
+        }
+
+        .vibes-hero .vibes-header-actions {
+          position: relative;
+          z-index: 2;
+          width: min(100%, 390px);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          align-items: stretch;
+          gap: 10px;
+        }
+
+        .vibes-hero .vibes-create-button,
+        .vibes-hero .vibes-go-live {
+          min-height: 54px;
+          border-radius: 17px;
+          font-size: 13px;
+          font-weight: 900;
+          transition:
+            transform .18s ease,
+            background .18s ease,
+            border-color .18s ease;
+        }
+
+        .vibes-hero .vibes-create-button {
+          border: 1px solid rgba(255,255,255,.16);
+          background: #fff;
+          color: #0a4e34;
+          box-shadow: 0 12px 28px rgba(0,0,0,.14);
+        }
+
+        .vibes-hero .vibes-create-button:hover {
+          transform: translateY(-2px);
+          background: #f5fff9;
+        }
+
+        .vibes-hero .vibes-go-live {
+          border: 1px solid rgba(255,91,91,.35);
+          background: linear-gradient(135deg, #ff4e55, #e92f42);
+          color: #fff;
+          box-shadow: 0 12px 28px rgba(222,45,61,.22);
+        }
+
+        .vibes-hero .vibes-go-live:hover {
+          transform: translateY(-2px);
+        }
+
+        .vibes-hero .vibes-mode-tabs {
+          grid-column: 1 / -1;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 4px;
+          margin-top: 4px;
+          padding: 5px;
+          border: 1px solid rgba(255,255,255,.11);
+          border-radius: 17px;
+          background: rgba(255,255,255,.07);
+          backdrop-filter: blur(18px);
+        }
+
+        .vibes-hero .vibes-mode-tabs button {
+          min-height: 40px;
+          border: 0;
+          border-radius: 12px;
+          background: transparent;
+          color: rgba(255,255,255,.62);
+          font-size: 11px;
+          font-weight: 850;
+        }
+
+        .vibes-hero .vibes-mode-tabs button:hover {
+          color: #fff;
+          background: rgba(255,255,255,.07);
+        }
+
+        .vibes-hero .vibes-mode-tabs button.active {
+          background: rgba(255,255,255,.14);
+          color: #fff;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+        }
+
+        .vibes-discovery-heading {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 24px;
+          margin: 36px 2px 16px;
+        }
+
+        .vibes-section-kicker {
+          display: block;
+          margin-bottom: 6px;
+          color: var(--vybes-green);
+          font-size: 9px;
+          font-weight: 950;
+          letter-spacing: .2em;
+        }
+
+        .vibes-discovery-heading h2 {
+          margin: 0;
+          color: var(--vybes-ink);
+          font-size: clamp(24px, 2.5vw, 34px);
+          line-height: 1.05;
+          letter-spacing: -.04em;
+        }
+
+        .vibes-discovery-heading p {
+          margin: 7px 0 0;
+          color: var(--vybes-muted);
+          font-size: 13px;
+        }
+
+        .vibes-discovery-status {
+          flex: 0 0 auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 9px 12px;
+          border: 1px solid var(--vybes-border);
+          border-radius: 999px;
+          background: #fff;
+          color: #315245;
+          font-size: 9px;
+          font-weight: 950;
+          letter-spacing: .14em;
+        }
+
+        .vibes-discovery-pulse {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #20a46d;
+          box-shadow: 0 0 0 5px rgba(32,164,109,.09);
+        }
+
+        .vibes-live-discovery {
+          overflow: hidden;
+          margin-bottom: 30px;
+          border: 1px solid var(--vybes-border);
+          border-radius: 26px;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(19,126,81,.08), transparent 30%),
+            linear-gradient(145deg, #fff, #f8fbf9);
+          box-shadow: 0 14px 40px rgba(15,50,35,.055);
+        }
+
+        .vibes-live-discovery-header {
+          padding: 20px 22px;
+          border-bottom: 1px solid #e7efeb;
+        }
+
+        .vibes-live-discovery-header > div > span {
+          color: #e83e4d;
+          font-size: 9px;
+          font-weight: 950;
+          letter-spacing: .18em;
+        }
+
+        .vibes-live-discovery-header > div > strong {
+          margin-top: 3px;
+          color: var(--vybes-ink);
+          font-size: 18px;
+          letter-spacing: -.02em;
+        }
+
+        .vibes-live-discovery-header > button {
+          min-height: 36px;
+          padding: 0 13px;
+          border: 1px solid #dce7e1;
+          border-radius: 11px;
+          background: #fff;
+          color: #3d5b4e;
+          font-size: 10px;
+          font-weight: 850;
+        }
+
+        .vibes-live-empty {
+          min-height: 142px;
+          display: grid;
+          grid-template-columns: auto minmax(0,1fr) auto;
+          align-items: center;
+          gap: 18px;
+          margin: 0;
+          padding: 24px;
+          color: inherit;
+        }
+
+        .vibes-live-empty-icon {
+          width: 54px;
+          height: 54px;
+          display: grid;
+          place-items: center;
+          border-radius: 18px;
+          background: #fff0f1;
+        }
+
+        .vibes-live-empty-icon span {
+          width: 13px;
+          height: 13px;
+          border-radius: 50%;
+          background: #ef4655;
+          box-shadow:
+            0 0 0 6px rgba(239,70,85,.12),
+            0 0 0 12px rgba(239,70,85,.055);
+        }
+
+        .vibes-live-empty strong {
+          display: block;
+          color: var(--vybes-ink);
+          font-size: 15px;
+        }
+
+        .vibes-live-empty p {
+          margin: 5px 0 0;
+          color: var(--vybes-muted);
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .vibes-live-empty > button {
+          min-height: 42px;
+          padding: 0 16px;
+          border: 0;
+          border-radius: 13px;
+          background: #10231b;
+          color: #fff;
+          font-size: 11px;
+          font-weight: 900;
+        }
+
+        .vibes-grid {
+          gap: 20px;
+        }
+
+        .vibe-card {
+          overflow: hidden;
+          border: 1px solid #dfe9e4;
+          border-radius: 26px;
+          background: #fff;
+          box-shadow: 0 14px 42px rgba(15,50,35,.07);
+          transition:
+            transform .2s ease,
+            box-shadow .2s ease,
+            border-color .2s ease;
+        }
+
+        .vibe-card:hover {
+          transform: translateY(-4px);
+          border-color: #c9ddd2;
+          box-shadow: 0 22px 54px rgba(15,50,35,.12);
+        }
+
+        .vibe-media-wrap {
+          aspect-ratio: 4 / 5;
+          background: var(--vybes-dark);
+        }
+
+        .vibe-media {
+          transition: transform .4s ease;
+        }
+
+        .vibe-card:hover .vibe-media {
+          transform: scale(1.018);
+        }
+
+        .vibe-media-gradient {
+          background:
+            linear-gradient(to bottom, rgba(0,0,0,.38), transparent 32%),
+            linear-gradient(to top, rgba(0,0,0,.82), transparent 48%);
+        }
+
+        .vibe-avatar {
+          border-color: rgba(255,255,255,.42);
+          box-shadow: 0 5px 16px rgba(0,0,0,.16);
+        }
+
+        .vibe-save {
+          backdrop-filter: blur(14px);
+        }
+
+        .vibe-body {
+          padding: 17px 18px 18px;
+        }
+
+        .vibe-caption {
+          color: #243a30;
+          font-size: 13px;
+          line-height: 1.55;
+        }
+
+        .vibe-stats {
+          padding-top: 13px;
+          border-top: 1px solid #eef3f0;
+          color: #849188;
+          font-size: 9px;
+          font-weight: 800;
+        }
+
+        .vibe-actions {
+          margin-top: 13px;
+        }
+
+        .vibe-reactions {
+          gap: 5px;
+        }
+
+        .vibe-reactions button {
+          width: 34px;
+          height: 34px;
+          border-radius: 11px;
+          transition:
+            transform .15s ease,
+            background .15s ease;
+        }
+
+        .vibe-reactions button:hover {
+          transform: translateY(-2px);
+        }
+
+        .vibe-comment-button {
+          min-height: 34px;
+          border-radius: 11px;
+          font-weight: 850;
+        }
+
+        .vibes-state {
+          min-height: 300px;
+          border: 1px solid var(--vybes-border);
+          border-radius: 28px;
+          background:
+            radial-gradient(circle at 50% 0%, rgba(18,128,82,.08), transparent 34%),
+            #fff;
+          box-shadow: 0 16px 44px rgba(15,50,35,.055);
+        }
+
+        .vibes-empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 54px 30px;
+          text-align: center;
+        }
+
+        .vibes-empty-mark {
+          width: 64px;
+          height: 64px;
+          display: grid;
+          place-items: center;
+          margin-bottom: 8px;
+          border-radius: 21px;
+          background: linear-gradient(145deg, #0e754d, #075637);
+          color: #fff;
+          font-size: 23px;
+          font-weight: 950;
+          box-shadow: 0 12px 30px rgba(14,117,77,.22);
+        }
+
+        .vibes-empty-kicker {
+          color: var(--vybes-green) !important;
+          font-size: 9px !important;
+          font-weight: 950 !important;
+          letter-spacing: .18em;
+        }
+
+        .vibes-empty-state strong {
+          color: var(--vybes-ink);
+          font-size: 22px;
+          letter-spacing: -.025em;
+        }
+
+        .vibes-empty-state > span:last-of-type {
+          max-width: 520px;
+          color: var(--vybes-muted);
+          font-size: 13px;
+          line-height: 1.6;
+        }
+
+        .vibes-empty-actions {
+          display: flex;
+          gap: 9px;
+          margin-top: 12px;
+        }
+
+        .vibes-empty-actions button {
+          min-height: 44px;
+          padding: 0 18px;
+          border: 0;
+          border-radius: 13px;
+          background: var(--vybes-green);
+          color: #fff;
+          font-size: 11px;
+          font-weight: 900;
+        }
+
+        .vibes-empty-actions button.secondary {
+          border: 1px solid #d9e5df;
+          background: #fff;
+          color: #23483a;
+        }
+
+        .vibes-load-more button {
+          min-height: 46px;
+          padding: 0 20px;
+          border-radius: 14px;
+          background: #10231b;
+          color: #fff;
+          font-weight: 850;
+          box-shadow: 0 10px 26px rgba(16,35,27,.12);
+        }
+
+        .vibes-create-overlay {
+          backdrop-filter: blur(9px);
+          background: rgba(5,18,12,.58);
+        }
+
+        .vibes-create-modal {
+          overflow: hidden;
+          border: 1px solid rgba(255,255,255,.5);
+          border-radius: 26px;
+          box-shadow: 0 30px 90px rgba(0,0,0,.26);
+        }
+
+        .vibes-create-modal header {
+          background:
+            radial-gradient(circle at 100% 0%, rgba(39,159,105,.12), transparent 38%),
+            #fff;
+        }
+
+        .vibes-create-modal header span {
+          color: var(--vybes-green);
+          letter-spacing: .17em;
+        }
+
+        .vibes-create-modal textarea {
+          min-height: 180px;
+          font-size: 15px;
+          line-height: 1.6;
+        }
+
+        .vibes-comments {
+          border-radius: 28px 0 0 28px;
+          box-shadow: -20px 0 70px rgba(0,0,0,.16);
+        }
+
+        @media (max-width: 980px) {
+          .vibes-hero {
+            grid-template-columns: 1fr;
+            align-items: end;
+          }
+
+          .vibes-hero .vibes-header-actions {
+            width: 100%;
+            max-width: 520px;
+          }
+        }
+
+        @media (max-width: 680px) {
+          .vibes-hero {
+            min-height: 0;
+            gap: 30px;
+            padding: 30px 22px;
+            border-radius: 25px;
+          }
+
+          .vibes-hero h1 {
+            font-size: clamp(45px, 16vw, 68px);
+          }
+
+          .vibes-hero-copy > p {
+            font-size: 14px;
+          }
+
+          .vibes-hero-meta {
+            gap: 8px 13px;
+          }
+
+          .vibes-hero .vibes-header-actions {
+            grid-template-columns: 1fr;
+          }
+
+          .vibes-hero .vibes-mode-tabs {
+            grid-column: 1;
+          }
+
+          .vibes-discovery-heading {
+            align-items: flex-start;
+          }
+
+          .vibes-discovery-status {
+            display: none;
+          }
+
+          .vibes-live-empty {
+            grid-template-columns: auto minmax(0,1fr);
+          }
+
+          .vibes-live-empty > button {
+            grid-column: 1 / -1;
+          }
+
+          .vibes-empty-actions {
+            width: 100%;
+            flex-direction: column;
+          }
+
+          .vibes-empty-actions button {
+            width: 100%;
+          }
+        }
+
         .vibes-page {
           width: min(100% - 48px, 1420px);
           margin: 0 auto;
