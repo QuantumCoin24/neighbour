@@ -94,9 +94,7 @@ export default function HomeVybesRail() {
     }).catch(() => undefined);
   }
 
-  if (!loading && (error || items.length === 0)) {
-    return null;
-  }
+  const showEmptyState = !loading && (error || items.length === 0);
 
   return (
     <section className="home-vybes" aria-label="Neighbour Vibes">
@@ -118,6 +116,33 @@ export default function HomeVybesRail() {
           {Array.from({ length: 4 }).map((_, index) => (
             <div className="home-vybe-skeleton" key={index} />
           ))}
+        </div>
+      ) : showEmptyState ? (
+        <div className="home-vybes-empty">
+          <div className="home-vybes-empty-mark" aria-hidden="true">
+            N
+          </div>
+
+          <div className="home-vybes-empty-copy">
+            <span>{error ? 'Vybes are reconnecting' : 'YOUR VYBES START HERE'}</span>
+
+            <strong>
+              {error
+                ? 'Your Vybes feed will be back shortly.'
+                : 'Your Vybes feed is just getting started.'}
+            </strong>
+
+            <p>
+              {error
+                ? 'Explore Vybes while we reconnect your personalised feed.'
+                : 'Discover real moments from across Neighbour™ and see what people are sharing.'}
+            </p>
+          </div>
+
+          <Link className="home-vybes-empty-action" href="/vibes">
+            Explore Vybes
+            <span aria-hidden="true">→</span>
+          </Link>
         </div>
       ) : (
         <div className="home-vybes-rail">
@@ -240,6 +265,88 @@ export default function HomeVybesRail() {
 
         .home-vybes-heading > a:hover {
           color: #0e754d;
+        }
+
+        .home-vybes-empty {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 18px;
+          min-height: 132px;
+          padding: 22px 24px;
+          border: 1px solid #dce8e2;
+          border-radius: 24px;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(14, 117, 77, .09), transparent 34%),
+            linear-gradient(135deg, #ffffff 0%, #f7fbf9 100%);
+          box-shadow: 0 12px 34px rgba(15, 50, 35, .06);
+        }
+
+        .home-vybes-empty-mark {
+          display: grid;
+          place-items: center;
+          width: 58px;
+          height: 58px;
+          border-radius: 19px;
+          background: linear-gradient(145deg, #0e754d, #075c3b);
+          color: #fff;
+          font-size: 22px;
+          font-weight: 950;
+          box-shadow: 0 10px 24px rgba(14, 117, 77, .2);
+        }
+
+        .home-vybes-empty-copy {
+          min-width: 0;
+        }
+
+        .home-vybes-empty-copy > span {
+          display: block;
+          margin-bottom: 5px;
+          color: #0e754d;
+          font-size: 9px;
+          font-weight: 950;
+          letter-spacing: .16em;
+        }
+
+        .home-vybes-empty-copy strong {
+          display: block;
+          color: #10231b;
+          font-size: 17px;
+          line-height: 1.25;
+          letter-spacing: -.015em;
+        }
+
+        .home-vybes-empty-copy p {
+          max-width: 540px;
+          margin: 6px 0 0;
+          color: #718078;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .home-vybes-empty-action {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          min-height: 42px;
+          padding: 0 17px;
+          border-radius: 14px;
+          background: #0e754d;
+          color: #fff;
+          text-decoration: none;
+          white-space: nowrap;
+          font-size: 12px;
+          font-weight: 900;
+          box-shadow: 0 8px 20px rgba(14, 117, 77, .16);
+          transition:
+            transform .18s ease,
+            background .18s ease;
+        }
+
+        .home-vybes-empty-action:hover {
+          transform: translateY(-1px);
+          background: #0a6844;
         }
 
         .home-vybes-rail,
@@ -511,6 +618,32 @@ export default function HomeVybesRail() {
         }
 
         @media (max-width: 720px) {
+          .home-vybes-empty {
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 14px;
+            padding: 18px;
+          }
+
+          .home-vybes-empty-mark {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            font-size: 19px;
+          }
+
+          .home-vybes-empty-copy strong {
+            font-size: 15px;
+          }
+
+          .home-vybes-empty-copy p {
+            font-size: 11px;
+          }
+
+          .home-vybes-empty-action {
+            grid-column: 1 / -1;
+            width: 100%;
+          }
+
           .home-vybes {
             margin-top: 22px;
           }
