@@ -283,21 +283,13 @@ export default function MapsScreen() {
             theme.shadows.card,
           ]}
         >
-          {map.loading ? (
-            <View style={styles.mapLoading}>
-              <ActivityIndicator color={theme.colors.primary} size="large" />
-
-              <AppText tone="secondary">Finding nearby places…</AppText>
-            </View>
-          ) : (
-            <NativeNeighbourMap
-              cameraRevision={map.cameraRevision}
-              items={map.filteredItems}
-              onSelectItem={map.selectItem}
-              origin={map.origin}
-              radiusKm={map.radiusKm}
-            />
-          )}
+          <NativeNeighbourMap
+            cameraRevision={map.cameraRevision}
+            items={map.filteredItems}
+            onSelectItem={map.selectItem}
+            origin={map.origin}
+            radiusKm={map.radiusKm}
+          />
 
           <Pressable
             accessibilityLabel="Recenter map"
@@ -525,13 +517,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 18,
     overflow: 'hidden',
     position: 'relative',
-  },
-
-  mapLoading: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 12,
-    justifyContent: 'center',
   },
 
   recenterButton: {

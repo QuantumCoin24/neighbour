@@ -190,6 +190,12 @@ export function useNeighbourMapController() {
         setLocationStatus('granted');
         setCameraRevision((value) => value + 1);
 
+        await loadNearby({
+          point,
+          radius: radiusKm,
+          types: selectedTypes,
+        });
+
         return;
       }
 
@@ -201,7 +207,7 @@ export function useNeighbourMapController() {
         setLocationStatus('unavailable');
       }
     }
-  }, [applySavedProfileLocation]);
+  }, [applySavedProfileLocation, loadNearby, radiusKm, selectedTypes]);
 
   const requestLocation = useCallback(async () => {
     setLocating(true);
