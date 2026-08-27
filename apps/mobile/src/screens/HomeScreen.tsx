@@ -8,6 +8,7 @@ import { useAuth } from '../auth/auth-context';
 import { AppText, Card, Screen } from '../components';
 import NeighbourMark from '../components/brand/NeighbourMark';
 import { FeedList, useFeedController } from '../features/feed';
+import { useVibesFeed } from '../features/vibes';
 import type { AppTabParamList, RootStackParamList } from '../navigation/routes';
 import { useNeighbourTheme } from '../theme';
 
@@ -82,6 +83,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [error, setError] = useState<string | null>(null);
 
   const feed = useFeedController();
+  const vibes = useVibesFeed('FOR_YOU');
 
   const firstName = user?.displayName?.trim().split(/\s+/)[0] || 'Neighbour';
 
@@ -154,7 +156,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         <RefreshControl
           refreshing={refreshing || feed.refreshing}
           onRefresh={() => {
-            void Promise.all([loadDashboard(true), feed.refresh()]);
+            void Promise.all([loadDashboard(true), feed.refresh(), vibes.refresh()]);
           }}
           tintColor={theme.colors.primary}
         />
@@ -440,15 +442,121 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
       </View>
 
+      {/* VYBES DISCOVERY */}
+
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionHeadingCopy}>
+            <AppText variant="overline" tone="brand">
+              VYBES
+            </AppText>
+
+            <AppText variant="subheading">See what&apos;s happening now.</AppText>
+
+            <AppText variant="caption" tone="secondary">
+              Real moments and stories from across Neighbour™.
+            </AppText>
+          </View>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Explore Vybes"
+            onPress={() => {
+              navigation.navigate('Vibes');
+            }}
+          >
+            <AppText variant="label" tone="brand">
+              Explore
+            </AppText>
+          </Pressable>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open Neighbour Vybes"
+          onPress={() => {
+            navigation.navigate('Vibes');
+          }}
+          style={({ pressed }) => [
+            styles.vybesHero,
+            {
+              backgroundColor: '#071A13',
+              borderRadius: theme.radius.xl,
+              opacity: pressed ? 0.9 : 1,
+            },
+            theme.shadows.subtle,
+          ]}
+        >
+          <View style={styles.vybesGlowPrimary} />
+          <View style={styles.vybesGlowSecondary} />
+
+          <View style={styles.vybesHeroTop}>
+            <View style={styles.vybesHeroHeading}>
+              <AppText variant="overline" tone="inverse" style={styles.vybesEyebrow}>
+                NEIGHBOUR™ VYBES
+              </AppText>
+
+              <AppText tone="inverse" style={styles.vybesTitle}>
+                Your world. Moving.
+              </AppText>
+            </View>
+
+            <View
+              style={[
+                styles.vybesStatus,
+                {
+                  borderRadius: theme.radius.pill,
+                },
+              ]}
+            >
+              <View style={styles.vybesStatusDot} />
+
+              <AppText variant="caption" tone="inverse">
+                VYBES
+              </AppText>
+            </View>
+          </View>
+
+          <AppText tone="inverse" style={styles.vybesDescription}>
+            Discover short-form moments, places and stories from people across Neighbour™.
+          </AppText>
+
+          <View style={styles.vybesFooter}>
+            <AppText variant="caption" tone="inverse" style={styles.vybesFeedStatus}>
+              {vibes.loading
+                ? 'Finding Vybes for you…'
+                : vibes.error
+                  ? 'Vybes are reconnecting — tap to explore'
+                  : vibes.items.length > 0
+                    ? `${vibes.items.length} Vybes ready to explore`
+                    : 'Your Vybes feed is just getting started'}
+            </AppText>
+
+            <View
+              style={[
+                styles.vybesAction,
+                {
+                  borderRadius: theme.radius.pill,
+                },
+              ]}
+            >
+              <AppText variant="label" tone="inverse">
+                Open Vybes →
+              </AppText>
+            </View>
+          </View>
+        </Pressable>
+      </View>
+
       {/* COMMUNITY PULSE */}
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionHeadingCopy}>
-            <AppText variant="subheading">Local activity</AppText>
+            <AppText variant="subheading">Neighbour feed</AppText>
 
             <AppText variant="caption" tone="secondary">
-              Recent posts and updates from around you.
+              Posts, recommendations and updates from across Neighbour™.
             </AppText>
           </View>
 
@@ -470,12 +578,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             <ActivityIndicator color={theme.colors.primary} size="small" />
 
             <AppText variant="caption" tone="secondary">
-              Finding local activity…
+              Opening the Neighbour feed…
             </AppText>
           </View>
         ) : feed.error && feed.posts.length === 0 ? (
           <Card variant="muted" style={styles.feedError}>
-            <AppText variant="bodyStrong">Local activity is reconnecting</AppText>
+            <AppText variant="bodyStrong">The Neighbour feed is reconnecting</AppText>
 
             <AppText variant="caption" tone="secondary">
               Pull down to refresh or try again.
@@ -722,6 +830,99 @@ const styles = StyleSheet.create({
     fontSize: 31,
     fontWeight: '800',
     lineHeight: 36,
+  },
+
+  vybesHero: {
+    gap: 22,
+    minHeight: 260,
+    overflow: 'hidden',
+    padding: 22,
+    position: 'relative',
+  },
+
+  vybesGlowPrimary: {
+    backgroundColor: 'rgba(30, 169, 104, 0.20)',
+    borderRadius: 120,
+    height: 220,
+    position: 'absolute',
+    right: -82,
+    top: -88,
+    width: 220,
+  },
+
+  vybesGlowSecondary: {
+    backgroundColor: 'rgba(255,255,255,0.045)',
+    borderRadius: 90,
+    bottom: -72,
+    height: 180,
+    left: -62,
+    position: 'absolute',
+    width: 180,
+  },
+
+  vybesHeroTop: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 14,
+    justifyContent: 'space-between',
+  },
+
+  vybesHeroHeading: {
+    flex: 1,
+  },
+
+  vybesEyebrow: {
+    letterSpacing: 1.8,
+  },
+
+  vybesTitle: {
+    fontSize: 30,
+    fontWeight: '900',
+    letterSpacing: -0.9,
+    lineHeight: 35,
+    marginTop: 7,
+  },
+
+  vybesStatus: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.11)',
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+
+  vybesStatusDot: {
+    backgroundColor: '#5BE39B',
+    borderRadius: 4,
+    height: 7,
+    width: 7,
+  },
+
+  vybesDescription: {
+    fontSize: 15,
+    lineHeight: 23,
+    maxWidth: 330,
+    opacity: 0.82,
+  },
+
+  vybesFooter: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+    marginTop: 'auto',
+  },
+
+  vybesFeedStatus: {
+    flex: 1,
+    opacity: 0.76,
+  },
+
+  vybesAction: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
 
   feedLoading: {
