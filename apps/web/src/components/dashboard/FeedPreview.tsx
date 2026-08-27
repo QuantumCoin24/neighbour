@@ -3,7 +3,16 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { createPost, getHomeFeed, type Post } from '@neighbour/api-client';
+import {
+  attachMediaToPost,
+  createPost,
+  getHomeFeed,
+  type Post,
+  type PostType,
+} from '@neighbour/api-client';
+
+import MediaPicker from '../media/MediaPicker';
+import { uploadWebMedia, type WebPendingMedia } from '../../lib/media/upload';
 
 type FeedPost = {
   id: string;
@@ -153,6 +162,9 @@ export default function FeedPreview({ token }: Props) {
   const [composerContent, setComposerContent] = useState('');
   const [composerPublishing, setComposerPublishing] = useState(false);
   const [composerError, setComposerError] = useState<string | null>(null);
+  const [composerType, setComposerType] = useState<PostType>('STANDARD');
+  const [composerMedia, setComposerMedia] = useState<WebPendingMedia[]>([]);
+  const [composerUploadProgress, setComposerUploadProgress] = useState(0);
 
   const loadFeed = useCallback(async () => {
     setLoading(true);
@@ -174,21 +186,49 @@ export default function FeedPreview({ token }: Props) {
   async function publishGlobalPost() {
     const content = composerContent.trim();
 
-    if (!content || composerPublishing) {
+    if ((!content && composerMedia.length === 0) || composerPublishing) {
       return;
     }
 
     setComposerPublishing(true);
     setComposerError(null);
+    setComposerUploadProgress(0);
 
     try {
-      await createPost(token, {
+      const created = await createPost(token, {
         content,
+        type: composerType,
         status: 'PUBLISHED',
         visibility: 'PUBLIC',
       });
 
+      if (composerMedia.length > 0) {
+        const uploadedIds: string[] = [];
+
+        for (let index = 0; index < composerMedia.length; index += 1) {
+          const uploaded = await uploadWebMedia(composerMedia[index], (progress) => {
+            const completed = index / composerMedia.length;
+            const current = progress / composerMedia.length;
+
+            setComposerUploadProgress(Math.min(1, completed + current));
+          });
+
+          uploadedIds.push(uploaded.id);
+        }
+
+        if (uploadedIds.length > 0) {
+          await attachMediaToPost(created.id, uploadedIds);
+        }
+      }
+
+      composerMedia.forEach((item) => {
+        URL.revokeObjectURL(item.previewUrl);
+      });
+
       setComposerContent('');
+      setComposerMedia([]);
+      setComposerType('STANDARD');
+      setComposerUploadProgress(0);
       setComposerOpen(false);
 
       await loadFeed();
@@ -197,6 +237,12 @@ export default function FeedPreview({ token }: Props) {
     } finally {
       setComposerPublishing(false);
     }
+  }
+
+  function openComposer(type: PostType = 'STANDARD') {
+    setComposerType(type);
+    setComposerError(null);
+    setComposerOpen(true);
   }
 
   useEffect(() => {
@@ -244,6 +290,20 @@ export default function FeedPreview({ token }: Props) {
 
       {composerOpen ? (
         <section className="neighbour-global-composer" aria-label="Create global Neighbour post">
+          <div className="neighbour-global-composer-mode">
+            <span>
+              {composerType === 'LOCAL_UPDATE'
+                ? '◷ Local update'
+                : composerType === 'RECOMMENDATION'
+                  ? '⌖ Recommendation'
+                  : composerMedia.length > 0
+                    ? '▧ Photo post'
+                    : 'Neighbour post'}
+            </span>
+
+            <small>Public on Neighbour™</small>
+          </div>
+
           <textarea
             autoFocus
             disabled={composerPublishing}
@@ -261,6 +321,29 @@ export default function FeedPreview({ token }: Props) {
               <small>Visible across the global Neighbour feed.</small>
             </div>
           </div>
+
+          <MediaPicker
+            disabled={composerPublishing}
+            items={composerMedia}
+            onChange={setComposerMedia}
+          />
+
+          {composerPublishing && composerMedia.length > 0 ? (
+            <div className="neighbour-global-upload-progress">
+              <div>
+                <strong>Uploading photos</strong>
+                <span>{Math.round(composerUploadProgress * 100)}%</span>
+              </div>
+
+              <div className="neighbour-global-upload-track">
+                <span
+                  style={{
+                    width: `${Math.max(2, composerUploadProgress * 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
 
           {composerError ? (
             <p className="neighbour-global-composer-error">{composerError}</p>
@@ -280,7 +363,9 @@ export default function FeedPreview({ token }: Props) {
             </button>
 
             <button
-              disabled={composerPublishing || !composerContent.trim()}
+              disabled={
+                composerPublishing || (!composerContent.trim() && composerMedia.length === 0)
+              }
               type="button"
               onClick={() => void publishGlobalPost()}
             >
@@ -291,20 +376,27 @@ export default function FeedPreview({ token }: Props) {
       ) : null}
 
       <div className="neighbour-composer-tools" aria-label="Post shortcuts">
-        <Link href="/community">
+        <button
+          type="button"
+          onClick={() => {
+            setComposerType('STANDARD');
+            setComposerError(null);
+            setComposerOpen(true);
+          }}
+        >
           <span aria-hidden="true">▧</span>
           Photo
-        </Link>
+        </button>
 
-        <Link href="/community">
+        <button type="button" onClick={() => openComposer('LOCAL_UPDATE')}>
           <span aria-hidden="true">◷</span>
           Local update
-        </Link>
+        </button>
 
-        <Link href="/community">
+        <button type="button" onClick={() => openComposer('RECOMMENDATION')}>
           <span aria-hidden="true">⌖</span>
           Recommendation
-        </Link>
+        </button>
       </div>
 
       {loading ? (
@@ -589,7 +681,7 @@ export default function FeedPreview({ token }: Props) {
           margin-bottom: 18px;
         }
 
-        .neighbour-composer-tools a {
+        .neighbour-composer-tools button {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -604,11 +696,11 @@ export default function FeedPreview({ token }: Props) {
             color 0.15s ease;
         }
 
-        .neighbour-composer-tools a + a {
+        .neighbour-composer-tools button + button {
           border-left: 1px solid rgba(15, 74, 53, 0.065);
         }
 
-        .neighbour-composer-tools a:hover {
+        .neighbour-composer-tools button:hover {
           background: #f2f8f4;
           color: #08704a;
         }
@@ -944,7 +1036,7 @@ export default function FeedPreview({ token }: Props) {
             display: none;
           }
 
-          .neighbour-composer-tools a {
+          .neighbour-composer-tools button {
             font-size: 8px;
           }
 
@@ -1068,8 +1160,11 @@ export default function FeedPreview({ token }: Props) {
           background: transparent;
         }
 
-        .neighbour-composer-tools a {
+        .neighbour-composer-tools button {
           flex: 0 0 auto;
+          appearance: none;
+          cursor: pointer;
+          font-family: inherit;
           gap: 5px;
           min-height: 31px;
           box-sizing: border-box;
@@ -1083,11 +1178,11 @@ export default function FeedPreview({ token }: Props) {
           box-shadow: 0 4px 12px rgba(22, 53, 41, 0.025);
         }
 
-        .neighbour-composer-tools a + a {
+        .neighbour-composer-tools button + button {
           border-left: 1px solid rgba(15, 82, 58, 0.08);
         }
 
-        .neighbour-composer-tools a:hover {
+        .neighbour-composer-tools button:hover {
           border-color: rgba(8, 112, 74, 0.15);
           background: #edf7f1;
           color: #08704a;
@@ -1179,7 +1274,7 @@ export default function FeedPreview({ token }: Props) {
          */
         .neighbour-post-actions a:focus-visible,
         .neighbour-composer:focus-visible,
-        .neighbour-composer-tools a:focus-visible,
+        .neighbour-composer-tools button:focus-visible,
         .neighbour-feed-empty > a:focus-visible,
         .neighbour-feed-community-link:focus-visible {
           outline: 3px solid rgba(20, 126, 83, 0.22);
@@ -1397,6 +1492,65 @@ export default function FeedPreview({ token }: Props) {
           .neighbour-global-composer-publish {
             transition: none;
           }
+        }
+
+        /*
+         * BUILD 98C — GLOBAL COMPOSER MODES
+         * Photo, Local Update and Recommendation.
+         */
+        .neighbour-global-composer-mode {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 9px 11px;
+          border: 1px solid rgba(13, 92, 64, 0.08);
+          border-radius: 13px;
+          background: #f5faf7;
+        }
+
+        .neighbour-global-composer-mode span {
+          color: #07583a;
+          font-size: 10px;
+          font-weight: 900;
+        }
+
+        .neighbour-global-composer-mode small {
+          color: #708078;
+          font-size: 8px;
+          font-weight: 800;
+        }
+
+        .neighbour-global-upload-progress {
+          display: grid;
+          gap: 7px;
+          padding: 10px 12px;
+          border-radius: 13px;
+          background: #f2f8f4;
+        }
+
+        .neighbour-global-upload-progress > div:first-child {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          color: #365448;
+          font-size: 9px;
+        }
+
+        .neighbour-global-upload-track {
+          height: 6px;
+          overflow: hidden;
+          border-radius: 999px;
+          background: #dce9e1;
+        }
+
+        .neighbour-global-upload-track span {
+          display: block;
+          height: 100%;
+          border-radius: inherit;
+          background: #08704a;
+          transition: width 0.2s ease;
         }
       `}</style>
     </section>
