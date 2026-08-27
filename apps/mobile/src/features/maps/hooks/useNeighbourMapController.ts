@@ -24,6 +24,7 @@ function locationObjectToPoint(location: Location.LocationObject): GeoPoint {
 
 export function useNeighbourMapController() {
   const requestSequence = useRef(0);
+  const initialLocationResolutionStarted = useRef(false);
 
   const [origin, setOrigin] = useState<GeoPoint | null>(null);
   const [items, setItems] = useState<NearbyGeoItem[]>([]);
@@ -346,6 +347,12 @@ export function useNeighbourMapController() {
   }, [loadNearby]);
 
   useEffect(() => {
+    if (initialLocationResolutionStarted.current) {
+      return;
+    }
+
+    initialLocationResolutionStarted.current = true;
+
     void resolveExistingPermission();
   }, [resolveExistingPermission]);
 
