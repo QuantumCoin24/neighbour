@@ -21,6 +21,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import WebLiveStudio from '../../components/vibes/WebLiveStudio';
 import WebLiveViewer from '../../components/vibes/WebLiveViewer';
+import { uploadWebMedia, type WebPendingMedia } from '../../lib/media/upload';
 
 const reactionOptions: VibeReactionType[] = ['LIKE', 'LOVE', 'FIRE', 'LAUGH', 'WOW'];
 
@@ -172,6 +173,10 @@ export default function VibesPage() {
   const [createVibeOpen, setCreateVibeOpen] = useState(false);
   const [createCaption, setCreateCaption] = useState('');
   const [creatingVibe, setCreatingVibe] = useState(false);
+  const [createMedia, setCreateMedia] = useState<WebPendingMedia | null>(null);
+  const [createMediaProgress, setCreateMediaProgress] = useState(0);
+  const [createMediaError, setCreateMediaError] = useState<string | null>(null);
+  const createMediaInputRef = useRef<HTMLInputElement | null>(null);
   const [activeLiveSessions, setActiveLiveSessions] = useState<LiveSession[]>([]);
   const [activeLiveLoading, setActiveLiveLoading] = useState(false);
   const [selectedLiveSession, setSelectedLiveSession] = useState<LiveSession | null>(null);
@@ -283,27 +288,115 @@ export default function VibesPage() {
     void loadActiveLiveSessions();
   }, [loadActiveLiveSessions]);
 
+  function clearCreateMedia(): void {
+    setCreateMedia((current) => {
+      if (current) {
+        URL.revokeObjectURL(current.previewUrl);
+      }
+
+      return null;
+    });
+
+    setCreateMediaProgress(0);
+    setCreateMediaError(null);
+
+    if (createMediaInputRef.current) {
+      createMediaInputRef.current.value = '';
+    }
+  }
+
+  function closeCreateVibe(): void {
+    if (creatingVibe) {
+      return;
+    }
+
+    setCreateVibeOpen(false);
+    setCreateCaption('');
+    clearCreateMedia();
+  }
+
+  function selectCreateMedia(file?: File): void {
+    if (!file) {
+      return;
+    }
+
+    const supportedTypes = new Set([
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/heic',
+      'image/heif',
+    ]);
+
+    if (!supportedTypes.has(file.type.toLowerCase())) {
+      setCreateMediaError('Choose a JPEG, PNG, WebP, HEIC or HEIF image.');
+      return;
+    }
+
+    if (file.size <= 0) {
+      setCreateMediaError('The selected image is empty.');
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      setCreateMediaError('Images must be smaller than 20 MB.');
+      return;
+    }
+
+    setCreateMedia((current) => {
+      if (current) {
+        URL.revokeObjectURL(current.previewUrl);
+      }
+
+      return {
+        localId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      };
+    });
+
+    setCreateMediaProgress(0);
+    setCreateMediaError(null);
+  }
+
   async function publishVibe(): Promise<void> {
     const caption = createCaption.trim();
 
-    if (!caption || creatingVibe) {
+    if ((!caption && !createMedia) || creatingVibe) {
       return;
     }
 
     try {
       setCreatingVibe(true);
+      setCreateMediaError(null);
+
+      let mediaIds: string[] | undefined;
+
+      if (createMedia) {
+        const uploaded = await uploadWebMedia(createMedia, (progress) => {
+          setCreateMediaProgress(progress);
+        });
+
+        mediaIds = [uploaded.id];
+      }
 
       const created = await createVibe({
-        caption,
+        ...(caption ? { caption } : {}),
         visibility: 'PUBLIC',
         status: 'PUBLISHED',
+        ...(mediaIds ? { mediaIds } : {}),
       });
 
       setItems((current) => [created, ...current]);
       setCreateCaption('');
+      clearCreateMedia();
       setCreateVibeOpen(false);
     } catch (cause) {
       console.error('Unable to create Vibe', cause);
+
+      setCreateMediaError(
+        cause instanceof Error ? cause.message : 'Unable to post this Vibe right now.',
+      );
     } finally {
       setCreatingVibe(false);
     }
@@ -590,7 +683,8 @@ export default function VibesPage() {
               <button
                 type="button"
                 disabled={creatingVibe}
-                onClick={() => setCreateVibeOpen(false)}
+                className="vibes-create-close"
+                onClick={closeCreateVibe}
               >
                 ×
               </button>
@@ -604,12 +698,71 @@ export default function VibesPage() {
               onChange={(event) => setCreateCaption(event.target.value)}
             />
 
+            <div className="vibes-create-media">
+              <input
+                ref={createMediaInputRef}
+                className="vibes-create-file-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                disabled={creatingVibe}
+                onChange={(event) => selectCreateMedia(event.target.files?.[0])}
+              />
+
+              {createMedia ? (
+                <div className="vibes-create-preview">
+                  <img src={createMedia.previewUrl} alt="Selected Vibe preview" />
+
+                  <div className="vibes-create-preview-actions">
+                    <span>READY TO SHARE</span>
+
+                    <div>
+                      <button
+                        type="button"
+                        disabled={creatingVibe}
+                        onClick={() => createMediaInputRef.current?.click()}
+                      >
+                        Replace
+                      </button>
+
+                      <button type="button" disabled={creatingVibe} onClick={clearCreateMedia}>
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="vibes-create-add-media"
+                  type="button"
+                  disabled={creatingVibe}
+                  onClick={() => createMediaInputRef.current?.click()}
+                >
+                  <span className="vibes-create-add-icon">+</span>
+
+                  <span>
+                    <strong>Add a picture</strong>
+                    <small>JPEG, PNG, WebP, HEIC or HEIF · Max 20 MB</small>
+                  </span>
+                </button>
+              )}
+
+              {createMediaError ? (
+                <p className="vibes-create-media-error">{createMediaError}</p>
+              ) : null}
+
+              {creatingVibe && createMedia && createMediaProgress > 0 ? (
+                <div className="vibes-create-progress">
+                  <span style={{ width: `${Math.round(createMediaProgress * 100)}%` }} />
+                </div>
+              ) : null}
+            </div>
+
             <footer>
               <span>{createCaption.length}/500</span>
 
               <button
                 type="button"
-                disabled={!createCaption.trim() || creatingVibe}
+                disabled={(!createCaption.trim() && !createMedia) || creatingVibe}
                 onClick={() => void publishVibe()}
               >
                 {creatingVibe ? 'Posting…' : 'Post Vibe'}
@@ -1223,6 +1376,177 @@ export default function VibesPage() {
           min-height: 180px;
           font-size: 15px;
           line-height: 1.6;
+        }
+
+        .vibes-create-modal header {
+          position: relative;
+          padding-right: 72px;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(39,159,105,.18), transparent 38%),
+            linear-gradient(135deg, #071a13, #0b2c1e);
+        }
+
+        .vibes-create-modal header span {
+          color: #66e0a4;
+        }
+
+        .vibes-create-modal header strong {
+          color: #fff;
+        }
+
+        .vibes-create-modal header .vibes-create-close {
+          position: absolute;
+          top: 50%;
+          right: 20px;
+          width: 40px;
+          height: 40px;
+          display: grid;
+          place-items: center;
+          transform: translateY(-50%);
+          margin: 0;
+          padding: 0;
+          border: 1px solid rgba(255,255,255,.14);
+          border-radius: 50%;
+          background: rgba(255,255,255,.08);
+          color: #fff;
+          cursor: pointer;
+          font-size: 25px;
+          line-height: 1;
+        }
+
+        .vibes-create-modal header .vibes-create-close:hover {
+          background: rgba(255,255,255,.15);
+        }
+
+        .vibes-create-file-input {
+          display: none;
+        }
+
+        .vibes-create-media {
+          margin: 0 0 18px;
+        }
+
+        .vibes-create-add-media {
+          width: 100%;
+          min-height: 92px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 16px;
+          border: 1px dashed rgba(102,224,164,.36);
+          border-radius: 17px;
+          background: rgba(102,224,164,.055);
+          color: #fff;
+          cursor: pointer;
+          text-align: left;
+        }
+
+        .vibes-create-add-media:hover {
+          border-color: rgba(102,224,164,.68);
+          background: rgba(102,224,164,.09);
+        }
+
+        .vibes-create-add-icon {
+          width: 46px;
+          height: 46px;
+          flex: 0 0 46px;
+          display: grid;
+          place-items: center;
+          border-radius: 15px;
+          background: #0e754d;
+          color: #fff;
+          font-size: 25px;
+        }
+
+        .vibes-create-add-media > span:last-child {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .vibes-create-add-media strong {
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .vibes-create-add-media small {
+          color: rgba(255,255,255,.5);
+          font-size: 10px;
+        }
+
+        .vibes-create-preview {
+          position: relative;
+          overflow: hidden;
+          min-height: 220px;
+          max-height: 390px;
+          border-radius: 18px;
+          background: #050806;
+        }
+
+        .vibes-create-preview img {
+          width: 100%;
+          max-height: 390px;
+          display: block;
+          object-fit: contain;
+        }
+
+        .vibes-create-preview-actions {
+          position: absolute;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 30px 14px 14px;
+          background: linear-gradient(to top, rgba(0,0,0,.88), transparent);
+        }
+
+        .vibes-create-preview-actions > span {
+          color: rgba(255,255,255,.72);
+          font-size: 9px;
+          font-weight: 950;
+          letter-spacing: .14em;
+        }
+
+        .vibes-create-preview-actions > div {
+          display: flex;
+          gap: 6px;
+        }
+
+        .vibes-create-preview-actions button {
+          min-height: 34px;
+          padding: 0 11px;
+          border: 1px solid rgba(255,255,255,.17);
+          border-radius: 10px;
+          background: rgba(255,255,255,.11);
+          color: #fff;
+          cursor: pointer;
+          font-size: 10px;
+          font-weight: 850;
+        }
+
+        .vibes-create-media-error {
+          margin: 9px 2px 0;
+          color: #ff7d89;
+          font-size: 11px;
+        }
+
+        .vibes-create-progress {
+          overflow: hidden;
+          height: 4px;
+          margin-top: 10px;
+          border-radius: 999px;
+          background: rgba(255,255,255,.08);
+        }
+
+        .vibes-create-progress span {
+          height: 100%;
+          display: block;
+          border-radius: inherit;
+          background: #66e0a4;
+          transition: width .18s ease;
         }
 
         .vibes-comments {
