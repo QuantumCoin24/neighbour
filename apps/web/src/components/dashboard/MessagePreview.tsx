@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { getConversations, type Conversation } from '@neighbour/api-client';
 
@@ -16,6 +17,8 @@ interface Props {
 }
 
 export default function MessagePreview({ token }: Props) {
+  const router = useRouter();
+
   const [messages, setMessages] = useState<Conversation[]>([]);
 
   useEffect(() => {
@@ -134,7 +137,7 @@ export default function MessagePreview({ token }: Props) {
           marginTop: '14px',
         }}
       >
-        <NeighbourButton>View Messages</NeighbourButton>
+        <NeighbourButton onClick={() => router.push('/messages')}>View Messages</NeighbourButton>
       </div>
     </NeighbourCard>
   );

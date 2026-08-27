@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 import { NeighbourBadge, NeighbourButton, NeighbourCard } from '@neighbour/design-system';
 
 interface Props {
@@ -13,6 +15,8 @@ export default function CommunityIdentity({
 
   communityName,
 }: Props) {
+  const router = useRouter();
+
   return (
     <NeighbourCard
       style={{
@@ -88,7 +92,9 @@ export default function CommunityIdentity({
           marginTop: '20px',
         }}
       >
-        <NeighbourButton>Explore Community</NeighbourButton>
+        <NeighbourButton onClick={() => router.push('/community')}>
+          Explore Community
+        </NeighbourButton>
       </div>
     </NeighbourCard>
   );

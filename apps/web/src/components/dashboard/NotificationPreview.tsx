@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { getNotifications, type Notification } from '@neighbour/api-client';
 
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export default function NotificationPreview({ token }: Props) {
+  const router = useRouter();
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -106,7 +109,9 @@ export default function NotificationPreview({ token }: Props) {
           marginTop: '14px',
         }}
       >
-        <NeighbourButton>View Notifications</NeighbourButton>
+        <NeighbourButton onClick={() => router.push('/notifications')}>
+          View Notifications
+        </NeighbourButton>
       </div>
     </NeighbourCard>
   );
