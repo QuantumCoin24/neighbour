@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { getHomeFeed, type Post } from '@neighbour/api-client';
+import { createPost, getHomeFeed, type Post } from '@neighbour/api-client';
 
 type FeedPost = {
   id: string;
@@ -149,6 +149,10 @@ export default function FeedPreview({ token }: Props) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerContent, setComposerContent] = useState('');
+  const [composerPublishing, setComposerPublishing] = useState(false);
+  const [composerError, setComposerError] = useState<string | null>(null);
 
   const loadFeed = useCallback(async () => {
     setLoading(true);
@@ -166,6 +170,34 @@ export default function FeedPreview({ token }: Props) {
       setLoading(false);
     }
   }, []);
+
+  async function publishGlobalPost() {
+    const content = composerContent.trim();
+
+    if (!content || composerPublishing) {
+      return;
+    }
+
+    setComposerPublishing(true);
+    setComposerError(null);
+
+    try {
+      await createPost(token, {
+        content,
+        status: 'PUBLISHED',
+        visibility: 'PUBLIC',
+      });
+
+      setComposerContent('');
+      setComposerOpen(false);
+
+      await loadFeed();
+    } catch (error) {
+      setComposerError(error instanceof Error ? error.message : 'The post could not be published.');
+    } finally {
+      setComposerPublishing(false);
+    }
+  }
 
   useEffect(() => {
     void loadFeed();
@@ -187,21 +219,76 @@ export default function FeedPreview({ token }: Props) {
         </Link>
       </header>
 
-      <Link className="neighbour-composer" href="/community">
+      <button
+        className="neighbour-composer"
+        type="button"
+        onClick={() => {
+          setComposerError(null);
+          setComposerOpen(true);
+        }}
+      >
         <span className="neighbour-composer-avatar" aria-hidden="true">
           N
         </span>
 
         <span className="neighbour-composer-prompt">
-          <strong>Share something with your neighbours…</strong>
-          <small>Ask, recommend, share or start a local conversation.</small>
+          <strong>Share something with Neighbour™…</strong>
+          <small>Ask, recommend, share or start a conversation.</small>
         </span>
 
         <span className="neighbour-composer-action">
           <span aria-hidden="true">＋</span>
           Create post
         </span>
-      </Link>
+      </button>
+
+      {composerOpen ? (
+        <section className="neighbour-global-composer" aria-label="Create global Neighbour post">
+          <textarea
+            autoFocus
+            disabled={composerPublishing}
+            maxLength={10000}
+            onChange={(event) => setComposerContent(event.target.value)}
+            placeholder="What's happening?"
+            value={composerContent}
+          />
+
+          <div className="neighbour-global-composer-scope">
+            <span aria-hidden="true">🌍</span>
+
+            <div>
+              <strong>Public on Neighbour™</strong>
+              <small>Visible across the global Neighbour feed.</small>
+            </div>
+          </div>
+
+          {composerError ? (
+            <p className="neighbour-global-composer-error">{composerError}</p>
+          ) : null}
+
+          <div className="neighbour-global-composer-actions">
+            <button
+              disabled={composerPublishing}
+              type="button"
+              onClick={() => {
+                setComposerContent('');
+                setComposerError(null);
+                setComposerOpen(false);
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              disabled={composerPublishing || !composerContent.trim()}
+              type="button"
+              onClick={() => void publishGlobalPost()}
+            >
+              {composerPublishing ? 'Publishing…' : 'Post globally'}
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <div className="neighbour-composer-tools" aria-label="Post shortcuts">
         <Link href="/community">
@@ -1129,6 +1216,185 @@ export default function FeedPreview({ token }: Props) {
           .neighbour-composer,
           .neighbour-composer-tools a,
           .neighbour-feed-empty > a {
+            transition: none;
+          }
+        }
+
+        /*
+         * BUILD 98B — GLOBAL HOME COMPOSER
+         * Public Neighbour publishing surface.
+         */
+        .neighbour-global-composer {
+          display: grid;
+          gap: 12px;
+          margin-bottom: 8px;
+          padding: 16px;
+          border: 1px solid rgba(13, 92, 64, 0.11);
+          border-radius: 22px;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(21, 139, 91, 0.08), transparent 34%),
+            linear-gradient(145deg, #ffffff, #fbfdfc);
+          box-shadow: 0 16px 42px rgba(18, 48, 36, 0.06);
+        }
+
+        .neighbour-global-composer-top {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+        }
+
+        .neighbour-global-composer-avatar {
+          width: 44px;
+          height: 44px;
+          flex: 0 0 44px;
+          display: grid;
+          place-items: center;
+          border-radius: 15px;
+          background: linear-gradient(145deg, #0c7850, #064c33);
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 950;
+          box-shadow: 0 9px 22px rgba(6, 89, 57, 0.17);
+        }
+
+        .neighbour-global-composer-main {
+          min-width: 0;
+          flex: 1;
+          display: grid;
+          gap: 8px;
+        }
+
+        .neighbour-global-composer-audience {
+          display: inline-flex;
+          width: fit-content;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 8px;
+          border: 1px solid rgba(11, 101, 69, 0.09);
+          border-radius: 999px;
+          background: #f1f8f4;
+          color: #356052;
+          font-size: 8px;
+          font-weight: 850;
+          letter-spacing: 0.01em;
+        }
+
+        .neighbour-global-composer textarea {
+          width: 100%;
+          min-height: 84px;
+          box-sizing: border-box;
+          resize: vertical;
+          padding: 12px 13px;
+          border: 1px solid rgba(20, 75, 55, 0.09);
+          border-radius: 16px;
+          outline: none;
+          background: #f8fbf9;
+          color: #20362c;
+          font: inherit;
+          font-size: 12px;
+          line-height: 1.55;
+          transition:
+            border-color 0.16s ease,
+            background 0.16s ease,
+            box-shadow 0.16s ease;
+        }
+
+        .neighbour-global-composer textarea::placeholder {
+          color: #89978f;
+        }
+
+        .neighbour-global-composer textarea:focus {
+          border-color: rgba(8, 112, 74, 0.28);
+          background: #ffffff;
+          box-shadow: 0 0 0 4px rgba(8, 112, 74, 0.07);
+        }
+
+        .neighbour-global-composer-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .neighbour-global-composer-hint {
+          color: #839189;
+          font-size: 8px;
+          font-weight: 700;
+        }
+
+        .neighbour-global-composer-publish {
+          display: inline-flex;
+          min-height: 36px;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 0 14px;
+          border: 0;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #08704a, #07583a);
+          color: #ffffff;
+          font: inherit;
+          font-size: 9px;
+          font-weight: 900;
+          cursor: pointer;
+          box-shadow: 0 9px 22px rgba(7, 88, 58, 0.17);
+          transition:
+            transform 0.16s ease,
+            box-shadow 0.16s ease,
+            opacity 0.16s ease;
+        }
+
+        .neighbour-global-composer-publish:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 13px 28px rgba(7, 88, 58, 0.22);
+        }
+
+        .neighbour-global-composer-publish:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+
+        .neighbour-global-composer-publish:focus-visible,
+        .neighbour-global-composer textarea:focus-visible {
+          outline: 3px solid rgba(20, 126, 83, 0.22);
+          outline-offset: 3px;
+        }
+
+        .neighbour-global-composer-error {
+          margin: 0;
+          padding: 8px 10px;
+          border-radius: 11px;
+          background: rgba(173, 43, 43, 0.07);
+          color: #9a3030;
+          font-size: 8px;
+          font-weight: 750;
+        }
+
+        @media (max-width: 720px) {
+          .neighbour-global-composer {
+            padding: 13px;
+            border-radius: 19px;
+          }
+
+          .neighbour-global-composer-avatar {
+            width: 40px;
+            height: 40px;
+            flex-basis: 40px;
+          }
+
+          .neighbour-global-composer-footer {
+            align-items: stretch;
+            flex-direction: column;
+          }
+
+          .neighbour-global-composer-publish {
+            width: 100%;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .neighbour-global-composer textarea,
+          .neighbour-global-composer-publish {
             transition: none;
           }
         }
