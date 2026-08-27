@@ -245,6 +245,195 @@ export default function HomePage() {
           margin-bottom: 28px;
         }
 
+        .home-social-shell {
+          display: grid;
+          grid-template-columns: 220px minmax(0, 1fr) 318px;
+          gap: 22px;
+          align-items: start;
+        }
+
+        .home-local-rail {
+          min-width: 0;
+          display: grid;
+          gap: 14px;
+          position: sticky;
+          top: 24px;
+        }
+
+        .home-local-card {
+          box-sizing: border-box;
+          padding: 18px;
+          border: 1px solid rgba(18,48,38,.07);
+          border-radius: 20px;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(15,115,76,.08), transparent 42%),
+            linear-gradient(145deg,#ffffff,#f7faf8);
+          box-shadow: 0 12px 34px rgba(19,45,34,.045);
+        }
+
+        .home-local-kicker,
+        .home-local-section-label {
+          color: #829088;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: .14em;
+        }
+
+        .home-local-identity > strong {
+          display: block;
+          margin-top: 11px;
+          color: #102019;
+          font-size: 17px;
+          line-height: 1.2;
+          letter-spacing: -.025em;
+        }
+
+        .home-local-identity > span {
+          display: block;
+          margin-top: 5px;
+          color: #78857e;
+          font-size: 11px;
+        }
+
+        .home-local-status {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          margin-top: 15px;
+          color: #527064;
+          font-size: 10px;
+          font-weight: 750;
+        }
+
+        .home-live-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 999px;
+          background: #0a8b59;
+          box-shadow: 0 0 0 4px rgba(10,139,89,.10);
+        }
+
+        .home-local-nav {
+          display: grid;
+          gap: 4px;
+          padding: 7px;
+          border: 1px solid rgba(18,48,38,.07);
+          border-radius: 20px;
+          background: #fff;
+          box-shadow: 0 12px 34px rgba(19,45,34,.04);
+        }
+
+        .home-local-nav a {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+          padding: 10px;
+          border-radius: 14px;
+          color: #263b32;
+          text-decoration: none;
+          transition:
+            background .16s ease,
+            transform .16s ease,
+            box-shadow .16s ease;
+        }
+
+        .home-local-nav a:hover {
+          background: #f2f7f4;
+          transform: translateX(2px);
+        }
+
+        .home-local-nav a > span {
+          width: 31px;
+          height: 31px;
+          flex: 0 0 31px;
+          display: grid;
+          place-items: center;
+          border-radius: 10px;
+          background: #edf6f1;
+          color: #08704a;
+          font-size: 14px;
+          font-weight: 850;
+        }
+
+        .home-local-nav strong,
+        .home-local-nav small {
+          display: block;
+        }
+
+        .home-local-nav strong {
+          color: #21372d;
+          font-size: 11px;
+        }
+
+        .home-local-nav small {
+          margin-top: 2px;
+          color: #8b9690;
+          font-size: 8px;
+        }
+
+        .home-local-events {
+          min-width: 0;
+        }
+
+        .home-local-events .home-local-section-label {
+          margin: 0 3px 8px;
+        }
+
+        .home-local-events .event-module {
+          padding: 16px;
+          border-radius: 18px;
+        }
+
+        .home-local-events .event-header h2 {
+          font-size: 15px;
+        }
+
+        .home-local-events .event-header p,
+        .home-local-events .event-header > a {
+          display: none;
+        }
+
+        .home-local-signature {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 9px;
+          color: #63736b;
+        }
+
+        .home-local-signature > span {
+          width: 30px;
+          height: 30px;
+          display: grid;
+          place-items: center;
+          border-radius: 10px;
+          background: #07583a;
+          color: white;
+          font-size: 11px;
+          font-weight: 950;
+        }
+
+        .home-local-signature strong,
+        .home-local-signature small {
+          display: block;
+        }
+
+        .home-local-signature strong {
+          color: #30463b;
+          font-size: 10px;
+        }
+
+        .home-local-signature small {
+          margin-top: 1px;
+          color: #97a09b;
+          font-size: 8px;
+        }
+
+        .home-social-pulse {
+          margin-top: 18px;
+        }
+
         .home-layout {
           display: grid;
           grid-template-columns: minmax(0, 1fr) 340px;
@@ -665,7 +854,67 @@ export default function HomePage() {
         <NeighbourHeader name={user.displayName} area={profile?.localArea ?? null} />
       </section>
 
-      <section className="home-layout">
+      <section className="home-social-shell">
+        <aside className="home-local-rail">
+          <div className="home-local-card home-local-identity">
+            <div className="home-local-kicker">YOUR LOCAL WORLD</div>
+            <strong>{context?.communityName ?? 'Your community'}</strong>
+            <span>{profile?.localArea ?? 'Your local area'}</span>
+
+            <div className="home-local-status">
+              <span className="home-live-dot" />
+              <span>Connected locally</span>
+            </div>
+          </div>
+
+          <nav className="home-local-nav" aria-label="Local discovery">
+            <Link href="/community">
+              <span>⌂</span>
+              <div>
+                <strong>Community</strong>
+                <small>Your neighbourhood</small>
+              </div>
+            </Link>
+
+            <Link href="/nearby">
+              <span>⌖</span>
+              <div>
+                <strong>Nearby</strong>
+                <small>Explore around you</small>
+              </div>
+            </Link>
+
+            <Link href="/marketplace">
+              <span>◇</span>
+              <div>
+                <strong>Marketplace</strong>
+                <small>Buy & sell locally</small>
+              </div>
+            </Link>
+
+            <Link href="/community">
+              <span>◷</span>
+              <div>
+                <strong>Events</strong>
+                <small>What's happening</small>
+              </div>
+            </Link>
+          </nav>
+
+          <div className="home-local-events">
+            <div className="home-local-section-label">AROUND YOU</div>
+            <EventPreview communityId={context?.communityId ?? undefined} />
+          </div>
+
+          <div className="home-local-signature">
+            <span>N</span>
+            <div>
+              <strong>Neighbour™</strong>
+              <small>Closer starts local.</small>
+            </div>
+          </div>
+        </aside>
+
         <div className="home-main-column">
           <div className="home-section-heading">
             <div>
@@ -678,9 +927,7 @@ export default function HomePage() {
 
           <FeedPreview token={token} communitySlug={context?.communitySlug ?? undefined} />
 
-          <div className="home-two-column">
-            <EventPreview communityId={context?.communityId ?? undefined} />
-
+          <div className="home-social-pulse">
             <CommunityPulse area={profile?.localArea ?? null} />
           </div>
 
@@ -1065,6 +1312,40 @@ export default function HomePage() {
         .home-right-rail > div {
           max-width: 100%;
           box-sizing: border-box;
+        }
+
+        @media (min-width: 1500px) {
+          .home-page {
+            width: min(100% - 56px, 1540px);
+          }
+
+          .home-social-shell {
+            grid-template-columns: 230px minmax(0, 1fr) 330px;
+            gap: 24px;
+          }
+        }
+
+        @media (max-width: 1320px) {
+          .home-social-shell {
+            grid-template-columns: 190px minmax(0, 1fr) 292px;
+            gap: 18px;
+          }
+        }
+
+        @media (max-width: 1120px) {
+          .home-social-shell {
+            grid-template-columns: minmax(0, 1fr) 292px;
+          }
+
+          .home-local-rail {
+            display: none;
+          }
+        }
+
+        @media (max-width: 1020px) {
+          .home-social-shell {
+            grid-template-columns: 1fr;
+          }
         }
 
         @media (max-width: 1180px) {
