@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { getCommunityFeed, type Post } from '@neighbour/api-client';
+import { getHomeFeed, type Post } from '@neighbour/api-client';
 
 type FeedPost = {
   id: string;
@@ -46,7 +46,6 @@ type FeedResponse =
 
 type Props = {
   token: string;
-  communitySlug?: string;
 };
 
 function getPosts(response: FeedResponse | null | undefined): FeedPost[] {
@@ -146,32 +145,27 @@ function formatRelativeTime(value?: string | null): string {
   }).format(date);
 }
 
-export default function FeedPreview({ token, communitySlug }: Props) {
+export default function FeedPreview({ token }: Props) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadFeed = useCallback(async () => {
-    if (!communitySlug) {
-      setPosts([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
-      const response = await getCommunityFeed(token, communitySlug);
+      const response = await getHomeFeed({
+        limit: 20,
+      });
 
       setPosts(getPosts(response as FeedResponse));
     } catch {
-      setError('Your neighbourhood feed could not be loaded.');
+      setError('Your Neighbour feed could not be loaded.');
     } finally {
       setLoading(false);
     }
-  }, [token, communitySlug]);
+  }, []);
 
   useEffect(() => {
     void loadFeed();
@@ -180,11 +174,11 @@ export default function FeedPreview({ token, communitySlug }: Props) {
   const visiblePosts = useMemo(() => posts.slice(0, 8), [posts]);
 
   return (
-    <section className="neighbour-feed" aria-label="Neighbourhood feed">
+    <section className="neighbour-feed" aria-label="Neighbour feed">
       <header className="neighbour-feed-heading">
         <div>
-          <h2>What&apos;s happening near you</h2>
-          <p>Real conversations, recommendations and updates from your local community.</p>
+          <h2>What&apos;s happening</h2>
+          <p>Discover conversations, recommendations and updates from across Neighbour.</p>
         </div>
 
         <Link className="neighbour-feed-community-link" href="/community">

@@ -950,7 +950,7 @@ export default function HomePage() {
         </aside>
 
         <div className="home-main-column">
-          <FeedPreview token={token} communitySlug={context?.communitySlug ?? undefined} />
+          <FeedPreview token={token} />
 
           <div className="home-social-pulse">
             <CommunityPulse area={profile?.localArea ?? null} />
