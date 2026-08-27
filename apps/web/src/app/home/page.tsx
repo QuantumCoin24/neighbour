@@ -16,6 +16,7 @@ import CommunityPulse from '../../components/dashboard/CommunityPulse';
 import CommunityIdentity from '../../components/dashboard/CommunityIdentity';
 import CommunityStats from '../../components/dashboard/CommunityStats';
 import FeedPreview from '../../components/dashboard/FeedPreview';
+import HomeVybesRail from '../../components/dashboard/HomeVybesRail';
 import EventPreview from '../../components/dashboard/EventPreview';
 import MessagePreview from '../../components/dashboard/MessagePreview';
 import NotificationPreview from '../../components/dashboard/NotificationPreview';
@@ -951,6 +952,8 @@ export default function HomePage() {
 
         <div className="home-main-column">
           <FeedPreview token={token} />
+
+          <HomeVybesRail />
 
           <div className="home-social-pulse">
             <CommunityPulse area={profile?.localArea ?? null} />
