@@ -4,12 +4,18 @@ import Link from 'next/link';
 
 import { useEffect, useState } from 'react';
 
-import { getBusinessAnalytics, getBusinessDashboard, getMyBusiness } from '@neighbour/api-client';
+import {
+  getBusinessAnalytics,
+  getBusinessDashboard,
+  getMyBusiness,
+  getMyPremiumOverview,
+} from '@neighbour/api-client';
 
 export default function BusinessDashboardPage() {
   const [dashboard, setDashboard] = useState<any>(null);
 
   const [analytics, setAnalytics] = useState<any>(null);
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -51,10 +57,19 @@ export default function BusinessDashboardPage() {
         }
 
         try {
-          const analyticsData = await getBusinessAnalytics(business.id);
+          const premium = await getMyPremiumOverview();
+          const canUseAnalytics = premium.entitlements.businessAnalytics;
 
-          setAnalytics(analyticsData);
+          setAnalyticsEnabled(canUseAnalytics);
+
+          if (canUseAnalytics) {
+            const analyticsData = await getBusinessAnalytics(business.id);
+            setAnalytics(analyticsData);
+          } else {
+            setAnalytics(null);
+          }
         } catch {
+          setAnalyticsEnabled(false);
           setAnalytics(null);
         }
       } catch {
@@ -188,9 +203,17 @@ export default function BusinessDashboardPage() {
 
           <Metric label="Upcoming events" value={events.length} icon="17" />
 
-          <Metric label="Profile views" value={analytics?.profileViews ?? 0} icon="◎" />
+            <Metric
+              label="Profile views"
+              value={analyticsEnabled ? analytics?.profileViews ?? 0 : '—'}
+              icon="◎"
+            />
 
-          <Metric label="Total reach" value={analytics?.totalReach ?? 0} icon="⌖" />
+            <Metric
+              label="Total reach"
+              value={analyticsEnabled ? analytics?.totalReach ?? 0 : '—'}
+              icon="⌖"
+            />
         </div>
       </section>
 
@@ -205,25 +228,34 @@ export default function BusinessDashboardPage() {
               </div>
             </div>
 
-            <div className="engagement-grid">
-              <div>
-                <strong>{analytics?.offerViews ?? 0}</strong>
-
-                <span>Offer views</span>
-              </div>
-
-              <div>
-                <strong>{analytics?.eventViews ?? 0}</strong>
-
-                <span>Event views</span>
-              </div>
-
-              <div>
-                <strong>{analytics?.profileViews ?? 0}</strong>
-
-                <span>Profile views</span>
-              </div>
-            </div>
+              {analyticsEnabled ? (
+                <div className="engagement-grid">
+                  <div>
+                    <strong>{analytics?.offerViews ?? 0}</strong>
+                    <span>Offer views</span>
+                  </div>
+                  <div>
+                    <strong>{analytics?.eventViews ?? 0}</strong>
+                    <span>Event views</span>
+                  </div>
+                  <div>
+                    <strong>{analytics?.profileViews ?? 0}</strong>
+                    <span>Profile views</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="analytics-locked">
+                  <div className="analytics-lock-icon">◇</div>
+                  <div>
+                    <span>NEIGHBOUR BUSINESS</span>
+                    <h3>Unlock business analytics</h3>
+                    <p>
+                      See offer views, event engagement, profile activity and your total local reach.
+                    </p>
+                  </div>
+                  <Link href="/premium">Unlock analytics →</Link>
+                </div>
+              )}
           </div>
 
           <div className="dashboard-panel">
@@ -268,9 +300,16 @@ export default function BusinessDashboardPage() {
           <div className="dashboard-rail-card">
             <span>BUSINESS REACH</span>
 
-            <h3>{analytics?.totalReach ?? 0}</h3>
+              <h3>{analyticsEnabled ? analytics?.totalReach ?? 0 : '—'}</h3>
 
-            <p>Total recorded community activity.</p>
+              <p>
+                {analyticsEnabled
+                  ? 'Total recorded community activity.'
+                  : 'Available with Neighbour Business analytics.'}
+              </p>
+              {!analyticsEnabled ? (
+                <Link href="/premium">View Neighbour Business →</Link>
+              ) : null}
           </div>
         </aside>
       </section>
@@ -280,6 +319,70 @@ export default function BusinessDashboardPage() {
           width: min(100% - 48px,1380px);
           margin: 0 auto;
           padding: 42px 0 90px;
+        }
+
+        .analytics-locked {
+          display: grid;
+          grid-template-columns: auto minmax(0,1fr) auto;
+          align-items: center;
+          gap: 16px;
+          padding: 20px;
+          border: 1px solid #dfe7e2;
+          border-radius: 16px;
+          background: linear-gradient(135deg,#f7faf8,#eef5f1);
+        }
+
+        .analytics-lock-icon {
+          display: grid;
+          width: 42px;
+          height: 42px;
+          place-items: center;
+          border-radius: 13px;
+          background: #102019;
+          color: #8edcb9;
+          font-size: 20px;
+        }
+
+        .analytics-locked span {
+          color: #0a6945;
+          font-size: 8px;
+          font-weight: 850;
+          letter-spacing: .13em;
+        }
+
+        .analytics-locked h3 {
+          margin: 4px 0 0;
+          color: #102019;
+          font-size: 16px;
+        }
+
+        .analytics-locked p {
+          margin: 5px 0 0;
+          color: #75827c;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .analytics-locked > a {
+          padding: 10px 13px;
+          border-radius: 10px;
+          background: #086240;
+          color: #fff;
+          text-decoration: none;
+          white-space: nowrap;
+          font-size: 9px;
+          font-weight: 800;
+        }
+
+        @media (max-width: 760px) {
+          .analytics-locked {
+            grid-template-columns: auto minmax(0,1fr);
+          }
+
+          .analytics-locked > a {
+            grid-column: 1 / -1;
+            justify-self: start;
+          }
         }
 
         .dashboard-header {

@@ -8,6 +8,7 @@ import {
   createBusinessOffer,
   getBusinessOffers,
   getMyBusiness,
+  getMyPremiumOverview,
   type Business,
   type BusinessOffer,
 } from '@neighbour/api-client';
@@ -20,6 +21,10 @@ export default function BusinessOffersPage() {
   const [title, setTitle] = useState('');
 
   const [description, setDescription] = useState('');
+  const [scheduledOffersEnabled, setScheduledOffersEnabled] = useState(false);
+  const [scheduleOffer, setScheduleOffer] = useState(false);
+  const [startsAt, setStartsAt] = useState('');
+  const [endsAt, setEndsAt] = useState('');
 
   const [loading, setLoading] = useState(true);
 
@@ -34,9 +39,13 @@ export default function BusinessOffersPage() {
       setBusiness(current);
 
       if (current) {
-        const result = await getBusinessOffers(current.id);
+        const [result, premium] = await Promise.all([
+          getBusinessOffers(current.id),
+          getMyPremiumOverview().catch(() => null),
+        ]);
 
         setOffers(result);
+        setScheduledOffersEnabled(Boolean(premium?.entitlements.scheduledOffers));
       }
     } catch {
       setMessage('Unable to load business offers.');
@@ -58,15 +67,29 @@ export default function BusinessOffersPage() {
     setMessage('');
 
     try {
+      const scheduling =
+        scheduleOffer && scheduledOffersEnabled
+          ? {
+              ...(startsAt ? { startsAt: new Date(startsAt).toISOString() } : {}),
+              ...(endsAt ? { endsAt: new Date(endsAt).toISOString() } : {}),
+            }
+          : {};
+
       await createBusinessOffer(business.id, {
         title: title.trim(),
         description: description.trim(),
         active: true,
+        ...scheduling,
       });
+
+      const wasScheduled = scheduleOffer && scheduledOffersEnabled;
 
       setTitle('');
       setDescription('');
-      setMessage('Offer created.');
+      setScheduleOffer(false);
+      setStartsAt('');
+      setEndsAt('');
+      setMessage(wasScheduled ? 'Scheduled offer created.' : 'Offer created.');
 
       await load();
     } catch {
@@ -174,6 +197,59 @@ export default function BusinessOffersPage() {
             />
           </label>
 
+          <div className="offer-scheduling">
+            <div className="offer-scheduling-heading">
+              <div>
+                <span>NEIGHBOUR BUSINESS</span>
+                <strong>Schedule this offer</strong>
+              </div>
+
+              {scheduledOffersEnabled ? (
+                <button
+                  type="button"
+                  className={scheduleOffer ? 'schedule-toggle schedule-toggle-on' : 'schedule-toggle'}
+                  onClick={() => setScheduleOffer((current) => !current)}
+                  aria-pressed={scheduleOffer}
+                >
+                  {scheduleOffer ? 'On' : 'Off'}
+                </button>
+              ) : (
+                <span className="schedule-locked">PREMIUM</span>
+              )}
+            </div>
+
+            {scheduledOffersEnabled ? (
+              scheduleOffer ? (
+                <div className="schedule-fields">
+                  <label>
+                    <span>Starts</span>
+                    <input
+                      type="datetime-local"
+                      value={startsAt}
+                      onChange={(event) => setStartsAt(event.target.value)}
+                    />
+                  </label>
+
+                  <label>
+                    <span>Ends</span>
+                    <input
+                      type="datetime-local"
+                      value={endsAt}
+                      onChange={(event) => setEndsAt(event.target.value)}
+                    />
+                  </label>
+                </div>
+              ) : (
+                <p>Turn scheduling on to choose when this offer becomes available.</p>
+              )
+            ) : (
+              <div className="schedule-upgrade">
+                <p>Choose future start and end times with Neighbour Business.</p>
+                <Link href="/premium">Unlock scheduled offers →</Link>
+              </div>
+            )}
+          </div>
+
           <button
             type="button"
             disabled={busy || !title.trim() || !description.trim()}
@@ -222,6 +298,18 @@ export default function BusinessOffersPage() {
 
                   <p>{offer.description}</p>
 
+                  {offer.startsAt || offer.endsAt ? (
+                    <div className="offer-schedule-summary">
+                      {offer.startsAt ? (
+                        <span>Starts {new Date(offer.startsAt).toLocaleString('en-GB')}</span>
+                      ) : null}
+
+                      {offer.endsAt ? (
+                        <span>Ends {new Date(offer.endsAt).toLocaleString('en-GB')}</span>
+                      ) : null}
+                    </div>
+                  ) : null}
+
                   <small>Created {new Date(offer.createdAt).toLocaleDateString('en-GB')}</small>
                 </article>
               ))}
@@ -235,6 +323,132 @@ export default function BusinessOffersPage() {
           width: min(100% - 48px,1250px);
           margin: 0 auto;
           padding: 42px 0 90px;
+        }
+
+        .offer-scheduling {
+          margin: 16px 0;
+          padding: 15px;
+          border: 1px solid #dfe7e2;
+          border-radius: 14px;
+          background: #f7faf8;
+        }
+
+        .offer-scheduling-heading {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .offer-scheduling-heading > div {
+          display: grid;
+          gap: 3px;
+        }
+
+        .offer-scheduling-heading span {
+          color: #0a6945;
+          font-size: 7px;
+          font-weight: 850;
+          letter-spacing: .12em;
+        }
+
+        .offer-scheduling-heading strong {
+          color: #102019;
+          font-size: 12px;
+        }
+
+        .schedule-toggle {
+          min-width: 48px;
+          padding: 7px 10px;
+          border: 0;
+          border-radius: 999px;
+          background: #dfe7e2;
+          color: #53635b;
+          font-size: 8px;
+          font-weight: 850;
+          cursor: pointer;
+        }
+
+        .schedule-toggle-on {
+          background: #086240;
+          color: #fff;
+        }
+
+        .schedule-locked {
+          padding: 6px 8px;
+          border-radius: 999px;
+          background: #102019;
+          color: #8edcb9 !important;
+        }
+
+        .offer-scheduling > p,
+        .schedule-upgrade p {
+          margin: 10px 0 0;
+          color: #75827c;
+          font-size: 9px;
+          line-height: 1.5;
+        }
+
+        .schedule-upgrade a {
+          display: inline-flex;
+          margin-top: 9px;
+          color: #086240;
+          text-decoration: none;
+          font-size: 9px;
+          font-weight: 850;
+        }
+
+        .schedule-fields {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 9px;
+          margin-top: 12px;
+        }
+
+        .schedule-fields label {
+          display: grid;
+          gap: 5px;
+        }
+
+        .schedule-fields label > span {
+          color: #53635b;
+          font-size: 8px;
+          font-weight: 800;
+        }
+
+        .schedule-fields input {
+          width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+          padding: 9px;
+          border: 1px solid #dce4df;
+          border-radius: 9px;
+          background: #fff;
+          color: #102019;
+          font: inherit;
+          font-size: 9px;
+        }
+
+        .offer-schedule-summary {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin: 9px 0;
+        }
+
+        .offer-schedule-summary span {
+          padding: 5px 7px;
+          border-radius: 7px;
+          background: #eef5f1;
+          color: #426052;
+          font-size: 8px;
+          font-weight: 700;
+        }
+
+        @media (max-width: 640px) {
+          .schedule-fields {
+            grid-template-columns: 1fr;
+          }
         }
 
         .offers-header {
