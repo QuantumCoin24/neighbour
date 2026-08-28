@@ -59,10 +59,10 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
             Neighbour Marketplace™
           </AppText>
 
-          <AppText variant="title">Buy, sell & give locally</AppText>
+          <AppText variant="title">Your neighbourhood marketplace.</AppText>
 
           <AppText variant="caption" tone="secondary">
-            Discover useful things from people in your community.
+            Local people. Local things. Less waste.
           </AppText>
         </View>
       </View>
@@ -330,10 +330,85 @@ export default function MarketplaceListingsScreen({ navigation }: Props) {
         </>
       ) : (
         <Card variant="muted" style={styles.empty}>
-          <AppText variant="subheading">Nothing here yet</AppText>
+          <View
+            style={[
+              styles.emptyMark,
+              {
+                backgroundColor: theme.colors.primary,
+                borderRadius: theme.radius.lg,
+              },
+            ]}
+          >
+            <AppText variant="title" tone="inverse">
+              N
+            </AppText>
+          </View>
 
-          <AppText tone="secondary">
-            Try another search, change your filters or list something for your neighbours.
+          <AppText variant="overline" tone="brand">
+            YOUR LOCAL MARKETPLACE STARTS HERE
+          </AppText>
+
+          <AppText variant="title">
+            {listings.query.trim() || listings.category || listings.freeOnly
+              ? 'Nothing matches just yet.'
+              : 'Be the first.'}
+          </AppText>
+
+          <AppText tone="secondary" style={styles.emptyCopy}>
+            {listings.query.trim() || listings.category || listings.freeOnly
+              ? 'Try another search or change your filters to discover more nearby.'
+              : 'Sell something you no longer need, give something away to a neighbour and help build your local marketplace.'}
+          </AppText>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              navigation.navigate('CreateMarketplaceListing');
+            }}
+            style={[
+              styles.emptyAction,
+              {
+                backgroundColor: theme.colors.primary,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <AppText variant="label" tone="inverse">
+              + Create first listing
+            </AppText>
+          </Pressable>
+
+          <View style={styles.emptyPrinciples}>
+            <View style={styles.emptyPrinciple}>
+              <AppText variant="label" tone="brand">
+                SELL
+              </AppText>
+              <AppText variant="caption" tone="secondary">
+                Make space.
+              </AppText>
+            </View>
+
+            <View style={styles.emptyPrinciple}>
+              <AppText variant="label" tone="brand">
+                GIVE
+              </AppText>
+              <AppText variant="caption" tone="secondary">
+                Pass it on.
+              </AppText>
+            </View>
+
+            <View style={styles.emptyPrinciple}>
+              <AppText variant="label" tone="brand">
+                DISCOVER
+              </AppText>
+              <AppText variant="caption" tone="secondary">
+                Find nearby.
+              </AppText>
+            </View>
+          </View>
+
+          <AppText variant="caption" tone="muted">
+            Stronger together. Local forever.™
           </AppText>
         </Card>
       )}
@@ -421,6 +496,33 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 3,
   },
+  emptyMark: {
+    alignItems: 'center',
+    height: 58,
+    justifyContent: 'center',
+    marginBottom: 4,
+    width: 58,
+  },
+  emptyCopy: {
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  emptyAction: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+    paddingHorizontal: 20,
+  },
+  emptyPrinciples: {
+    flexDirection: 'row',
+    gap: 8,
+    width: '100%',
+  },
+  emptyPrinciple: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 3,
+  },
   errorCard: {
     gap: 8,
   },
@@ -443,6 +545,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   empty: {
-    gap: 8,
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 22,
+    paddingVertical: 30,
   },
 });

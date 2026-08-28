@@ -38,10 +38,11 @@ export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps
           Neighbour Marketplace™
         </AppText>
 
-        <AppText variant="title">Discover local businesses</AppText>
+        <AppText variant="title">Buy, sell & give locally</AppText>
 
         <AppText variant="bodyLarge" tone="secondary">
-          Find trusted businesses, offers and events connected to your communities.
+          Your neighbourhood marketplace for useful things, trusted local businesses, offers and
+          events.
         </AppText>
       </View>
 
@@ -86,15 +87,15 @@ export default function MarketplaceScreen({ navigation }: MarketplaceScreenProps
           ]}
         >
           <AppText variant="subheading" tone="inverse">
-            Community Listings
+            Buy · Sell · Give
           </AppText>
 
           <AppText variant="caption" tone="inverse">
-            Buy, sell, give away and discover local items.
+            Discover local items or put something useful back into circulation.
           </AppText>
 
           <AppText variant="label" tone="inverse">
-            Open Listings ›
+            Open Local Marketplace ›
           </AppText>
         </Pressable>
 
