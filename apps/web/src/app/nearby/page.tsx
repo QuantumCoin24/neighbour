@@ -271,14 +271,13 @@ export default function NearbyPage() {
   const selected = filtered.find((item) => item.id === selectedId) ?? null;
 
   const toggleType = (type: GeoEntityType) => {
-    const next = types.includes(type) ? types.filter((item) => item !== type) : [...types, type];
+    const isSingleActive = types.length === 1 && types[0] === type;
+    const next = isSingleActive ? ALL_TYPES : [type];
 
-    const safeNext = next.length ? next : [type];
-
-    setTypes(safeNext);
+    setTypes(next);
     setSelectedId(null);
 
-    void load(origin, radiusKm, safeNext);
+    void load(origin, radiusKm, next);
   };
 
   const changeRadius = (radius: number) => {
@@ -471,7 +470,14 @@ export default function NearbyPage() {
                         ? `marker marker-${item.type.toLowerCase()} selected`
                         : `marker marker-${item.type.toLowerCase()}`
                     }
-                    onClick={() => setSelectedId(item.id)}
+                    onClick={() => {
+                      if (item.type === 'EVENT') {
+                        window.location.assign(`/events/${item.id}`);
+                        return;
+                      }
+
+                      setSelectedId(item.id);
+                    }}
                     style={position}
                     title={`${item.title} — ${item.distanceKm.toFixed(1)} km`}
                     type="button"
@@ -527,11 +533,24 @@ export default function NearbyPage() {
                 return (
                   <button
                     key={`${item.type}-${item.id}`}
-                    className={selectedId === item.id ? 'place-card selected' : 'place-card'}
-                    onClick={() => setSelectedId(item.id)}
+                    className={
+                      selectedId === item.id
+                        ? `place-card place-card-${item.type.toLowerCase()} selected`
+                        : `place-card place-card-${item.type.toLowerCase()}`
+                    }
+                    onClick={() => {
+                      if (item.type === 'EVENT') {
+                        window.location.assign(`/events/${item.id}`);
+                        return;
+                      }
+
+                      setSelectedId(item.id);
+                    }}
                     type="button"
                   >
-                    <span className="place-icon">{meta.symbol}</span>
+                    <span className={`place-icon place-icon-${item.type.toLowerCase()}`}>
+                      {meta.symbol}
+                    </span>
 
                     <span className="place-copy">
                       <span className="place-heading">
@@ -1038,6 +1057,23 @@ export default function NearbyPage() {
           color: #08714a;
           font-size: 21px;
           font-weight: 900;
+        }
+
+        .place-icon-event {
+          background: #f0e9f7;
+          color: #8055a7;
+        }
+
+        .place-card-event {
+          border-color: #e3d7ed;
+          background: #fcfaff;
+        }
+
+        .place-card-event:hover,
+        .place-card-event.selected {
+          border-color: #aa8bc4;
+          background: white;
+          box-shadow: 0 9px 24px rgba(128, 85, 167, 0.12);
         }
 
         .place-copy {
