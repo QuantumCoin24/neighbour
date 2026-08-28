@@ -230,7 +230,7 @@ export class PostService {
   }
 
   async getHomeFeed(currentUserId: string, query: FeedQueryDto): Promise<FeedResponse> {
-    const [connections, memberships, neighbourhoodMemberships] = await Promise.all([
+    const [connections, neighbourhoodMemberships] = await Promise.all([
       this.database.connection.findMany({
         where: {
           status: 'CONNECTED',
@@ -239,15 +239,6 @@ export class PostService {
         select: {
           userAId: true,
           userBId: true,
-        },
-      }),
-      this.database.membership.findMany({
-        where: {
-          userId: currentUserId,
-          status: MembershipStatus.ACTIVE,
-        },
-        select: {
-          communityId: true,
         },
       }),
       this.database.neighbourhoodMembership.findMany({
@@ -263,8 +254,6 @@ export class PostService {
     const connectedUserIds = connections.map((connection) =>
       connection.userAId === currentUserId ? connection.userBId : connection.userAId,
     );
-
-    const communityIds = memberships.map((membership) => membership.communityId);
 
     const neighbourhoodIds = neighbourhoodMemberships.map(
       (membership) => membership.neighbourhoodId,
@@ -290,15 +279,6 @@ export class PostService {
       });
     }
 
-    if (communityIds.length > 0) {
-      visibilityFilters.push({
-        visibility: PostVisibility.COMMUNITY,
-        communityId: {
-          in: communityIds,
-        },
-      });
-    }
-
     if (neighbourhoodIds.length > 0) {
       visibilityFilters.push({
         neighbourhoodId: {
@@ -309,6 +289,7 @@ export class PostService {
 
     const posts = await this.database.post.findMany({
       where: {
+        communityId: null,
         status: PostStatus.PUBLISHED,
         deletedAt: null,
         OR: visibilityFilters,
