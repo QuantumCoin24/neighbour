@@ -119,18 +119,49 @@ export default function EventsPage() {
     setCreateError('');
 
     try {
+      const cleanAddressLine1 = addressLine1.trim();
+      const cleanCity = city.trim();
+      const cleanPostcode = postcode.trim();
+
+      let resolvedLocation: Awaited<ReturnType<typeof resolvePostalLocation>> | null = null;
+
+      if (cleanPostcode) {
+        resolvedLocation = await resolvePostalLocation({
+          countryCode: 'GB',
+          postalCode: cleanPostcode,
+        });
+
+        if (!resolvedLocation) {
+          setCreateError('Neighbour could not find that postcode. Check it and try again.');
+          return;
+        }
+      }
+
       await createEvent(token, {
         communityId: community.id,
         title: cleanTitle,
         description: cleanDescription,
         startsAt: start.toISOString(),
         endsAt: end.toISOString(),
+        ...(cleanAddressLine1 ? { addressLine1: cleanAddressLine1 } : {}),
+        ...(cleanCity ? { city: cleanCity } : {}),
+        ...(cleanPostcode ? { postcode: cleanPostcode } : {}),
+        ...(resolvedLocation
+          ? {
+              latitude: resolvedLocation.latitude,
+              longitude: resolvedLocation.longitude,
+              locationVisibility: 'PUBLIC' as const,
+            }
+          : {}),
       });
 
       setTitle('');
       setDescription('');
       setStartsAt('');
       setEndsAt('');
+      setAddressLine1('');
+      setCity('');
+      setPostcode('');
       setCreateOpen(false);
 
       await load();
