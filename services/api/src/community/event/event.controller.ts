@@ -24,6 +24,16 @@ export class EventController {
       description: dto.description,
       startsAt: new Date(dto.startsAt),
       endsAt: new Date(dto.endsAt),
+      ...(dto.latitude !== undefined ? { latitude: dto.latitude } : {}),
+      ...(dto.longitude !== undefined ? { longitude: dto.longitude } : {}),
+      ...(dto.locationAccuracyM !== undefined ? { locationAccuracyM: dto.locationAccuracyM } : {}),
+      ...(dto.addressLine1 !== undefined ? { addressLine1: dto.addressLine1 } : {}),
+      ...(dto.addressLine2 !== undefined ? { addressLine2: dto.addressLine2 } : {}),
+      ...(dto.city !== undefined ? { city: dto.city } : {}),
+      ...(dto.postcode !== undefined ? { postcode: dto.postcode } : {}),
+      ...(dto.locationVisibility !== undefined
+        ? { locationVisibility: dto.locationVisibility }
+        : {}),
       createdAt: new Date(),
     });
   }

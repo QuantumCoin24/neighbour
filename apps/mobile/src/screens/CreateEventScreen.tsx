@@ -1,4 +1,4 @@
-import { ApiClientError, createEvent } from '@neighbour/api-client';
+import { ApiClientError, createEvent, resolvePostalLocation } from '@neighbour/api-client';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMemo, useState } from 'react';
 import {
@@ -26,6 +26,9 @@ interface EventDraft {
   startTime: string;
   endDate: string;
   endTime: string;
+  addressLine1: string;
+  city: string;
+  postcode: string;
 }
 
 const INITIAL_DRAFT: EventDraft = {
@@ -35,6 +38,9 @@ const INITIAL_DRAFT: EventDraft = {
   startTime: '',
   endDate: '',
   endTime: '',
+  addressLine1: '',
+  city: '',
+  postcode: '',
 };
 
 function parseLocalDateTime(date: string, time: string): Date | null {
@@ -166,12 +172,37 @@ export default function CreateEventScreen({ navigation, route }: Props) {
     setError(null);
 
     try {
+      const postcode = draft.postcode.trim().toUpperCase();
+
+      const resolvedLocation = postcode
+        ? await resolvePostalLocation({
+            countryCode: 'GB',
+            postalCode: postcode,
+          })
+        : null;
+
+      const hasResolvedCoordinates =
+        resolvedLocation?.latitude !== null &&
+        resolvedLocation?.latitude !== undefined &&
+        resolvedLocation?.longitude !== null &&
+        resolvedLocation?.longitude !== undefined;
+
       await createEvent(token, {
         communityId: route.params.communityId,
         title,
         description,
         startsAt: start.toISOString(),
         endsAt: end.toISOString(),
+        ...(draft.addressLine1.trim() ? { addressLine1: draft.addressLine1.trim() } : {}),
+        ...(draft.city.trim() ? { city: draft.city.trim() } : {}),
+        ...(postcode ? { postcode } : {}),
+        ...(hasResolvedCoordinates && resolvedLocation
+          ? {
+              latitude: resolvedLocation.latitude as number,
+              longitude: resolvedLocation.longitude as number,
+              locationVisibility: 'PUBLIC' as const,
+            }
+          : {}),
       });
 
       navigation.goBack();
@@ -368,6 +399,50 @@ export default function CreateEventScreen({ navigation, route }: Props) {
                 />
               </View>
             </View>
+          </Card>
+
+          <Card style={styles.formCard}>
+            <View style={styles.sectionHeading}>
+              <AppText variant="subheading">Where</AppText>
+              <AppText variant="caption" tone="secondary">
+                Event location
+              </AppText>
+            </View>
+
+            <TextField
+              autoCapitalize="words"
+              label="Address or venue"
+              onChangeText={(value) => {
+                update('addressLine1', value);
+              }}
+              placeholder="Community centre or street"
+              value={draft.addressLine1}
+            />
+
+            <TextField
+              autoCapitalize="words"
+              label="Town or city"
+              onChangeText={(value) => {
+                update('city', value);
+              }}
+              placeholder="Manchester"
+              value={draft.city}
+            />
+
+            <TextField
+              autoCapitalize="characters"
+              autoCorrect={false}
+              label="Postcode"
+              onChangeText={(value) => {
+                update('postcode', value);
+              }}
+              placeholder="M9 8AA"
+              value={draft.postcode}
+            />
+
+            <AppText variant="caption" tone="secondary">
+              Add a postcode so neighbours can discover this event in Nearby.
+            </AppText>
           </Card>
 
           <Card variant="muted" style={styles.infoCard}>

@@ -1,3 +1,5 @@
+import type { LocationVisibility } from '../../generated/prisma/client.js';
+
 export interface EventEntity {
   id: string;
 
@@ -9,6 +11,14 @@ export interface EventEntity {
 
   startsAt: Date;
   endsAt: Date;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationAccuracyM?: number | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  postcode?: string | null;
+  locationVisibility?: LocationVisibility;
 
   createdAt: Date;
 

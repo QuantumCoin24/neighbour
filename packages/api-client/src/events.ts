@@ -8,6 +8,14 @@ export interface EventItem {
   description: string;
   startsAt: string;
   endsAt: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationAccuracyM?: number | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  postcode?: string | null;
+  locationVisibility?: 'PUBLIC' | 'MEMBERS_ONLY' | 'PRIVATE';
   createdAt: string;
   community?: {
     id: string;
@@ -80,6 +88,14 @@ export function createEvent(
     description: string;
     startsAt: string;
     endsAt: string;
+    latitude?: number;
+    longitude?: number;
+    locationAccuracyM?: number;
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    postcode?: string;
+    locationVisibility?: 'PUBLIC' | 'MEMBERS_ONLY' | 'PRIVATE';
   },
 ) {
   return apiRequest(`/communities/${data.communityId}/events`, {
@@ -92,6 +108,18 @@ export function createEvent(
       description: data.description,
       startsAt: data.startsAt,
       endsAt: data.endsAt,
+      ...(data.latitude !== undefined ? { latitude: data.latitude } : {}),
+      ...(data.longitude !== undefined ? { longitude: data.longitude } : {}),
+      ...(data.locationAccuracyM !== undefined
+        ? { locationAccuracyM: data.locationAccuracyM }
+        : {}),
+      ...(data.addressLine1 !== undefined ? { addressLine1: data.addressLine1 } : {}),
+      ...(data.addressLine2 !== undefined ? { addressLine2: data.addressLine2 } : {}),
+      ...(data.city !== undefined ? { city: data.city } : {}),
+      ...(data.postcode !== undefined ? { postcode: data.postcode } : {}),
+      ...(data.locationVisibility !== undefined
+        ? { locationVisibility: data.locationVisibility }
+        : {}),
     }),
   });
 }

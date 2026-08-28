@@ -20,6 +20,16 @@ export class PrismaEventRepository extends EventRepository {
       description: event.description,
       startsAt: event.startsAt,
       endsAt: event.endsAt,
+      latitude:
+        event.latitude === null || event.latitude === undefined ? null : Number(event.latitude),
+      longitude:
+        event.longitude === null || event.longitude === undefined ? null : Number(event.longitude),
+      locationAccuracyM: event.locationAccuracyM ?? null,
+      addressLine1: event.addressLine1 ?? null,
+      addressLine2: event.addressLine2 ?? null,
+      city: event.city ?? null,
+      postcode: event.postcode ?? null,
+      locationVisibility: event.locationVisibility,
       createdAt: event.createdAt,
 
       ...(event.community && {
@@ -50,6 +60,18 @@ export class PrismaEventRepository extends EventRepository {
         description: event.description,
         startsAt: event.startsAt,
         endsAt: event.endsAt,
+        ...(event.latitude !== undefined ? { latitude: event.latitude } : {}),
+        ...(event.longitude !== undefined ? { longitude: event.longitude } : {}),
+        ...(event.locationAccuracyM !== undefined
+          ? { locationAccuracyM: event.locationAccuracyM }
+          : {}),
+        ...(event.addressLine1 !== undefined ? { addressLine1: event.addressLine1 } : {}),
+        ...(event.addressLine2 !== undefined ? { addressLine2: event.addressLine2 } : {}),
+        ...(event.city !== undefined ? { city: event.city } : {}),
+        ...(event.postcode !== undefined ? { postcode: event.postcode } : {}),
+        ...(event.locationVisibility !== undefined
+          ? { locationVisibility: event.locationVisibility }
+          : {}),
       },
     });
 
