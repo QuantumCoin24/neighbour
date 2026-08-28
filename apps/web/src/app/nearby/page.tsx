@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import 'leaflet/dist/leaflet.css';
+import type { LayerGroup, Map as LeafletMap, Marker as LeafletMarker } from 'leaflet';
 
 import {
   getMyProfile,
@@ -39,8 +41,6 @@ function presentation(type: GeoEntityType) {
   return FILTERS.find((filter) => filter.type === type) ?? FILTERS[0];
 }
 
-const TILE_SIZE = 256;
-
 function mapZoomForRadius(radiusKm: number) {
   if (radiusKm <= 2) return 14;
   if (radiusKm <= 5) return 13;
@@ -49,53 +49,12 @@ function mapZoomForRadius(radiusKm: number) {
   return 10;
 }
 
-function worldPixel(latitude: number, longitude: number, zoom: number) {
-  const scale = TILE_SIZE * 2 ** zoom;
-  const sinLatitude = Math.sin((latitude * Math.PI) / 180);
-  const bounded = Math.min(Math.max(sinLatitude, -0.9999), 0.9999);
-
-  return {
-    x: ((longitude + 180) / 360) * scale,
-    y: (0.5 - Math.log((1 + bounded) / (1 - bounded)) / (4 * Math.PI)) * scale,
-  };
-}
-
-function osmTiles(origin: GeoPoint, radiusKm: number) {
-  const zoom = mapZoomForRadius(radiusKm);
-  const centre = worldPixel(origin.latitude, origin.longitude, zoom);
-
-  const centreTileX = Math.floor(centre.x / TILE_SIZE);
-  const centreTileY = Math.floor(centre.y / TILE_SIZE);
-
-  const tiles = [];
-
-  // 7 × 7 tiles gives enough coverage at every supported radius
-  // while remaining lightweight.
-  for (let dy = -3; dy <= 3; dy += 1) {
-    for (let dx = -3; dx <= 3; dx += 1) {
-      const x = centreTileX + dx;
-      const y = centreTileY + dy;
-
-      tiles.push({
-        key: `${zoom}-${x}-${y}`,
-        x,
-        y,
-        zoom,
-        left: x * TILE_SIZE - centre.x + 50 * TILE_SIZE,
-        top: y * TILE_SIZE - centre.y + 50 * TILE_SIZE,
-      });
-    }
-  }
-
-  return {
-    zoom,
-    centre,
-    tiles,
-  };
-}
-
 export default function NearbyPage() {
   const sequence = useRef(0);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const markerLayerRef = useRef<LayerGroup | null>(null);
+  const originMarkerRef = useRef<LeafletMarker | null>(null);
 
   const [origin, setOrigin] = useState<GeoPoint | null>(null);
   const [items, setItems] = useState<NearbyGeoItem[]>([]);
@@ -286,25 +245,157 @@ export default function NearbyPage() {
     void load(origin, radius, types);
   };
 
-  const mapData = useMemo(() => (origin ? osmTiles(origin, radiusKm) : null), [origin, radiusKm]);
+  useEffect(() => {
+    if (mode !== 'map' || !origin || !mapContainerRef.current || mapRef.current) return;
 
-  const markerPosition = (item: NearbyGeoItem) => {
-    if (!mapData) {
-      return {
-        left: '50%',
-        top: '50%',
-      };
-    }
+    let cancelled = false;
 
-    const point = worldPixel(item.latitude, item.longitude, mapData.zoom);
+    void import('leaflet').then((L) => {
+      if (cancelled || !mapContainerRef.current || mapRef.current) return;
 
-    const deltaX = point.x - mapData.centre.x;
-    const deltaY = point.y - mapData.centre.y;
+      const map = L.map(mapContainerRef.current, {
+        zoomControl: true,
+        attributionControl: true,
+        dragging: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        touchZoom: true,
+        keyboard: true,
+        trackResize: true,
+      }).setView(
+        [origin.latitude, origin.longitude],
+        mapZoomForRadius(radiusKm),
+      );
 
-    return {
-      left: `calc(50% + ${deltaX}px)`,
-      top: `calc(50% + ${deltaY}px)`,
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map);
+
+      markerLayerRef.current = L.layerGroup().addTo(map);
+
+      const originIcon = L.divIcon({
+        className: 'neighbour-origin-icon',
+        html: '<span>⌖</span>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+
+      originMarkerRef.current = L.marker(
+        [origin.latitude, origin.longitude],
+        {
+          icon: originIcon,
+          keyboard: false,
+          title:
+            locationSource === 'device'
+              ? 'Your current location'
+              : 'Your saved location',
+          zIndexOffset: 1000,
+        },
+      ).addTo(map);
+
+      mapRef.current = map;
+
+      window.setTimeout(() => {
+        map.invalidateSize({ pan: false });
+      }, 0);
+    });
+
+    return () => {
+      cancelled = true;
+
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+
+      markerLayerRef.current = null;
+      originMarkerRef.current = null;
     };
+  }, [mode, origin, locationSource]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const markerLayer = markerLayerRef.current;
+
+    if (!map || !markerLayer) return;
+
+    let cancelled = false;
+
+    void import('leaflet').then((L) => {
+      if (
+        cancelled ||
+        mapRef.current !== map ||
+        markerLayerRef.current !== markerLayer
+      ) {
+        return;
+      }
+
+      markerLayer.clearLayers();
+
+      filtered.forEach((item) => {
+        const meta = presentation(item.type);
+
+        const markerIcon = L.divIcon({
+          className: 'neighbour-marker-shell',
+          html: `<span class="neighbour-marker neighbour-marker-${item.type.toLowerCase()}">${meta.symbol}</span>`,
+          iconSize: [42, 42],
+          iconAnchor: [21, 35],
+        });
+
+        const marker = L.marker(
+          [item.latitude, item.longitude],
+          {
+            icon: markerIcon,
+            title: `${item.title} — ${item.distanceKm.toFixed(1)} km`,
+            keyboard: true,
+          },
+        );
+
+        marker.on('click', () => {
+          if (item.type === 'EVENT') {
+            window.location.assign(`/events/${item.id}`);
+            return;
+          }
+
+          setSelectedId(item.id);
+        });
+
+        marker.addTo(markerLayer);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [filtered]);
+
+  useEffect(() => {
+    if (!origin || !mapRef.current) return;
+
+    mapRef.current.setView(
+      [origin.latitude, origin.longitude],
+      mapZoomForRadius(radiusKm),
+      { animate: true },
+    );
+
+    originMarkerRef.current?.setLatLng([
+      origin.latitude,
+      origin.longitude,
+    ]);
+  }, [origin, radiusKm]);
+
+  const recenterMap = () => {
+    if (!origin || !mapRef.current) return;
+
+    mapRef.current.flyTo(
+      [origin.latitude, origin.longitude],
+      mapZoomForRadius(radiusKm),
+      {
+        animate: true,
+        duration: 0.6,
+      },
+    );
   };
 
   return (
@@ -414,95 +505,45 @@ export default function NearbyPage() {
         </section>
       ) : null}
 
-      {mode === 'map' && origin && mapData ? (
+      {mode === 'map' && origin ? (
         <section className="map-shell">
+          <div
+            ref={mapContainerRef}
+            className="leaflet-map"
+            aria-label="Interactive nearby map"
+          />
+
           {loading ? (
-            <div className="loading">
+            <div className="loading map-loading">
               <div className="spinner" />
               <strong>Finding nearby places…</strong>
             </div>
-          ) : (
-            <>
-              <div className="osm-map" aria-label="OpenStreetMap">
-                <div className="osm-tiles">
-                  {mapData.tiles.map((tile) => (
-                    <img
-                      key={tile.key}
-                      alt=""
-                      draggable={false}
-                      src={`https://tile.openstreetmap.org/${tile.zoom}/${tile.x}/${tile.y}.png`}
-                      style={{
-                        left: `calc(50% + ${tile.left - 50 * TILE_SIZE}px)`,
-                        top: `calc(50% + ${tile.top - 50 * TILE_SIZE}px)`,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
+          ) : null}
 
-              <a
-                className="osm-attribution"
-                href="https://www.openstreetmap.org/copyright"
-                target="_blank"
-                rel="noreferrer"
-              >
-                © OpenStreetMap contributors
-              </a>
+          <div className="map-caption">
+            <strong>{filtered.length} nearby places</strong>
+            <span>within {radiusKm} km</span>
+          </div>
 
-              <div
-                className="origin-marker"
-                title={
-                  locationSource === 'device' ? 'Your current location' : 'Your saved location'
-                }
-              >
-                ⌖
-              </div>
+          <button
+            className="recenter"
+            disabled={locating}
+            onClick={recenterMap}
+            title="Recenter map"
+            type="button"
+          >
+            ⌖
+          </button>
 
-              {filtered.map((item) => {
-                const meta = presentation(item.type);
-                const position = markerPosition(item);
-
-                return (
-                  <button
-                    key={`${item.type}-${item.id}`}
-                    className={
-                      selectedId === item.id
-                        ? `marker marker-${item.type.toLowerCase()} selected`
-                        : `marker marker-${item.type.toLowerCase()}`
-                    }
-                    onClick={() => {
-                      if (item.type === 'EVENT') {
-                        window.location.assign(`/events/${item.id}`);
-                        return;
-                      }
-
-                      setSelectedId(item.id);
-                    }}
-                    style={position}
-                    title={`${item.title} — ${item.distanceKm.toFixed(1)} km`}
-                    type="button"
-                  >
-                    {meta.symbol}
-                  </button>
-                );
-              })}
-
-              <div className="map-caption">
-                <strong>{filtered.length} nearby places</strong>
-                <span>within {radiusKm} km</span>
-              </div>
-
-              <button
-                className="recenter"
-                disabled={locating}
-                onClick={requestLocation}
-                title="Recenter using my location"
-                type="button"
-              >
-                ⌖
-              </button>
-            </>
-          )}
+          <button
+            className="locate-map"
+            disabled={locating}
+            onClick={requestLocation}
+            title="Use my current location"
+            type="button"
+          >
+            {locating ? '…' : '◎'}
+          </button>
         </section>
       ) : mode === 'list' && origin ? (
         <section className="list-shell">
@@ -850,47 +891,48 @@ export default function NearbyPage() {
           box-shadow: 0 18px 50px rgba(20, 55, 37, 0.09);
         }
 
-        .osm-map {
+        .leaflet-map {
           position: absolute;
           inset: 0;
           z-index: 1;
-          overflow: hidden;
           background: #dce7df;
         }
 
-        .osm-tiles {
-          position: absolute;
-          inset: 0;
+        .map-shell :global(.leaflet-container) {
+          width: 100%;
+          height: 100%;
+          font-family: inherit;
         }
 
-        .osm-tiles img {
-          position: absolute;
-          width: 256px;
-          height: 256px;
-          max-width: none;
-          user-select: none;
-          pointer-events: none;
+        .map-shell :global(.leaflet-control-zoom) {
+          overflow: hidden;
+          border: 0;
+          border-radius: 14px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
         }
 
-        .osm-attribution {
-          position: absolute;
-          right: 0;
-          bottom: 0;
-          z-index: 7;
-          padding: 3px 7px;
-          border-radius: 7px 0 0 0;
+        .map-shell :global(.leaflet-control-zoom a) {
+          color: #08714a;
+        }
+
+        .map-shell :global(.leaflet-control-attribution) {
+          border-radius: 8px 0 0 0;
           background: rgba(255, 255, 255, 0.88);
           color: #526159;
           font-size: 10px;
-          text-decoration: none;
         }
 
-        .origin-marker {
-          position: absolute;
-          z-index: 5;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%);
+        .map-shell :global(.leaflet-control-attribution a) {
+          color: #08714a;
+        }
+
+        .map-shell :global(.neighbour-origin-icon),
+        .map-shell :global(.neighbour-marker-shell) {
+          border: 0;
+          background: transparent;
+        }
+
+        .map-shell :global(.neighbour-origin-icon span) {
           display: grid;
           place-items: center;
           width: 24px;
@@ -901,12 +943,12 @@ export default function NearbyPage() {
           color: white;
           box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
           font-size: 12px;
+          font-weight: 900;
         }
 
-        .marker {
-          position: absolute;
-          z-index: 3;
-          transform: translate(-50%, -50%);
+        .map-shell :global(.neighbour-marker) {
+          display: grid;
+          place-items: center;
           width: 38px;
           height: 38px;
           border: 3px solid white;
@@ -916,24 +958,20 @@ export default function NearbyPage() {
           box-shadow: 0 7px 18px rgba(0, 0, 0, 0.2);
           cursor: pointer;
           font-weight: 900;
+          line-height: 1;
+          transform: rotate(-45deg);
         }
 
-        .marker-event {
+        .map-shell :global(.neighbour-marker-event) {
           background: #8055a7;
         }
 
-        .marker-business {
+        .map-shell :global(.neighbour-marker-business) {
           background: #c06d26;
         }
 
-        .marker-neighbourhood {
+        .map-shell :global(.neighbour-marker-neighbourhood) {
           background: #397ca7;
-        }
-
-        .marker.selected {
-          z-index: 8;
-          transform: translate(-50%, -50%) scale(1.25);
-          box-shadow: 0 8px 24px rgba(6, 63, 42, 0.35);
         }
 
         .map-caption {
@@ -956,11 +994,11 @@ export default function NearbyPage() {
           font-size: 12px;
         }
 
-        .recenter {
+        .recenter,
+        .locate-map {
           position: absolute;
           right: 18px;
-          bottom: 18px;
-          z-index: 5;
+          z-index: 500;
           width: 48px;
           height: 48px;
           border: 1px solid #dce8e1;
@@ -971,6 +1009,21 @@ export default function NearbyPage() {
           cursor: pointer;
           font-size: 20px;
           font-weight: 900;
+        }
+
+        .recenter {
+          bottom: 18px;
+        }
+
+        .locate-map {
+          bottom: 76px;
+        }
+
+        .map-loading {
+          z-index: 450;
+          background: rgba(237, 244, 239, 0.82);
+          backdrop-filter: blur(2px);
+          pointer-events: none;
         }
 
         .loading {
