@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation';
 import {
   createEvent,
   getCommunity,
+  resolvePostalLocation,
   getCommunityEvents,
   type Community,
   type EventItem,
@@ -43,6 +44,9 @@ export default function EventsPage() {
   const [description, setDescription] = useState('');
   const [startsAt, setStartsAt] = useState('');
   const [endsAt, setEndsAt] = useState('');
+  const [addressLine1, setAddressLine1] = useState('');
+  const [city, setCity] = useState('');
+  const [postcode, setPostcode] = useState('');
 
   async function load() {
     const token = localStorage.getItem('accessToken');
@@ -320,6 +324,84 @@ export default function EventsPage() {
                 }}
               />
             </label>
+
+            <div
+              style={{
+                display: 'grid',
+                gap: 12,
+                padding: 16,
+                borderRadius: 16,
+                background: '#f4f9f6',
+                border: '1px solid #dce9e1',
+              }}
+            >
+              <div>
+                <strong>Location</strong>
+                <div style={{ marginTop: 3, color: '#6b7771', fontSize: 14 }}>
+                  Optional. Add a postcode to make this event discoverable in Nearby.
+                </div>
+              </div>
+
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span>Venue / address</span>
+                <input
+                  value={addressLine1}
+                  maxLength={200}
+                  onChange={(event) => setAddressLine1(event.target.value)}
+                  placeholder="Community centre, park or street"
+                  style={{
+                    minHeight: 46,
+                    border: '1px solid #dce5e0',
+                    borderRadius: 13,
+                    padding: '0 13px',
+                    font: 'inherit',
+                  }}
+                />
+              </label>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+                  gap: 12,
+                }}
+              >
+                <label style={{ display: 'grid', gap: 6 }}>
+                  <span>Town / city</span>
+                  <input
+                    value={city}
+                    maxLength={120}
+                    onChange={(event) => setCity(event.target.value)}
+                    placeholder="Manchester"
+                    style={{
+                      minHeight: 46,
+                      border: '1px solid #dce5e0',
+                      borderRadius: 13,
+                      padding: '0 13px',
+                      font: 'inherit',
+                    }}
+                  />
+                </label>
+
+                <label style={{ display: 'grid', gap: 6 }}>
+                  <span>Postcode</span>
+                  <input
+                    value={postcode}
+                    maxLength={32}
+                    onChange={(event) => setPostcode(event.target.value.toUpperCase())}
+                    placeholder="M9 8AA"
+                    autoComplete="postal-code"
+                    style={{
+                      minHeight: 46,
+                      border: '1px solid #dce5e0',
+                      borderRadius: 13,
+                      padding: '0 13px',
+                      font: 'inherit',
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
 
             <div
               style={{
