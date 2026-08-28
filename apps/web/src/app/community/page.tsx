@@ -6,8 +6,12 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   getCommunities,
   getMyCommunities,
+  getMyProfile,
+  getNearbyGeoItems,
   joinCommunity,
+  resolvePostalLocation,
   type Community,
+  type GeoPoint,
 } from '@neighbour/api-client';
 
 function formatCategory(value: string) {
@@ -27,6 +31,10 @@ function initials(name: string) {
     .join('');
 }
 
+type DiscoveryMode = 'nearby' | 'everywhere';
+
+const DEFAULT_RADIUS_KM = 10;
+
 export default function CommunityPage() {
   const [communities, setCommunities] = useState<Community[]>([]);
 
@@ -38,10 +46,12 @@ export default function CommunityPage() {
   const [joining, setJoining] = useState<string | null>(null);
 
   const [token, setToken] = useState<string | null>(null);
+  const [nearbyIds, setNearbyIds] = useState<string[]>([]);
+  const [mode, setMode] = useState<DiscoveryMode>('nearby');
+  const [locationAvailable, setLocationAvailable] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('accessToken');
-
     setToken(storedToken);
 
     async function load() {
@@ -52,24 +62,92 @@ export default function CommunityPage() {
 
         setCommunities(all);
 
-        if (storedToken) {
-          try {
-            const mine = await getMyCommunities(storedToken);
+        if (!storedToken) {
+          setLocationAvailable(false);
+          setMode('everywhere');
+          setMessage('');
+          return;
+        }
 
-            setJoinedIds(
-              new Set(
-                mine.filter((item) => item.status === 'ACTIVE').map((item) => item.community.id),
-              ),
-            );
-          } catch {
-            // Community discovery remains usable
-            // even if membership lookup fails.
+        try {
+          const mine = await getMyCommunities(storedToken);
+
+          setJoinedIds(
+            new Set(
+              mine
+                .filter((item) => item.status === 'ACTIVE')
+                .map((item) => item.community.id),
+            ),
+          );
+        } catch {
+          setJoinedIds(new Set());
+        }
+
+        try {
+          const profile = await getMyProfile(storedToken);
+
+          let point: GeoPoint | null =
+            typeof profile.latitude === 'number' &&
+            typeof profile.longitude === 'number'
+              ? {
+                  latitude: profile.latitude,
+                  longitude: profile.longitude,
+                }
+              : null;
+
+          if (!point && profile.postalCode?.trim()) {
+            const postal = await resolvePostalLocation({
+              countryCode: profile.countryCode?.trim() || 'GB',
+              postalCode: profile.postalCode.trim(),
+            });
+
+            if (
+              postal.resolved &&
+              typeof postal.latitude === 'number' &&
+              typeof postal.longitude === 'number'
+            ) {
+              point = {
+                latitude: postal.latitude,
+                longitude: postal.longitude,
+              };
+            }
           }
+
+          if (!point) {
+            setNearbyIds([]);
+            setLocationAvailable(false);
+            setMode('everywhere');
+            setMessage('');
+            return;
+          }
+
+          const nearby = await getNearbyGeoItems({
+            ...point,
+            radiusKm: DEFAULT_RADIUS_KM,
+            types: ['COMMUNITY'],
+            limit: 200,
+          });
+
+          setNearbyIds(
+            nearby.items
+              .filter((item) => item.type === 'COMMUNITY')
+              .map((item) => item.id),
+          );
+
+          setLocationAvailable(true);
+        } catch {
+          setNearbyIds([]);
+          setLocationAvailable(false);
+          setMode('everywhere');
         }
 
         setMessage('');
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : 'Unable to load communities.');
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : 'Unable to load communities.',
+        );
       }
     }
 
@@ -77,13 +155,28 @@ export default function CommunityPage() {
   }, []);
 
   const filtered = useMemo(() => {
+    const nearbyOrder = new Map(
+      nearbyIds.map((id, index) => [id, index]),
+    );
+
+    const source =
+      mode === 'nearby'
+        ? communities
+            .filter((community) => nearbyOrder.has(community.id))
+            .sort(
+              (left, right) =>
+                (nearbyOrder.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
+                (nearbyOrder.get(right.id) ?? Number.MAX_SAFE_INTEGER),
+            )
+        : communities;
+
     const normalized = query.trim().toLowerCase();
 
     if (!normalized) {
-      return communities;
+      return source;
     }
 
-    return communities.filter((community) => {
+    return source.filter((community) => {
       const haystack = [
         community.name,
         community.shortDescription,
@@ -99,7 +192,7 @@ export default function CommunityPage() {
 
       return haystack.includes(normalized);
     });
-  }, [communities, query]);
+  }, [communities, mode, nearbyIds, query]);
 
   async function handleJoin(community: Community) {
     if (!token) {
@@ -129,11 +222,17 @@ export default function CommunityPage() {
     <main className="communities-page">
       <header className="communities-header">
         <div>
-          <div className="communities-eyebrow">DISCOVER LOCAL</div>
+          <div className="communities-eyebrow">
+            {mode === 'nearby' ? 'DISCOVER LOCAL' : 'EXPLORE EVERYWHERE'}
+          </div>
 
           <h1>Communities</h1>
 
-          <p>Find the people, places and conversations that make your local area feel connected.</p>
+          <p>
+            {mode === 'nearby'
+              ? `Discover communities within ${DEFAULT_RADIUS_KM} km of your saved location.`
+              : 'Find communities by area, name, postcode or interest, wherever they are based.'}
+          </p>
         </div>
 
         <div className="communities-header-actions">
@@ -147,17 +246,68 @@ export default function CommunityPage() {
         </div>
       </header>
 
+      <section className="communities-mode-panel">
+        <div className="communities-mode-copy">
+          <span>DISCOVERY MODE</span>
+          <strong>{mode === 'nearby' ? 'Near you' : 'Explore everywhere'}</strong>
+          <p>
+            {mode === 'nearby'
+              ? `Showing communities geographically within ${DEFAULT_RADIUS_KM} km.`
+              : 'Search the wider Neighbour™ community network.'}
+          </p>
+        </div>
+
+        <div className="communities-mode-actions">
+          <button
+            type="button"
+            className={mode === 'nearby' ? 'active' : ''}
+            disabled={!locationAvailable}
+            onClick={() => {
+              setMode('nearby');
+              setQuery('');
+            }}
+          >
+            Near you
+          </button>
+
+          <button
+            type="button"
+            className={mode === 'everywhere' ? 'active' : ''}
+            onClick={() => {
+              setMode('everywhere');
+              setQuery('');
+            }}
+          >
+            Explore everywhere
+          </button>
+        </div>
+
+        {!locationAvailable ? (
+          <div className="communities-location-note">
+            <span>⌖</span>
+            <p>Add a postcode to your profile to enable local community discovery.</p>
+            <Link href="/profile/setup">Update profile →</Link>
+          </div>
+        ) : null}
+      </section>
+
       <section className="communities-search-panel">
         <div className="communities-search-icon">⌕</div>
 
         <div>
-          <label htmlFor="community-search">Find a community</label>
+          <label htmlFor="community-search">
+            {mode === 'nearby' ? 'Search nearby communities' : 'Find a community'}
+          </label>
 
           <input
             id="community-search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by area, name, postcode or interest"
+            placeholder={
+              mode === 'nearby'
+                ? 'Filter communities near you'
+                : 'Search by area, name, postcode or interest'
+            }
           />
         </div>
 
@@ -172,8 +322,14 @@ export default function CommunityPage() {
       <section className="communities-section">
         <div className="communities-section-heading">
           <div>
-            <h2>Explore communities</h2>
-            <p>Local spaces you can discover and join.</p>
+            <h2>
+              {mode === 'nearby' ? 'Communities near you' : 'Explore communities'}
+            </h2>
+            <p>
+              {mode === 'nearby'
+                ? `Distance-qualified communities within ${DEFAULT_RADIUS_KM} km of your saved location.`
+                : 'Discover and join communities across the wider Neighbour™ network.'}
+            </p>
           </div>
         </div>
 
@@ -181,9 +337,14 @@ export default function CommunityPage() {
           <div className="communities-empty">
             <div>⌖</div>
 
-            <h3>No communities found</h3>
-
-            <p>Try another area, postcode or search term.</p>
+            <h3>
+              {mode === 'nearby' ? 'No nearby communities found' : 'No communities found'}
+            </h3>
+            <p>
+              {mode === 'nearby'
+                ? `There are no discoverable communities within ${DEFAULT_RADIUS_KM} km matching this view.`
+                : 'Try another area, postcode or search term.'}
+            </p>
           </div>
         ) : (
           <div className="communities-grid">
@@ -328,6 +489,102 @@ export default function CommunityPage() {
           text-decoration: none;
           font-size: 12px;
           font-weight: 800;
+        }
+
+        .communities-mode-panel {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 18px 24px;
+          align-items: center;
+          margin-bottom: 14px;
+          padding: 18px;
+          border: 1px solid rgba(18,48,38,.07);
+          border-radius: 20px;
+          background: linear-gradient(135deg,#f7faf8,#eef5f1);
+        }
+
+        .communities-mode-copy {
+          display: grid;
+          gap: 3px;
+        }
+
+        .communities-mode-copy > span {
+          color: #0a6945;
+          font-size: 8px;
+          font-weight: 850;
+          letter-spacing: .13em;
+        }
+
+        .communities-mode-copy > strong {
+          color: #102019;
+          font-size: 17px;
+        }
+
+        .communities-mode-copy > p {
+          margin: 2px 0 0;
+          color: #75827c;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        .communities-mode-actions {
+          display: flex;
+          gap: 7px;
+          padding: 4px;
+          border-radius: 13px;
+          background: rgba(255,255,255,.72);
+        }
+
+        .communities-mode-actions button {
+          padding: 9px 12px;
+          border: 0;
+          border-radius: 10px;
+          background: transparent;
+          color: #617068;
+          font: inherit;
+          font-size: 9px;
+          font-weight: 850;
+          cursor: pointer;
+        }
+
+        .communities-mode-actions button.active {
+          background: #086240;
+          color: #fff;
+          box-shadow: 0 5px 15px rgba(8,98,64,.18);
+        }
+
+        .communities-mode-actions button:disabled {
+          cursor: not-allowed;
+          opacity: .42;
+        }
+
+        .communities-location-note {
+          grid-column: 1 / -1;
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          padding-top: 12px;
+          border-top: 1px solid rgba(18,48,38,.08);
+        }
+
+        .communities-location-note > span {
+          color: #08704a;
+          font-size: 16px;
+        }
+
+        .communities-location-note p {
+          flex: 1;
+          margin: 0;
+          color: #75827c;
+          font-size: 9px;
+        }
+
+        .communities-location-note a {
+          color: #086240;
+          text-decoration: none;
+          white-space: nowrap;
+          font-size: 9px;
+          font-weight: 850;
         }
 
         .communities-search-panel {
@@ -590,6 +847,19 @@ export default function CommunityPage() {
         }
 
         @media (max-width: 1100px) {
+          .communities-mode-panel {
+            grid-template-columns: 1fr;
+          }
+
+          .communities-mode-actions {
+            justify-self: start;
+          }
+
+          .communities-location-note {
+            grid-column: 1;
+            flex-wrap: wrap;
+          }
+
           .communities-grid {
             grid-template-columns:
               repeat(2, minmax(0, 1fr));

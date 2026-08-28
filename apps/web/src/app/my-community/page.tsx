@@ -20,7 +20,7 @@ function formatCategory(value: string) {
 export default function MyCommunityPage() {
   const [communities, setCommunities] = useState<CommunityMembership[]>([]);
 
-  const [message, setMessage] = useState('Loading your local communities...');
+  const [message, setMessage] = useState('Loading your communities...');
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -46,11 +46,11 @@ export default function MyCommunityPage() {
     <main className="nearby-page">
       <header className="nearby-header">
         <div>
-          <div className="nearby-eyebrow">YOUR LOCAL NETWORK</div>
+          <div className="nearby-eyebrow">YOUR COMMUNITIES</div>
 
-          <h1>Nearby</h1>
+          <h1>My Communities</h1>
 
-          <p>Your communities, local memberships and places you’re connected to.</p>
+          <p>Every community you belong to, wherever that community is based.</p>
         </div>
 
         <Link href="/community" className="nearby-discover">
@@ -62,13 +62,13 @@ export default function MyCommunityPage() {
         <div className="nearby-overview-primary">
           <span>CONNECTED COMMUNITIES</span>
           <strong>{active.length}</strong>
-          <p>{active.length === 1 ? 'local community' : 'local communities'}</p>
+          <p>{active.length === 1 ? 'community' : 'communities'}</p>
         </div>
 
         <div className="nearby-overview-copy">
-          <h2>Your neighbourhood network</h2>
+          <h2>Your community memberships</h2>
 
-          <p>Open a community to see local posts, events, members and conversations.</p>
+          <p>Open any community you belong to for its posts, events, members and conversations.</p>
         </div>
 
         <div className="nearby-status">
@@ -83,9 +83,9 @@ export default function MyCommunityPage() {
         <section className="nearby-empty">
           <div className="nearby-empty-icon">⌖</div>
 
-          <h2>Your local network starts here.</h2>
+          <h2>Your community list starts here.</h2>
 
-          <p>Discover a nearby community and connect with the people around you.</p>
+          <p>Discover communities near you or explore communities further afield.</p>
 
           <Link href="/community">Find communities</Link>
         </section>
@@ -117,12 +117,12 @@ export default function MyCommunityPage() {
 
                   <h3>{community.name}</h3>
 
-                  <p className="nearby-location">{location || 'Local community'}</p>
+                  <p className="nearby-location">{location || 'Community'}</p>
 
                   <p className="nearby-description">
                     {community.shortDescription ||
                       community.description ||
-                      'Your local Neighbour™ community.'}
+                      'A Neighbour™ community you belong to.'}
                   </p>
 
                   <div className="nearby-card-stats">
