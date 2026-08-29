@@ -7,6 +7,7 @@ export enum ReportTargetType {
   MESSAGE = 'MESSAGE',
   EVENT = 'EVENT',
   MARKETPLACE_LISTING = 'MARKETPLACE_LISTING',
+  MAP_DISCOVERY = 'MAP_DISCOVERY',
 }
 
 export class CreateReportDto {
