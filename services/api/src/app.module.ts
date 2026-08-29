@@ -44,6 +44,7 @@ import { MarketplaceTransactionModule } from './marketplace/transactions/marketp
 import { NearbyModule } from './nearby/nearby.module';
 import { MapDiscoveryModule } from './map-discovery/map-discovery.module';
 import { TrailModule } from './trail/trail.module';
+import { AdventureModule } from './adventure/adventure.module';
 import { VibesModule } from './vibes/vibes.module';
 import { LiveModule } from './live/live.module';
 @Module({
@@ -53,6 +54,7 @@ import { LiveModule } from './live/live.module';
     NearbyModule,
     MapDiscoveryModule,
     TrailModule,
+    AdventureModule,
     ReadinessModule,
     SubscriptionModule,
     AppleCommerceModule,

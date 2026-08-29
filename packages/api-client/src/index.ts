@@ -78,3 +78,4 @@ export * from './vibes';
 export * from './live';
 export * from './map-discovery';
 export * from './trails';
+export * from './adventures';
