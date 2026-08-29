@@ -241,7 +241,7 @@ export default function CommunityMapPage() {
       for (const item of discoveries) {
         const icon = L.divIcon({
           className: 'community-map-marker-shell',
-          html: `<span class="community-map-marker">${discoverySymbol(item.category)}</span>`,
+          html: `<span class="community-map-marker" style="display:grid;place-items:center;width:34px;height:34px;border:3px solid white;border-radius:50%;background:#08754b;color:white;box-shadow:0 7px 18px rgba(0,0,0,.2);font-weight:900;">${discoverySymbol(item.category)}</span>`,
           iconSize: [34, 34],
           iconAnchor: [17, 17],
         });
@@ -288,7 +288,7 @@ export default function CommunityMapPage() {
 
       const icon = L.divIcon({
         className: 'community-map-draft-shell',
-        html: '<span class="community-map-draft">+</span>',
+        html: '<span class="community-map-draft" style="display:grid;place-items:center;width:38px;height:38px;border:3px solid white;border-radius:50%;background:#10251b;color:white;box-shadow:0 7px 18px rgba(0,0,0,.2);font-size:22px;font-weight:900;">+</span>',
         iconSize: [38, 38],
         iconAnchor: [19, 19],
       });

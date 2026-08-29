@@ -201,7 +201,7 @@ export default function PersonalMapPage({ params }: { params: Promise<{ username
       discoveries.forEach((item) => {
         const icon = L.divIcon({
           className: 'personal-map-marker-shell',
-          html: `<span class="personal-map-marker">${discoverySymbol(item.category)}</span>`,
+          html: `<span class="personal-map-marker" style="display:grid;place-items:center;width:38px;height:38px;border:3px solid #fff;border-radius:50%;background:#0e754d;color:#fff;box-shadow:0 6px 18px rgba(16,55,39,.28);font-size:16px;font-weight:900;">${discoverySymbol(item.category)}</span>`,
           iconSize: [38, 38],
           iconAnchor: [19, 19],
         });
@@ -249,7 +249,7 @@ export default function PersonalMapPage({ params }: { params: Promise<{ username
 
       const icon = L.divIcon({
         className: 'personal-map-draft-shell',
-        html: '<span class="personal-map-draft">+</span>',
+        html: '<span class="personal-map-draft" style="display:grid;place-items:center;width:42px;height:42px;border:3px solid #fff;border-radius:50%;background:#10251b;color:#fff;box-shadow:0 6px 18px rgba(16,55,39,.28);font-size:22px;font-weight:900;">+</span>',
         iconSize: [42, 42],
         iconAnchor: [21, 21],
       });
