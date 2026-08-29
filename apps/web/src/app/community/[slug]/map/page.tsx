@@ -492,9 +492,21 @@ export default function CommunityMapPage() {
         </div>
 
         {activeMember ? (
-          <button className="drop-button" type="button" onClick={dropping ? cancelDrop : beginDrop}>
-            {dropping ? 'Cancel pin' : 'Drop a pin'}
-          </button>
+          <div className="community-map-actions">
+            <Link
+              href={`/community/${encodeURIComponent(slug)}/map/trails`}
+              className="trails-link"
+            >
+              Trails ↝
+            </Link>
+            <button
+              className="drop-button"
+              type="button"
+              onClick={dropping ? cancelDrop : beginDrop}
+            >
+              {dropping ? 'Cancel pin' : 'Drop a pin'}
+            </button>
+          </div>
         ) : null}
       </section>
 
@@ -754,9 +766,7 @@ export default function CommunityMapPage() {
               ) : (
                 <>
                   <div>
-                    <div className="eyebrow">
-                      {categoryLabel(selected.category).toUpperCase()}
-                    </div>
+                    <div className="eyebrow">{categoryLabel(selected.category).toUpperCase()}</div>
                     <h2>{selected.title}</h2>
                     {selected.description ? <p>{selected.description}</p> : null}
                     <div className="selected-meta">
@@ -812,6 +822,23 @@ export default function CommunityMapPage() {
       ) : null}
 
       <style>{`
+        .community-map-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .trails-link {
+          display: inline-flex;
+          align-items: center;
+          min-height: 42px;
+          border: 1px solid #cbdad1;
+          border-radius: 999px;
+          padding: 0 17px;
+          background: #f4f8f5;
+          color: #174c35;
+          text-decoration: none;
+          font-weight: 800;
+        }
         .community-map-page {
           max-width: 1180px;
           margin: 0 auto;

@@ -424,15 +424,23 @@ export default function PersonalMapPage({ params }: { params: Promise<{ username
           <p>Places, moments and local discoveries deliberately saved to this personal map.</p>
         </div>
 
-        {owner ? (
-          <button
-            type="button"
-            className={dropping ? 'drop-pin active' : 'drop-pin'}
-            onClick={dropping ? cancelDrop : beginDrop}
+        <div className="map-header-actions">
+          <Link
+            href={`/profile/${encodeURIComponent(username)}/map/trails`}
+            className="trails-link"
           >
-            {dropping ? 'Cancel pin' : 'Drop a pin'}
-          </button>
-        ) : null}
+            Trails ↝
+          </Link>
+          {owner ? (
+            <button
+              type="button"
+              className={dropping ? 'drop-pin active' : 'drop-pin'}
+              onClick={dropping ? cancelDrop : beginDrop}
+            >
+              {dropping ? 'Cancel pin' : 'Drop a pin'}
+            </button>
+          ) : null}
+        </div>
       </header>
 
       {message && !loading ? <div className="map-message">{message}</div> : null}
@@ -740,6 +748,23 @@ export default function PersonalMapPage({ params }: { params: Promise<{ username
           margin-bottom: 24px;
         }
 
+        .map-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .trails-link {
+          display: inline-flex;
+          align-items: center;
+          min-height: 42px;
+          border: 1px solid #cbdad1;
+          border-radius: 999px;
+          padding: 0 17px;
+          background: #f4f8f5;
+          color: #174c35;
+          text-decoration: none;
+          font-weight: 800;
+        }
         .map-back {
           display: block;
           width: fit-content;
