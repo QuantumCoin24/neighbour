@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AppText, Card } from '../components';
+import { Button, AppText, Card } from '../components';
 import {
   CommunityBusinessCard,
   CommunityEventCard,
@@ -46,6 +46,10 @@ const SECTIONS: {
   {
     id: 'businesses',
     label: 'Businesses',
+  },
+  {
+    id: 'map',
+    label: 'Map',
   },
   {
     id: 'about',
@@ -669,6 +673,43 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
                 <AppText tone="secondary">Connected local businesses will appear here.</AppText>
               </Card>
             )}
+          </View>
+        ) : null}
+
+        {section === 'map' ? (
+          <View style={styles.section}>
+            <Card style={styles.cards}>
+              <AppText variant="overline" tone="brand">
+                COMMUNITY MAP
+              </AppText>
+
+              <AppText variant="subheading">
+                Discover {detail.community.name} through the people who know it.
+              </AppText>
+
+              <AppText tone="secondary">
+                Explore community landmarks, viewpoints, walks, activities and local discoveries.
+              </AppText>
+
+              {detail.membership?.status === 'ACTIVE' ? (
+                <Button
+                  label="Open Community Map"
+                  onPress={() => {
+                    navigation.navigate('CommunityMap', {
+                      communityId: detail.community!.id,
+                      communitySlug: detail.community!.slug,
+                      communityName: detail.community!.name,
+                      latitude: detail.community!.latitude,
+                      longitude: detail.community!.longitude,
+                    });
+                  }}
+                />
+              ) : (
+                <AppText tone="secondary">
+                  Join this community to open its member Community Map.
+                </AppText>
+              )}
+            </Card>
           </View>
         ) : null}
 

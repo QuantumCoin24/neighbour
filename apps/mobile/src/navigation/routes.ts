@@ -28,6 +28,7 @@ export const ROUTES = {
   PERSONAL_MAP: 'PersonalMap',
   CONVERSATION: 'Conversation',
   COMMUNITY_DETAIL: 'CommunityDetail',
+  COMMUNITY_MAP: 'CommunityMap',
   CREATE_COMMUNITY: 'CreateCommunity',
   CREATE_EVENT: 'CreateEvent',
   EVENT_DETAIL: 'EventDetail',
@@ -55,6 +56,13 @@ export type RootStackParamList = {
   };
   CommunityDetail: {
     slug: string;
+  };
+  CommunityMap: {
+    communityId: string;
+    communitySlug: string;
+    communityName: string;
+    latitude: number | null;
+    longitude: number | null;
   };
   CreateCommunity: undefined;
   CreateEvent: {

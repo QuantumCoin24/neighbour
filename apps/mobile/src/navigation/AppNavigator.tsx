@@ -12,6 +12,7 @@ import { useAuth } from '../auth/auth-context';
 import { AppText } from '../components';
 import BusinessDetailScreen from '../screens/BusinessDetailScreen';
 import CommunityDetailScreen from '../screens/CommunityDetailScreen';
+import CommunityMapScreen from '../screens/CommunityMapScreen';
 import CreateCommunityScreen from '../screens/CreateCommunityScreen';
 import CreateBusinessScreen from '../screens/CreateBusinessScreen';
 import EditBusinessScreen from '../screens/EditBusinessScreen';
@@ -128,6 +129,7 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.NOTIFICATIONS} component={NotificationsScreen} />
 
             <Stack.Screen name={ROUTES.COMMUNITY_DETAIL} component={CommunityDetailScreen} />
+            <Stack.Screen name={ROUTES.COMMUNITY_MAP} component={CommunityMapScreen} />
 
             <Stack.Screen name={ROUTES.CREATE_COMMUNITY} component={CreateCommunityScreen} />
 
