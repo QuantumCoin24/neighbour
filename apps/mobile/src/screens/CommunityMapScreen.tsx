@@ -515,11 +515,27 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
           </AppText>
         </View>
 
-        <Button
-          label={dropping ? 'Cancel' : 'Drop a pin'}
-          onPress={dropping ? cancelDrop : beginDrop}
-          variant={dropping ? 'secondary' : 'primary'}
-        />
+        <View style={styles.headerActions}>
+          <Button
+            label="Trails ↝"
+            onPress={() => {
+              navigation.navigate('Trails', {
+                mode: 'COMMUNITY',
+                communityId,
+                communitySlug,
+                communityName,
+                latitude,
+                longitude,
+              });
+            }}
+            variant="secondary"
+          />
+          <Button
+            label={dropping ? 'Cancel' : 'Drop a pin'}
+            onPress={dropping ? cancelDrop : beginDrop}
+            variant={dropping ? 'secondary' : 'primary'}
+          />
+        </View>
       </View>
 
       <Card variant="muted" style={styles.card}>
@@ -1036,6 +1052,11 @@ const styles = StyleSheet.create({
   screen: {
     gap: 18,
     paddingBottom: 42,
+  },
+  headerActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
   },
   headerRow: {
     gap: 14,

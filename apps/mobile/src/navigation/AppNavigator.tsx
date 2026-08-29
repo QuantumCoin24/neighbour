@@ -26,6 +26,7 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import PremiumScreen from '../screens/PremiumScreen';
 
 import PersonalMapScreen from '../screens/PersonalMapScreen';
+import TrailScreen from '../screens/TrailScreen';
 import PublicProfileScreen from '../screens/PublicProfileScreen';
 import SearchScreen from '../screens/SearchScreen';
 import CreateMarketplaceListingScreen from '../features/marketplace-listings/screens/CreateMarketplaceListingScreen';
@@ -123,6 +124,7 @@ export default function AppNavigator() {
             <Stack.Screen name={ROUTES.PUBLIC_PROFILE} component={PublicProfileScreen} />
 
             <Stack.Screen name={ROUTES.PERSONAL_MAP} component={PersonalMapScreen} />
+            <Stack.Screen name={ROUTES.TRAILS} component={TrailScreen} />
 
             <Stack.Screen name={ROUTES.SEARCH} component={SearchScreen} />
 

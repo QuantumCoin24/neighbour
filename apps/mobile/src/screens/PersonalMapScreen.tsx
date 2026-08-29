@@ -474,6 +474,29 @@ export default function PersonalMapScreen({ navigation, route }: Props) {
           </AppText>
         </View>
 
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open Trails"
+          onPress={() => {
+            navigation.navigate('Trails', {
+              mode: 'PERSONAL',
+              username,
+              owner,
+              displayName,
+            });
+          }}
+          style={[
+            styles.trailsButton,
+            {
+              backgroundColor: theme.colors.surfaceMuted,
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText variant="label" tone="brand">
+            Trails ↝
+          </AppText>
+        </Pressable>
         {owner ? (
           <Pressable
             accessibilityRole="button"
@@ -1099,6 +1122,12 @@ const styles = StyleSheet.create({
   },
   topCopy: {
     flex: 1,
+  },
+  trailsButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
   },
   dropButton: {
     alignItems: 'center',
