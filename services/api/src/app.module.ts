@@ -43,6 +43,7 @@ import { FulfilmentModule } from './marketplace/fulfilment/fulfilment.module';
 import { MarketplaceTransactionModule } from './marketplace/transactions/marketplace-transaction.module';
 import { NearbyModule } from './nearby/nearby.module';
 import { MapDiscoveryModule } from './map-discovery/map-discovery.module';
+import { TrailModule } from './trail/trail.module';
 import { VibesModule } from './vibes/vibes.module';
 import { LiveModule } from './live/live.module';
 @Module({
@@ -51,6 +52,7 @@ import { LiveModule } from './live/live.module';
     LiveModule,
     NearbyModule,
     MapDiscoveryModule,
+    TrailModule,
     ReadinessModule,
     SubscriptionModule,
     AppleCommerceModule,

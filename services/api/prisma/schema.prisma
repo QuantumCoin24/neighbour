@@ -198,6 +198,26 @@ enum MapDiscoveryScope {
   COMMUNITY
 }
 
+enum TrailScope {
+  PERSONAL
+  COMMUNITY
+}
+
+enum TrailCategory {
+  WALKING
+  RUNNING
+  CYCLING
+  FAMILY
+  NATURE
+  HISTORY
+  PHOTOGRAPHY
+  FOOD
+  DOG_WALKING
+  ACCESSIBLE
+  COMMUNITY
+  OTHER
+}
+
 enum MapDiscoveryType {
   MOMENT
   SEASONAL
@@ -672,6 +692,7 @@ model User {
   marketplaceModerationEvents        MarketplaceModerationEvent[]
   marketplaceFraudSignalsCreated     MarketplaceFraudSignal[]
   marketplaceSettlements             MarketplaceSettlement[]       @relation("MarketplaceSettlementSeller")
+  trails                             Trail[]
 
   @@index([status])
   @@index([role])
@@ -856,6 +877,7 @@ model Community {
   updatedAt DateTime @updatedAt
 
   marketplaceListings MarketplaceListing[]
+  trails              Trail[]
 
   @@index([visibility])
   @@index([category])
@@ -2654,6 +2676,57 @@ model LiveModerationEvent {
   @@map("live_moderation_events")
 }
 
+model Trail {
+  id               String             @id @default(uuid()) @db.Uuid
+  creatorId        String             @db.Uuid
+  communityId      String?            @db.Uuid
+  scope            TrailScope
+  category         TrailCategory      @default(OTHER)
+  title            String
+  description      String
+  visibility       LocationVisibility @default(PRIVATE)
+  distanceM        Int?
+  estimatedMinutes Int?
+  startsAt         DateTime?
+  expiresAt        DateTime?
+  deletedAt        DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  creator     User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  community   Community?        @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  checkpoints TrailCheckpoint[]
+
+  @@index([creatorId, deletedAt])
+  @@index([communityId, deletedAt])
+  @@index([scope, visibility])
+  @@index([category])
+  @@index([expiresAt])
+  @@map("trails")
+}
+
+model TrailCheckpoint {
+  id             String   @id @default(uuid()) @db.Uuid
+  trailId        String   @db.Uuid
+  mapDiscoveryId String?  @db.Uuid
+  position       Int
+  title          String?
+  instruction    String?
+  latitude       Decimal  @db.Decimal(9, 6)
+  longitude      Decimal  @db.Decimal(9, 6)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  trail        Trail         @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  mapDiscovery MapDiscovery? @relation(fields: [mapDiscoveryId], references: [id], onDelete: SetNull)
+
+  @@unique([trailId, position])
+  @@index([trailId])
+  @@index([mapDiscoveryId])
+  @@index([latitude, longitude])
+  @@map("trail_checkpoints")
+}
+
 model MapDiscovery {
   id                String               @id @default(uuid()) @db.Uuid
   creatorId         String               @db.Uuid
@@ -2673,8 +2746,9 @@ model MapDiscovery {
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
 
-  creator   User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  community Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  creator          User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  community        Community?        @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  trailCheckpoints TrailCheckpoint[]
 
   @@index([creatorId, deletedAt])
   @@index([communityId, deletedAt])
