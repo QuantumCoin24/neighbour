@@ -142,6 +142,73 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
         />
       </View>
 
+      <View
+        style={[
+          styles.discoveryMode,
+          {
+            backgroundColor: theme.colors.surfaceMuted,
+            borderColor: theme.colors.border,
+            borderRadius: theme.radius.pill,
+          },
+        ]}
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{
+            disabled: !directory.locationAvailable,
+            selected: directory.discoveryMode === 'nearby',
+          }}
+          disabled={!directory.locationAvailable}
+          onPress={() => directory.setDiscoveryMode('nearby')}
+          style={[
+            styles.discoveryModeButton,
+            directory.discoveryMode === 'nearby'
+              ? {
+                  backgroundColor: theme.colors.surface,
+                  borderRadius: theme.radius.pill,
+                }
+              : null,
+            !directory.locationAvailable ? styles.discoveryModeDisabled : null,
+          ]}
+        >
+          <AppText
+            variant="label"
+            tone={directory.discoveryMode === 'nearby' ? 'brand' : 'secondary'}
+          >
+            Near you
+          </AppText>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{
+            selected: directory.discoveryMode === 'everywhere',
+          }}
+          onPress={() => directory.setDiscoveryMode('everywhere')}
+          style={[
+            styles.discoveryModeButton,
+            directory.discoveryMode === 'everywhere'
+              ? {
+                  backgroundColor: theme.colors.surface,
+                  borderRadius: theme.radius.pill,
+                }
+              : null,
+          ]}
+        >
+          <AppText
+            variant="label"
+            tone={directory.discoveryMode === 'everywhere' ? 'brand' : 'secondary'}
+          >
+            Explore everywhere
+          </AppText>
+        </Pressable>
+      </View>
+
+      {!directory.locationAvailable ? (
+        <AppText variant="caption" tone="secondary">
+          Add a saved postcode or location to your profile to discover communities near you.
+        </AppText>
+      ) : null}
       {directory.error ? (
         <CompactStatusCard
           title="Communities are reconnecting"
@@ -201,10 +268,15 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionCopy}>
-                <AppText variant="subheading">Discover communities</AppText>
-
+                <AppText variant="subheading">
+                  {directory.discoveryMode === 'nearby'
+                    ? 'Communities near you'
+                    : 'Explore communities'}
+                </AppText>
                 <AppText variant="caption" tone="secondary">
-                  Join public communities across Neighbour.
+                  {directory.discoveryMode === 'nearby'
+                    ? `Within ${directory.radiusKm} km of your saved location.`
+                    : 'Join public communities across Neighbour.'}
                 </AppText>
               </View>
 
@@ -254,9 +326,16 @@ export default function CommunitiesScreen({ navigation }: CommunitiesScreenProps
                 </View>
 
                 <View style={styles.emptyCopy}>
-                  <AppText variant="subheading">No matching communities</AppText>
-
-                  <AppText tone="secondary">Try a different name or clear your search.</AppText>
+                  <AppText variant="subheading">
+                    {directory.discoveryMode === 'nearby'
+                      ? 'No nearby communities found'
+                      : 'No matching communities'}
+                  </AppText>
+                  <AppText tone="secondary">
+                    {directory.discoveryMode === 'nearby'
+                      ? `There are no discoverable communities within ${directory.radiusKm} km matching this view.`
+                      : 'Try a different name or clear your search.'}
+                  </AppText>
                 </View>
               </Card>
             )}
@@ -309,6 +388,23 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     minHeight: 52,
+  },
+  discoveryMode: {
+    alignItems: 'center',
+    borderWidth: 1,
+    flexDirection: 'row',
+    padding: 4,
+  },
+  discoveryModeButton: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 42,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  discoveryModeDisabled: {
+    opacity: 0.42,
   },
   loading: {
     alignItems: 'center',

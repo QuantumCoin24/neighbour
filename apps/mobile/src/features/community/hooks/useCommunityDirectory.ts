@@ -2,16 +2,26 @@ import {
   ApiClientError,
   getCommunities,
   getMyCommunities,
+  getMyProfile,
+  getNearbyGeoItems,
   joinCommunity,
+  resolvePostalLocation,
   type Community,
   type CommunityMembership,
 } from '@neighbour/api-client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+export type CommunityDiscoveryMode = 'nearby' | 'everywhere';
+
+const DEFAULT_RADIUS_KM = 10;
+
 export function useCommunityDirectory() {
   const [publicCommunities, setPublicCommunities] = useState<Community[]>([]);
   const [memberships, setMemberships] = useState<CommunityMembership[]>([]);
   const [query, setQuery] = useState('');
+  const [discoveryMode, setDiscoveryMode] = useState<CommunityDiscoveryMode>('nearby');
+  const [nearbyIds, setNearbyIds] = useState<string[]>([]);
+  const [locationAvailable, setLocationAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joiningSlug, setJoiningSlug] = useState<string | null>(null);
@@ -31,6 +41,55 @@ export function useCommunityDirectory() {
 
       setPublicCommunities(communities);
       setMemberships(mine);
+
+      try {
+        const profile = await getMyProfile();
+
+        let point: { latitude: number; longitude: number } | null = null;
+
+        if (typeof profile.latitude === 'number' && typeof profile.longitude === 'number') {
+          point = {
+            latitude: profile.latitude,
+            longitude: profile.longitude,
+          };
+        } else if (profile.postalCode?.trim()) {
+          const postal = await resolvePostalLocation({
+            countryCode: profile.countryCode?.trim() || 'GB',
+            postalCode: profile.postalCode.trim(),
+          });
+
+          if (
+            postal.resolved &&
+            typeof postal.latitude === 'number' &&
+            typeof postal.longitude === 'number'
+          ) {
+            point = {
+              latitude: postal.latitude,
+              longitude: postal.longitude,
+            };
+          }
+        }
+
+        if (point) {
+          const nearby = await getNearbyGeoItems({
+            ...point,
+            radiusKm: DEFAULT_RADIUS_KM,
+            types: ['COMMUNITY'],
+            limit: 200,
+          });
+
+          setNearbyIds(nearby.items.map((item) => item.id));
+          setLocationAvailable(true);
+        } else {
+          setNearbyIds([]);
+          setLocationAvailable(false);
+          setDiscoveryMode('everywhere');
+        }
+      } catch {
+        setNearbyIds([]);
+        setLocationAvailable(false);
+        setDiscoveryMode('everywhere');
+      }
     } catch {
       setError('Communities could not be loaded. Pull down to try again.');
     } finally {
@@ -109,11 +168,23 @@ export function useCommunityDirectory() {
     [filteredItems],
   );
 
-  const discoverItems = useMemo(
-    () => filteredItems.filter((item) => item.membership === null),
-    [filteredItems],
-  );
+  const discoverItems = useMemo(() => {
+    const discoverable = filteredItems.filter((item) => item.membership === null);
 
+    if (discoveryMode === 'everywhere') {
+      return discoverable;
+    }
+
+    const nearbyOrder = new Map(nearbyIds.map((id, index) => [id, index]));
+
+    return discoverable
+      .filter((item) => nearbyOrder.has(item.community.id))
+      .sort(
+        (left, right) =>
+          (nearbyOrder.get(left.community.id) ?? Number.MAX_SAFE_INTEGER) -
+          (nearbyOrder.get(right.community.id) ?? Number.MAX_SAFE_INTEGER),
+      );
+  }, [discoveryMode, filteredItems, nearbyIds]);
   const join = useCallback(
     async (community: Community) => {
       if (membershipByCommunityId.has(community.id) || joiningSlug) {
@@ -171,6 +242,10 @@ export function useCommunityDirectory() {
   return {
     query,
     setQuery,
+    discoveryMode,
+    setDiscoveryMode,
+    locationAvailable,
+    radiusKm: DEFAULT_RADIUS_KM,
     items: filteredItems,
     joinedItems,
     discoverItems,
