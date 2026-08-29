@@ -90,7 +90,12 @@ export default function TrailWorkspace({ mode, username, slug, backHref }: Trail
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const layerRef = useRef<LayerGroup | null>(null);
+  const creatingRef = useRef(false);
+  const editingRef = useRef(false);
   const [mapRenderVersion, setMapRenderVersion] = useState(0);
+
+  creatingRef.current = creating;
+  editingRef.current = editing;
 
   const selected = trails.find((trail) => trail.id === selectedId) ?? null;
   const activeMember = membership?.status === 'ACTIVE';
@@ -205,7 +210,7 @@ export default function TrailWorkspace({ mode, username, slug, backHref }: Trail
       setMapRenderVersion((version) => version + 1);
 
       map.on('click', (event) => {
-        if (!creating && !editing) return;
+        if (!creatingRef.current && !editingRef.current) return;
 
         setCheckpoints((current) => [
           ...current,
@@ -224,7 +229,7 @@ export default function TrailWorkspace({ mode, username, slug, backHref }: Trail
       mapRef.current = null;
       layerRef.current = null;
     };
-  }, [creating, editing]);
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current || !layerRef.current) return;
