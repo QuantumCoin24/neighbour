@@ -11,6 +11,7 @@ import {
   type PublicProfile,
   unblockSocialGraphUser,
 } from '@neighbour/api-client';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 
@@ -169,6 +170,12 @@ export default function PublicProfilePage({
           </div>
 
           <div className="profile-actions">
+            <Link
+              className="profile-connect"
+              href={`/profile/${encodeURIComponent(profile.username)}/map`}
+            >
+              Personal Map
+            </Link>
             <button
               className="profile-connect"
               type="button"
