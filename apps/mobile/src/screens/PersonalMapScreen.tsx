@@ -1,6 +1,8 @@
 import {
   createMapDiscovery,
+  createSecurityReport,
   deleteMapDiscovery,
+  updateMapDiscovery,
   getMyMapDiscoveries,
   getPublicProfileMapDiscoveries,
   type MapDiscovery,
@@ -120,6 +122,8 @@ export default function PersonalMapScreen({ navigation, route }: Props) {
   const [visibility, setVisibility] = useState<MapDiscoveryVisibility>('PRIVATE');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [reportingId, setReportingId] = useState<string | null>(null);
 
   const load = useCallback(
     async (refresh = false) => {
@@ -242,6 +246,125 @@ export default function PersonalMapScreen({ navigation, route }: Props) {
     }
   };
 
+  const beginEdit = (item: MapDiscovery) => {
+    if (!owner) return;
+
+    setDropping(false);
+    setDraftPoint(null);
+    setEditingId(item.id);
+    setSelected(item);
+    setTitle(item.title);
+    setDescription(item.description);
+    setCategory(item.category);
+    setType(item.type);
+    setVisibility(item.visibility === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setTitle('');
+    setDescription('');
+    setCategory('OTHER');
+    setType('LANDMARK');
+    setVisibility('PRIVATE');
+  };
+
+  const saveEdit = async (item: MapDiscovery) => {
+    if (!owner || editingId !== item.id || saving) return;
+
+    const cleanTitle = title.trim();
+    if (!cleanTitle) {
+      Alert.alert('Add a title', 'Give this discovery a short name before saving it.');
+      return;
+    }
+
+    const token = getSessionAccessToken();
+    if (!token) {
+      Alert.alert('Session expired', 'Please sign in again.');
+      return;
+    }
+
+    const expiry = defaultExpiry(type);
+    setSaving(true);
+
+    try {
+      await updateMapDiscovery(token, item.id, {
+        type,
+        category,
+        title: cleanTitle,
+        description: description.trim(),
+        visibility,
+        startsAt: type === 'SEASONAL' ? new Date().toISOString() : null,
+        expiresAt: expiry ? expiry.toISOString() : null,
+      });
+
+      setEditingId(null);
+      await load(true);
+    } catch (caughtError) {
+      Alert.alert(
+        'Changes not saved',
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Neighbour could not update this discovery.',
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const submitDiscoveryReport = async (item: MapDiscovery, reason: string) => {
+    if (owner || reportingId) return;
+
+    const token = getSessionAccessToken();
+    if (!token) {
+      Alert.alert('Session expired', 'Please sign in again.');
+      return;
+    }
+
+    setReportingId(item.id);
+
+    try {
+      await createSecurityReport(token, {
+        targetType: 'MAP_DISCOVERY',
+        targetId: item.id,
+        reason,
+        description: `Personal Map discovery: ${item.title}`,
+      });
+
+      Alert.alert('Report submitted', 'Neighbour’s moderation team will review this discovery.');
+    } catch (caughtError) {
+      Alert.alert(
+        'Report not submitted',
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Neighbour could not submit this report.',
+      );
+    } finally {
+      setReportingId(null);
+    }
+  };
+
+  const openReportMenu = (item: MapDiscovery) => {
+    Alert.alert('Report discovery', 'Why are you reporting this discovery?', [
+      {
+        text: 'Inappropriate',
+        onPress: () => void submitDiscoveryReport(item, 'INAPPROPRIATE'),
+      },
+      {
+        text: 'Misleading or false',
+        onPress: () => void submitDiscoveryReport(item, 'MISLEADING'),
+      },
+      {
+        text: 'Safety concern',
+        onPress: () => void submitDiscoveryReport(item, 'SAFETY_CONCERN'),
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
   const removeDiscovery = async (item: MapDiscovery) => {
     if (!owner || deleting) {
       return;
@@ -273,23 +396,19 @@ export default function PersonalMapScreen({ navigation, route }: Props) {
   };
 
   const confirmRemove = (item: MapDiscovery) => {
-    Alert.alert(
-      'Remove discovery?',
-      `Remove "${item.title}" from your Personal Map?`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
+    Alert.alert('Remove discovery?', `Remove "${item.title}" from your Personal Map?`, [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => {
+          void removeDiscovery(item);
         },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => {
-            void removeDiscovery(item);
-          },
-        },
-      ],
-    );
+      },
+    ]);
   };
 
   const initialRegion = discoveries[0]
@@ -692,16 +811,174 @@ export default function PersonalMapScreen({ navigation, route }: Props) {
               </AppText>
 
               {owner ? (
+                editingId === selected.id ? (
+                  <>
+                    <TextInput
+                      maxLength={120}
+                      onChangeText={setTitle}
+                      placeholder="Discovery title"
+                      placeholderTextColor={theme.colors.textMuted}
+                      style={[
+                        styles.input,
+                        {
+                          backgroundColor: theme.colors.surfaceMuted,
+                          borderColor: theme.colors.border,
+                          borderRadius: theme.radius.lg,
+                          color: theme.colors.text,
+                        },
+                      ]}
+                      value={title}
+                    />
+                    <TextInput
+                      multiline
+                      onChangeText={setDescription}
+                      placeholder="What makes this place worth remembering?"
+                      placeholderTextColor={theme.colors.textMuted}
+                      style={[
+                        styles.input,
+                        styles.multilineInput,
+                        {
+                          backgroundColor: theme.colors.surfaceMuted,
+                          borderColor: theme.colors.border,
+                          borderRadius: theme.radius.lg,
+                          color: theme.colors.text,
+                        },
+                      ]}
+                      value={description}
+                    />
+
+                    <AppText variant="caption" tone="secondary">
+                      Category
+                    </AppText>
+                    <View style={styles.chips}>
+                      {CATEGORIES.map((item) => {
+                        const active = category === item.id;
+                        return (
+                          <Pressable
+                            key={item.id}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: active }}
+                            onPress={() => setCategory(item.id)}
+                            style={[
+                              styles.chip,
+                              {
+                                backgroundColor: active
+                                  ? theme.colors.primary
+                                  : theme.colors.surfaceMuted,
+                                borderColor: active ? theme.colors.primary : theme.colors.border,
+                                borderRadius: theme.radius.pill,
+                              },
+                            ]}
+                          >
+                            <AppText variant="caption" tone={active ? 'inverse' : 'secondary'}>
+                              {item.symbol} {item.label}
+                            </AppText>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+
+                    <AppText variant="caption" tone="secondary">
+                      Lifecycle
+                    </AppText>
+                    <View style={styles.chips}>
+                      {TYPES.map((item) => {
+                        const active = type === item.id;
+                        return (
+                          <Pressable
+                            key={item.id}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: active }}
+                            onPress={() => setType(item.id)}
+                            style={[
+                              styles.chip,
+                              {
+                                backgroundColor: active
+                                  ? theme.colors.primary
+                                  : theme.colors.surfaceMuted,
+                                borderColor: active ? theme.colors.primary : theme.colors.border,
+                                borderRadius: theme.radius.pill,
+                              },
+                            ]}
+                          >
+                            <AppText variant="caption" tone={active ? 'inverse' : 'secondary'}>
+                              {item.label}
+                            </AppText>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+
+                    <AppText variant="caption" tone="secondary">
+                      Visibility
+                    </AppText>
+                    <View style={styles.chips}>
+                      {VISIBILITIES.map((item) => {
+                        const active = visibility === item.id;
+                        return (
+                          <Pressable
+                            key={item.id}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: active }}
+                            onPress={() => setVisibility(item.id)}
+                            style={[
+                              styles.chip,
+                              {
+                                backgroundColor: active
+                                  ? theme.colors.primary
+                                  : theme.colors.surfaceMuted,
+                                borderColor: active ? theme.colors.primary : theme.colors.border,
+                                borderRadius: theme.radius.pill,
+                              },
+                            ]}
+                          >
+                            <AppText variant="caption" tone={active ? 'inverse' : 'secondary'}>
+                              {item.label}
+                            </AppText>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+
+                    {visibility === 'PUBLIC' ? (
+                      <AppText variant="caption" tone="secondary">
+                        Public discoveries share the location you selected. Avoid publishing
+                        sensitive private locations.
+                      </AppText>
+                    ) : null}
+
+                    <Button
+                      disabled={!title.trim() || saving}
+                      label={saving ? 'Saving…' : 'Save changes'}
+                      loading={saving}
+                      onPress={() => void saveEdit(selected)}
+                    />
+                    <Button label="Cancel" onPress={cancelEdit} variant="ghost" />
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      label="Edit discovery"
+                      onPress={() => beginEdit(selected)}
+                      variant="secondary"
+                    />
+                    <Button
+                      disabled={deleting}
+                      label="Remove discovery"
+                      loading={deleting}
+                      onPress={() => confirmRemove(selected)}
+                      variant="secondary"
+                    />
+                  </>
+                )
+              ) : (
                 <Button
-                  disabled={deleting}
-                  label="Remove discovery"
-                  loading={deleting}
-                  onPress={() => {
-                    confirmRemove(selected);
-                  }}
-                  variant="secondary"
+                  disabled={reportingId === selected.id}
+                  label={reportingId === selected.id ? 'Reporting…' : 'Report discovery'}
+                  onPress={() => openReportMenu(selected)}
+                  variant="ghost"
                 />
-              ) : null}
+              )}
             </Card>
           ) : null}
 

@@ -1,6 +1,8 @@
 import {
   createMapDiscovery,
+  createSecurityReport,
   deleteMapDiscovery,
+  updateMapDiscovery,
   getCommunityMapDiscoveries,
   getMyCommunities,
   type MapDiscovery,
@@ -92,13 +94,7 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
   const { theme } = useNeighbourTheme();
   const { user } = useAuth();
 
-  const {
-    communityId,
-    communitySlug,
-    communityName,
-    latitude,
-    longitude,
-  } = route.params;
+  const { communityId, communitySlug, communityName, latitude, longitude } = route.params;
 
   const [discoveries, setDiscoveries] = useState<MapDiscovery[]>([]);
   const [membership, setMembership] = useState<{
@@ -111,6 +107,8 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
   const [dropping, setDropping] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<MapDiscovery | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [reportingId, setReportingId] = useState<string | null>(null);
   const [draftCoordinate, setDraftCoordinate] = useState<{
     latitude: number;
     longitude: number;
@@ -150,9 +148,7 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
         const memberships = await getMyCommunities(token);
         const currentMembership =
           memberships.find(
-            (item) =>
-              item.community.id === communityId ||
-              item.community.slug === communitySlug,
+            (item) => item.community.id === communityId || item.community.slug === communitySlug,
           ) ?? null;
 
         setMembership(
@@ -196,9 +192,7 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
         }
       } catch (caughtError) {
         setError(
-          caughtError instanceof Error
-            ? caughtError.message
-            : 'Community Map could not be loaded.',
+          caughtError instanceof Error ? caughtError.message : 'Community Map could not be loaded.',
         );
       } finally {
         setLoading(false);
@@ -276,6 +270,122 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
     }
   };
 
+  const beginEdit = (item: MapDiscovery) => {
+    if (item.creatorId !== user?.id) return;
+
+    setDropping(false);
+    setDraftCoordinate(null);
+    setEditingId(item.id);
+    setSelected(item);
+    setTitle(item.title);
+    setDescription(item.description);
+    setCategory(item.category);
+    setType(item.type);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setTitle('');
+    setDescription('');
+    setCategory('OTHER');
+    setType('LANDMARK');
+  };
+
+  const saveEdit = async (item: MapDiscovery) => {
+    if (item.creatorId !== user?.id || editingId !== item.id || saving) return;
+
+    if (!title.trim()) {
+      Alert.alert('Add a title', 'Give this discovery a short name before saving it.');
+      return;
+    }
+
+    const token = getSessionAccessToken();
+    if (!token) {
+      Alert.alert('Session expired', 'Please sign in again.');
+      return;
+    }
+
+    const expiry = defaultExpiry(type);
+    setSaving(true);
+
+    try {
+      await updateMapDiscovery(token, item.id, {
+        type,
+        category,
+        title: title.trim(),
+        description: description.trim(),
+        visibility: 'COMMUNITY',
+        startsAt: type === 'SEASONAL' ? new Date().toISOString() : null,
+        expiresAt: expiry ? expiry.toISOString() : null,
+      });
+
+      setEditingId(null);
+      await load(true);
+    } catch (caughtError) {
+      Alert.alert(
+        'Changes not saved',
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Neighbour could not update this Community Map discovery.',
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const submitDiscoveryReport = async (item: MapDiscovery, reason: string) => {
+    if (item.creatorId === user?.id || reportingId) return;
+
+    const token = getSessionAccessToken();
+    if (!token) {
+      Alert.alert('Session expired', 'Please sign in again.');
+      return;
+    }
+
+    setReportingId(item.id);
+
+    try {
+      await createSecurityReport(token, {
+        targetType: 'MAP_DISCOVERY',
+        targetId: item.id,
+        reason,
+        description: `Community Map discovery: ${item.title}`,
+      });
+
+      Alert.alert('Report submitted', 'Neighbour’s moderation team will review this discovery.');
+    } catch (caughtError) {
+      Alert.alert(
+        'Report not submitted',
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Neighbour could not submit this report.',
+      );
+    } finally {
+      setReportingId(null);
+    }
+  };
+
+  const openReportMenu = (item: MapDiscovery) => {
+    Alert.alert('Report discovery', 'Why are you reporting this discovery?', [
+      {
+        text: 'Inappropriate',
+        onPress: () => void submitDiscoveryReport(item, 'INAPPROPRIATE'),
+      },
+      {
+        text: 'Misleading or false',
+        onPress: () => void submitDiscoveryReport(item, 'MISLEADING'),
+      },
+      {
+        text: 'Safety concern',
+        onPress: () => void submitDiscoveryReport(item, 'SAFETY_CONCERN'),
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
   const removeDiscovery = async (item: MapDiscovery) => {
     const ownDiscovery = item.creatorId === user?.id;
 
@@ -283,43 +393,39 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
       return;
     }
 
-    Alert.alert(
-      'Remove discovery?',
-      'This discovery will be removed from the Community Map.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => {
-            const token = getSessionAccessToken();
+    Alert.alert('Remove discovery?', 'This discovery will be removed from the Community Map.', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => {
+          const token = getSessionAccessToken();
 
-            if (!token) {
-              Alert.alert('Session expired', 'Please sign in again.');
-              return;
+          if (!token) {
+            Alert.alert('Session expired', 'Please sign in again.');
+            return;
+          }
+
+          void (async () => {
+            try {
+              await deleteMapDiscovery(token, item.id);
+              setSelected(null);
+              await load(true);
+            } catch (caughtError) {
+              Alert.alert(
+                'Discovery not removed',
+                caughtError instanceof Error
+                  ? caughtError.message
+                  : 'Neighbour could not remove this discovery.',
+              );
             }
-
-            void (async () => {
-              try {
-                await deleteMapDiscovery(token, item.id);
-                setSelected(null);
-                await load(true);
-              } catch (caughtError) {
-                Alert.alert(
-                  'Discovery not removed',
-                  caughtError instanceof Error
-                    ? caughtError.message
-                    : 'Neighbour could not remove this discovery.',
-                );
-              }
-            })();
-          },
+          })();
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const initialRegion = useMemo(() => {
@@ -536,9 +642,7 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
                       backgroundColor: selectedCategory
                         ? theme.colors.primary
                         : theme.colors.surface,
-                      borderColor: selectedCategory
-                        ? theme.colors.primary
-                        : theme.colors.border,
+                      borderColor: selectedCategory ? theme.colors.primary : theme.colors.border,
                       borderRadius: theme.radius.pill,
                     },
                   ]}
@@ -567,19 +671,13 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
                   style={[
                     styles.choice,
                     {
-                      backgroundColor: selectedType
-                        ? theme.colors.primary
-                        : theme.colors.surface,
-                      borderColor: selectedType
-                        ? theme.colors.primary
-                        : theme.colors.border,
+                      backgroundColor: selectedType ? theme.colors.primary : theme.colors.surface,
+                      borderColor: selectedType ? theme.colors.primary : theme.colors.border,
                       borderRadius: theme.radius.pill,
                     },
                   ]}
                 >
-                  <AppText tone={selectedType ? 'inverse' : 'primary'}>
-                    {item.label}
-                  </AppText>
+                  <AppText tone={selectedType ? 'inverse' : 'primary'}>{item.label}</AppText>
                 </Pressable>
               );
             })}
@@ -614,23 +712,137 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
 
           <AppText variant="subheading">{selected.title}</AppText>
 
-          {selected.description ? (
-            <AppText tone="secondary">{selected.description}</AppText>
-          ) : null}
+          {selected.description ? <AppText tone="secondary">{selected.description}</AppText> : null}
 
           <AppText variant="caption" tone="secondary">
             {selected.type.replaceAll('_', ' ')}
           </AppText>
 
-          {selected.creatorId === user?.id || canModerate ? (
-            <Button
-              label="Remove"
-              onPress={() => {
-                void removeDiscovery(selected);
-              }}
-              variant="ghost"
-            />
-          ) : null}
+          {selected.creatorId === user?.id ? (
+            editingId === selected.id ? (
+              <>
+                <TextInput
+                  accessibilityLabel="Discovery title"
+                  onChangeText={setTitle}
+                  placeholder="What is this place called?"
+                  placeholderTextColor={theme.colors.textSecondary}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: theme.colors.border,
+                      borderRadius: theme.radius.md,
+                      color: theme.colors.text,
+                    },
+                  ]}
+                  value={title}
+                />
+                <TextInput
+                  accessibilityLabel="Discovery description"
+                  multiline
+                  onChangeText={setDescription}
+                  placeholder="Tell the community what makes this place useful or interesting."
+                  placeholderTextColor={theme.colors.textSecondary}
+                  style={[
+                    styles.input,
+                    styles.textArea,
+                    {
+                      borderColor: theme.colors.border,
+                      borderRadius: theme.radius.md,
+                      color: theme.colors.text,
+                    },
+                  ]}
+                  value={description}
+                />
+
+                <AppText variant="label">Category</AppText>
+                <View style={styles.choiceWrap}>
+                  {CATEGORIES.map((item) => {
+                    const active = category === item.id;
+                    return (
+                      <Pressable
+                        accessibilityRole="button"
+                        key={item.id}
+                        onPress={() => setCategory(item.id)}
+                        style={[
+                          styles.choice,
+                          {
+                            backgroundColor: active ? theme.colors.primary : theme.colors.surface,
+                            borderColor: active ? theme.colors.primary : theme.colors.border,
+                            borderRadius: theme.radius.pill,
+                          },
+                        ]}
+                      >
+                        <AppText tone={active ? 'inverse' : 'primary'}>
+                          {item.symbol} {item.label}
+                        </AppText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                <AppText variant="label">Lifecycle</AppText>
+                <View style={styles.choiceWrap}>
+                  {TYPES.map((item) => {
+                    const active = type === item.id;
+                    return (
+                      <Pressable
+                        accessibilityRole="button"
+                        key={item.id}
+                        onPress={() => setType(item.id)}
+                        style={[
+                          styles.choice,
+                          {
+                            backgroundColor: active ? theme.colors.primary : theme.colors.surface,
+                            borderColor: active ? theme.colors.primary : theme.colors.border,
+                            borderRadius: theme.radius.pill,
+                          },
+                        ]}
+                      >
+                        <AppText tone={active ? 'inverse' : 'primary'}>{item.label}</AppText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                <Button
+                  disabled={!title.trim() || saving}
+                  label={saving ? 'Saving…' : 'Save changes'}
+                  loading={saving}
+                  onPress={() => void saveEdit(selected)}
+                />
+                <Button label="Cancel" onPress={cancelEdit} variant="ghost" />
+              </>
+            ) : (
+              <>
+                <Button
+                  label="Edit discovery"
+                  onPress={() => beginEdit(selected)}
+                  variant="secondary"
+                />
+                <Button
+                  label="Remove"
+                  onPress={() => void removeDiscovery(selected)}
+                  variant="ghost"
+                />
+              </>
+            )
+          ) : (
+            <>
+              <Button
+                disabled={reportingId === selected.id}
+                label={reportingId === selected.id ? 'Reporting…' : 'Report discovery'}
+                onPress={() => openReportMenu(selected)}
+                variant="ghost"
+              />
+              {canModerate ? (
+                <Button
+                  label="Remove"
+                  onPress={() => void removeDiscovery(selected)}
+                  variant="ghost"
+                />
+              ) : null}
+            </>
+          )}
         </Card>
       ) : null}
 
@@ -676,9 +888,7 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
 
               <AppText variant="subheading">{item.title}</AppText>
 
-              {item.description ? (
-                <AppText tone="secondary">{item.description}</AppText>
-              ) : null}
+              {item.description ? <AppText tone="secondary">{item.description}</AppText> : null}
 
               <AppText variant="caption" tone="secondary">
                 {item.type.replaceAll('_', ' ')}
