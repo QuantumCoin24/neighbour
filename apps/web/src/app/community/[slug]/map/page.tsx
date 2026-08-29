@@ -501,6 +501,12 @@ export default function CommunityMapPage() {
             >
               Trails ↝
             </Link>
+            <Link
+              href={`/community/${encodeURIComponent(slug)}/map/adventures`}
+              className="trails-link"
+            >
+              Adventures ↝
+            </Link>
             <button
               className="drop-button"
               type="button"

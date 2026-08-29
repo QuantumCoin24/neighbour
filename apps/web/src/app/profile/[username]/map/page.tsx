@@ -433,6 +433,12 @@ export default function PersonalMapPage({ params }: { params: Promise<{ username
           >
             Trails ↝
           </Link>
+          <Link
+            href={`/profile/${encodeURIComponent(username)}/map/adventures`}
+            className="trails-link"
+          >
+            Adventures ↝
+          </Link>
           {owner ? (
             <button
               type="button"

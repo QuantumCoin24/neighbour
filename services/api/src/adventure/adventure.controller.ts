@@ -29,6 +29,25 @@ export class AdventureController {
     return this.adventureService.findCommunity(user.id, communityId);
   }
 
+  @Post(':id/progress/start')
+  startProgress(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.adventureService.startProgress(user.id, id);
+  }
+
+  @Get(':id/progress')
+  getProgress(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.adventureService.getProgress(user.id, id);
+  }
+
+  @Patch(':id/progress/stages/:position')
+  completeStage(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Param('position') position: string,
+  ) {
+    return this.adventureService.completeStage(user.id, id, Number(position));
+  }
+
   @Patch(':id')
   update(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() dto: UpdateAdventureDto) {
     return this.adventureService.update(user.id, id, dto);

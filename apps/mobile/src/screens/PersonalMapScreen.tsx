@@ -497,6 +497,29 @@ export default function PersonalMapScreen({ navigation, route }: Props) {
             Trails ↝
           </AppText>
         </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open Adventures"
+          onPress={() => {
+            navigation.navigate('Adventures', {
+              mode: 'PERSONAL',
+              username,
+              owner,
+              displayName,
+            });
+          }}
+          style={[
+            styles.trailsButton,
+            {
+              backgroundColor: theme.colors.surfaceMuted,
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText variant="label" tone="brand">
+            Adventures ↝
+          </AppText>
+        </Pressable>
         {owner ? (
           <Pressable
             accessibilityRole="button"

@@ -27,6 +27,7 @@ export const ROUTES = {
   PUBLIC_PROFILE: 'PublicProfile',
   PERSONAL_MAP: 'PersonalMap',
   TRAILS: 'Trails',
+  ADVENTURES: 'Adventures',
   CONVERSATION: 'Conversation',
   COMMUNITY_DETAIL: 'CommunityDetail',
   COMMUNITY_MAP: 'CommunityMap',
@@ -56,6 +57,21 @@ export type RootStackParamList = {
     displayName?: string;
   };
   Trails:
+    | {
+        mode: 'PERSONAL';
+        username: string;
+        owner: boolean;
+        displayName?: string;
+      }
+    | {
+        mode: 'COMMUNITY';
+        communityId: string;
+        communitySlug: string;
+        communityName: string;
+        latitude: number | null;
+        longitude: number | null;
+      };
+  Adventures:
     | {
         mode: 'PERSONAL';
         username: string;

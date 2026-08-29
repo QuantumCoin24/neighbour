@@ -243,6 +243,155 @@ export class AdventureService {
     return this.repository.findCommunity(communityId, userId);
   }
 
+  private async requireAccessibleAdventure(userId: string, id: string) {
+    const adventure = await this.repository.findById(id);
+
+    if (
+      !adventure ||
+      adventure.deletedAt ||
+      (adventure.expiresAt && adventure.expiresAt <= new Date())
+    ) {
+      throw new NotFoundException('Adventure not found.');
+    }
+
+    if (adventure.scope === AdventureScope.PERSONAL) {
+      if (adventure.creatorId !== userId && adventure.visibility !== LocationVisibility.PUBLIC) {
+        throw new ForbiddenException('You cannot access this adventure.');
+      }
+
+      return adventure;
+    }
+
+    if (!adventure.communityId) {
+      throw new ForbiddenException('This community adventure is unavailable.');
+    }
+
+    await this.requireActiveMembership(userId, adventure.communityId);
+
+    if (adventure.visibility === LocationVisibility.PRIVATE && adventure.creatorId !== userId) {
+      throw new ForbiddenException('You cannot access this adventure.');
+    }
+
+    return adventure;
+  }
+
+  async startProgress(userId: string, id: string) {
+    const adventure = await this.requireAccessibleAdventure(userId, id);
+
+    const existing = await this.database.adventureProgress.findUnique({
+      where: {
+        adventureId_userId: {
+          adventureId: adventure.id,
+          userId,
+        },
+      },
+    });
+
+    if (existing && !existing.completedAt) {
+      return existing;
+    }
+
+    const now = new Date();
+
+    if (existing) {
+      return this.database.adventureProgress.update({
+        where: { id: existing.id },
+        data: {
+          currentStagePosition: 0,
+          completedStages: [],
+          startedAt: now,
+          completedAt: null,
+        },
+      });
+    }
+
+    return this.database.adventureProgress.create({
+      data: {
+        adventureId: adventure.id,
+        userId,
+        currentStagePosition: 0,
+        completedStages: [],
+        startedAt: now,
+      },
+    });
+  }
+
+  async getProgress(userId: string, id: string) {
+    await this.requireAccessibleAdventure(userId, id);
+
+    return this.database.adventureProgress.findUnique({
+      where: {
+        adventureId_userId: {
+          adventureId: id,
+          userId,
+        },
+      },
+    });
+  }
+
+  async completeStage(userId: string, id: string, position: number) {
+    const adventure = await this.requireAccessibleAdventure(userId, id);
+
+    if (!Number.isInteger(position) || position < 0) {
+      throw new BadRequestException('Stage position must be a non-negative integer.');
+    }
+
+    const stages = [...adventure.stages].sort((a, b) => a.position - b.position);
+
+    const stageIndex = stages.findIndex((stage) => stage.position === position);
+
+    if (stageIndex === -1) {
+      throw new NotFoundException('Adventure stage not found.');
+    }
+
+    const progress = await this.database.adventureProgress.findUnique({
+      where: {
+        adventureId_userId: {
+          adventureId: adventure.id,
+          userId,
+        },
+      },
+    });
+
+    if (!progress) {
+      throw new BadRequestException('Start this adventure before completing stages.');
+    }
+
+    if (progress.completedAt) {
+      return progress;
+    }
+
+    const completed = new Set(progress.completedStages);
+
+    for (const prerequisite of stages.slice(0, stageIndex)) {
+      if (!completed.has(prerequisite.position)) {
+        throw new BadRequestException('Adventure stages must be completed in order.');
+      }
+    }
+
+    completed.add(position);
+
+    const completedStages = stages
+      .map((stage) => stage.position)
+      .filter((stagePosition) => completed.has(stagePosition));
+
+    const nextStage =
+      stages.find((stage) => !completed.has(stage.position))?.position ??
+      stages[stages.length - 1]?.position ??
+      0;
+
+    const finished = completedStages.length === stages.length;
+
+    return this.database.adventureProgress.update({
+      where: { id: progress.id },
+      data: {
+        completedStages,
+        currentStagePosition: nextStage,
+        completedAt: finished ? new Date() : null,
+      },
+    });
+  }
+
   async update(userId: string, id: string, dto: UpdateAdventureDto): Promise<AdventureEntity> {
     const existing = await this.repository.findById(id);
 
@@ -277,7 +426,7 @@ export class AdventureService {
 
     this.validateLifecycle(startsAt, expiresAt);
 
-    return this.repository.update({
+    const updated = await this.repository.update({
       ...existing,
       trailId,
       category: dto.category ?? existing.category,
@@ -291,6 +440,14 @@ export class AdventureService {
       updatedAt: new Date(),
       stages,
     });
+
+    if (dto.stages) {
+      await this.database.adventureProgress.deleteMany({
+        where: { adventureId: existing.id },
+      });
+    }
+
+    return updated;
   }
 
   async remove(userId: string, id: string) {

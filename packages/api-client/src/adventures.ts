@@ -152,3 +152,45 @@ export function removeAdventure(token: string, adventureId: string) {
     headers: authHeaders(token),
   });
 }
+
+export interface AdventureProgress {
+  id: string;
+  adventureId: string;
+  userId: string;
+  currentStagePosition: number;
+  completedStages: number[];
+  startedAt: string;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function startAdventure(token: string, adventureId: string) {
+  return apiRequest<AdventureProgress>(
+    `/adventures/${encodeURIComponent(adventureId)}/progress/start`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+    },
+  );
+}
+
+export function getAdventureProgress(token: string, adventureId: string) {
+  return apiRequest<AdventureProgress | null>(
+    `/adventures/${encodeURIComponent(adventureId)}/progress`,
+    {
+      method: 'GET',
+      headers: authHeaders(token),
+    },
+  );
+}
+
+export function completeAdventureStage(token: string, adventureId: string, position: number) {
+  return apiRequest<AdventureProgress>(
+    `/adventures/${encodeURIComponent(adventureId)}/progress/stages/${position}`,
+    {
+      method: 'PATCH',
+      headers: authHeaders(token),
+    },
+  );
+}

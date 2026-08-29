@@ -531,6 +531,20 @@ export default function CommunityMapScreen({ navigation, route }: Props) {
             variant="secondary"
           />
           <Button
+            label="Adventures ↝"
+            onPress={() => {
+              navigation.navigate('Adventures', {
+                mode: 'COMMUNITY',
+                communityId,
+                communitySlug,
+                communityName,
+                latitude,
+                longitude,
+              });
+            }}
+            variant="secondary"
+          />
+          <Button
             label={dropping ? 'Cancel' : 'Drop a pin'}
             onPress={dropping ? cancelDrop : beginDrop}
             variant={dropping ? 'secondary' : 'primary'}

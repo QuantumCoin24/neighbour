@@ -721,6 +721,7 @@ model User {
   marketplaceSettlements             MarketplaceSettlement[]       @relation("MarketplaceSettlementSeller")
   trails                             Trail[]
   adventures                         Adventure[]
+  adventureProgress                  AdventureProgress[]
 
   @@index([status])
   @@index([role])
@@ -2774,10 +2775,11 @@ model Adventure {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 
-  creator   User             @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  community Community?       @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  trail     Trail?           @relation(fields: [trailId], references: [id], onDelete: SetNull)
+  creator   User                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  community Community?          @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  trail     Trail?              @relation(fields: [trailId], references: [id], onDelete: SetNull)
   stages    AdventureStage[]
+  progress  AdventureProgress[]
 
   @@index([creatorId, deletedAt])
   @@index([communityId, deletedAt])
@@ -2806,6 +2808,26 @@ model AdventureStage {
   @@index([adventureId])
   @@index([latitude, longitude])
   @@map("adventure_stages")
+}
+
+model AdventureProgress {
+  id                   String    @id @default(uuid()) @db.Uuid
+  adventureId          String    @db.Uuid
+  userId               String    @db.Uuid
+  currentStagePosition Int       @default(0)
+  completedStages      Int[]     @default([])
+  startedAt            DateTime  @default(now())
+  completedAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  adventure Adventure @relation(fields: [adventureId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([adventureId, userId])
+  @@index([userId, completedAt])
+  @@index([adventureId, completedAt])
+  @@map("adventure_progress")
 }
 
 model MapDiscovery {
