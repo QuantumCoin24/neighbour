@@ -173,12 +173,20 @@ export class PrismaTrailRepository extends TrailRepository {
     return records.map((record) => this.map(record));
   }
 
-  async findCommunity(communityId: string): Promise<TrailEntity[]> {
+  async findCommunity(communityId: string, requesterId: string): Promise<TrailEntity[]> {
     const records = await this.database.trail.findMany({
       where: {
         communityId,
         scope: TrailScope.COMMUNITY,
-        ...this.activeWhere(),
+        deletedAt: null,
+        AND: [
+          {
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+          },
+          {
+            OR: [{ visibility: LocationVisibility.COMMUNITY }, { creatorId: requesterId }],
+          },
+        ],
       },
       orderBy: { createdAt: 'desc' },
       include: this.include(),

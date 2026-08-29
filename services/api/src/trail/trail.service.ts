@@ -236,7 +236,7 @@ export class TrailService {
 
   async findCommunity(userId: string, communityId: string) {
     await this.requireActiveMembership(userId, communityId);
-    return this.repository.findCommunity(communityId);
+    return this.repository.findCommunity(communityId, userId);
   }
 
   async update(userId: string, id: string, dto: UpdateTrailDto): Promise<TrailEntity> {
