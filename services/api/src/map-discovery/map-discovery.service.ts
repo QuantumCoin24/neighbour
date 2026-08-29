@@ -94,16 +94,6 @@ export class MapDiscoveryService {
         ? LocationVisibility.COMMUNITY
         : LocationVisibility.PRIVATE);
 
-    if (
-      dto.scope === MapDiscoveryScope.PERSONAL &&
-      visibility === LocationVisibility.PUBLIC &&
-      (dto.locationAccuracyM === undefined || dto.locationAccuracyM < 25)
-    ) {
-      throw new BadRequestException(
-        'Public personal discoveries must use a location accuracy of at least 25 metres.',
-      );
-    }
-
     const duplicate = await this.repository.findDuplicateCandidate(
       userId,
       dto.scope,
@@ -246,16 +236,6 @@ export class MapDiscoveryService {
     const latitude = dto.latitude ?? discovery.latitude;
     const longitude = dto.longitude ?? discovery.longitude;
     const locationAccuracyM = dto.locationAccuracyM ?? discovery.locationAccuracyM;
-
-    if (
-      discovery.scope === MapDiscoveryScope.PERSONAL &&
-      visibility === LocationVisibility.PUBLIC &&
-      (locationAccuracyM === null || locationAccuracyM < 25)
-    ) {
-      throw new BadRequestException(
-        'Public personal discoveries must use a location accuracy of at least 25 metres.',
-      );
-    }
 
     const duplicate = await this.repository.findDuplicateCandidate(
       userId,
