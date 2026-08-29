@@ -190,6 +190,8 @@ export default function TrailWorkspace({ mode, username, slug, backHref }: Trail
   }, [mode, username, slug]);
 
   useEffect(() => {
+    if (loading) return;
+    if (mode === 'COMMUNITY' && !activeMember) return;
     if (!mapContainerRef.current || mapRef.current) return;
 
     void import('leaflet').then((L) => {
@@ -229,7 +231,7 @@ export default function TrailWorkspace({ mode, username, slug, backHref }: Trail
       mapRef.current = null;
       layerRef.current = null;
     };
-  }, []);
+  }, [loading, mode, activeMember]);
 
   useEffect(() => {
     if (!mapRef.current || !layerRef.current) return;
