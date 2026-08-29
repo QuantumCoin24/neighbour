@@ -407,6 +407,35 @@ export default function ProfileScreen() {
 
       {section === 'overview' ? (
         <View style={styles.section}>
+          {profile.profile?.username ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open Personal Map"
+              onPress={() => {
+                navigation.navigate('PersonalMap', {
+                  username: profile.profile!.username,
+                  owner: true,
+                });
+              }}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.78 : 1,
+              })}
+            >
+              <Card variant="muted" style={styles.card}>
+                <AppText variant="overline" tone="brand">
+                  PERSONAL MAP
+                </AppText>
+                <AppText variant="subheading">Your discoveries</AppText>
+                <AppText tone="secondary">
+                  Save exact places, landmarks and moments that matter to you.
+                </AppText>
+                <AppText variant="label" tone="brand">
+                  Open Personal Map →
+                </AppText>
+              </Card>
+            </Pressable>
+          ) : null}
+
           <Card style={styles.card}>
             <AppText variant="subheading">About</AppText>
 

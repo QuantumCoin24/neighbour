@@ -18,7 +18,7 @@ import { useNeighbourTheme } from '../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PublicProfile'>;
 
-export default function PublicProfileScreen({ route }: Props) {
+export default function PublicProfileScreen({ navigation, route }: Props) {
   const { theme } = useNeighbourTheme();
   const { user } = useAuth();
 
@@ -206,6 +206,34 @@ export default function PublicProfileScreen({ route }: Props) {
           </AppText>
         </Pressable>
       ) : null}
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${profile.displayName}'s Personal Map`}
+        onPress={() => {
+          navigation.navigate('PersonalMap', {
+            username: profile.username,
+            owner: profile.userId === user?.id,
+            displayName: profile.displayName,
+          });
+        }}
+        style={({ pressed }) => ({
+          opacity: pressed ? 0.78 : 1,
+        })}
+      >
+        <Card variant="muted" style={styles.card}>
+          <AppText variant="overline" tone="brand">
+            PERSONAL MAP
+          </AppText>
+          <AppText variant="subheading">{profile.displayName}'s discoveries</AppText>
+          <AppText tone="secondary">
+            Explore the places, landmarks and moments this neighbour has chosen to share.
+          </AppText>
+          <AppText variant="label" tone="brand">
+            Open Personal Map →
+          </AppText>
+        </Card>
+      </Pressable>
 
       <Card style={styles.card}>
         <AppText variant="overline" tone="brand">

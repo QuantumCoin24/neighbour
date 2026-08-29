@@ -25,6 +25,7 @@ export const ROUTES = {
   NOTIFICATIONS: 'Notifications',
   PROFILE: 'Profile',
   PUBLIC_PROFILE: 'PublicProfile',
+  PERSONAL_MAP: 'PersonalMap',
   CONVERSATION: 'Conversation',
   COMMUNITY_DETAIL: 'CommunityDetail',
   CREATE_COMMUNITY: 'CreateCommunity',
@@ -46,6 +47,11 @@ export type RootStackParamList = {
     username: string;
     userId: string;
     displayName: string;
+  };
+  PersonalMap: {
+    username: string;
+    owner: boolean;
+    displayName?: string;
   };
   CommunityDetail: {
     slug: string;
