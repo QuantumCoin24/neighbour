@@ -7,6 +7,8 @@ import {
   getCommunityMapDiscoveries,
   getMyCommunities,
   getMyProfile,
+  updateMapDiscovery,
+  createSecurityReport,
   type Community,
   type CommunityMembership,
   type MapDiscovery,
@@ -17,11 +19,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
-import type {
-  LayerGroup,
-  Map as LeafletMap,
-  Marker as LeafletMarker,
-} from 'leaflet';
+import type { LayerGroup, Map as LeafletMap, Marker as LeafletMarker } from 'leaflet';
 import CommunityHeader from '../../../../components/community/CommunityHeader';
 import CommunityTabs from '../../../../components/community/CommunityTabs';
 
@@ -64,10 +62,7 @@ function categoryLabel(category: MapDiscoveryCategory) {
   return categories.find((item) => item.value === category)?.label ?? 'Discovery';
 }
 
-function initialCentre(
-  community: Community | null,
-  discoveries: MapDiscovery[],
-): [number, number] {
+function initialCentre(community: Community | null, discoveries: MapDiscovery[]): [number, number] {
   if (discoveries.length > 0) {
     return [discoveries[0].latitude, discoveries[0].longitude];
   }
@@ -99,6 +94,8 @@ export default function CommunityMapPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [reportingId, setReportingId] = useState<string | null>(null);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -158,18 +155,13 @@ export default function CommunityMapPage() {
         return;
       }
 
-      const mapItems = await getCommunityMapDiscoveries(
-        token,
-        communityResult.id,
-      );
+      const mapItems = await getCommunityMapDiscoveries(token, communityResult.id);
 
       setDiscoveries(mapItems);
       setMessage('');
     } catch (error) {
       setMessage(
-        error instanceof Error
-          ? error.message
-          : 'This community map could not be loaded.',
+        error instanceof Error ? error.message : 'This community map could not be loaded.',
       );
     } finally {
       setLoading(false);
@@ -181,13 +173,7 @@ export default function CommunityMapPage() {
   }, [slug]);
 
   useEffect(() => {
-    if (
-      loading ||
-      !community ||
-      !activeMember ||
-      !mapContainerRef.current ||
-      mapRef.current
-    ) {
+    if (loading || !community || !activeMember || !mapContainerRef.current || mapRef.current) {
       return;
     }
 
@@ -203,10 +189,7 @@ export default function CommunityMapPage() {
         dragging: true,
         touchZoom: true,
         keyboard: true,
-      }).setView(
-        initialCentre(community, discoveries),
-        discoveries.length ? 14 : 12,
-      );
+      }).setView(initialCentre(community, discoveries), discoveries.length ? 14 : 12);
 
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -249,11 +232,7 @@ export default function CommunityMapPage() {
     let cancelled = false;
 
     void import('leaflet').then((L) => {
-      if (
-        cancelled ||
-        mapRef.current !== map ||
-        markerLayerRef.current !== layer
-      ) {
+      if (cancelled || mapRef.current !== map || markerLayerRef.current !== layer) {
         return;
       }
 
@@ -278,9 +257,7 @@ export default function CommunityMapPage() {
 
       if (discoveries.length > 0) {
         const bounds = L.latLngBounds(
-          discoveries.map(
-            (item) => [item.latitude, item.longitude] as [number, number],
-          ),
+          discoveries.map((item) => [item.latitude, item.longitude] as [number, number]),
         );
 
         map.fitBounds(bounds.pad(0.2), { maxZoom: 15 });
@@ -345,14 +322,7 @@ export default function CommunityMapPage() {
   async function saveDiscovery() {
     const token = localStorage.getItem('accessToken');
 
-    if (
-      !token ||
-      !community ||
-      !activeMember ||
-      !draftPoint ||
-      !title.trim() ||
-      saving
-    ) {
+    if (!token || !community || !activeMember || !draftPoint || !title.trim() || saving) {
       return;
     }
 
@@ -375,9 +345,7 @@ export default function CommunityMapPage() {
         latitude: draftPoint[0],
         longitude: draftPoint[1],
         visibility: 'COMMUNITY',
-        ...(type === 'SEASONAL'
-          ? { startsAt: new Date().toISOString() }
-          : {}),
+        ...(type === 'SEASONAL' ? { startsAt: new Date().toISOString() } : {}),
         ...(type === 'MOMENT' || type === 'SEASONAL'
           ? { expiresAt: new Date(expiresAt).toISOString() }
           : {}),
@@ -395,13 +363,78 @@ export default function CommunityMapPage() {
       setDiscoveries(refreshed);
       setMessage('Discovery added to the community map.');
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'The discovery could not be saved.',
-      );
+      setMessage(error instanceof Error ? error.message : 'The discovery could not be saved.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  function beginEdit(item: MapDiscovery) {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setDescription(item.description);
+    setCategory(item.category);
+    setType(item.type);
+    setExpiresAt(item.expiresAt ? new Date(item.expiresAt).toISOString().slice(0, 16) : '');
+    setMessage('');
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+  }
+
+  async function saveEdit(item: MapDiscovery) {
+    const token = localStorage.getItem('accessToken');
+    if (!token || item.creatorId !== currentUserId || saving || !title.trim()) return;
+
+    if ((type === 'MOMENT' || type === 'SEASONAL') && !expiresAt) {
+      setMessage('Choose when this discovery should expire.');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await updateMapDiscovery(token, item.id, {
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        type,
+        visibility: 'COMMUNITY',
+        startsAt: type === 'SEASONAL' ? new Date().toISOString() : null,
+        expiresAt:
+          type === 'MOMENT' || type === 'SEASONAL' ? new Date(expiresAt).toISOString() : null,
+      });
+      setEditingId(null);
+      setMessage('Community discovery updated.');
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The discovery could not be updated.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function reportDiscovery(id: string) {
+    const token = localStorage.getItem('accessToken');
+    if (!token || reportingId) return;
+
+    const reason = window.prompt(
+      'Tell us briefly why this community discovery should be reviewed.',
+    );
+    if (!reason?.trim()) return;
+
+    try {
+      setReportingId(id);
+      await createSecurityReport(token, {
+        targetType: 'MAP_DISCOVERY',
+        targetId: id,
+        reason: reason.trim(),
+      });
+      setMessage('Report submitted for review.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The report could not be submitted.');
+    } finally {
+      setReportingId(null);
     }
   }
 
@@ -418,9 +451,7 @@ export default function CommunityMapPage() {
 
     if (!creator && !moderator) return;
 
-    const confirmed = window.confirm(
-      `Remove "${item.title}" from this community map?`,
-    );
+    const confirmed = window.confirm(`Remove "${item.title}" from this community map?`);
 
     if (!confirmed) return;
 
@@ -435,18 +466,13 @@ export default function CommunityMapPage() {
       setSelectedId(null);
       setMessage('Discovery removed.');
     } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : 'The discovery could not be removed.',
-      );
+      setMessage(error instanceof Error ? error.message : 'The discovery could not be removed.');
     } finally {
       setDeletingId(null);
     }
   }
 
-  const selected =
-    discoveries.find((item) => item.id === selectedId) ?? null;
+  const selected = discoveries.find((item) => item.id === selectedId) ?? null;
 
   const moderator =
     membership?.role === 'OWNER' ||
@@ -461,23 +487,12 @@ export default function CommunityMapPage() {
       <section className="community-map-heading">
         <div>
           <div className="eyebrow">COMMUNITY MAP</div>
-          <h1>
-            {community
-              ? `${community.name} discoveries`
-              : 'Community discoveries'}
-          </h1>
-          <p>
-            Places, landmarks and local knowledge deliberately shared by this
-            community.
-          </p>
+          <h1>{community ? `${community.name} discoveries` : 'Community discoveries'}</h1>
+          <p>Places, landmarks and local knowledge deliberately shared by this community.</p>
         </div>
 
         {activeMember ? (
-          <button
-            className="drop-button"
-            type="button"
-            onClick={dropping ? cancelDrop : beginDrop}
-          >
+          <button className="drop-button" type="button" onClick={dropping ? cancelDrop : beginDrop}>
             {dropping ? 'Cancel pin' : 'Drop a pin'}
           </button>
         ) : null}
@@ -490,12 +505,10 @@ export default function CommunityMapPage() {
           <div className="locked-icon">⌖</div>
           <h2>Community members only</h2>
           <p>
-            Join this community to see its shared local discoveries and
-            contribute places of your own.
+            Join this community to see its shared local discoveries and contribute places of your
+            own.
           </p>
-          <Link href={`/community/${encodeURIComponent(slug)}`}>
-            Back to community
-          </Link>
+          <Link href={`/community/${encodeURIComponent(slug)}`}>Back to community</Link>
         </section>
       ) : null}
 
@@ -524,10 +537,7 @@ export default function CommunityMapPage() {
                 <div className="empty-state">
                   <div className="empty-icon">⌖</div>
                   <strong>This community map is ready.</strong>
-                  <p>
-                    Add the first place, landmark or local discovery worth
-                    sharing.
-                  </p>
+                  <p>Add the first place, landmark or local discovery worth sharing.</p>
                 </div>
               ) : (
                 <div className="discovery-list">
@@ -535,20 +545,13 @@ export default function CommunityMapPage() {
                     <button
                       key={item.id}
                       type="button"
-                      className={`discovery-row ${
-                        selectedId === item.id ? 'selected' : ''
-                      }`}
+                      className={`discovery-row ${selectedId === item.id ? 'selected' : ''}`}
                       onClick={() => {
                         setSelectedId(item.id);
-                        mapRef.current?.setView(
-                          [item.latitude, item.longitude],
-                          16,
-                        );
+                        mapRef.current?.setView([item.latitude, item.longitude], 16);
                       }}
                     >
-                      <span className="row-symbol">
-                        {discoverySymbol(item.category)}
-                      </span>
+                      <span className="row-symbol">{discoverySymbol(item.category)}</span>
                       <span>
                         <strong>{item.title}</strong>
                         <small>{categoryLabel(item.category)}</small>
@@ -583,11 +586,7 @@ export default function CommunityMapPage() {
                   <span>Category</span>
                   <select
                     value={category}
-                    onChange={(event) =>
-                      setCategory(
-                        event.target.value as MapDiscoveryCategory,
-                      )
-                    }
+                    onChange={(event) => setCategory(event.target.value as MapDiscoveryCategory)}
                   >
                     {categories.map((item) => (
                       <option key={item.value} value={item.value}>
@@ -640,11 +639,7 @@ export default function CommunityMapPage() {
               </div>
 
               <div className="editor-actions">
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={cancelDrop}
-                >
+                <button type="button" className="secondary-button" onClick={cancelDrop}>
                   Cancel
                 </button>
 
@@ -662,38 +657,155 @@ export default function CommunityMapPage() {
 
           {selected ? (
             <section className="selected-card">
-              <div>
-                <div className="eyebrow">
-                  {categoryLabel(selected.category).toUpperCase()}
-                </div>
-                <h2>{selected.title}</h2>
-                {selected.description ? <p>{selected.description}</p> : null}
-                <div className="selected-meta">
-                  {selected.type.toLowerCase()} · shared by{' '}
-                  {selected.creator?.displayName ?? 'a neighbour'}
-                </div>
-              </div>
+              {editingId === selected.id && selected.creatorId === currentUserId ? (
+                <>
+                  <div>
+                    <div className="eyebrow">EDIT DISCOVERY</div>
+                    <h2>Edit {selected.title}</h2>
+                  </div>
 
-              {selected.creatorId === currentUserId || moderator ? (
-                <button
-                  type="button"
-                  className="remove-button"
-                  disabled={deletingId === selected.id}
-                  onClick={() => void removeDiscovery(selected)}
-                >
-                  {deletingId === selected.id ? 'Removing…' : 'Remove'}
-                </button>
-              ) : null}
+                  <div className="editor-grid">
+                    <label className="wide">
+                      <span>Title</span>
+                      <input
+                        value={title}
+                        onChange={(event) => setTitle(event.target.value)}
+                        maxLength={120}
+                      />
+                    </label>
+
+                    <label>
+                      <span>Category</span>
+                      <select
+                        value={category}
+                        onChange={(event) =>
+                          setCategory(event.target.value as MapDiscoveryCategory)
+                        }
+                      >
+                        {categories.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>Lifecycle</span>
+                      <select
+                        value={type}
+                        onChange={(event) => {
+                          const next = event.target.value as MapDiscoveryType;
+                          setType(next);
+
+                          if (next === 'LANDMARK') {
+                            setExpiresAt('');
+                          }
+                        }}
+                      >
+                        <option value="LANDMARK">Landmark</option>
+                        <option value="MOMENT">Moment</option>
+                        <option value="SEASONAL">Seasonal</option>
+                      </select>
+                    </label>
+
+                    {type === 'MOMENT' || type === 'SEASONAL' ? (
+                      <label>
+                        <span>Expires</span>
+                        <input
+                          type="datetime-local"
+                          value={expiresAt}
+                          onChange={(event) => setExpiresAt(event.target.value)}
+                        />
+                      </label>
+                    ) : null}
+
+                    <label className="wide">
+                      <span>Description</span>
+                      <textarea
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                        rows={4}
+                        maxLength={1000}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="editor-actions">
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      disabled={saving}
+                      onClick={cancelEdit}
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      type="button"
+                      className="primary-button"
+                      disabled={saving || !title.trim()}
+                      onClick={() => void saveEdit(selected)}
+                    >
+                      {saving ? 'Saving…' : 'Save changes'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <div className="eyebrow">
+                      {categoryLabel(selected.category).toUpperCase()}
+                    </div>
+                    <h2>{selected.title}</h2>
+                    {selected.description ? <p>{selected.description}</p> : null}
+                    <div className="selected-meta">
+                      {selected.type.toLowerCase()} · shared by{' '}
+                      {selected.creator?.displayName ?? 'a neighbour'}
+                    </div>
+                  </div>
+
+                  <div className="editor-actions">
+                    {selected.creatorId === currentUserId ? (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => beginEdit(selected)}
+                      >
+                        Edit discovery
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        disabled={reportingId === selected.id}
+                        onClick={() => void reportDiscovery(selected.id)}
+                      >
+                        {reportingId === selected.id ? 'Reporting…' : 'Report discovery'}
+                      </button>
+                    )}
+
+                    {selected.creatorId === currentUserId || moderator ? (
+                      <button
+                        type="button"
+                        className="remove-button"
+                        disabled={deletingId === selected.id}
+                        onClick={() => void removeDiscovery(selected)}
+                      >
+                        {deletingId === selected.id ? 'Removing…' : 'Remove'}
+                      </button>
+                    ) : null}
+                  </div>
+                </>
+              )}
             </section>
           ) : null}
 
           <div className="community-map-footer">
-            <Link href={`/community/${encodeURIComponent(slug)}`}>
-              ← Back to community
-            </Link>
+            <Link href={`/community/${encodeURIComponent(slug)}`}>← Back to community</Link>
             <span>
-              Community discoveries stay on this community map and do not
-              automatically enter Nearby.
+              Community discoveries stay on this community map and do not automatically enter
+              Nearby.
             </span>
           </div>
         </>

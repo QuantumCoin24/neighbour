@@ -7,6 +7,8 @@ import {
   getMyProfile,
   getPublicProfile,
   getPublicProfileMapDiscoveries,
+  updateMapDiscovery,
+  createSecurityReport,
   type MapDiscovery,
   type MapDiscoveryCategory,
   type MapDiscoveryType,
@@ -61,11 +63,7 @@ function initialCentre(discoveries: MapDiscovery[]): [number, number] {
   return [53.4808, -2.2426];
 }
 
-export default function PersonalMapPage({
-  params,
-}: {
-  params: Promise<{ username: string }>;
-}) {
+export default function PersonalMapPage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -88,6 +86,8 @@ export default function PersonalMapPage({
   const [expiresAt, setExpiresAt] = useState('');
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [reportingId, setReportingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -254,10 +254,9 @@ export default function PersonalMapPage({
         iconAnchor: [21, 21],
       });
 
-      draftMarkerRef.current = L.marker(
-        [draftPoint.latitude, draftPoint.longitude],
-        { icon },
-      ).addTo(map);
+      draftMarkerRef.current = L.marker([draftPoint.latitude, draftPoint.longitude], {
+        icon,
+      }).addTo(map);
     });
 
     return () => {
@@ -321,6 +320,74 @@ export default function PersonalMapPage({
     }
   }
 
+  function beginEdit(item: MapDiscovery): void {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setDescription(item.description);
+    setCategory(item.category);
+    setType(item.type);
+    setVisibility(item.visibility);
+    setExpiresAt(item.expiresAt ? new Date(item.expiresAt).toISOString().slice(0, 16) : '');
+    setMessage('');
+  }
+
+  function cancelEdit(): void {
+    setEditingId(null);
+  }
+
+  async function saveEdit(item: MapDiscovery): Promise<void> {
+    const token = localStorage.getItem('accessToken');
+    if (!token || !owner || saving || !title.trim()) return;
+
+    if ((type === 'MOMENT' || type === 'SEASONAL') && !expiresAt) {
+      setMessage('Choose when this discovery should expire.');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await updateMapDiscovery(token, item.id, {
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        type,
+        visibility,
+        startsAt: type === 'SEASONAL' ? new Date().toISOString() : null,
+        expiresAt:
+          type === 'MOMENT' || type === 'SEASONAL' ? new Date(expiresAt).toISOString() : null,
+      });
+      setEditingId(null);
+      setMessage('Discovery updated.');
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The discovery could not be updated.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function reportDiscovery(id: string): Promise<void> {
+    const token = localStorage.getItem('accessToken');
+    if (!token || owner || reportingId) return;
+
+    const reason = window.prompt('Tell us briefly why this discovery should be reviewed.');
+    if (!reason?.trim()) return;
+
+    try {
+      setReportingId(id);
+      await createSecurityReport(token, {
+        targetType: 'MAP_DISCOVERY',
+        targetId: id,
+        reason: reason.trim(),
+      });
+      setMessage('Report submitted for review.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The report could not be submitted.');
+    } finally {
+      setReportingId(null);
+    }
+  }
+
   async function removeDiscovery(id: string): Promise<void> {
     const token = localStorage.getItem('accessToken');
     if (!token || !owner || deletingId) return;
@@ -354,9 +421,7 @@ export default function PersonalMapPage({
           </Link>
           <span className="map-eyebrow">PERSONAL MAP</span>
           <h1>{owner ? 'My discoveries' : `${profile.displayName}'s discoveries`}</h1>
-          <p>
-            Places, moments and local discoveries deliberately saved to this personal map.
-          </p>
+          <p>Places, moments and local discoveries deliberately saved to this personal map.</p>
         </div>
 
         {owner ? (
@@ -377,13 +442,11 @@ export default function PersonalMapPage({
           <div className="drop-panel-copy">
             <span>NEW DISCOVERY</span>
             <strong>
-              {draftPoint
-                ? 'Exact position selected'
-                : 'Click the exact position on the map'}
+              {draftPoint ? 'Exact position selected' : 'Click the exact position on the map'}
             </strong>
             <p>
-              This discovery belongs to your Personal Map. It will never be added to
-              Nearby automatically.
+              This discovery belongs to your Personal Map. It will never be added to Nearby
+              automatically.
             </p>
           </div>
 
@@ -414,9 +477,7 @@ export default function PersonalMapPage({
                   Category
                   <select
                     value={category}
-                    onChange={(event) =>
-                      setCategory(event.target.value as MapDiscoveryCategory)
-                    }
+                    onChange={(event) => setCategory(event.target.value as MapDiscoveryCategory)}
                   >
                     {CATEGORIES.map((item) => (
                       <option value={item.value} key={item.value}>
@@ -430,9 +491,7 @@ export default function PersonalMapPage({
                   Lifecycle
                   <select
                     value={type}
-                    onChange={(event) =>
-                      setType(event.target.value as MapDiscoveryType)
-                    }
+                    onChange={(event) => setType(event.target.value as MapDiscoveryType)}
                   >
                     <option value="LANDMARK">Landmark</option>
                     <option value="MOMENT">Moment</option>
@@ -499,11 +558,7 @@ export default function PersonalMapPage({
 
           {selected ? (
             <article className="selected-discovery">
-              <button
-                type="button"
-                className="close-selected"
-                onClick={() => setSelectedId(null)}
-              >
+              <button type="button" className="close-selected" onClick={() => setSelectedId(null)}>
                 ×
               </button>
               <span>{selected.category.replaceAll('_', ' ')}</span>
@@ -514,15 +569,123 @@ export default function PersonalMapPage({
                 {owner ? <span>{selected.visibility.toLowerCase()}</span> : null}
               </div>
               {owner ? (
+                editingId === selected.id ? (
+                  <div className="drop-form edit-discovery-form">
+                    <label>
+                      Name
+                      <input
+                        value={title}
+                        maxLength={120}
+                        onChange={(event) => setTitle(event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      What is here?
+                      <textarea
+                        value={description}
+                        maxLength={2000}
+                        onChange={(event) => setDescription(event.target.value)}
+                      />
+                    </label>
+                    <div className="drop-grid">
+                      <label>
+                        Category
+                        <select
+                          value={category}
+                          onChange={(event) =>
+                            setCategory(event.target.value as MapDiscoveryCategory)
+                          }
+                        >
+                          {CATEGORIES.map((item) => (
+                            <option value={item.value} key={item.value}>
+                              {item.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Lifecycle
+                        <select
+                          value={type}
+                          onChange={(event) => setType(event.target.value as MapDiscoveryType)}
+                        >
+                          <option value="LANDMARK">Landmark</option>
+                          <option value="MOMENT">Moment</option>
+                          <option value="SEASONAL">Seasonal</option>
+                        </select>
+                      </label>
+                      <label>
+                        Visibility
+                        <select
+                          value={visibility}
+                          onChange={(event) =>
+                            setVisibility(event.target.value as MapDiscoveryVisibility)
+                          }
+                        >
+                          <option value="PRIVATE">Only me</option>
+                          <option value="PUBLIC">Public profile</option>
+                        </select>
+                      </label>
+                      {type === 'MOMENT' || type === 'SEASONAL' ? (
+                        <label>
+                          Visible until
+                          <input
+                            type="datetime-local"
+                            value={expiresAt}
+                            onChange={(event) => setExpiresAt(event.target.value)}
+                          />
+                        </label>
+                      ) : null}
+                    </div>
+                    {visibility === 'PUBLIC' ? (
+                      <p className="location-safety-note">
+                        Public discoveries share the location you selected. Avoid publishing
+                        sensitive private locations.
+                      </p>
+                    ) : null}
+                    <div className="edit-actions">
+                      <button
+                        type="button"
+                        className="save-discovery"
+                        disabled={saving || !title.trim()}
+                        onClick={() => void saveEdit(selected)}
+                      >
+                        {saving ? 'Saving…' : 'Save changes'}
+                      </button>
+                      <button type="button" className="secondary-map-action" onClick={cancelEdit}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="edit-actions">
+                    <button
+                      type="button"
+                      className="save-discovery"
+                      onClick={() => beginEdit(selected)}
+                    >
+                      Edit discovery
+                    </button>
+                    <button
+                      type="button"
+                      className="delete-discovery"
+                      disabled={deletingId === selected.id}
+                      onClick={() => void removeDiscovery(selected.id)}
+                    >
+                      {deletingId === selected.id ? 'Removing…' : 'Remove from my map'}
+                    </button>
+                  </div>
+                )
+              ) : (
                 <button
                   type="button"
-                  className="delete-discovery"
-                  disabled={deletingId === selected.id}
-                  onClick={() => void removeDiscovery(selected.id)}
+                  className="secondary-map-action"
+                  disabled={reportingId === selected.id}
+                  onClick={() => void reportDiscovery(selected.id)}
                 >
-                  {deletingId === selected.id ? 'Removing…' : 'Remove from my map'}
+                  {reportingId === selected.id ? 'Reporting…' : 'Report discovery'}
                 </button>
-              ) : null}
+              )}
             </article>
           ) : discoveries.length === 0 ? (
             <div className="discovery-empty">
@@ -906,8 +1069,39 @@ export default function PersonalMapPage({
           text-transform: capitalize;
         }
 
+        .edit-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 20px;
+        }
+
+        .edit-discovery-form {
+          margin-top: 20px;
+        }
+
+        .location-safety-note {
+          margin: 0;
+          border-radius: 12px;
+          background: #fff7e8;
+          padding: 11px 13px;
+          color: #6c5425;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .secondary-map-action {
+          border: 1px solid #ccdcd3;
+          border-radius: 999px;
+          background: #fff;
+          color: #344d41;
+          padding: 10px 14px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
         .delete-discovery {
-          margin-top: 24px;
+          margin-top: 0;
           border: 1px solid #ecd4d4;
           border-radius: 999px;
           background: #fff;
