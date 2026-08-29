@@ -76,3 +76,4 @@ export * from './nearby';
 export * from './apple-commerce';
 export * from './vibes';
 export * from './live';
+export * from './map-discovery';

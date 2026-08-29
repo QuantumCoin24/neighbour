@@ -192,6 +192,28 @@ enum LocationVisibility {
   PRIVATE
 }
 
+enum MapDiscoveryScope {
+  PERSONAL
+  COMMUNITY
+}
+
+enum MapDiscoveryType {
+  MOMENT
+  SEASONAL
+  LANDMARK
+}
+
+enum MapDiscoveryCategory {
+  NATURE
+  WALK
+  ACTIVITY
+  VIEWPOINT
+  LOCAL_HISTORY
+  ART_CULTURE
+  COMMUNITY
+  OTHER
+}
+
 enum MarketplaceListingStatus {
   DRAFT
   PUBLISHED
@@ -602,6 +624,7 @@ model User {
   neighbourhoodMemberships NeighbourhoodMembership[]
   attendances              Attendance[]
   createdEvents            Event[]
+  mapDiscoveries           MapDiscovery[]
   businesses               Business[]
   organisations            Organisation[]
   organisationMemberships  OrganisationMember[]
@@ -823,6 +846,7 @@ model Community {
   vibes              Vibe[]
   liveSessions       LiveSession[]
   events             Event[]
+  mapDiscoveries     MapDiscovery[]
   businesses         Business[]
 
   neighbourhood Neighbourhood? @relation(fields: [neighbourhoodId], references: [id], onDelete: Cascade)
@@ -2627,4 +2651,36 @@ model LiveModerationEvent {
   @@index([targetUserId, createdAt])
   @@index([type, createdAt])
   @@map("live_moderation_events")
+}
+
+model MapDiscovery {
+  id                String               @id @default(uuid()) @db.Uuid
+  creatorId         String               @db.Uuid
+  communityId       String?              @db.Uuid
+  scope             MapDiscoveryScope
+  type              MapDiscoveryType
+  category          MapDiscoveryCategory @default(OTHER)
+  title             String
+  description       String
+  latitude          Decimal              @db.Decimal(9, 6)
+  longitude         Decimal              @db.Decimal(9, 6)
+  locationAccuracyM Int?
+  visibility        LocationVisibility   @default(PRIVATE)
+  startsAt          DateTime?
+  expiresAt         DateTime?
+  deletedAt         DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  creator   User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  community Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId, deletedAt])
+  @@index([communityId, deletedAt])
+  @@index([scope, visibility])
+  @@index([type])
+  @@index([category])
+  @@index([latitude, longitude])
+  @@index([expiresAt])
+  @@map("map_discoveries")
 }
