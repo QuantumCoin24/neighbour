@@ -4,6 +4,7 @@ import {
   acceptConnection,
   blockSocialGraphUser,
   createConversation,
+  getCurrentUser,
   getPostsByProfile,
   getPublicProfile,
   getRelationshipStatus,
@@ -30,6 +31,7 @@ export default function PublicProfilePage({
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [relationship, setRelationship] = useState<any>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [message, setMessage] = useState('Loading profile...');
   const [connecting, setConnecting] = useState(false);
   const [messaging, setMessaging] = useState(false);
@@ -49,8 +51,15 @@ export default function PublicProfilePage({
         const token = localStorage.getItem('accessToken') ?? '';
 
         if (token) {
-          const relation = await getRelationshipStatus(token, result.userId);
-          setRelationship(relation);
+          const currentUser = await getCurrentUser();
+          setCurrentUserId(currentUser.id);
+
+          if (currentUser.id !== result.userId) {
+            const relation = await getRelationshipStatus(token, result.userId);
+            setRelationship(relation);
+          } else {
+            setRelationship(null);
+          }
         }
       } catch {
         setMessage('Profile not found.');
@@ -130,6 +139,7 @@ export default function PublicProfilePage({
   }
 
   const initials = profile.displayName.slice(0, 2).toUpperCase();
+  const isSelf = currentUserId === profile.userId;
 
   const relationshipLabel =
     relationship?.status === 'CONNECTED'
@@ -176,49 +186,53 @@ export default function PublicProfilePage({
             >
               Personal Map
             </Link>
-            <button
-              className="profile-connect"
-              type="button"
-              onClick={() => void connect()}
-              disabled={
-                connecting ||
-                blocking ||
-                relationship?.status === 'CONNECTED' ||
-                relationship?.status === 'OUTGOING_REQUEST' ||
-                relationship?.status === 'BLOCKED_BY_ME' ||
-                relationship?.status === 'BLOCKED_ME'
-              }
-            >
-              {relationshipLabel}
-            </button>
+            {!isSelf ? (
+              <>
+                <button
+                  className="profile-connect"
+                  type="button"
+                  onClick={() => void connect()}
+                  disabled={
+                    connecting ||
+                    blocking ||
+                    relationship?.status === 'CONNECTED' ||
+                    relationship?.status === 'OUTGOING_REQUEST' ||
+                    relationship?.status === 'BLOCKED_BY_ME' ||
+                    relationship?.status === 'BLOCKED_ME'
+                  }
+                >
+                  {relationshipLabel}
+                </button>
 
-            <button
-              className="profile-connect"
-              type="button"
-              disabled={
-                messaging ||
-                relationship?.status === 'BLOCKED_BY_ME' ||
-                relationship?.status === 'BLOCKED_ME'
-              }
-              onClick={() => void startConversation()}
-            >
-              {messaging ? 'Opening…' : 'Message'}
-            </button>
+                <button
+                  className="profile-connect"
+                  type="button"
+                  disabled={
+                    messaging ||
+                    relationship?.status === 'BLOCKED_BY_ME' ||
+                    relationship?.status === 'BLOCKED_ME'
+                  }
+                  onClick={() => void startConversation()}
+                >
+                  {messaging ? 'Opening…' : 'Message'}
+                </button>
 
-            <button
-              type="button"
-              className="profile-block"
-              disabled={blocking}
-              onClick={() => void toggleBlock()}
-            >
-              {blocking
-                ? 'Updating…'
-                : relationship?.status === 'BLOCKED_BY_ME'
-                  ? 'Unblock'
-                  : 'Block'}
-            </button>
+                <button
+                  type="button"
+                  className="profile-block"
+                  disabled={blocking}
+                  onClick={() => void toggleBlock()}
+                >
+                  {blocking
+                    ? 'Updating…'
+                    : relationship?.status === 'BLOCKED_BY_ME'
+                      ? 'Unblock'
+                      : 'Block'}
+                </button>
 
-            <ReportButton targetType="USER" targetId={profile.userId} />
+                <ReportButton targetType="USER" targetId={profile.userId} />
+              </>
+            ) : null}
           </div>
         </div>
       </section>
