@@ -69,6 +69,7 @@ export default function PersonalMapPage({ params }: { params: Promise<{ username
   const mapRef = useRef<LeafletMap | null>(null);
   const markerLayerRef = useRef<LayerGroup | null>(null);
   const draftMarkerRef = useRef<LeafletMarker | null>(null);
+  const [mapRenderVersion, setMapRenderVersion] = useState(0);
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [discoveries, setDiscoveries] = useState<MapDiscovery[]>([]);
@@ -155,6 +156,7 @@ export default function PersonalMapPage({ params }: { params: Promise<{ username
       }).addTo(map);
 
       markerLayerRef.current = L.layerGroup().addTo(map);
+      setMapRenderVersion((version) => version + 1);
 
       map.on('click', (event) => {
         setDropping((active) => {
@@ -229,7 +231,7 @@ export default function PersonalMapPage({ params }: { params: Promise<{ username
     return () => {
       cancelled = true;
     };
-  }, [discoveries]);
+  }, [discoveries, mapRenderVersion]);
 
   useEffect(() => {
     const map = mapRef.current;

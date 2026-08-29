@@ -107,6 +107,7 @@ export default function CommunityMapPage() {
   const mapRef = useRef<LeafletMap | null>(null);
   const markerLayerRef = useRef<LayerGroup | null>(null);
   const draftMarkerRef = useRef<LeafletMarker | null>(null);
+  const [mapRenderVersion, setMapRenderVersion] = useState(0);
 
   const activeMember = membership?.status === 'ACTIVE';
 
@@ -197,6 +198,7 @@ export default function CommunityMapPage() {
       }).addTo(map);
 
       markerLayerRef.current = L.layerGroup().addTo(map);
+      setMapRenderVersion((version) => version + 1);
 
       map.on('click', (event) => {
         setDropping((active) => {
@@ -267,7 +269,7 @@ export default function CommunityMapPage() {
     return () => {
       cancelled = true;
     };
-  }, [discoveries]);
+  }, [discoveries, mapRenderVersion]);
 
   useEffect(() => {
     const map = mapRef.current;
