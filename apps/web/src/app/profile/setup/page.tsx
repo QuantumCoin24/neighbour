@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import {
@@ -536,6 +537,14 @@ export default function ProfilePage() {
           {message ? <div className="profile-message">{message}</div> : null}
 
           <div className="profile-actions">
+            {profile?.username ? (
+              <Link
+                className="profile-map-link"
+                href={`/profile/${encodeURIComponent(profile.username)}/map`}
+              >
+                Personal Map
+              </Link>
+            ) : null}
             <button
               type="button"
               disabled={busy || !profile || !username.trim()}
@@ -1085,6 +1094,26 @@ export default function ProfilePage() {
           background: #f2f6f4;
           color: #53675e;
           font-size: 9px;
+        }
+
+        .profile-map-link {
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 20px;
+          border: 1px solid #0e5b3a;
+          border-radius: 12px;
+          color: #0e5b3a;
+          background: #ffffff;
+          font-weight: 800;
+          text-decoration: none;
+          transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+        }
+
+        .profile-map-link:hover {
+          background: #eef7f2;
+          transform: translateY(-1px);
         }
 
         .profile-actions {
