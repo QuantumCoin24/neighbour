@@ -178,6 +178,7 @@ enum ReportTargetType {
   MESSAGE
   EVENT
   MARKETPLACE_LISTING
+  MAP_DISCOVERY
 }
 
 enum BusinessVerificationStatus {

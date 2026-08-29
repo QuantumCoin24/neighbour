@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { CreateMapDiscoveryDto } from './dto/create-map-discovery.dto';
+import { UpdateMapDiscoveryDto } from './dto/update-map-discovery.dto';
 import { MapDiscoveryService } from './map-discovery.service';
 
 @Controller('map-discoveries')
@@ -30,6 +31,15 @@ export class MapDiscoveryController {
     @Param('communityId') communityId: string,
   ) {
     return this.mapDiscoveryService.findCommunity(user.id, communityId);
+  }
+
+  @Patch(':id')
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateMapDiscoveryDto,
+  ) {
+    return this.mapDiscoveryService.update(user.id, id, dto);
   }
 
   @Delete(':id')

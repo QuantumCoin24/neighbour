@@ -15,6 +15,7 @@ import {
   MembershipStatus,
 } from '../generated/prisma/client.js';
 import type { CreateMapDiscoveryDto } from './dto/create-map-discovery.dto';
+import type { UpdateMapDiscoveryDto } from './dto/update-map-discovery.dto';
 import type { MapDiscoveryEntity } from './map-discovery.entity';
 import { MapDiscoveryRepository } from './map-discovery.repository';
 
@@ -151,6 +152,133 @@ export class MapDiscoveryService {
     }
 
     return this.repository.findCommunity(communityId);
+  }
+
+  async update(
+    userId: string,
+    id: string,
+    dto: UpdateMapDiscoveryDto,
+  ): Promise<MapDiscoveryEntity> {
+    const discovery = await this.repository.findById(id);
+
+    if (!discovery || discovery.deletedAt) {
+      throw new NotFoundException('Map discovery not found.');
+    }
+
+    if (discovery.creatorId !== userId) {
+      throw new ForbiddenException(
+        'Only the discovery creator can edit this discovery.',
+      );
+    }
+
+    const type = dto.type ?? discovery.type;
+    const visibility = dto.visibility ?? discovery.visibility;
+
+    if (
+      discovery.scope === MapDiscoveryScope.PERSONAL &&
+      visibility === LocationVisibility.COMMUNITY
+    ) {
+      throw new BadRequestException(
+        'Personal discoveries cannot use community visibility.',
+      );
+    }
+
+    if (
+      discovery.scope === MapDiscoveryScope.COMMUNITY &&
+      visibility === LocationVisibility.PUBLIC
+    ) {
+      throw new BadRequestException(
+        'Community discoveries cannot be globally public.',
+      );
+    }
+
+    if (
+      discovery.scope === MapDiscoveryScope.COMMUNITY &&
+      discovery.communityId
+    ) {
+      const membership = await this.database.membership.findFirst({
+        where: {
+          userId,
+          communityId: discovery.communityId,
+          status: MembershipStatus.ACTIVE,
+        },
+        select: { id: true },
+      });
+
+      if (!membership) {
+        throw new ForbiddenException(
+          'You must be an active member to edit discoveries in this community.',
+        );
+      }
+    }
+
+    const startsAt =
+      dto.startsAt === undefined
+        ? discovery.startsAt
+        : dto.startsAt === null
+          ? null
+          : new Date(dto.startsAt);
+
+    const expiresAt =
+      dto.expiresAt === undefined
+        ? discovery.expiresAt
+        : dto.expiresAt === null
+          ? null
+          : new Date(dto.expiresAt);
+
+    if (
+      (type === MapDiscoveryType.MOMENT ||
+        type === MapDiscoveryType.SEASONAL) &&
+      !expiresAt
+    ) {
+      throw new BadRequestException(
+        'Moments and seasonal discoveries require an expiry date.',
+      );
+    }
+
+    if (type === MapDiscoveryType.LANDMARK && expiresAt) {
+      throw new BadRequestException(
+        'Landmarks are persistent and cannot have an expiry date.',
+      );
+    }
+
+    if (expiresAt && expiresAt.getTime() <= Date.now()) {
+      throw new BadRequestException(
+        'Discovery expiry must be in the future.',
+      );
+    }
+
+    if (
+      startsAt &&
+      expiresAt &&
+      startsAt.getTime() >= expiresAt.getTime()
+    ) {
+      throw new BadRequestException(
+        'Discovery start must be before its expiry.',
+      );
+    }
+
+    return this.repository.update({
+      ...discovery,
+      type,
+      category: dto.category ?? discovery.category,
+      title:
+        dto.title === undefined
+          ? discovery.title
+          : dto.title.trim(),
+      description:
+        dto.description === undefined
+          ? discovery.description
+          : dto.description.trim(),
+      latitude: dto.latitude ?? discovery.latitude,
+      longitude: dto.longitude ?? discovery.longitude,
+      locationAccuracyM:
+        dto.locationAccuracyM ?? discovery.locationAccuracyM,
+      visibility,
+      startsAt,
+      expiresAt,
+      updatedAt: new Date(),
+    });
   }
 
   async remove(userId: string, id: string): Promise<void> {

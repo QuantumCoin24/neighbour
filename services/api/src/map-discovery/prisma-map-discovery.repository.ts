@@ -163,6 +163,27 @@ export class PrismaMapDiscoveryRepository extends MapDiscoveryRepository {
     return records.map((record) => this.map(record));
   }
 
+  async update(discovery: MapDiscoveryEntity): Promise<MapDiscoveryEntity> {
+    const record = await this.database.mapDiscovery.update({
+      where: { id: discovery.id },
+      data: {
+        type: discovery.type,
+        category: discovery.category,
+        title: discovery.title,
+        description: discovery.description,
+        latitude: discovery.latitude,
+        longitude: discovery.longitude,
+        locationAccuracyM: discovery.locationAccuracyM,
+        visibility: discovery.visibility,
+        startsAt: discovery.startsAt,
+        expiresAt: discovery.expiresAt,
+      },
+      include: this.include(),
+    });
+
+    return this.map(record);
+  }
+
   async softDelete(id: string): Promise<void> {
     await this.database.mapDiscovery.update({
       where: { id },

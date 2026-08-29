@@ -60,6 +60,19 @@ export interface CreateMapDiscoveryRequest {
   expiresAt?: string;
 }
 
+export interface UpdateMapDiscoveryRequest {
+  type?: MapDiscoveryType;
+  category?: MapDiscoveryCategory;
+  title?: string;
+  description?: string;
+  latitude?: number;
+  longitude?: number;
+  locationAccuracyM?: number;
+  visibility?: MapDiscoveryVisibility;
+  startsAt?: string | null;
+  expiresAt?: string | null;
+}
+
 function authHeaders(token: string) {
   return {
     Authorization: `Bearer ${token}`,
@@ -75,6 +88,21 @@ export function createMapDiscovery(
     headers: authHeaders(token),
     body: JSON.stringify(data),
   });
+}
+
+export function updateMapDiscovery(
+  token: string,
+  id: string,
+  data: UpdateMapDiscoveryRequest,
+) {
+  return apiRequest<MapDiscovery>(
+    `/map-discoveries/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      headers: authHeaders(token),
+      body: JSON.stringify(data),
+    },
+  );
 }
 
 export function getMyMapDiscoveries(token: string) {

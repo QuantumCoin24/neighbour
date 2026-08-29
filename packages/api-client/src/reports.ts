@@ -1,7 +1,13 @@
 import { apiRequest } from './client';
 
 export type ReportTargetType =
-  'USER' | 'POST' | 'COMMENT' | 'MESSAGE' | 'EVENT' | 'MARKETPLACE_LISTING';
+  | 'USER'
+  | 'POST'
+  | 'COMMENT'
+  | 'MESSAGE'
+  | 'EVENT'
+  | 'MARKETPLACE_LISTING'
+  | 'MAP_DISCOVERY';
 
 export interface CreateReportInput {
   targetType: ReportTargetType;
