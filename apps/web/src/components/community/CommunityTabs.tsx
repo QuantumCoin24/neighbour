@@ -17,6 +17,8 @@ export default function CommunityTabs({ slug }: { slug: string }) {
 
       <Link href={`/community/${slug}/events`}>Events</Link>
 
+      <Link href={`/community/${slug}/map`}>Map</Link>
+
       <Link href={`/community/${slug}/about`}>About</Link>
     </nav>
   );
