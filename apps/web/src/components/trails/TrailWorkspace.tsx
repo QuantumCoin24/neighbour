@@ -90,6 +90,7 @@ export default function TrailWorkspace({ mode, username, slug, backHref }: Trail
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const layerRef = useRef<LayerGroup | null>(null);
+  const [mapRenderVersion, setMapRenderVersion] = useState(0);
 
   const selected = trails.find((trail) => trail.id === selectedId) ?? null;
   const activeMember = membership?.status === 'ACTIVE';
@@ -201,6 +202,7 @@ export default function TrailWorkspace({ mode, username, slug, backHref }: Trail
       const layer = L.layerGroup().addTo(map);
       mapRef.current = map;
       layerRef.current = layer;
+      setMapRenderVersion((version) => version + 1);
 
       map.on('click', (event) => {
         if (!creating && !editing) return;
@@ -268,7 +270,7 @@ export default function TrailWorkspace({ mode, username, slug, backHref }: Trail
         });
       }
     });
-  }, [selected, checkpoints, creating, editing]);
+  }, [selected, checkpoints, creating, editing, mapRenderVersion]);
 
   function resetEditor() {
     setTitle('');
