@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 
 import { DatabaseService } from '../database/database.service';
@@ -44,10 +45,7 @@ export class MapDiscoveryService {
       throw new BadRequestException('Personal discoveries cannot use community visibility.');
     }
 
-    if (
-      dto.scope === MapDiscoveryScope.COMMUNITY &&
-      dto.visibility === LocationVisibility.PUBLIC
-    ) {
+    if (dto.scope === MapDiscoveryScope.COMMUNITY && dto.visibility === LocationVisibility.PUBLIC) {
       throw new BadRequestException('Community discoveries cannot be globally public.');
     }
 
@@ -72,19 +70,14 @@ export class MapDiscoveryService {
     const expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
 
     if (
-      (dto.type === MapDiscoveryType.MOMENT ||
-        dto.type === MapDiscoveryType.SEASONAL) &&
+      (dto.type === MapDiscoveryType.MOMENT || dto.type === MapDiscoveryType.SEASONAL) &&
       !expiresAt
     ) {
-      throw new BadRequestException(
-        'Moments and seasonal discoveries require an expiry date.',
-      );
+      throw new BadRequestException('Moments and seasonal discoveries require an expiry date.');
     }
 
     if (dto.type === MapDiscoveryType.LANDMARK && expiresAt) {
-      throw new BadRequestException(
-        'Landmarks are persistent and cannot have an expiry date.',
-      );
+      throw new BadRequestException('Landmarks are persistent and cannot have an expiry date.');
     }
 
     if (expiresAt && expiresAt.getTime() <= Date.now()) {
@@ -92,9 +85,7 @@ export class MapDiscoveryService {
     }
 
     if (startsAt && expiresAt && startsAt.getTime() >= expiresAt.getTime()) {
-      throw new BadRequestException(
-        'Discovery start must be before its expiry.',
-      );
+      throw new BadRequestException('Discovery start must be before its expiry.');
     }
 
     const visibility =
@@ -102,6 +93,30 @@ export class MapDiscoveryService {
       (dto.scope === MapDiscoveryScope.COMMUNITY
         ? LocationVisibility.COMMUNITY
         : LocationVisibility.PRIVATE);
+
+    if (
+      dto.scope === MapDiscoveryScope.PERSONAL &&
+      visibility === LocationVisibility.PUBLIC &&
+      (dto.locationAccuracyM === undefined || dto.locationAccuracyM < 25)
+    ) {
+      throw new BadRequestException(
+        'Public personal discoveries must use a location accuracy of at least 25 metres.',
+      );
+    }
+
+    const duplicate = await this.repository.findDuplicateCandidate(
+      userId,
+      dto.scope,
+      dto.communityId ?? null,
+      dto.latitude,
+      dto.longitude,
+    );
+
+    if (duplicate) {
+      throw new ConflictException(
+        'You already have an active discovery at this location on this map.',
+      );
+    }
 
     return this.repository.save({
       id: crypto.randomUUID(),
@@ -132,10 +147,7 @@ export class MapDiscoveryService {
     return this.repository.findPublicPersonalByUsername(username);
   }
 
-  async findCommunity(
-    userId: string,
-    communityId: string,
-  ): Promise<MapDiscoveryEntity[]> {
+  async findCommunity(userId: string, communityId: string): Promise<MapDiscoveryEntity[]> {
     const membership = await this.database.membership.findFirst({
       where: {
         userId,
@@ -146,9 +158,7 @@ export class MapDiscoveryService {
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You must be an active member to view this community map.',
-      );
+      throw new ForbiddenException('You must be an active member to view this community map.');
     }
 
     return this.repository.findCommunity(communityId);
@@ -166,9 +176,7 @@ export class MapDiscoveryService {
     }
 
     if (discovery.creatorId !== userId) {
-      throw new ForbiddenException(
-        'Only the discovery creator can edit this discovery.',
-      );
+      throw new ForbiddenException('Only the discovery creator can edit this discovery.');
     }
 
     const type = dto.type ?? discovery.type;
@@ -178,24 +186,17 @@ export class MapDiscoveryService {
       discovery.scope === MapDiscoveryScope.PERSONAL &&
       visibility === LocationVisibility.COMMUNITY
     ) {
-      throw new BadRequestException(
-        'Personal discoveries cannot use community visibility.',
-      );
+      throw new BadRequestException('Personal discoveries cannot use community visibility.');
     }
 
     if (
       discovery.scope === MapDiscoveryScope.COMMUNITY &&
       visibility === LocationVisibility.PUBLIC
     ) {
-      throw new BadRequestException(
-        'Community discoveries cannot be globally public.',
-      );
+      throw new BadRequestException('Community discoveries cannot be globally public.');
     }
 
-    if (
-      discovery.scope === MapDiscoveryScope.COMMUNITY &&
-      discovery.communityId
-    ) {
+    if (discovery.scope === MapDiscoveryScope.COMMUNITY && discovery.communityId) {
       const membership = await this.database.membership.findFirst({
         where: {
           userId,
@@ -226,35 +227,48 @@ export class MapDiscoveryService {
           ? null
           : new Date(dto.expiresAt);
 
-    if (
-      (type === MapDiscoveryType.MOMENT ||
-        type === MapDiscoveryType.SEASONAL) &&
-      !expiresAt
-    ) {
-      throw new BadRequestException(
-        'Moments and seasonal discoveries require an expiry date.',
-      );
+    if ((type === MapDiscoveryType.MOMENT || type === MapDiscoveryType.SEASONAL) && !expiresAt) {
+      throw new BadRequestException('Moments and seasonal discoveries require an expiry date.');
     }
 
     if (type === MapDiscoveryType.LANDMARK && expiresAt) {
-      throw new BadRequestException(
-        'Landmarks are persistent and cannot have an expiry date.',
-      );
+      throw new BadRequestException('Landmarks are persistent and cannot have an expiry date.');
     }
 
     if (expiresAt && expiresAt.getTime() <= Date.now()) {
+      throw new BadRequestException('Discovery expiry must be in the future.');
+    }
+
+    if (startsAt && expiresAt && startsAt.getTime() >= expiresAt.getTime()) {
+      throw new BadRequestException('Discovery start must be before its expiry.');
+    }
+
+    const latitude = dto.latitude ?? discovery.latitude;
+    const longitude = dto.longitude ?? discovery.longitude;
+    const locationAccuracyM = dto.locationAccuracyM ?? discovery.locationAccuracyM;
+
+    if (
+      discovery.scope === MapDiscoveryScope.PERSONAL &&
+      visibility === LocationVisibility.PUBLIC &&
+      (locationAccuracyM === null || locationAccuracyM < 25)
+    ) {
       throw new BadRequestException(
-        'Discovery expiry must be in the future.',
+        'Public personal discoveries must use a location accuracy of at least 25 metres.',
       );
     }
 
-    if (
-      startsAt &&
-      expiresAt &&
-      startsAt.getTime() >= expiresAt.getTime()
-    ) {
-      throw new BadRequestException(
-        'Discovery start must be before its expiry.',
+    const duplicate = await this.repository.findDuplicateCandidate(
+      userId,
+      discovery.scope,
+      discovery.communityId,
+      latitude,
+      longitude,
+      discovery.id,
+    );
+
+    if (duplicate) {
+      throw new ConflictException(
+        'You already have an active discovery at this location on this map.',
       );
     }
 
@@ -262,18 +276,11 @@ export class MapDiscoveryService {
       ...discovery,
       type,
       category: dto.category ?? discovery.category,
-      title:
-        dto.title === undefined
-          ? discovery.title
-          : dto.title.trim(),
-      description:
-        dto.description === undefined
-          ? discovery.description
-          : dto.description.trim(),
-      latitude: dto.latitude ?? discovery.latitude,
-      longitude: dto.longitude ?? discovery.longitude,
-      locationAccuracyM:
-        dto.locationAccuracyM ?? discovery.locationAccuracyM,
+      title: dto.title === undefined ? discovery.title : dto.title.trim(),
+      description: dto.description === undefined ? discovery.description : dto.description.trim(),
+      latitude,
+      longitude,
+      locationAccuracyM,
       visibility,
       startsAt,
       expiresAt,
@@ -294,9 +301,7 @@ export class MapDiscoveryService {
     }
 
     if (!discovery.communityId) {
-      throw new ForbiddenException(
-        'You do not have permission to remove this discovery.',
-      );
+      throw new ForbiddenException('You do not have permission to remove this discovery.');
     }
 
     const membership = await this.database.membership.findFirst({
@@ -305,20 +310,14 @@ export class MapDiscoveryService {
         communityId: discovery.communityId,
         status: MembershipStatus.ACTIVE,
         role: {
-          in: [
-            MembershipRole.OWNER,
-            MembershipRole.ADMIN,
-            MembershipRole.MODERATOR,
-          ],
+          in: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MODERATOR],
         },
       },
       select: { id: true },
     });
 
     if (!membership) {
-      throw new ForbiddenException(
-        'You do not have permission to remove this discovery.',
-      );
+      throw new ForbiddenException('You do not have permission to remove this discovery.');
     }
 
     await this.repository.softDelete(id);

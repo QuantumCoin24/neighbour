@@ -44,6 +44,22 @@ export class ReportService {
       }
     }
 
+    if (dto.targetType === 'MAP_DISCOVERY') {
+      const discovery = await this.database.mapDiscovery.findFirst({
+        where: {
+          id: dto.targetId,
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!discovery) {
+        throw new NotFoundException('Map discovery not found.');
+      }
+    }
+
     const existing = await this.database.report.findFirst({
       where: {
         reporterId: userId,

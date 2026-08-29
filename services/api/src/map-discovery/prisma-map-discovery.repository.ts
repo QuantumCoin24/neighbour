@@ -112,6 +112,39 @@ export class PrismaMapDiscoveryRepository extends MapDiscoveryRepository {
     return record ? this.map(record) : undefined;
   }
 
+  async findDuplicateCandidate(
+    creatorId: string,
+    scope: MapDiscoveryScope,
+    communityId: string | null,
+    latitude: number,
+    longitude: number,
+    excludeId?: string,
+  ): Promise<MapDiscoveryEntity | undefined> {
+    const coordinateTolerance = 0.00001;
+
+    const record = await this.database.mapDiscovery.findFirst({
+      where: {
+        creatorId,
+        scope,
+        communityId,
+        deletedAt: null,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        latitude: {
+          gte: latitude - coordinateTolerance,
+          lte: latitude + coordinateTolerance,
+        },
+        longitude: {
+          gte: longitude - coordinateTolerance,
+          lte: longitude + coordinateTolerance,
+        },
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+      include: this.include(),
+    });
+
+    return record ? this.map(record) : undefined;
+  }
+
   async findMine(creatorId: string): Promise<MapDiscoveryEntity[]> {
     const records = await this.database.mapDiscovery.findMany({
       where: {

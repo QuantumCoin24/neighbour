@@ -3,6 +3,14 @@ import type { MapDiscoveryEntity } from './map-discovery.entity';
 export abstract class MapDiscoveryRepository {
   abstract save(discovery: MapDiscoveryEntity): Promise<MapDiscoveryEntity>;
   abstract findById(id: string): Promise<MapDiscoveryEntity | undefined>;
+  abstract findDuplicateCandidate(
+    creatorId: string,
+    scope: MapDiscoveryEntity['scope'],
+    communityId: string | null,
+    latitude: number,
+    longitude: number,
+    excludeId?: string,
+  ): Promise<MapDiscoveryEntity | undefined>;
   abstract update(discovery: MapDiscoveryEntity): Promise<MapDiscoveryEntity>;
   abstract findMine(creatorId: string): Promise<MapDiscoveryEntity[]>;
   abstract findPublicPersonalByUsername(username: string): Promise<MapDiscoveryEntity[]>;
