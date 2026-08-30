@@ -1,5 +1,7 @@
 'use client';
 
+import 'leaflet/dist/leaflet.css';
+
 import {
   completeAdventureStage,
   createAdventure,
@@ -140,9 +142,7 @@ export default function AdventureWorkspace({ mode, username, communityId, commun
           setActiveMember(isOwner);
 
           if (isOwner) {
-            adventures = (await getMyAdventures(auth)).filter(
-              (item) => item.scope === 'PERSONAL',
-            );
+            adventures = (await getMyAdventures(auth)).filter((item) => item.scope === 'PERSONAL');
             availableTrails = (await getMyTrails(auth)).filter(
               (trail) => trail.scope === 'PERSONAL',
             );
@@ -162,33 +162,26 @@ export default function AdventureWorkspace({ mode, username, communityId, commun
         setTrails(availableTrails);
         setSelected((current) =>
           current
-            ? adventures.find((item) => item.id === current.id) ??
-              adventures[0] ??
-              null
-            : adventures[0] ?? null,
+            ? (adventures.find((item) => item.id === current.id) ?? adventures[0] ?? null)
+            : (adventures[0] ?? null),
         );
       } else {
         if (!communityId) throw new Error('Community id is required.');
 
-        const [adventures, communityTrails, memberships, profile] =
-          await Promise.all([
-            getCommunityAdventures(auth, communityId),
-            getCommunityTrails(auth, communityId),
-            getMyCommunities(auth),
-            getMyProfile(auth),
-          ]);
+        const [adventures, communityTrails, memberships, profile] = await Promise.all([
+          getCommunityAdventures(auth, communityId),
+          getCommunityTrails(auth, communityId),
+          getMyCommunities(auth),
+          getMyProfile(auth),
+        ]);
 
         const membership =
           memberships.find(
-            (item) =>
-              item.community.id === communityId ||
-              item.community.slug === communitySlug,
+            (item) => item.community.id === communityId || item.community.slug === communitySlug,
           ) ?? null;
 
         const normalizedMembership =
-          membership?.role === 'OWNER'
-            ? { ...membership, status: 'ACTIVE' as const }
-            : membership;
+          membership?.role === 'OWNER' ? { ...membership, status: 'ACTIVE' as const } : membership;
 
         const active = normalizedMembership?.status === 'ACTIVE';
         const role = normalizedMembership?.role;
@@ -196,13 +189,7 @@ export default function AdventureWorkspace({ mode, username, communityId, commun
         setCurrentUserId(profile.userId);
         setOwner(false);
         setActiveMember(active);
-        setModerator(
-          Boolean(
-            active &&
-              role &&
-              ['OWNER', 'ADMIN', 'MODERATOR'].includes(role),
-          ),
-        );
+        setModerator(Boolean(active && role && ['OWNER', 'ADMIN', 'MODERATOR'].includes(role)));
         setItems(adventures);
         setTrails(communityTrails);
         setSelected((current) =>
@@ -477,14 +464,11 @@ export default function AdventureWorkspace({ mode, username, communityId, commun
     }
   }
 
-  const selectedMine = Boolean(
-    selected && currentUserId && selected.creatorId === currentUserId,
-  );
+  const selectedMine = Boolean(selected && currentUserId && selected.creatorId === currentUserId);
 
   const canCreate = mode === 'PERSONAL' ? owner : activeMember;
   const canEdit = Boolean(selected && selectedMine && canCreate);
-  const canRemove =
-    canEdit || Boolean(selected && mode === 'COMMUNITY' && moderator);
+  const canRemove = canEdit || Boolean(selected && mode === 'COMMUNITY' && moderator);
 
   const returnHref =
     mode === 'COMMUNITY'
@@ -863,6 +847,25 @@ export default function AdventureWorkspace({ mode, username, communityId, commun
           background: #10251b;
           color: white;
           font-weight: 800;
+        }
+
+        .editor button.primary {
+          border-color: #10251b;
+          background: #10251b;
+          color: white;
+        }
+
+        input,
+        textarea,
+        select {
+          color: #10251b;
+          background: white;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+          color: #66776e;
+          opacity: 1;
         }
         .message {
           margin: 18px 0;
