@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
+import { NotificationDeliveryRouterService } from '../notification/delivery/notification-delivery-router.service';
 import {
   ConversationMemberRole,
   ConversationType,
@@ -57,6 +58,7 @@ export class MessageService {
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
     private readonly realtimePublisher: MessageRealtimePublisher,
+    private readonly notificationDelivery: NotificationDeliveryRouterService,
   ) {}
 
   async createConversation(
@@ -287,6 +289,70 @@ export class MessageService {
     });
     const response = this.toMessageResponse(message);
     await this.realtimePublisher.messageCreated(conversationId, response);
+
+    const messageNotifications = await this.database.notification.findMany({
+      where: {
+        messageId: message.id,
+        type: NotificationType.MESSAGE,
+        dismissedAt: null,
+      },
+      select: {
+        id: true,
+        recipientId: true,
+        type: true,
+        postId: true,
+        commentId: true,
+        communityId: true,
+        readAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    const pushBody =
+      response.content?.trim() ||
+      (response.attachments.length > 0 ? 'Sent you an attachment.' : 'Sent you a message.');
+
+    void Promise.allSettled(
+      messageNotifications.map((notification) =>
+        this.notificationDelivery.route({
+          recipientId: notification.recipientId,
+          notification: {
+            id: notification.id,
+            type: notification.type,
+            actor: {
+              id: response.sender.id,
+              displayName: response.sender.displayName,
+              username: response.sender.username,
+              avatarUrl: response.sender.avatarUrl,
+            },
+            postId: notification.postId,
+            commentId: notification.commentId,
+            communityId: notification.communityId,
+            readAt: notification.readAt,
+            createdAt: notification.createdAt,
+            updatedAt: notification.updatedAt,
+          },
+          pushPayload: {
+            aps: {
+              alert: {
+                title: response.sender.displayName,
+                body: pushBody.slice(0, 180),
+              },
+              sound: 'default',
+              'thread-id': conversationId,
+            },
+            data: {
+              type: 'MESSAGE',
+              conversationId,
+              messageId: message.id,
+            },
+          },
+          collapseId: `conversation:${conversationId}`,
+        }),
+      ),
+    );
+
     return response;
   }
 

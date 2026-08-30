@@ -47,6 +47,10 @@ import { useNeighbourTheme } from '../theme';
 
 import AppTabs from './AppTabs';
 import { type RootStackParamList, ROUTES } from './routes';
+import {
+  flushPendingPushNavigation,
+  navigationRef,
+} from './navigation-ref';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -107,7 +111,11 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer
+        ref={navigationRef}
+        theme={navigationTheme}
+        onReady={flushPendingPushNavigation}
+      >
       <Stack.Navigator
         screenOptions={{
           contentStyle: {

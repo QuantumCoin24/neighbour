@@ -30,6 +30,7 @@ import {
   saveSession,
   subscribeSessionInvalidation,
 } from './session';
+import { unregisterCurrentPushDevice } from '../push/push-device';
 
 export type AuthStatus = 'restoring' | 'anonymous' | 'authenticating' | 'authenticated';
 
@@ -201,6 +202,8 @@ export function AuthProviderContext({ children }: PropsWithChildren) {
     const session = getSession();
 
     setError(null);
+
+    await unregisterCurrentPushDevice();
 
     try {
       if (session) {

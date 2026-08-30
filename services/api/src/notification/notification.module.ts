@@ -3,7 +3,9 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
 import { RealtimeModule } from '../realtime/realtime.module';
 
+import { DeviceController } from './device/device.controller';
 import { DeviceRegistryService } from './device/device-registry.service';
+import { NotificationDeliveryRouterService } from './delivery/notification-delivery-router.service';
 import { NotificationRealtimePublisher } from './events/notification-realtime.publisher';
 import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
@@ -17,7 +19,7 @@ import { PushNotificationService } from './push/push-notification.service';
 
 @Module({
   imports: [DatabaseModule, RealtimeModule],
-  controllers: [NotificationController],
+  controllers: [NotificationController, DeviceController],
   providers: [
     NotificationService,
     NotificationRealtimePublisher,
@@ -27,6 +29,7 @@ import { PushNotificationService } from './push/push-notification.service';
     ApnsTokenService,
     ApnsClientService,
     PushNotificationService,
+    NotificationDeliveryRouterService,
   ],
   exports: [
     NotificationService,
@@ -34,6 +37,7 @@ import { PushNotificationService } from './push/push-notification.service';
     NotificationIntelligenceService,
     DeviceRegistryService,
     PushNotificationService,
+    NotificationDeliveryRouterService,
   ],
 })
 export class NotificationModule {}

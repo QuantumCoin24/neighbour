@@ -6,6 +6,7 @@ import { MessageProvider } from './src/features/messages';
 import { NotificationProvider } from './src/features/notifications';
 import AppNavigator from './src/navigation/AppNavigator';
 import { RealtimeProvider } from './src/realtime';
+import { PushNotificationProvider } from './src/push/push-notification-provider';
 import { NeighbourThemeProvider, useNeighbourTheme } from './src/theme';
 
 initialiseMobileApiClient();
@@ -26,13 +27,15 @@ export default function App() {
   return (
     <NeighbourThemeProvider>
       <AuthProvider>
-        <RealtimeProvider>
+        <PushNotificationProvider>
+          <RealtimeProvider>
           <NotificationProvider>
             <MessageProvider>
               <NeighbourApplication />
             </MessageProvider>
           </NotificationProvider>
-        </RealtimeProvider>
+          </RealtimeProvider>
+        </PushNotificationProvider>
       </AuthProvider>
     </NeighbourThemeProvider>
   );

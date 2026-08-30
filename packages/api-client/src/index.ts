@@ -10,6 +10,7 @@ export * from './neighbourhood';
 export * from './social';
 export * from './messages';
 export * from './notifications';
+export * from './push-devices';
 export * from './media';
 export * from './events';
 export * from './search';
