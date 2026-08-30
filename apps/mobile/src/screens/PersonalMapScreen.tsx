@@ -473,53 +473,6 @@ export default function PersonalMapScreen({ navigation, route }: Props) {
             {discoveries.length} {discoveries.length === 1 ? 'discovery' : 'discoveries'}
           </AppText>
         </View>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open Trails"
-          onPress={() => {
-            navigation.navigate('Trails', {
-              mode: 'PERSONAL',
-              username,
-              owner,
-              displayName,
-            });
-          }}
-          style={[
-            styles.trailsButton,
-            {
-              backgroundColor: theme.colors.surfaceMuted,
-              borderRadius: theme.radius.pill,
-            },
-          ]}
-        >
-          <AppText variant="label" tone="brand">
-            Trails ↝
-          </AppText>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open Adventures"
-          onPress={() => {
-            navigation.navigate('Adventures', {
-              mode: 'PERSONAL',
-              username,
-              owner,
-              displayName,
-            });
-          }}
-          style={[
-            styles.trailsButton,
-            {
-              backgroundColor: theme.colors.surfaceMuted,
-              borderRadius: theme.radius.pill,
-            },
-          ]}
-        >
-          <AppText variant="label" tone="brand">
-            Adventures ↝
-          </AppText>
-        </Pressable>
         {owner ? (
           <Pressable
             accessibilityRole="button"
@@ -547,6 +500,55 @@ export default function PersonalMapScreen({ navigation, route }: Props) {
         ) : (
           <View style={styles.headerSpacer} />
         )}
+      </View>
+
+      <View style={styles.mapActions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open Trails"
+          onPress={() => {
+            navigation.navigate('Trails', {
+              mode: 'PERSONAL',
+              username,
+              owner,
+              displayName,
+            });
+          }}
+          style={[
+            styles.mapActionButton,
+            {
+              backgroundColor: theme.colors.surfaceMuted,
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText variant="label" tone="brand">
+            Trails ↝
+          </AppText>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open Adventures"
+          onPress={() => {
+            navigation.navigate('Adventures', {
+              mode: 'PERSONAL',
+              username,
+              owner,
+              displayName,
+            });
+          }}
+          style={[
+            styles.mapActionButton,
+            {
+              backgroundColor: theme.colors.surfaceMuted,
+              borderRadius: theme.radius.pill,
+            },
+          ]}
+        >
+          <AppText variant="label" tone="brand">
+            Adventures ↝
+          </AppText>
+        </Pressable>
       </View>
 
       <KeyboardAvoidingView
@@ -1146,8 +1148,15 @@ const styles = StyleSheet.create({
   topCopy: {
     flex: 1,
   },
-  trailsButton: {
+  mapActions: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 18,
+    paddingBottom: 10,
+  },
+  mapActionButton: {
     alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
     minHeight: 42,
     paddingHorizontal: 12,
