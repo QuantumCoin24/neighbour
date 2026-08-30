@@ -351,6 +351,43 @@ export default function SettingsPage() {
 
           <section className="settings-card">
             <div className="settings-card-heading">
+              <span>LEGAL & SUPPORT</span>
+              <h2>Policies & support</h2>
+              <p>Review Neighbour™ policies or contact us for support.</p>
+            </div>
+
+            <div className="settings-links">
+              <Link href="/privacy">
+                <div className="settings-link-icon">◇</div>
+                <section>
+                  <strong>Privacy Policy</strong>
+                  <span>How Neighbour™ handles your information and privacy.</span>
+                </section>
+                <b>→</b>
+              </Link>
+
+              <Link href="/terms">
+                <div className="settings-link-icon">◇</div>
+                <section>
+                  <strong>Terms of Service</strong>
+                  <span>Read the terms that govern your use of Neighbour™.</span>
+                </section>
+                <b>→</b>
+              </Link>
+
+              <Link href="/contact">
+                <div className="settings-link-icon">◇</div>
+                <section>
+                  <strong>Contact & Support</strong>
+                  <span>Get help with your account, safety, privacy or marketplace.</span>
+                </section>
+                <b>→</b>
+              </Link>
+            </div>
+          </section>
+
+          <section className="settings-card">
+            <div className="settings-card-heading">
               <span>SESSION</span>
 
               <h2>Sign out</h2>
