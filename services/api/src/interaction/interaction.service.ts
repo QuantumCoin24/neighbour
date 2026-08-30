@@ -1,5 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
+import { ContentSafetyService } from '../common/content-safety/content-safety.service';
 import { DatabaseService } from '../database/database.service';
 import { Prisma, ReactionType } from '../generated/prisma/client';
 import { NotificationService } from '../notification/notification.service';
@@ -32,6 +33,8 @@ export class InteractionService {
   constructor(
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
+    @Inject(ContentSafetyService)
+    private readonly contentSafety: ContentSafetyService,
     private readonly notificationService: NotificationService,
     private readonly postService: PostService,
   ) {}
@@ -59,6 +62,11 @@ export class InteractionService {
         throw new NotFoundException('Parent comment not found.');
       }
     }
+
+    this.contentSafety.assertAcceptable({
+      field: 'content',
+      value: dto.content,
+    });
 
     const data: Prisma.CommentUncheckedCreateInput = {
       postId,
@@ -132,6 +140,11 @@ export class InteractionService {
     dto: UpdateCommentDto,
   ): Promise<CommentResponse> {
     await this.requireOwnedComment(currentUserId, commentId);
+
+    this.contentSafety.assertAcceptable({
+      field: 'content',
+      value: dto.content,
+    });
 
     await this.database.comment.update({
       where: {

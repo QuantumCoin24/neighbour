@@ -33,6 +33,9 @@ describe('ProfileService', () => {
       {
         publish() {},
       } as never,
+      {
+        assertAcceptable: () => undefined,
+      } as never,
     );
 
     await service.create({

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ContentSafetyService } from '../common/content-safety/content-safety.service';
 
 import type { ProfileEntity } from './profile.entity';
 import type {
@@ -14,9 +15,16 @@ export class ProfileService {
   constructor(
     private readonly repository: ProfileRepository,
     private readonly events: ProfileEventBusService,
+    private readonly contentSafety: ContentSafetyService,
   ) {}
 
   async create(profile: ProfileEntity): Promise<ProfileEntity> {
+    this.contentSafety.assertAcceptable(
+      { field: 'username', value: profile.username },
+      { field: 'displayName', value: profile.displayName },
+      { field: 'bio', value: profile.bio },
+    );
+
     const saved = await this.repository.save(profile);
 
     this.events.publish({
@@ -38,6 +46,12 @@ export class ProfileService {
   }
 
   async update(profile: ProfileEntity): Promise<ProfileEntity> {
+    this.contentSafety.assertAcceptable(
+      { field: 'username', value: profile.username },
+      { field: 'displayName', value: profile.displayName },
+      { field: 'bio', value: profile.bio },
+    );
+
     const updated = await this.repository.update(profile);
 
     this.events.publish({
@@ -82,6 +96,12 @@ export class ProfileService {
     if (!existing) {
       throw new NotFoundException('Profile not found');
     }
+
+    this.contentSafety.assertAcceptable(
+      { field: 'username', value: dto.username },
+      { field: 'displayName', value: dto.displayName },
+      { field: 'bio', value: dto.bio },
+    );
 
     const updated = await this.repository.update({
       ...existing,

@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -1164,6 +1165,39 @@ export default function ProfileScreen() {
                   .finally(() => {
                     setAccountAction(null);
                   });
+              }}
+              variant="secondary"
+            />
+          </Card>
+
+          <Card>
+            <View style={styles.header}>
+              <AppText variant="bodyStrong">Legal & support</AppText>
+              <AppText variant="caption" tone="secondary">
+                Privacy, terms and help for your Neighbour account.
+              </AppText>
+            </View>
+
+            <Button
+              label="Privacy Policy"
+              onPress={() => {
+                void Linking.openURL('https://www.neighbourlocal.com/privacy');
+              }}
+              variant="secondary"
+            />
+
+            <Button
+              label="Terms of Use"
+              onPress={() => {
+                void Linking.openURL('https://www.neighbourlocal.com/terms');
+              }}
+              variant="secondary"
+            />
+
+            <Button
+              label="Contact & Support"
+              onPress={() => {
+                void Linking.openURL('https://www.neighbourlocal.com/contact');
               }}
               variant="secondary"
             />

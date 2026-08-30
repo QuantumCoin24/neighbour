@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { MarketplaceListingStatus, Prisma } from '../../generated/prisma/client';
+import { ContentSafetyService } from '../../common/content-safety/content-safety.service';
 import { DatabaseService } from '../../database/database.service';
 import { SubscriptionService } from '../../payments/subscription/subscription.service';
 import type { CreateMarketplaceListingDto } from './dto/create-marketplace-listing.dto';
@@ -58,12 +59,18 @@ export class MarketplaceListingService {
   constructor(
     private readonly database: DatabaseService,
     private readonly subscriptions: SubscriptionService,
+    private readonly contentSafety: ContentSafetyService,
   ) {}
 
   async create(
     sellerId: string,
     dto: CreateMarketplaceListingDto,
   ): Promise<MarketplaceListingResponse> {
+    this.contentSafety.assertAcceptable(
+      { field: 'title', value: dto.title },
+      { field: 'description', value: dto.description },
+    );
+
     this.validatePricing(dto);
 
     const mediaIds = [...new Set(dto.mediaIds ?? [])];
@@ -375,6 +382,11 @@ export class MarketplaceListingService {
     if (mediaIds !== undefined && mediaIds.length > 0) {
       await this.requireOwnedReadyMedia(sellerId, mediaIds);
     }
+
+    this.contentSafety.assertAcceptable(
+      { field: 'title', value: dto.title },
+      { field: 'description', value: dto.description },
+    );
 
     const nextStatus = dto.status ?? existing.status;
 

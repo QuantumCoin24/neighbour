@@ -25,14 +25,15 @@ describe('UpdateProfileDto', () => {
     assert.equal(dto.showLocalArea, true);
   });
 
-  it('rejects a username containing spaces', async () => {
+  it('normalises spaces in a username to handle-safe dots', async () => {
     const dto = plainToInstance(UpdateProfileDto, {
       username: 'invalid username',
     });
 
     const errors = await validate(dto);
 
-    assert.ok(errors.some((error) => error.property === 'username'));
+    assert.equal(errors.length, 0);
+    assert.equal(dto.username, 'invalid.username');
   });
 
   it('rejects an invalid avatar URL', async () => {

@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { ContentSafetyService } from '../../../common/content-safety/content-safety.service';
 import { DatabaseService } from '../../../database/database.service';
 import {
   MarketplaceDisputeEventType,
@@ -67,6 +68,7 @@ export class MarketplaceDisputeService {
   constructor(
     private readonly database: DatabaseService,
     private readonly stateMachine: MarketplaceDisputeStateMachineService,
+    private readonly contentSafety: ContentSafetyService,
   ) {}
 
   getHealth(): MarketplaceDisputeHealthResponse {
@@ -105,6 +107,15 @@ export class MarketplaceDisputeService {
     userId: string,
     dto: CreateMarketplaceDisputeDto,
   ): Promise<MarketplaceDisputeResponse> {
+    this.contentSafety.assertAcceptable(
+      { field: 'title', value: dto.title },
+      { field: 'description', value: dto.description },
+      {
+        field: 'requestedResolution',
+        value: dto.requestedResolution,
+      },
+    );
+
     const transaction = await this.database.marketplaceTransaction.findFirst({
       where: {
         id: dto.transactionId,
@@ -255,6 +266,11 @@ export class MarketplaceDisputeService {
     disputeId: string,
     dto: AddMarketplaceDisputeMessageDto,
   ): Promise<MarketplaceDisputeResponse> {
+    this.contentSafety.assertAcceptable({
+      field: 'message',
+      value: dto.message,
+    });
+
     const dispute = await this.requireActiveParticipant(userId, disputeId);
 
     await this.database.$transaction(async (tx) => {
@@ -288,6 +304,14 @@ export class MarketplaceDisputeService {
     disputeId: string,
     dto: RespondMarketplaceDisputeDto,
   ): Promise<MarketplaceDisputeResponse> {
+    this.contentSafety.assertAcceptable(
+      { field: 'response', value: dto.response },
+      {
+        field: 'proposedResolution',
+        value: dto.proposedResolution,
+      },
+    );
+
     const dispute = await this.requireActiveParticipant(userId, disputeId);
 
     if (dispute.openedById === userId) {
@@ -356,6 +380,11 @@ export class MarketplaceDisputeService {
     disputeId: string,
     dto: AddMarketplaceDisputeEvidenceDto,
   ): Promise<MarketplaceDisputeResponse> {
+    this.contentSafety.assertAcceptable({
+      field: 'description',
+      value: dto.description,
+    });
+
     const dispute = await this.requireActiveParticipant(userId, disputeId);
 
     const media = await this.database.mediaAsset.findFirst({
@@ -410,6 +439,14 @@ export class MarketplaceDisputeService {
     disputeId: string,
     dto: EscalateMarketplaceDisputeDto,
   ): Promise<MarketplaceDisputeResponse> {
+    this.contentSafety.assertAcceptable(
+      { field: 'reason', value: dto.reason },
+      {
+        field: 'additionalContext',
+        value: dto.additionalContext,
+      },
+    );
+
     const dispute = await this.requireActiveParticipant(userId, disputeId);
 
     const nextStatus = MarketplaceDisputeStatus.ESCALATED;
@@ -455,6 +492,11 @@ export class MarketplaceDisputeService {
     disputeId: string,
     dto: CloseMarketplaceDisputeDto,
   ): Promise<MarketplaceDisputeResponse> {
+    this.contentSafety.assertAcceptable({
+      field: 'note',
+      value: dto.note,
+    });
+
     const dispute = await this.requireActiveParticipant(userId, disputeId);
 
     if (dispute.openedById !== userId) {

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ContentSafetyModule } from './common/content-safety/content-safety.module';
 
 import { environment } from './config/environment';
 import { environmentValidationSchema } from './config/environment.validation';
@@ -49,6 +50,7 @@ import { VibesModule } from './vibes/vibes.module';
 import { LiveModule } from './live/live.module';
 @Module({
   imports: [
+    ContentSafetyModule,
     VibesModule,
     LiveModule,
     NearbyModule,

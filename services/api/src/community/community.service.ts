@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { ContentSafetyService } from '../common/content-safety/content-safety.service';
 import { DatabaseService } from '../database/database.service';
 import {
   CommunityJoinPolicy,
@@ -98,9 +99,26 @@ export class CommunityService {
   constructor(
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
+    @Inject(ContentSafetyService)
+    private readonly contentSafety: ContentSafetyService,
   ) {}
 
   async create(userId: string, dto: CreateCommunityDto): Promise<CommunitySummary> {
+    this.contentSafety.assertAcceptable(
+      { field: 'name', value: dto.name },
+      { field: 'shortDescription', value: dto.shortDescription },
+      { field: 'description', value: dto.description },
+      { field: 'welcomeMessage', value: dto.welcomeMessage },
+      ...(dto.tags ?? []).map((value, index) => ({
+        field: `tags[${index}]`,
+        value,
+      })),
+      ...(dto.rules ?? []).map((value, index) => ({
+        field: `rules[${index}]`,
+        value,
+      })),
+    );
+
     const slug = await this.generateAvailableSlug(dto.name);
 
     const handle = await this.generateAvailableHandle(dto.handle ?? slug);

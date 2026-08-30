@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { ContentSafetyService } from '../../../common/content-safety/content-safety.service';
 import { DatabaseService } from '../../../database/database.service';
 import { MessageService } from '../../../message/message.service';
 import {
@@ -82,6 +83,7 @@ export class MarketplaceTransactionService {
   constructor(
     private readonly database: DatabaseService,
     private readonly messages: MessageService,
+    private readonly contentSafety: ContentSafetyService,
   ) {}
 
   async createOffer(
@@ -89,6 +91,11 @@ export class MarketplaceTransactionService {
     listingId: string,
     dto: CreateMarketplaceOfferDto,
   ): Promise<MarketplaceOfferResponse> {
+    this.contentSafety.assertAcceptable({
+      field: 'message',
+      value: dto.message,
+    });
+
     await this.expireStaleMarketplaceState();
     const listing = await this.database.marketplaceListing.findFirst({
       where: {
@@ -190,6 +197,11 @@ export class MarketplaceTransactionService {
     offerId: string,
     dto: CounterMarketplaceOfferDto,
   ): Promise<MarketplaceOfferResponse> {
+    this.contentSafety.assertAcceptable({
+      field: 'message',
+      value: dto.message,
+    });
+
     const current = await this.requireParticipatingOffer(userId, offerId);
 
     this.requireActiveOffer(current);

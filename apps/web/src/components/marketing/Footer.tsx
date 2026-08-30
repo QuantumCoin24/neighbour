@@ -56,9 +56,9 @@ export default function Footer() {
         <div>
           <h4>Company</h4>
 
-          <p>Contact</p>
-          <p>Privacy</p>
-          <p>Terms</p>
+          <p><a href="/contact" style={{ color: 'inherit', textDecoration: 'none' }}>Contact</a></p>
+          <p><a href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</a></p>
+          <p><a href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</a></p>
         </div>
       </div>
 

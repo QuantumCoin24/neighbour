@@ -13,6 +13,7 @@ import {
   Prisma,
   ReactionType,
 } from '../generated/prisma/client';
+import { ContentSafetyService } from '../common/content-safety/content-safety.service';
 import { DatabaseService } from '../database/database.service';
 import type { CreatePostDto } from './dto/create-post.dto';
 import type { FeedQueryDto } from './dto/feed-query.dto';
@@ -56,6 +57,8 @@ export class PostService {
   constructor(
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
+    @Inject(ContentSafetyService)
+    private readonly contentSafety: ContentSafetyService,
   ) {}
 
   async create(currentUserId: string, dto: CreatePostDto): Promise<PostResponse> {
@@ -67,6 +70,11 @@ export class PostService {
     }
 
     this.validateCommunityVisibility(dto.communityId ?? null, visibility);
+
+    this.contentSafety.assertAcceptable(
+      { field: 'title', value: dto.title },
+      { field: 'content', value: dto.content },
+    );
 
     const data: Prisma.PostUncheckedCreateInput = {
       authorId: currentUserId,
@@ -114,6 +122,11 @@ export class PostService {
     }
 
     this.validateCommunityVisibility(nextCommunityId, nextVisibility);
+
+    this.contentSafety.assertAcceptable(
+      { field: 'title', value: dto.title },
+      { field: 'content', value: dto.content },
+    );
 
     const nextStatus = dto.status ?? existing.status;
     const isPublishing =

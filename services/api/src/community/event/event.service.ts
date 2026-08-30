@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { MembershipRole, MembershipStatus } from '../../generated/prisma/client.js';
 
+import { ContentSafetyService } from '../../common/content-safety/content-safety.service';
 import { DatabaseService } from '../../database/database.service';
 
 import type { EventEntity } from './event.entity';
@@ -12,9 +13,15 @@ export class EventService {
   constructor(
     private readonly repository: EventRepository,
     private readonly database: DatabaseService,
+    private readonly contentSafety: ContentSafetyService,
   ) {}
 
   create(event: EventEntity): Promise<EventEntity> {
+    this.contentSafety.assertAcceptable(
+      { field: 'title', value: event.title },
+      { field: 'description', value: event.description },
+    );
+
     return this.repository.save(event);
   }
 

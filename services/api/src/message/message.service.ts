@@ -6,6 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ContentSafetyService } from '../common/content-safety/content-safety.service';
 import { DatabaseService } from '../database/database.service';
 import { NotificationDeliveryRouterService } from '../notification/delivery/notification-delivery-router.service';
 import {
@@ -57,6 +58,8 @@ export class MessageService {
   constructor(
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
+    @Inject(ContentSafetyService)
+    private readonly contentSafety: ContentSafetyService,
     private readonly realtimePublisher: MessageRealtimePublisher,
     private readonly notificationDelivery: NotificationDeliveryRouterService,
   ) {}
@@ -65,6 +68,11 @@ export class MessageService {
     userId: string,
     dto: CreateConversationDto,
   ): Promise<ConversationResponse> {
+    this.contentSafety.assertAcceptable({
+      field: 'title',
+      value: dto.title,
+    });
+
     const memberIds = [...new Set([userId, ...dto.memberIds])];
     if (dto.type === ConversationType.DIRECT && memberIds.length !== 2)
       throw new BadRequestException('A direct conversation must contain exactly two members.');
@@ -185,6 +193,11 @@ export class MessageService {
   ): Promise<MessageResponse> {
     await this.requireMembership(userId, conversationId);
     const content = dto.content?.trim() || null;
+
+    this.contentSafety.assertAcceptable({
+      field: 'content',
+      value: content,
+    });
     const attachments = dto.attachments ?? [];
     if (!content && attachments.length === 0 && dto.type !== MessageType.SYSTEM)
       throw new BadRequestException('A message requires content or an attachment.');
@@ -363,6 +376,11 @@ export class MessageService {
   ): Promise<MessageResponse> {
     const message = await this.requireOwnedMessage(userId, messageId);
     if (message.deletedAt) throw new ConflictException('A deleted message cannot be edited.');
+
+    this.contentSafety.assertAcceptable({
+      field: 'content',
+      value: dto.content,
+    });
     const updated = await this.database.message.update({
       where: { id: messageId },
       data: { content: dto.content.trim(), editedAt: new Date() },

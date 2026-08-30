@@ -12,6 +12,9 @@ describe('EventService', () => {
         },
       } as never,
       {} as never,
+      {
+        assertAcceptable: () => undefined,
+      } as never,
     );
 
     const result = await service.create({

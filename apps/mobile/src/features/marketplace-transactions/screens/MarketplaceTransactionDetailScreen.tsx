@@ -66,8 +66,8 @@ async function initialiseStripeRuntime(): Promise<void> {
       throw new Error('Stripe publishable key is unavailable.');
     }
 
-    if (!publishableKey.startsWith('pk_test_')) {
-      throw new Error('Build 52 requires a Stripe test publishable key.');
+    if (!/^pk_(test|live)_/.test(publishableKey)) {
+      throw new Error('Stripe publishable key is invalid.');
     }
 
     const { initStripe } = await import('@stripe/stripe-react-native');

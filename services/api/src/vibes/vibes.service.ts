@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { ContentSafetyService } from '../common/content-safety/content-safety.service';
 import { DatabaseService } from '../database/database.service';
 import {
   MembershipStatus,
@@ -67,6 +68,8 @@ export class VibesService {
   constructor(
     @Inject(DatabaseService)
     private readonly database: DatabaseService,
+    @Inject(ContentSafetyService)
+    private readonly contentSafety: ContentSafetyService,
   ) {}
 
   async create(currentUserId: string, dto: CreateVibeDto): Promise<VibeResponse> {
@@ -83,6 +86,11 @@ export class VibesService {
     const mediaIds = dto.mediaIds ?? [];
 
     await this.requireOwnedReadyMedia(currentUserId, mediaIds);
+
+    this.contentSafety.assertAcceptable({
+      field: 'caption',
+      value: dto.caption,
+    });
 
     const created = await this.database.$transaction(async (tx) => {
       const vibe = await tx.vibe.create({
@@ -142,6 +150,11 @@ export class VibesService {
     if (dto.mediaIds !== undefined) {
       await this.requireOwnedReadyMedia(currentUserId, dto.mediaIds);
     }
+
+    this.contentSafety.assertAcceptable({
+      field: 'caption',
+      value: dto.caption,
+    });
 
     const nextStatus = dto.status ?? existing.status;
 
@@ -496,6 +509,10 @@ export class VibesService {
     vibeId: string,
     dto: CreateVibeCommentDto,
   ): Promise<VibeCommentResponse> {
+    this.contentSafety.assertAcceptable({
+      field: 'content',
+      value: dto.content,
+    });
     await this.findOne(currentUserId, vibeId);
 
     if (dto.parentId) {

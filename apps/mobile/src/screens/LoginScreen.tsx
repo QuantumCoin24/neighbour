@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
+import { Keyboard, Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '../auth/auth-context';
 import { AppText, Button, Card, Screen, TextField } from '../components';
@@ -237,10 +237,39 @@ export default function LoginScreen() {
           }}
         />
 
-        <AppText variant="caption" tone="muted" style={styles.privacyNotice}>
-          Your account is protected using the existing Neighbour authentication and session
-          platform.
-        </AppText>
+        {mode === 'register' ? (
+          <View>
+            <AppText variant="caption" tone="muted" style={styles.privacyNotice}>
+              Neighbour is for people aged 16 and over. By creating an account, you confirm that
+              you are at least 16 and agree to our{' '}
+              <AppText
+                variant="caption"
+                tone="brand"
+                onPress={() => {
+                  void Linking.openURL('https://www.neighbourlocal.com/terms');
+                }}
+              >
+                Terms of Use
+              </AppText>{' '}
+              and acknowledge our{' '}
+              <AppText
+                variant="caption"
+                tone="brand"
+                onPress={() => {
+                  void Linking.openURL('https://www.neighbourlocal.com/privacy');
+                }}
+              >
+                Privacy Policy
+              </AppText>
+              .
+            </AppText>
+          </View>
+        ) : (
+          <AppText variant="caption" tone="muted" style={styles.privacyNotice}>
+            Your account is protected using the existing Neighbour authentication and session
+            platform.
+          </AppText>
+        )}
       </Card>
 
       <View style={styles.footer}>

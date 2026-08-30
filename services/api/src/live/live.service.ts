@@ -12,6 +12,7 @@ import {
   LiveSessionStatus,
   Prisma,
 } from '../generated/prisma/client';
+import { ContentSafetyService } from '../common/content-safety/content-safety.service';
 import { DatabaseService } from '../database/database.service';
 import { VibesService } from '../vibes/vibes.service';
 import type { CreateLiveSessionDto } from './dto/create-live-session.dto';
@@ -55,9 +56,15 @@ export class LiveService {
   constructor(
     private readonly database: DatabaseService,
     private readonly vibesService: VibesService,
+    private readonly contentSafety: ContentSafetyService,
   ) {}
 
   async create(currentUserId: string, dto: CreateLiveSessionDto): Promise<LiveSessionResponse> {
+    this.contentSafety.assertAcceptable(
+      { field: 'title', value: dto.title },
+      { field: 'description', value: dto.description },
+    );
+
     await this.requireNoActiveHostSession(currentUserId);
 
     const session = await this.database.$transaction(async (tx) => {
