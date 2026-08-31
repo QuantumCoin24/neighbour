@@ -5,7 +5,7 @@ import {
   type ReactionType,
 } from '@neighbour/api-client';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 
 import { AppText } from '../../components';
 import { useNeighbourTheme } from '../../theme';
@@ -13,6 +13,8 @@ import { useNeighbourTheme } from '../../theme';
 interface ReactionBarProps {
   postId: string;
   initialEngagement: FeedPostEngagement;
+  authorName: string;
+  postContent: string;
 }
 
 interface ReactionOption {
@@ -65,7 +67,12 @@ function createCountMap(engagement: FeedPostEngagement): Record<ReactionType, nu
   return result;
 }
 
-export function ReactionBar({ postId, initialEngagement }: ReactionBarProps) {
+export function ReactionBar({
+  postId,
+  initialEngagement,
+  authorName,
+  postContent,
+}: ReactionBarProps) {
   const { theme } = useNeighbourTheme();
 
   const [counts, setCounts] = useState<Record<ReactionType, number>>(() =>
@@ -77,6 +84,7 @@ export function ReactionBar({ postId, initialEngagement }: ReactionBarProps) {
   );
 
   const [updating, setUpdating] = useState<ReactionType | null>(null);
+  const [shareBusy, setShareBusy] = useState(false);
 
   const total = useMemo(
     () => Object.values(counts).reduce((sum, count) => sum + count, 0),
@@ -137,6 +145,33 @@ export function ReactionBar({ postId, initialEngagement }: ReactionBarProps) {
       setCounts(previousCounts);
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const sharePost = async () => {
+    if (shareBusy) {
+      return;
+    }
+
+    setShareBusy(true);
+
+    try {
+      const creator = authorName.trim();
+      const content = postContent.trim();
+
+      const message = [
+        creator ? `${creator} shared a post on Neighbour™` : 'Check out this post on Neighbour™',
+        content || null,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+
+      await Share.share({
+        message,
+        title: 'Neighbour™ Post',
+      });
+    } finally {
+      setShareBusy(false);
     }
   };
 
@@ -207,6 +242,35 @@ export function ReactionBar({ postId, initialEngagement }: ReactionBarProps) {
             </Pressable>
           );
         })}
+
+        <Pressable
+          accessibilityLabel="Share post"
+          accessibilityRole="button"
+          disabled={shareBusy}
+          onPress={() => {
+            void sharePost();
+          }}
+          style={({ pressed }) => [
+            styles.reaction,
+            {
+              backgroundColor: theme.colors.surfaceMuted,
+              borderColor: theme.colors.border,
+              borderRadius: theme.radius.pill,
+              opacity: pressed || shareBusy ? 0.68 : 1,
+            },
+          ]}
+        >
+          {shareBusy ? (
+            <ActivityIndicator color={theme.colors.primary} size="small" />
+          ) : (
+            <>
+              <AppText style={styles.symbol}>↗</AppText>
+              <AppText variant="caption" tone="secondary">
+                Share
+              </AppText>
+            </>
+          )}
+        </Pressable>
       </ScrollView>
     </View>
   );

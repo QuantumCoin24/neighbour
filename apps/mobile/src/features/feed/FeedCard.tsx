@@ -7,6 +7,7 @@ import { useNeighbourTheme } from '../../theme';
 import { CommentBar } from './CommentBar';
 import { CommunityBadge } from './CommunityBadge';
 import { FeedAvatar } from './FeedAvatar';
+import { MediaGallery } from '../media';
 import { ReactionBar } from './ReactionBar';
 import { RelativeTime } from './RelativeTime';
 
@@ -88,6 +89,8 @@ export function FeedCard({ post }: FeedCardProps) {
         </AppText>
       </View>
 
+      {post.media && post.media.length > 0 ? <MediaGallery items={post.media} /> : null}
+
       {post.editedAt ? (
         <AppText variant="caption" tone="muted">
           Edited
@@ -102,7 +105,12 @@ export function FeedCard({ post }: FeedCardProps) {
           },
         ]}
       >
-        <ReactionBar initialEngagement={post.engagement} postId={post.id} />
+        <ReactionBar
+          authorName={post.author.displayName}
+          initialEngagement={post.engagement}
+          postContent={post.content}
+          postId={post.id}
+        />
 
         <CommentBar initialCount={post.engagement.commentCount} postId={post.id} />
       </View>
