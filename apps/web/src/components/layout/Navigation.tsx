@@ -2,6 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import { getCurrentUser } from '@neighbour/api-client';
 
 const primaryLinks = [
   { href: '/home', label: 'Home', icon: '⌂' },
@@ -32,6 +35,17 @@ const accountLinks = [
   },
   { href: '/settings', label: 'Settings', icon: '⚙' },
 ];
+
+const administrationLinks = [
+  { href: '/moderation', label: 'Safety Centre', icon: '🛡' },
+  {
+    href: '/moderation/business-verifications',
+    label: 'Business Verification',
+    icon: '✓',
+  },
+];
+
+const administrationRoles = new Set(['MODERATOR', 'ADMIN', 'SUPER_ADMIN']);
 
 function NavigationGroup({ label, links }: { label: string; links: typeof primaryLinks }) {
   const pathname = usePathname();
@@ -99,6 +113,32 @@ function NavigationGroup({ label, links }: { label: string; links: typeof primar
 }
 
 export default function Navigation() {
+  const [canAccessAdministration, setCanAccessAdministration] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadRole() {
+      try {
+        const currentUser = await getCurrentUser();
+
+        if (active) {
+          setCanAccessAdministration(administrationRoles.has(currentUser.role));
+        }
+      } catch {
+        if (active) {
+          setCanAccessAdministration(false);
+        }
+      }
+    }
+
+    void loadRole();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <nav>
       <NavigationGroup label="Neighbourhood" links={primaryLinks} />
@@ -106,6 +146,10 @@ export default function Navigation() {
       <NavigationGroup label="Explore" links={discoveryLinks} />
 
       <NavigationGroup label="You" links={accountLinks} />
+
+      {canAccessAdministration ? (
+        <NavigationGroup label="Administration" links={administrationLinks} />
+      ) : null}
 
       <style>{`
         .neighbour-nav-link {
