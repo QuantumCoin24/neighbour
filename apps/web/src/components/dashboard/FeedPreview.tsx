@@ -6,7 +6,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   attachMediaToPost,
   createPost,
+  getCurrentUser,
   getHomeFeed,
+  updatePost,
   type Post,
   type PostType,
 } from '@neighbour/api-client';
@@ -20,6 +22,7 @@ type FeedPost = {
   body?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  editedAt?: string | null;
   imageUrl?: string | null;
   mediaUrl?: string | null;
   media?: Array<{
@@ -165,6 +168,15 @@ export default function FeedPreview({ token }: Props) {
   const [composerType, setComposerType] = useState<PostType>('STANDARD');
   const [composerMedia, setComposerMedia] = useState<WebPendingMedia[]>([]);
   const [composerUploadProgress, setComposerUploadProgress] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [shareNotice, setShareNotice] = useState<{
+    postId: string;
+    message: string;
+  } | null>(null);
 
   const loadFeed = useCallback(async () => {
     setLoading(true);
@@ -244,6 +256,115 @@ export default function FeedPreview({ token }: Props) {
     setComposerError(null);
     setComposerOpen(true);
   }
+
+  function startEditingPost(post: FeedPost) {
+    setEditingPostId(post.id);
+    setEditingContent(getPostText(post));
+    setEditError(null);
+  }
+
+  function cancelEditingPost() {
+    setEditingPostId(null);
+    setEditingContent('');
+    setEditError(null);
+  }
+
+  async function saveEditedPost(postId: string) {
+    const content = editingContent.trim();
+
+    if (!content || editSaving) {
+      if (!content) {
+        setEditError('A post cannot be empty.');
+      }
+      return;
+    }
+
+    setEditSaving(true);
+    setEditError(null);
+
+    try {
+      await updatePost(postId, { content });
+      cancelEditingPost();
+      await loadFeed();
+    } catch (caughtError) {
+      setEditError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'The post could not be updated.',
+      );
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function sharePost(post: FeedPost) {
+    const author = getAuthor(post);
+    const authorName =
+      author?.displayName?.trim() || author?.username?.trim() || 'Neighbour';
+    const text = getPostText(post);
+    const mediaUrl = getMediaUrl(post);
+    const url = mediaUrl || window.location.href;
+    const shareText = text ? `${authorName}: ${text}` : `Post from ${authorName}`;
+
+    setShareNotice(null);
+
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: 'Neighbour™ Post',
+          text: shareText,
+          url,
+        });
+        return;
+      } catch (caughtError) {
+        if (
+          caughtError instanceof DOMException &&
+          caughtError.name === 'AbortError'
+        ) {
+          return;
+        }
+      }
+    }
+
+    const clipboardText = [shareText, url].filter(Boolean).join('\n\n');
+
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard sharing is unavailable.');
+      }
+
+      await navigator.clipboard.writeText(clipboardText);
+      setShareNotice({
+        postId: post.id,
+        message: 'Share link copied.',
+      });
+    } catch {
+      setShareNotice({
+        postId: post.id,
+        message: 'Sharing is not available in this browser.',
+      });
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void getCurrentUser()
+      .then((currentUser) => {
+        if (!cancelled) {
+          setCurrentUserId(currentUser.id);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCurrentUserId(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     void loadFeed();
@@ -439,6 +560,10 @@ export default function FeedPreview({ token }: Props) {
             const mediaUrl = getMediaUrl(post);
             const reactionCount = post.reactionsCount ?? post.reactionCount ?? 0;
             const commentCount = post.commentsCount ?? post.commentCount ?? 0;
+            const mine = Boolean(
+              currentUserId && author?.id && author.id === currentUserId,
+            );
+            const editing = editingPostId === post.id;
 
             return (
               <article className="neighbour-post" key={post.id}>
@@ -473,16 +598,75 @@ export default function FeedPreview({ token }: Props) {
                     </div>
                   </div>
 
-                  <Link
-                    aria-label="Open community"
-                    className="neighbour-post-menu"
-                    href="/community"
-                  >
-                    •••
-                  </Link>
+                  {mine ? (
+                    <button
+                      aria-label="Edit post"
+                      className="neighbour-post-menu"
+                      type="button"
+                      onClick={() => {
+                        startEditingPost(post);
+                      }}
+                    >
+                      Edit
+                    </button>
+                  ) : (
+                    <Link
+                      aria-label="Open community"
+                      className="neighbour-post-menu"
+                      href="/community"
+                    >
+                      •••
+                    </Link>
+                  )}
                 </div>
 
-                {text ? <p className="neighbour-post-content">{text}</p> : null}
+                {editing ? (
+                  <div className="neighbour-post-editor">
+                    <textarea
+                      aria-label="Edit post content"
+                      className="neighbour-post-edit-input"
+                      disabled={editSaving}
+                      rows={4}
+                      value={editingContent}
+                      onChange={(event) => {
+                        setEditingContent(event.target.value);
+                        if (editError) {
+                          setEditError(null);
+                        }
+                      }}
+                    />
+
+                    {editError ? (
+                      <p className="neighbour-post-edit-error">{editError}</p>
+                    ) : null}
+
+                    <div className="neighbour-post-edit-actions">
+                      <button
+                        disabled={editSaving || !editingContent.trim()}
+                        type="button"
+                        onClick={() => {
+                          void saveEditedPost(post.id);
+                        }}
+                      >
+                        {editSaving ? 'Saving…' : 'Save'}
+                      </button>
+
+                      <button
+                        disabled={editSaving}
+                        type="button"
+                        onClick={cancelEditingPost}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : text ? (
+                  <p className="neighbour-post-content">{text}</p>
+                ) : null}
+
+                {!editing && post.editedAt ? (
+                  <span className="neighbour-post-edited">Edited</span>
+                ) : null}
 
                 {mediaUrl ? (
                   <Link className="neighbour-post-media" href="/community" aria-label="Open post">
@@ -515,11 +699,22 @@ export default function FeedPreview({ token }: Props) {
                     Comment
                   </Link>
 
-                  <Link href="/community">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void sharePost(post);
+                    }}
+                  >
                     <span aria-hidden="true">↗</span>
                     Share
-                  </Link>
+                  </button>
                 </div>
+
+                {shareNotice?.postId === post.id ? (
+                  <span className="neighbour-post-share-notice">
+                    {shareNotice.message}
+                  </span>
+                ) : null}
               </article>
             );
           })}
@@ -545,6 +740,71 @@ export default function FeedPreview({ token }: Props) {
           gap: 24px;
           margin-bottom: 16px;
           padding: 0 4px;
+        }
+
+        .neighbour-post-menu {
+          font: inherit;
+        }
+
+        button.neighbour-post-menu {
+          cursor: pointer;
+        }
+
+        .neighbour-post-editor {
+          display: grid;
+          gap: 10px;
+        }
+
+        .neighbour-post-edit-input {
+          width: 100%;
+          min-height: 110px;
+          resize: vertical;
+          border: 1px solid rgba(148, 163, 184, 0.28);
+          border-radius: 14px;
+          padding: 12px 14px;
+          font: inherit;
+          line-height: 1.5;
+          background: transparent;
+          color: inherit;
+        }
+
+        .neighbour-post-edit-actions {
+          display: flex;
+          gap: 8px;
+          justify-content: flex-end;
+        }
+
+        .neighbour-post-edit-actions button,
+        .neighbour-post-actions button {
+          border: 0;
+          background: transparent;
+          color: inherit;
+          font: inherit;
+          cursor: pointer;
+        }
+
+        .neighbour-post-edit-actions button {
+          border: 1px solid rgba(148, 163, 184, 0.28);
+          border-radius: 999px;
+          padding: 8px 14px;
+        }
+
+        .neighbour-post-edit-actions button:disabled {
+          cursor: default;
+          opacity: 0.55;
+        }
+
+        .neighbour-post-edit-error {
+          margin: 0;
+          font-size: 0.86rem;
+        }
+
+        .neighbour-post-edited,
+        .neighbour-post-share-notice {
+          display: block;
+          margin-top: 7px;
+          font-size: 0.78rem;
+          opacity: 0.68;
         }
 
         .neighbour-feed-eyebrow {

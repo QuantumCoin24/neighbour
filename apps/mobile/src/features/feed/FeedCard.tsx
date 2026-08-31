@@ -1,6 +1,14 @@
-import type { FeedPost } from '@neighbour/api-client';
-import { StyleSheet, View } from 'react-native';
+import { updatePost, type FeedPost } from '@neighbour/api-client';
+import { useEffect, useState } from 'react';
+import {
+  Alert,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 
+import { useAuth } from '../../auth/auth-context';
 import { AppText, Card } from '../../components';
 import { useNeighbourTheme } from '../../theme';
 
@@ -17,10 +25,78 @@ interface FeedCardProps {
 
 export function FeedCard({ post }: FeedCardProps) {
   const { theme } = useNeighbourTheme();
+  const { user } = useAuth();
+  const [localPost, setLocalPost] = useState<FeedPost | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editingContent, setEditingContent] = useState(post.content);
+  const [editSaving, setEditSaving] = useState(false);
 
-  const contextLabel = post.community?.name ?? post.neighbourhood?.name ?? post.author.localArea;
+  useEffect(() => {
+    setLocalPost(null);
+    setEditingContent(activePost.content);
+    setEditing(false);
+  }, [post]);
 
-  const timestamp = post.publishedAt ?? post.createdAt;
+  const activePost = localPost ?? post;
+  const mine = Boolean(user?.id && activePost.author.id === user.id);
+
+  const contextLabel =
+    activePost.community?.name ??
+    activePost.neighbourhood?.name ??
+    activePost.author.localArea;
+
+  const timestamp = activePost.publishedAt ?? activePost.createdAt;
+
+  const startEditing = () => {
+    setEditingContent(activePost.content);
+    setEditing(true);
+  };
+
+  const openPostMenu = () => {
+    if (!mine) {
+      return;
+    }
+
+    Alert.alert('Post options', undefined, [
+      {
+        text: 'Edit Post',
+        onPress: startEditing,
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
+  const saveEdit = async () => {
+    const content = editingContent.trim();
+
+    if (!content || editSaving) {
+      if (!content) {
+        Alert.alert('Post not updated', 'A post cannot be empty.');
+      }
+      return;
+    }
+
+    setEditSaving(true);
+
+    try {
+      const updated = await updatePost(activePost.id, { content });
+      setLocalPost(updated);
+      setEditingContent(updated.content);
+      setEditing(false);
+    } catch (caughtError) {
+      Alert.alert(
+        'Post not updated',
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Neighbour could not update this post.',
+      );
+    } finally {
+      setEditSaving(false);
+    }
+  };
 
   return (
     <Card
@@ -34,19 +110,19 @@ export function FeedCard({ post }: FeedCardProps) {
       ]}
     >
       <View style={styles.header}>
-        <FeedAvatar avatarUrl={post.author.avatarUrl} displayName={post.author.displayName} />
+        <FeedAvatar avatarUrl={activePost.author.avatarUrl} displayName={activePost.author.displayName} />
 
         <View style={styles.identity}>
-          <AppText variant="bodyStrong">{post.author.displayName}</AppText>
+          <AppText variant="bodyStrong">{activePost.author.displayName}</AppText>
 
           <View style={styles.metadata}>
-            {post.author.username ? (
+            {activePost.author.username ? (
               <AppText variant="caption" tone="secondary">
-                @{post.author.username}
+                @{activePost.author.username}
               </AppText>
             ) : null}
 
-            {post.author.username ? (
+            {activePost.author.username ? (
               <AppText variant="caption" tone="muted">
                 ·
               </AppText>
@@ -56,19 +132,40 @@ export function FeedCard({ post }: FeedCardProps) {
           </View>
         </View>
 
-        <View
-          style={[
-            styles.menuButton,
-            {
-              backgroundColor: theme.colors.surfaceMuted,
-              borderRadius: theme.radius.pill,
-            },
-          ]}
-        >
-          <AppText variant="bodyStrong" tone="muted">
-            ···
-          </AppText>
-        </View>
+        {mine ? (
+          <Pressable
+            accessibilityLabel="Post options"
+            accessibilityRole="button"
+            disabled={editSaving}
+            onPress={openPostMenu}
+            style={({ pressed }) => [
+              styles.menuButton,
+              {
+                backgroundColor: theme.colors.surfaceMuted,
+                borderRadius: theme.radius.pill,
+              },
+              pressed ? styles.pressed : null,
+            ]}
+          >
+            <AppText variant="bodyStrong" tone="muted">
+              ···
+            </AppText>
+          </Pressable>
+        ) : (
+          <View
+            style={[
+              styles.menuButton,
+              {
+                backgroundColor: theme.colors.surfaceMuted,
+                borderRadius: theme.radius.pill,
+              },
+            ]}
+          >
+            <AppText variant="bodyStrong" tone="muted">
+              ···
+            </AppText>
+          </View>
+        )}
       </View>
 
       {contextLabel ? (
@@ -78,20 +175,85 @@ export function FeedCard({ post }: FeedCardProps) {
       ) : null}
 
       <View style={styles.content}>
-        {post.title ? (
+        {activePost.title ? (
           <AppText variant="subheading" style={styles.title}>
-            {post.title}
+            {activePost.title}
           </AppText>
         ) : null}
 
-        <AppText tone="secondary" style={styles.body}>
-          {post.content}
-        </AppText>
+        {editing ? (
+          <>
+            <TextInput
+              accessibilityLabel="Edit post content"
+              editable={!editSaving}
+              multiline
+              onChangeText={setEditingContent}
+              style={[
+                styles.editInput,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+              value={editingContent}
+            />
+
+            <View style={styles.editActions}>
+              <Pressable
+                accessibilityRole="button"
+                disabled={editSaving || !editingContent.trim()}
+                onPress={() => {
+                  void saveEdit();
+                }}
+                style={({ pressed }) => [
+                  styles.editAction,
+                  {
+                    backgroundColor: theme.colors.surfaceMuted,
+                    borderColor: theme.colors.border,
+                    borderRadius: theme.radius.pill,
+                  },
+                  pressed ? styles.pressed : null,
+                  editSaving || !editingContent.trim()
+                    ? styles.editActionDisabled
+                    : null,
+                ]}
+              >
+                <AppText variant="caption">
+                  {editSaving ? 'Saving…' : 'Save'}
+                </AppText>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                disabled={editSaving}
+                onPress={() => {
+                  setEditingContent(activePost.content);
+                  setEditing(false);
+                }}
+                style={({ pressed }) => [
+                  styles.editAction,
+                  {
+                    backgroundColor: theme.colors.surfaceMuted,
+                    borderColor: theme.colors.border,
+                    borderRadius: theme.radius.pill,
+                  },
+                  pressed ? styles.pressed : null,
+                ]}
+              >
+                <AppText variant="caption">Cancel</AppText>
+              </Pressable>
+            </View>
+          </>
+        ) : (
+          <AppText tone="secondary" style={styles.body}>
+            {activePost.content}
+          </AppText>
+        )}
       </View>
 
-      {post.media && post.media.length > 0 ? <MediaGallery items={post.media} /> : null}
+      {activePost.media && activePost.media.length > 0 ? <MediaGallery items={activePost.media} /> : null}
 
-      {post.editedAt ? (
+      {activePost.editedAt ? (
         <AppText variant="caption" tone="muted">
           Edited
         </AppText>
@@ -106,13 +268,13 @@ export function FeedCard({ post }: FeedCardProps) {
         ]}
       >
         <ReactionBar
-          authorName={post.author.displayName}
-          initialEngagement={post.engagement}
-          postContent={post.content}
-          postId={post.id}
+          authorName={activePost.author.displayName}
+          initialEngagement={activePost.engagement}
+          postContent={activePost.content}
+          postId={activePost.id}
         />
 
-        <CommentBar initialCount={post.engagement.commentCount} postId={post.id} />
+        <CommentBar initialCount={activePost.engagement.commentCount} postId={activePost.id} />
       </View>
     </Card>
   );
@@ -164,6 +326,35 @@ const styles = StyleSheet.create({
 
   body: {
     lineHeight: 23,
+  },
+
+  editInput: {
+    borderWidth: StyleSheet.hairlineWidth,
+    minHeight: 110,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
+    textAlignVertical: 'top',
+  },
+
+  editActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'flex-end',
+  },
+
+  editAction: {
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+
+  editActionDisabled: {
+    opacity: 0.5,
+  },
+
+  pressed: {
+    opacity: 0.72,
   },
 
   engagement: {
