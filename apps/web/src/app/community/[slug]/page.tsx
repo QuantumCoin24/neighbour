@@ -10,6 +10,7 @@ import {
   deleteCommunity,
   getCommunity,
   getCommunityFeed,
+  getCurrentUser,
   getMyCommunities,
   leaveCommunity,
   type CommunityMembership,
@@ -35,6 +36,7 @@ export default function CommunityPage() {
   const [communityActionError, setCommunityActionError] = useState<string | null>(null);
 
   const [posts, setPosts] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const [content, setContent] = useState('');
   const [media, setMedia] = useState<WebPendingMedia[]>([]);
@@ -46,6 +48,13 @@ export default function CommunityPage() {
     const token = localStorage.getItem('accessToken');
 
     if (!token) return;
+
+    try {
+      const currentUser = await getCurrentUser();
+      setCurrentUserId(currentUser.id);
+    } catch {
+      setCurrentUserId(null);
+    }
 
     const c = await getCommunity(token, slug);
 
@@ -343,7 +352,14 @@ export default function CommunityPage() {
       {posts.length === 0 ? (
         <p>No posts loaded yet.</p>
       ) : (
-        posts.map((post) => <PostCard key={post.id} post={post} />)
+        posts.map((post) => (
+          <PostCard
+            currentUserId={currentUserId}
+            key={post.id}
+            onPostUpdated={load}
+            post={post}
+          />
+        ))
       )}
     </main>
   );
