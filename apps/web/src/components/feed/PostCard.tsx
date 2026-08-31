@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updatePost } from '@neighbour/api-client';
+import { deletePost, updatePost } from '@neighbour/api-client';
 
 import ReactionBar from './ReactionBar';
 import CommentDrawer from './CommentDrawer';
@@ -34,6 +34,8 @@ export default function PostCard({
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const isOwner = Boolean(currentUserId && post.author?.id === currentUserId);
 
@@ -67,6 +69,35 @@ export default function PostCard({
     setEditContent(post.content ?? '');
     setEditError(null);
     setEditing(false);
+  }
+
+  async function deleteOwnedPost() {
+    if (!isOwner || deleting) return;
+
+    const confirmed = window.confirm(
+      'Delete this post? This cannot be undone.',
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await deletePost(post.id);
+
+      if (onPostUpdated) {
+        await onPostUpdated();
+      }
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error
+          ? error.message
+          : 'The post could not be deleted.',
+      );
+    } finally {
+      setDeleting(false);
+    }
   }
 
   async function sharePost() {
@@ -289,7 +320,7 @@ export default function PostCard({
         {isOwner ? (
           <button
             type="button"
-            disabled={saving}
+            disabled={saving || deleting}
             onClick={() => {
               setEditContent(post.content ?? '');
               setEditError(null);
@@ -300,10 +331,31 @@ export default function PostCard({
               background: '#f5f5f5',
               borderRadius: '20px',
               padding: '8px 18px',
-              cursor: saving ? 'default' : 'pointer',
+              cursor: saving || deleting ? 'default' : 'pointer',
             }}
           >
             ✎ Edit
+          </button>
+        ) : null}
+
+        {isOwner ? (
+          <button
+            type="button"
+            disabled={deleting || saving}
+            onClick={() => {
+              void deleteOwnedPost();
+            }}
+            style={{
+              border: '1px solid #fecaca',
+              background: '#fff7f7',
+              color: '#b91c1c',
+              borderRadius: '20px',
+              padding: '8px 18px',
+              cursor: deleting || saving ? 'default' : 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
           </button>
         ) : null}
 
@@ -322,6 +374,10 @@ export default function PostCard({
         >
           ↗ Share
         </button>
+
+        {deleteError ? (
+          <small style={{ color: '#b91c1c' }}>{deleteError}</small>
+        ) : null}
 
         {shareMessage ? (
           <small style={{ color: '#666' }}>{shareMessage}</small>

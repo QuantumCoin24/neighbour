@@ -612,6 +612,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             onRetry={() => {
               void feed.loadMore();
             }}
+            onPostDeleted={() => feed.refresh()}
           />
         )}
       </View>

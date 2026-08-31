@@ -532,7 +532,10 @@ export default function CommunityDetailScreen({ navigation, route }: CommunityDe
               </AppText>
             </View>
 
-            <FeedList posts={detail.posts} />
+            <FeedList
+              posts={detail.posts}
+              onPostDeleted={() => detail.refresh()}
+            />
           </View>
         ) : null}
 

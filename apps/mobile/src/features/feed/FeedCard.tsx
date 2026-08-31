@@ -1,4 +1,4 @@
-import { updatePost, type FeedPost } from '@neighbour/api-client';
+import { deletePost, updatePost, type FeedPost } from '@neighbour/api-client';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -21,15 +21,17 @@ import { RelativeTime } from './RelativeTime';
 
 interface FeedCardProps {
   post: FeedPost;
+  onDeleted?: (postId: string) => void | Promise<void>;
 }
 
-export function FeedCard({ post }: FeedCardProps) {
+export function FeedCard({ post, onDeleted }: FeedCardProps) {
   const { theme } = useNeighbourTheme();
   const { user } = useAuth();
   const [localPost, setLocalPost] = useState<FeedPost | null>(null);
   const [editing, setEditing] = useState(false);
   const [editingContent, setEditingContent] = useState(post.content);
   const [editSaving, setEditSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     setLocalPost(null);
@@ -52,8 +54,54 @@ export function FeedCard({ post }: FeedCardProps) {
     setEditing(true);
   };
 
+  const deleteOwnedPost = async () => {
+    if (!mine || deleting) {
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      await deletePost(activePost.id);
+      await onDeleted?.(activePost.id);
+    } catch (caughtError) {
+      Alert.alert(
+        'Post not deleted',
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Neighbour could not delete this post.',
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const confirmDeletePost = () => {
+    if (!mine || deleting) {
+      return;
+    }
+
+    Alert.alert(
+      'Delete Post',
+      'Delete this post? This cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            void deleteOwnedPost();
+          },
+        },
+      ],
+    );
+  };
+
   const openPostMenu = () => {
-    if (!mine) {
+    if (!mine || deleting) {
       return;
     }
 
@@ -61,6 +109,11 @@ export function FeedCard({ post }: FeedCardProps) {
       {
         text: 'Edit Post',
         onPress: startEditing,
+      },
+      {
+        text: 'Delete Post',
+        style: 'destructive',
+        onPress: confirmDeletePost,
       },
       {
         text: 'Cancel',
@@ -136,7 +189,7 @@ export function FeedCard({ post }: FeedCardProps) {
           <Pressable
             accessibilityLabel="Post options"
             accessibilityRole="button"
-            disabled={editSaving}
+            disabled={editSaving || deleting}
             onPress={openPostMenu}
             style={({ pressed }) => [
               styles.menuButton,

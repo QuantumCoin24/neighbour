@@ -14,6 +14,7 @@ interface FeedListProps {
   error?: string | null;
   onLoadMore?: () => void;
   onRetry?: () => void;
+  onPostDeleted?: (postId: string) => void | Promise<void>;
 }
 
 export function FeedList({
@@ -23,6 +24,7 @@ export function FeedList({
   error = null,
   onLoadMore,
   onRetry,
+  onPostDeleted,
 }: FeedListProps) {
   const { theme } = useNeighbourTheme();
 
@@ -33,7 +35,11 @@ export function FeedList({
   return (
     <View style={styles.list}>
       {posts.map((post) => (
-        <FeedCard key={post.id} post={post} />
+        <FeedCard
+          key={post.id}
+          post={post}
+          onDeleted={onPostDeleted}
+        />
       ))}
 
       {error ? (
