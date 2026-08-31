@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 import { Roles } from '../../../auth/decorators/roles.decorator';
@@ -28,6 +28,12 @@ export class VerificationController {
       businessId,
       ...(body.notes !== undefined ? { notes: body.notes } : {}),
     });
+  }
+
+  @Roles(PlatformRole.MODERATOR, PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN)
+  @Get('verifications')
+  list(@Query('status') status?: string) {
+    return this.service.list(status);
   }
 
   @Get(':businessId/verification')

@@ -13,3 +13,15 @@ export interface VerificationEntity {
 
   reviewerId?: string | null;
 }
+
+export interface VerificationQueueEntity extends VerificationEntity {
+  business: {
+    id: string;
+    communityId: string;
+    ownerId: string;
+    name: string;
+    description: string;
+    category: string;
+    verified: boolean;
+  };
+}

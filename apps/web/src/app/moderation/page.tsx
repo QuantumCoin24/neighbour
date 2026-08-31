@@ -80,6 +80,29 @@ export default function ModerationPage() {
     >
       <h1>🛡️ Neighbour™ Safety Centre</h1>
 
+      <NeighbourCard>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '20px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <h2 style={{ margin: '0 0 6px' }}>Business Verification</h2>
+            <p style={{ margin: 0 }}>
+              Review and manage business verification requests.
+            </p>
+          </div>
+
+          <Link href="/moderation/business-verifications">
+            <NeighbourButton>Open Verification Centre</NeighbourButton>
+          </Link>
+        </div>
+      </NeighbourCard>
+
       <ModerationStats token={localStorage.getItem('accessToken') ?? ''} />
 
       <NeighbourCard>

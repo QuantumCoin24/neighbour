@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { DatabaseService } from '../../../database/database.service';
 
-import type { VerificationEntity } from './verification.entity';
+import type {
+  VerificationEntity,
+  VerificationQueueEntity,
+} from './verification.entity';
 
 import { VerificationRepository } from './verification.repository';
 
@@ -58,5 +61,38 @@ export class PrismaVerificationRepository extends VerificationRepository {
     });
 
     return record ? this.map(record) : undefined;
+  }
+
+  async findMany(status?: string): Promise<VerificationQueueEntity[]> {
+    const records = await this.database.businessVerification.findMany({
+      ...(status
+        ? {
+            where: {
+              status: status as any,
+            },
+          }
+        : {}),
+      include: {
+        business: {
+          select: {
+            id: true,
+            communityId: true,
+            ownerId: true,
+            name: true,
+            description: true,
+            category: true,
+            verified: true,
+          },
+        },
+      },
+      orderBy: {
+        submittedAt: 'desc',
+      },
+    });
+
+    return records.map((record) => ({
+      ...this.map(record),
+      business: record.business,
+    }));
   }
 }

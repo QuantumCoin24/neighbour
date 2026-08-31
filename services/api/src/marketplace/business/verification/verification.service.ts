@@ -9,7 +9,10 @@ import {
 import { DatabaseService } from '../../../database/database.service';
 import { BusinessVerificationStatus } from '../../../generated/prisma/client.js';
 
-import type { VerificationEntity } from './verification.entity';
+import type {
+  VerificationEntity,
+  VerificationQueueEntity,
+} from './verification.entity';
 import { VerificationRepository } from './verification.repository';
 
 @Injectable()
@@ -102,6 +105,21 @@ export class VerificationService {
     }
 
     return verification;
+  }
+
+  async list(status?: string): Promise<VerificationQueueEntity[]> {
+    if (
+      status !== undefined &&
+      status !== BusinessVerificationStatus.PENDING &&
+      status !== BusinessVerificationStatus.APPROVED &&
+      status !== BusinessVerificationStatus.REJECTED
+    ) {
+      throw new BadRequestException(
+        'Verification status must be PENDING, APPROVED or REJECTED.',
+      );
+    }
+
+    return this.repository.findMany(status);
   }
 
   async review(
