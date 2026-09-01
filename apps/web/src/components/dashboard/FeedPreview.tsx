@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   attachMediaToPost,
   createPost,
+  deletePost,
   getCurrentUser,
   getHomeFeed,
   updatePost,
@@ -173,6 +174,7 @@ export default function FeedPreview({ token }: Props) {
   const [editingContent, setEditingContent] = useState('');
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [shareNotice, setShareNotice] = useState<{
     postId: string;
     message: string;
@@ -294,6 +296,44 @@ export default function FeedPreview({ token }: Props) {
       );
     } finally {
       setEditSaving(false);
+    }
+  }
+
+  async function deleteOwnedPost(post: FeedPost) {
+    const author = getAuthor(post);
+    const mine = Boolean(
+      currentUserId && author?.id && author.id === currentUserId,
+    );
+
+    if (!mine || deletingPostId) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Delete this post? This cannot be undone.',
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingPostId(post.id);
+
+    try {
+      await deletePost(post.id);
+      setPosts((current) => current.filter((item) => item.id !== post.id));
+
+      if (editingPostId === post.id) {
+        cancelEditingPost();
+      }
+    } catch (caughtError) {
+      window.alert(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'The post could not be deleted.',
+      );
+    } finally {
+      setDeletingPostId(null);
     }
   }
 
@@ -708,6 +748,19 @@ export default function FeedPreview({ token }: Props) {
                     <span aria-hidden="true">↗</span>
                     Share
                   </button>
+                  {mine ? (
+                    <button
+                      aria-label="Delete post"
+                      disabled={deletingPostId === post.id}
+                      type="button"
+                      onClick={() => {
+                        void deleteOwnedPost(post);
+                      }}
+                    >
+                      <span aria-hidden="true">×</span>
+                      {deletingPostId === post.id ? 'Deleting…' : 'Delete'}
+                    </button>
+                  ) : null}
                 </div>
 
                 {shareNotice?.postId === post.id ? (
