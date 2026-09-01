@@ -37,17 +37,23 @@ export function VibeMediaSurface({
   }
 
   return (
-    <Image
-      resizeMode="cover"
-      source={{
-        uri: media.publicUrl,
-      }}
-      style={StyleSheet.absoluteFill}
-    />
+    <View style={styles.imageCanvas}>
+      <Image
+        resizeMode="contain"
+        source={{
+          uri: media.publicUrl,
+        }}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  imageCanvas: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: '#000000',
+  },
   empty: {
     ...StyleSheet.absoluteFill,
     backgroundColor: '#080A0D',

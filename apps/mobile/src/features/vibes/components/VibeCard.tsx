@@ -1,6 +1,8 @@
 import type { Vibe } from '@neighbour/api-client';
+import { useEffect, useState } from 'react';
 import {
   Image,
+  Pressable,
   StyleSheet,
   View,
 } from 'react-native';
@@ -24,6 +26,14 @@ export function VibeCard({
   onChange,
   onComments,
 }: VibeCardProps) {
+  const [captionExpanded, setCaptionExpanded] = useState(false);
+  const [captionTruncated, setCaptionTruncated] = useState(false);
+
+  useEffect(() => {
+    setCaptionExpanded(false);
+    setCaptionTruncated(false);
+  }, [vibe.id]);
+
   return (
     <View
       style={[
@@ -100,12 +110,34 @@ export function VibeCard({
           </View>
 
           {vibe.caption ? (
-            <AppText
-              style={styles.caption}
-              tone="inverse"
-            >
-              {vibe.caption}
-            </AppText>
+            <View>
+              <AppText
+                numberOfLines={captionExpanded ? undefined : 4}
+                onTextLayout={(event) => {
+                  if (!captionExpanded && event.nativeEvent.lines.length >= 4) {
+                    setCaptionTruncated(true);
+                  }
+                }}
+                style={styles.caption}
+                tone="inverse"
+              >
+                {vibe.caption}
+              </AppText>
+
+              {captionTruncated || captionExpanded ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setCaptionExpanded((value) => !value);
+                  }}
+                  style={styles.captionToggle}
+                >
+                  <AppText style={styles.captionToggleText} tone="inverse">
+                    {captionExpanded ? 'Less' : 'More'}
+                  </AppText>
+                </Pressable>
+              ) : null}
+            </View>
           ) : null}
 
           <View style={styles.metaRow}>
@@ -228,6 +260,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
     maxWidth: 300,
+  },
+  captionToggle: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    paddingVertical: 2,
+  },
+  captionToggleText: {
+    fontSize: 13,
+    fontWeight: '900',
+    opacity: 0.92,
   },
   metaRow: {
     flexDirection: 'row',
