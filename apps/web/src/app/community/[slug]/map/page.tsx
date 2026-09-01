@@ -946,7 +946,10 @@ export default function CommunityMapPage() {
         }
 
         .discovery-panel {
-          min-height: 540px;
+          display: flex;
+          height: 540px;
+          min-height: 0;
+          flex-direction: column;
         }
 
         .panel-heading {
@@ -1004,7 +1007,11 @@ export default function CommunityMapPage() {
 
         .discovery-list {
           display: flex;
+          min-height: 0;
+          flex: 1;
           flex-direction: column;
+          overflow-y: auto;
+          overscroll-behavior: contain;
         }
 
         .discovery-row {
@@ -1193,7 +1200,11 @@ export default function CommunityMapPage() {
           }
 
           .discovery-panel {
+            height: auto;
             min-height: auto;
+          }
+          .discovery-list {
+            overflow-y: visible;
           }
 
           .editor-grid {
