@@ -50,7 +50,13 @@ function VibeMedia({ vibe }: { vibe: Vibe }) {
     );
   }
 
-  return <img className="vibe-media" src={media.publicUrl} alt={vibe.caption ?? 'Vibe'} />;
+  return (
+    <img
+      className="vibe-media vibe-media-image"
+      src={media.publicUrl}
+      alt={vibe.caption ?? 'Vibe'}
+    />
+  );
 }
 
 function Comments({
@@ -1926,6 +1932,11 @@ export default function VibesPage() {
           object-fit: cover;
         }
 
+        .vibe-media-image {
+          object-fit: contain;
+          background: #050806;
+        }
+
         .vibe-media-empty {
           display: grid;
           place-items: center;
@@ -2027,6 +2038,10 @@ export default function VibesPage() {
         .vibe-caption {
           min-height: 42px;
           margin: 0 0 12px;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 4;
           color: #273c32;
           font-size: 14px;
           line-height: 1.5;
