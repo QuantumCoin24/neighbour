@@ -751,13 +751,14 @@ export default function FeedPreview({ token }: Props) {
                   {mine ? (
                     <button
                       aria-label="Delete post"
+                      className="neighbour-post-delete"
                       disabled={deletingPostId === post.id}
                       type="button"
                       onClick={() => {
                         void deleteOwnedPost(post);
                       }}
                     >
-                      <span aria-hidden="true">×</span>
+                      <span aria-hidden="true">⌫</span>
                       {deletingPostId === post.id ? 'Deleting…' : 'Delete'}
                     </button>
                   ) : null}
@@ -1166,30 +1167,47 @@ export default function FeedPreview({ token }: Props) {
 
         .neighbour-post-actions {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           border-top: 1px solid rgba(19, 58, 43, 0.065);
           padding: 5px;
         }
 
-        .neighbour-post-actions a {
+        .neighbour-post-actions a,
+        .neighbour-post-actions button {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 6px;
+          min-width: 0;
           padding: 9px 6px;
+          border: 0;
           border-radius: 11px;
+          background: transparent;
           color: #65766d;
+          font: inherit;
           font-size: 9px;
           font-weight: 800;
           text-decoration: none;
+          cursor: pointer;
           transition:
             color 0.15s ease,
             background 0.15s ease;
         }
 
-        .neighbour-post-actions a:hover {
+        .neighbour-post-actions a:hover,
+        .neighbour-post-actions button:hover {
           background: #f0f7f3;
           color: #08704a;
+        }
+
+        .neighbour-post-actions .neighbour-post-delete:hover {
+          background: #fff2f2;
+          color: #b42318;
+        }
+
+        .neighbour-post-actions button:disabled {
+          cursor: default;
+          opacity: 0.5;
         }
 
         .neighbour-feed-state,
@@ -1586,6 +1604,7 @@ export default function FeedPreview({ token }: Props) {
          * Unified accessible interaction.
          */
         .neighbour-post-actions a:focus-visible,
+        .neighbour-post-actions button:focus-visible,
         .neighbour-composer:focus-visible,
         .neighbour-composer-tools button:focus-visible,
         .neighbour-feed-empty > a:focus-visible,
