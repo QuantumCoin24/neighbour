@@ -168,9 +168,24 @@ export default function PostCard({
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '22px',
+              overflow: 'hidden',
+              flexShrink: 0,
             }}
           >
-            👤
+            {post.author?.avatarUrl ? (
+              <img
+                src={post.author.avatarUrl}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            ) : (
+              '👤'
+            )}
           </div>
 
           <div>
