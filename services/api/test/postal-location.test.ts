@@ -54,3 +54,8 @@ test('GB and UK country codes use canonical GB identity', () => {
     postalCode: 'SW1A 1AA',
   });
 });
+
+
+test('normalizes Irish Eircodes without imposing UK formatting', () => {
+  assert.equal(normalizePostalCode('IE', 'd6w e8v0'), 'D6W E8V0');
+});

@@ -5,7 +5,6 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
-  IsPostalCode,
   IsString,
   IsUrl,
   Length,
@@ -162,7 +161,11 @@ export class CreateCommunityDto {
 
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
   @IsOptional()
-  @IsPostalCode('GB')
+  @IsString()
+  @Length(2, 32)
+  @Matches(/^[A-Z0-9][A-Z0-9 .-]*[A-Z0-9]$/i, {
+    message: 'Enter a valid postcode, ZIP code or Eircode.',
+  })
   postcode?: string;
 
   @Type(() => Number)

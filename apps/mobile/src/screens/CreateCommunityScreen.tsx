@@ -1,6 +1,7 @@
 import {
   ApiClientError,
   createCommunity,
+  resolvePostalLocation,
   type CommunityCategory,
   type CommunityJoinPolicy,
   type CommunityVisibility,
@@ -37,6 +38,7 @@ interface CommunityDraft {
   category: CommunityCategory;
   tags: string;
   city: string;
+  countryCode: string;
   postcode: string;
   visibility: CommunityVisibility;
   joinPolicy: CommunityJoinPolicy;
@@ -165,6 +167,7 @@ const INITIAL_DRAFT: CommunityDraft = {
   category: 'LOCAL_AREA',
   tags: '',
   city: '',
+  countryCode: 'GB',
   postcode: '',
   visibility: 'PUBLIC',
   joinPolicy: 'OPEN',
@@ -327,8 +330,12 @@ export default function CreateCommunityScreen({ navigation }: Props) {
         return 'Enter the town or city served by this community.';
       }
 
-      if (draft.postcode.trim().length < 5) {
-        return 'Enter a valid UK postcode.';
+      if (!/^[A-Z]{2}$/.test(draft.countryCode.trim().toUpperCase())) {
+        return 'Enter a two-letter country code, for example GB, IE, US or CA.';
+      }
+
+      if (draft.postcode.trim().length < 2) {
+        return 'Enter a valid postcode, ZIP code or Eircode.';
       }
     }
 
@@ -365,6 +372,50 @@ export default function CreateCommunityScreen({ navigation }: Props) {
     setSubmitting(true);
     setError(null);
 
+    let resolvedLocation:
+      | {
+          city: string;
+          postcode: string;
+          latitude?: number;
+          longitude?: number;
+        }
+      | undefined;
+
+    try {
+      const result = await resolvePostalLocation({
+        countryCode: draft.countryCode.trim().toUpperCase(),
+        postalCode: draft.postcode.trim(),
+      });
+
+      resolvedLocation = {
+        city: result.city?.trim() || draft.city.trim(),
+        postcode: result.postalCode || draft.postcode.trim().toUpperCase(),
+        ...(result.resolved && result.latitude !== null && result.longitude !== null
+          ? {
+              latitude: result.latitude,
+              longitude: result.longitude,
+            }
+          : {}),
+      };
+    } catch (locationError) {
+      /*
+       * Postal resolver coverage must not prevent a legitimate community
+       * from being created. Keep the supplied locality/postal code and let
+       * the community location be refined later.
+       */
+      resolvedLocation = {
+        city: draft.city.trim(),
+        postcode: draft.postcode.trim().toUpperCase(),
+      };
+
+      if (__DEV__) {
+        console.warn(
+          '[Neighbour/CreateCommunity] postal location resolution failed:',
+          locationError,
+        );
+      }
+    }
+
     const data: CreateCommunityRequest = {
       name: draft.name.trim(),
       ...(draft.handle.trim()
@@ -379,8 +430,15 @@ export default function CreateCommunityScreen({ navigation }: Props) {
         .split(',')
         .map((tag) => tag.trim().toLowerCase())
         .filter(Boolean),
-      city: draft.city.trim(),
-      postcode: draft.postcode.trim().toUpperCase(),
+      city: resolvedLocation.city,
+      postcode: resolvedLocation.postcode,
+      ...(resolvedLocation.latitude !== undefined &&
+      resolvedLocation.longitude !== undefined
+        ? {
+            latitude: resolvedLocation.latitude,
+            longitude: resolvedLocation.longitude,
+          }
+        : {}),
       visibility: draft.visibility,
       joinPolicy: draft.joinPolicy,
       approvalRequired: draft.joinPolicy === 'APPROVAL',
@@ -555,10 +613,19 @@ export default function CreateCommunityScreen({ navigation }: Props) {
 
             <Field
               autoCapitalize="characters"
-              label="Postcode"
-              maxLength={12}
+              label="Country code"
+              maxLength={2}
+              onChangeText={(value) => update('countryCode', value.toUpperCase())}
+              placeholder="GB, IE, US, CA"
+              value={draft.countryCode}
+            />
+
+            <Field
+              autoCapitalize="characters"
+              label="Postcode / ZIP / Eircode"
+              maxLength={32}
               onChangeText={(value) => update('postcode', value.toUpperCase())}
-              placeholder="M9 8AB"
+              placeholder="e.g. M9 8AB, D6W E8V0, 10001"
               value={draft.postcode}
             />
 
